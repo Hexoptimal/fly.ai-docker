@@ -2,6 +2,8 @@
 
 https://github.com/user-attachments/assets/7c3b91e5-9b50-4017-a03a-123aedd4d7b4
 
+*Video not playing? [Open `video.mp4` directly](video.mp4).*
+
 
 
 FLYBRAIN is a simulation of the **complete central nervous system of an adult male fruit fly**
@@ -207,3 +209,12 @@ to fight a fly.
 
 If you use the connectome data, cite reference 1 and follow the
 [MaleCNS attribution terms](https://male-cns.janelia.org/download/).
+
+## License
+
+The code in this repository is released under the [MIT License](LICENSE).
+
+The MaleCNS connectome data is **not** included. `build_brain.py` downloads it from its source, and
+it stays under its own [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license from
+FlyEM (HHMI Janelia) and collaborators. SSH Fighter is a separate project by Thomas Davis and is
+not part of this repository.
