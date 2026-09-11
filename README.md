@@ -1,8 +1,8 @@
 # FLYBRAIN: a fruit fly's nervous system plays a fighting game
 
-<!-- To get an inline player on GitHub: edit this README on github.com, drag video.mp4 into
-     the editor, and replace the link below with the URL GitHub generates. -->
-**▶ [Watch the demo (video.mp4)](video.mp4)**
+https://github.com/user-attachments/assets/7c3b91e5-9b50-4017-a03a-123aedd4d7b4
+
+
 
 FLYBRAIN is a simulation of the **complete central nervous system of an adult male fruit fly**
 (*Drosophila melanogaster*): **166,700 neurons and 25.6 million connections** from the
