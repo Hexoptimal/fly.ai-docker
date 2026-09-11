@@ -142,6 +142,9 @@ cd sshfighter
 python fly_fighter.py --offline --seconds 120 --dashboard     # fake opponent, opens http://127.0.0.1:8777
 ```
 
+Add `--device cuda` to run the brain on an NVIDIA GPU (see the [main README](../README.md#run-it)).
+It brings brain time down to about 2.6 ms per game frame, against about 15 ms on the CPU.
+
 **Playing online.** Give the bot its own SSH key and name:
 
 ```sh

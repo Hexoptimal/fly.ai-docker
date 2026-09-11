@@ -33,9 +33,7 @@ def sides(brain: FlyBrain) -> np.ndarray:
 
 
 def run(brain, scene, groups, seed=64):
-    brain.v[:] = 0
-    brain.fired = np.empty(0, np.int64)
-    brain.rng = np.random.default_rng(seed)
+    brain.reset(seed)
     eyes = Eyes(brain.azimuth)
     counts = {k: 0 for k in groups}
     steps = int(SECONDS / brain.dt)

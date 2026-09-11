@@ -30,15 +30,13 @@ def side_array(brain):
 
 
 def run(brain, target, strength, readout, seed):
-    brain.v[:] = 0
-    brain.fired = np.empty(0, np.int64)
-    brain.rng = np.random.default_rng(seed)
+    brain.reset(seed)
     steps, warm = int(SECONDS / brain.dt), int(0.5 / brain.dt)
     counts = {k: 0 for k in readout}
     hit = np.zeros(brain.n, bool)
     for s in range(steps):
         if target is not None:
-            brain.v[target] += strength
+            brain.stimulate(target, strength)
         fired = brain.step(np.full(len(brain.visual), 0.45, np.float32))
         if s >= warm:
             hit[:] = False

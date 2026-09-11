@@ -122,9 +122,9 @@ def detector_inputs(state: dict):
 class Fly:
     """Keeps the brain running in step with game time (50 brain steps per 30 frames)."""
 
-    def __init__(self):
+    def __init__(self, device: str | None = None):
         print("loading connectome...", flush=True)
-        self.brain = FlyBrain()
+        self.brain = FlyBrain(device=device)
         self.eyes = Eyes(self.brain.azimuth)
         self.features = FeatureDetectors(self.brain)
         self.featurizer = Featurizer(self.brain)   # descending-neuron traces for the trained readout
@@ -140,7 +140,8 @@ class Fly:
         self.game_time = 0.0
         self.step_ms = 0.0
         self.frame_spikes = np.empty(0, np.int64)   # every neuron that fired during the last game frame
-        print(f"brain ready: {self.brain.n:,} neurons, {len(self.brain.indices):,} connections", flush=True)
+        print(f"brain ready: {self.brain.n:,} neurons, {len(self.brain.indices):,} connections "
+              f"on {self.brain.device}", flush=True)
         # Settle spontaneous activity so baselines are meaningful before the first fight.
         for _ in range(250):
             self.decoder.observe(self.brain.step(self.eyes.drive([])))
@@ -417,12 +418,13 @@ def main():
     p.add_argument("--readout", help="trained readout.npz: attacks chosen from descending-neuron activity")
     p.add_argument("--no-move-readout", action="store_true",
                    help="with --readout: keep the fly's own steering instead of the trained movement readout")
+    p.add_argument("--device", choices=["cpu", "cuda", "auto"], help="where to run the brain (default: $FLY_DEVICE or cpu)")
     args = p.parse_args()
     if not args.offline and not args.user:
         sys.exit("--user is required for live play (or use --offline)")
     if args.record and args.readout:
         sys.exit("use --record (collect data) or --readout (use a trained readout), not both")
-    fly = Fly()
+    fly = Fly(args.device)
     fly.explore = bool(args.record)
     if args.readout:
         fly.readout = Readout(args.readout)

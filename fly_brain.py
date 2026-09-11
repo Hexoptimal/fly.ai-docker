@@ -43,7 +43,18 @@ def _propagate(indptr, indices, weights, fired, n):
     return current
 
 
+def cuda_available() -> bool:
+    try:
+        import cupy
+        return cupy.cuda.runtime.getDeviceCount() > 0
+    except Exception:
+        return False
+
+
 class FlyBrain:
+    """device: "cpu" (numba), "cuda" (CuPy, NVIDIA GPU) or "auto"; defaults to
+    $FLY_DEVICE, else "cpu". Both run the same model; the noise streams differ,
+    so individual spikes differ between devices but statistics match."""
     dt = 0.020
     tau = 0.100
     gain = 3.0
@@ -52,8 +63,22 @@ class FlyBrain:
     noise_amp = 0.22
     eye_gain = 0.62
 
-    def __init__(self, data: Path = DATA, seed: int = 64):
-        W = sparse.load_npz(data / "weights.npz").tocsc()
+    def __init__(self, data: Path = DATA, seed: int = 64, device: str | None = None):
+        device = device or os.environ.get("FLY_DEVICE", "cpu")
+        if device == "auto":
+            device = "cuda" if cuda_available() else "cpu"
+        if device not in ("cpu", "cuda"):
+            raise ValueError(f"device must be cpu, cuda or auto, not {device!r}")
+        self.device = device
+        W = sparse.load_npz(data / "weights.npz")
+        if device == "cuda":
+            import cupy
+            from cupyx.scipy import sparse as cusparse
+            self.xp = cupy
+            self._W = cusparse.csr_matrix(W.tocsr().astype(np.float32))  # rows = postsynaptic
+        else:
+            self.xp = np
+        W = W.tocsc()
         self.n = W.shape[0]
         self.indptr, self.indices, self.weights = W.indptr, W.indices, W.data
         meta = np.load(data / "brain.npz")
@@ -64,10 +89,16 @@ class FlyBrain:
         self.positions = meta["positions"] if "positions" in meta.files else None
         self.superclass = meta["superclass"] if "superclass" in meta.files else None
         self.groups = {k.removeprefix("group_"): meta[k] for k in meta.files if k.startswith("group_")}
-        self.rng = np.random.default_rng(seed)
+        self._visual = self.xp.asarray(self.visual)
         self.decay = np.float32(np.exp(-self.dt / self.tau))
-        self.v = np.zeros(self.n, np.float32)
-        self.fired = np.empty(0, np.int64)
+        self.reset(seed)
+
+    def reset(self, seed: int | None = None) -> None:
+        """Silence the network (all voltages 0, no spikes) and restart the noise."""
+        xp = self.xp
+        self.rng = xp.random.default_rng(seed)
+        self.v = xp.zeros(self.n, xp.float32)
+        self.fired = xp.empty(0, xp.int64)
         self.steps = 0
 
     def cells(self, types: list[str], side: str | None = None) -> np.ndarray:
@@ -76,22 +107,32 @@ class FlyBrain:
             mask &= self.side == side
         return np.flatnonzero(mask)
 
-    def synaptic_input(self, fired: np.ndarray) -> np.ndarray:
+    def stimulate(self, idx: np.ndarray, amount: float) -> None:
+        """Add voltage to these neurons right now (before the next step)."""
+        self.v[self.xp.asarray(idx)] += np.float32(amount)
+
+    def synaptic_input(self, fired):
+        if self.device == "cuda":
+            spikes = self.xp.zeros(self.n, self.xp.float32)
+            spikes[fired] = 1.0
+            return self._W @ spikes
         return _propagate(self.indptr, self.indices, self.weights, fired, self.n)
 
     def step(self, eye_drive: np.ndarray | None = None, inject=()) -> np.ndarray:
         """Advance 20 ms. eye_drive: 0..1 per photoreceptor (len(self.visual));
-        inject: (neuron indices, extra voltage) pairs added this step."""
+        inject: (neuron indices, extra voltage) pairs added this step.
+        Returns the indices of the neurons that fired, always as a NumPy array."""
+        xp = self.xp
         current = self.synaptic_input(self.fired) * self.gain
         self.v *= self.decay
         self.v += current + self.tonic
         self.v += (self.rng.random(self.n) < self.noise_hz * self.dt) * np.float32(self.noise_amp)
         if eye_drive is not None:
-            self.v[self.visual] += eye_drive.astype(np.float32) * self.eye_gain
+            self.v[self._visual] += xp.asarray(eye_drive, dtype=xp.float32) * self.eye_gain
         for idx, amount in inject:
-            self.v[idx] += np.float32(amount)
-        fired = np.flatnonzero(self.v >= 1.0)
+            self.v[xp.asarray(idx)] += np.float32(amount)
+        fired = xp.flatnonzero(self.v >= 1.0)
         self.v[fired] = 0.0
         self.fired = fired
         self.steps += 1
-        return fired
+        return fired if xp is np else fired.get()

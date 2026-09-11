@@ -17,9 +17,7 @@ SECONDS = 3.0
 
 
 def run(brain: FlyBrain, scene, label: str) -> dict[str, float]:
-    brain.v[:] = 0
-    brain.fired = np.empty(0, np.int64)
-    brain.rng = np.random.default_rng(64)  # same noise every condition
+    brain.reset(64)  # same noise every condition
     eyes = Eyes(brain.azimuth)
     steps = int(SECONDS / brain.dt)
     counts = {g: 0 for g in brain.groups}

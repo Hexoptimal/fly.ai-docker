@@ -109,6 +109,23 @@ python build_brain.py          # downloads MaleCNS v1.0 (~1.1 GB) to ~/fly-data 
 
 Set `FLY_DATA=/some/path` to store the data somewhere else.
 
+**Quickstart notebook:** [`notebooks/quickstart.ipynb`](notebooks/quickstart.ipynb) loads the
+brain, stimulates the left looming detectors and shows the left giant fiber fire, maps where
+the activity goes, and tests the chase pathway. It needs `pip install matplotlib jupyter`.
+
+```python
+from fly_brain import FlyBrain
+brain = FlyBrain(device="auto")                      # GPU if available, else CPU
+brain.stimulate(brain.cells(["LC4", "LPLC2"], side="L"), 0.8)
+fired = brain.step()                                 # advance 20 ms; indices of neurons that spiked
+```
+
+**GPU:** on an NVIDIA card, `pip install -r requirements-gpu.txt` and set `FLY_DEVICE=cuda` (or
+pass `device="cuda"`, or `--device cuda` to the bot). The whole connectome fits in about 210 MB of
+GPU memory. On an RTX 4060 laptop GPU a step takes **1.4 ms, against 8.9 ms on a 24-thread CPU**.
+Both devices run the same model and give the same results. Only the random noise differs, so
+individual spikes differ between them.
+
 **Experiments:** `python experiment.py`, `python sweep.py`, `python inject.py`.
 
 **Watch it play:** `python sshfighter/fly_fighter.py --offline --seconds 120 --dashboard`
