@@ -1,9 +1,12 @@
-"""What the fly "sees": a 1-D panorama projected onto its 6,006 photoreceptors.
+"""What the fly "sees".
 
-Each photoreceptor has an azimuth (-1 = far left, +1 = far right) estimated
-from the MaleCNS optic-column tables. Objects are dark silhouettes on a bright
-background; closer objects cover more of the eye (so an approaching one looms).
-Drive formula matches fly64: brightness plus absolute change since last step.
+Two routes into the brain:
+* Eyes: a 1-D panorama projected onto the 6,006 photoreceptors. Each has an
+  azimuth (-1 = far left, +1 = far right) estimated from the MaleCNS
+  optic-column tables. Kept for completeness: in a spiking model this signal
+  fades at the lamina (see sweep.py).
+* FeatureDetectors: drive the fly's own visual projection neuron types
+  directly, on the side where things are. This is the route that works.
 """
 from __future__ import annotations
 
@@ -43,47 +46,60 @@ class Eyes:
 
 LOOM_GAIN = 10.0   # angular growth per game frame -> extra voltage
 CHASE_BASE, CHASE_GAIN = 0.6, 0.2
+THREAT_MAX = 0.8
+
+# Which identified neuron types each channel drives. The picks are ours, guided by
+# the literature and checked by stimulating each type (all four reach descending
+# neurons): LPLC2 = looming, LC4 = fast looming and escape (strongly drives
+# DNp01/02/04), LPLC1 = small approaching objects, LC10a = the target a male chases.
+CHANNELS = {"loom": ["LPLC2"], "threat": ["LC4"], "shot": ["LPLC1"], "chase": ["LC10a"]}
 
 
 class FeatureDetectors:
     """Shortcut past the lamina, which a spiking model can't relay (its neurons
-    are graded in real flies): drive the fly's own looming detectors (LC4,
-    LPLC2) and object-tracking neurons (LC10a) on the side where things are.
-    As in Eon's embodied fly, this visual front end is a model; everything
-    downstream of these neurons is the connectome.
+    are graded in real flies). As in Eon's embodied fly, this visual front end
+    is a model; everything downstream of these neurons is the connectome.
     """
 
     def __init__(self, brain):
-        self.loom = {s: brain.cells(["LC4", "LPLC2"], s) for s in "LR"}
-        self.chase = {s: brain.cells(["LC10a"], s) for s in "LR"}
+        self.cells = {ch: {s: brain.cells(types, s) for s in "LR"} for ch, types in CHANNELS.items()}
         self.previous: dict = {}
-        self.last = {"loomL": 0.0, "loomR": 0.0, "chaseL": 0.0, "chaseR": 0.0}
+        self.last = {f"{ch}{s}": 0.0 for ch in CHANNELS for s in "LR"}
 
-    def inject(self, objects: list[tuple[str, float, float]]) -> list:
-        """objects: (stable key, dx from the fly in screen units, size). Call once per game frame."""
-        loom = {"L": 0.0, "R": 0.0}
-        chase = {"L": 0.0, "R": 0.0}
+    @property
+    def loom(self):
+        return self.cells["loom"]
+
+    @property
+    def chase(self):
+        return self.cells["chase"]
+
+    def inject(self, opp=None, shots=(), threat: float = 0.0) -> list:
+        """opp: (dx, size) of the opponent, or None; shots: hostile projectiles as
+        (stable key, dx, size); threat: 0..1, how hard the opponent is attacking
+        right now. dx is in screen units from the fly. Call once per game frame."""
+        drive = {key: 0.0 for key in self.last}
         seen = {}
-        for key, dx, size in objects:
-            s = "L" if dx < 0 else "R"
+
+        def angle_and_growth(key, dx, size):
             angle = size / max(abs(dx), 8.0)
-            loom[s] = max(loom[s], angle - self.previous.get(key, angle))
             seen[key] = angle
-            if key == "opp":
-                chase[s] = angle
+            return angle, max(0.0, angle - self.previous.get(key, angle))
+
+        if opp is not None:
+            dx, size = opp
+            s = "L" if dx < 0 else "R"
+            angle, growth = angle_and_growth("opp", dx, size)
+            drive[f"loom{s}"] = min(0.8, growth * LOOM_GAIN)
+            drive[f"chase{s}"] = min(0.8, CHASE_BASE + CHASE_GAIN * angle)
+            drive[f"threat{s}"] = THREAT_MAX * float(np.clip(threat, 0, 1))
+        for key, dx, size in shots:
+            s = "L" if dx < 0 else "R"
+            _, growth = angle_and_growth(key, dx, size)
+            drive[f"shot{s}"] = max(drive[f"shot{s}"], min(0.8, growth * LOOM_GAIN))
         self.previous = seen
-        out = []
-        self.last = {"loomL": 0.0, "loomR": 0.0, "chaseL": 0.0, "chaseR": 0.0}
-        for s in "LR":
-            if loom[s] > 0:
-                amount = min(0.8, loom[s] * LOOM_GAIN)
-                out.append((self.loom[s], amount))
-                self.last[f"loom{s}"] = amount
-            if chase[s] > 0:
-                amount = min(0.8, CHASE_BASE + CHASE_GAIN * chase[s])
-                out.append((self.chase[s], amount))
-                self.last[f"chase{s}"] = amount
-        return out
+        self.last = drive
+        return [(self.cells[key[:-1]][key[-1]], amount) for key, amount in drive.items() if amount > 0]
 
 
 def blob_for(dx: float, size: float, darkness: float) -> Blob:

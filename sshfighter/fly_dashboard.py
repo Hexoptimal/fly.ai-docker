@@ -45,9 +45,9 @@ class Dashboard:
         groups = {}
         for name, idx in brain.groups.items():
             groups[name] = [int(i) for i in self.pos_index[idx] if i >= 0]
-        for s in "LR":
-            groups[f"loom{s}"] = [int(i) for i in self.pos_index[fly.features.loom[s]] if i >= 0]
-            groups[f"chase{s}"] = [int(i) for i in self.pos_index[fly.features.chase[s]] if i >= 0]
+        for channel, per_side in fly.features.cells.items():
+            for s, idx in per_side.items():
+                groups[f"{channel}{s}"] = [int(i) for i in self.pos_index[idx] if i >= 0]
         self.static = json.dumps({
             "x": norm[:, 0].round().astype(int).tolist(), "y": norm[:, 1].round().astype(int).tolist(),
             "groups": groups, "labels": MOTOR_LABELS, "neurons": int(brain.n),

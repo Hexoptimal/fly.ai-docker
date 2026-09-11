@@ -1,59 +1,54 @@
-# FLYBRAIN: a fruit fly's nervous system plays a fighting game
+# fly.ai: a real fruit fly brain, running on your computer
 
 https://github.com/user-attachments/assets/7c3b91e5-9b50-4017-a03a-123aedd4d7b4
 
-*Video not playing? [Open `video.mp4` directly](video.mp4).*
+*The fly brain playing an online fighting game. See [sshfighter/](sshfighter/).*
 
-
-
-FLYBRAIN is a simulation of the **complete central nervous system of an adult male fruit fly**
+fly.ai is a simulation of the **complete central nervous system of an adult male fruit fly**
 (*Drosophila melanogaster*): **166,700 neurons and 25.6 million connections** from the
-[MaleCNS v1.0 connectome](https://male-cns.janelia.org). It plays
-[SSH Fighter](https://sshfighter.com), an online terminal fighting game, as a registered bot.
+[MaleCNS v1.0 connectome](https://male-cns.janelia.org), wired exactly as electron microscopy
+found them in a real fly.
 
-There is **no training, no reward and no learned policy**. The wiring comes from electron microscopy
-of a real fly brain. The game only touches the network at a few neuron types known from the
-literature to detect things and to issue movement commands. Everything in between is the connectome.
+There is **no training and no learned policy inside the brain**. You connect a task to it at a few
+neuron types known from the literature, one side for input (what the fly senses) and one for
+output (the commands its brain sends to the body). Everything in between is the connectome.
 
-It loses almost every match. It does chase its opponent, though, and the reason it chases turns
-out to be real fly biology.
-
-![Dashboard: the fight on the left, every neuron of the fly's nervous system on the right](media/dashboard.png)
+The goal is a general-purpose "fly reservoir": plug any task into the same frozen brain, read
+out what it does, and find out what a real nervous system's wiring is good for.
 
 ## How it works
 
 ```
-game state (30 Hz)
-  └─> "eyes": opponent + projectiles as objects on the fly's left / right
-        └─> LC4, LPLC2 (looming detectors)   LC10a (object tracking, used by males to chase)
-              └─> 166,700-neuron connectome, leaky integrate-and-fire, 50 steps/s
-                    └─> descending neurons (the brain's commands to the body)
-                          └─> buttons: move, jump, punch, kick
+task input
+  └─> encoder: drives the fly's own sensory / feature-detector neurons
+        └─> 166,700-neuron connectome, leaky integrate-and-fire, 50 steps/s
+              └─> descending neurons (the brain's 1,314 output cables to the body)
+                    └─> decoder or trained linear readout
+                          └─> task output
 ```
-
-| Readout neuron | What it does in a real fly | What it does in the game |
-|---|---|---|
-| DNa02, left vs right | steering while walking | walk left / right |
-| DNp01 (giant fiber) | escape take-off from looming objects | jump |
-| DNg100 | forward walking (as in Fly64) | walk forward |
-| MDN ("moonwalker") | backward walking | back off (= block) |
-| DNg11 | nothing to do with fighting (arbitrary choice) | punch |
-| pIP10 | courtship song | kick |
 
 * **Network** (`build_brain.py`, `fly_brain.py`): every neuron with a MaleCNS superclass
   annotation, and every connection between them. The weight is the synapse count, made negative
   when the presynaptic neuron's predicted transmitter is GABA, glutamate or histamine, then scaled
   so each neuron's inputs add up to 1. Each neuron is a simple leaky integrate-and-fire unit
   (`v ← e^(-dt/τ)·v + gain·W·spikes + tonic + noise`; it spikes and resets at 1). This recipe
-  follows [Fly64](https://github.com/ornata/fly).
-* **Eyes** (`fly_eyes.py`): the game state is turned into objects to the fly's left or right. An
-  approaching object drives the fly's own looming detectors on that side. The opponent drives
-  that side's LC10a neurons more strongly the closer it is.
-* **Decoder** (`fly_fighter.py`): counts spikes of the readout neurons in short windows. These
-  thresholds are hand-picked, and they are the only hand-tuned part between the brain and the
-  buttons.
-* **Dashboard** (`fly_dashboard.py`, `dashboard.html`): shows the live match next to all
-  140,638 neurons that have a measured position. Each dot flashes when its neuron fires.
+  follows [Fly64](https://github.com/ornata/fly). The simulation is multi-threaded with numba.
+* **Visual encoder** (`fly_eyes.py`): two routes into the brain.
+  * *Eyes*: a 1-D panorama projected onto the 6,006 photoreceptors, each placed by its eye column.
+  * *Feature detectors*: drive the fly's own visual projection neurons directly, on the side
+    where things are:
+
+    | Neuron type | Responds to (in a real fly) |
+    |---|---|
+    | LPLC2 | looming: something getting bigger as it approaches |
+    | LC4 | fast looming, escape |
+    | LPLC1 | small approaching objects |
+    | LC10a | a moving target the male chases |
+
+* **Outputs**: the brain's descending neurons, including identified command neurons such as
+  DNa02 (steering), DNp01 (the giant fiber, escape take-off), DNg100 (forward walking) and
+  MDN (backward walking). A task either decodes these by hand or trains a linear readout on all
+  of them (reservoir computing).
 
 ## What we found
 
@@ -77,13 +72,17 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
 
    None of the other readout neurons changed. These are the known looming → escape and
    courtship pursuit → steering pathways, and they come out of the wiring alone.
-4. **In a closed loop, it chases.** Against a scripted dummy for 90 s, **64%** of its moves went
-   toward the opponent, where chance is 50%.
-5. **It doesn't dodge.** 22% of its jumps happened while a projectile was nearby, against 20% by
-   chance. It jumps when the opponent rushes in, not at shots.
-6. **Live record:** 0 wins, 6 losses against other bots when this was written. It dealt 311
-   damage, took 1,200 and landed 40 hits. Punches and kicks come only from background noise.
-   Current record: [sshfighter.com/players/FLYBRAIN](https://sshfighter.com/players/FLYBRAIN).
+
+## Applications
+
+| Folder | What the fly does |
+|---|---|
+| [`sshfighter/`](sshfighter/) | plays [SSH Fighter](https://sshfighter.com), an online terminal fighting game, as a registered bot, with a live dashboard of every neuron firing and a trained punch readout |
+
+![Dashboard: the fight on the left, every neuron of the fly's nervous system on the right](sshfighter/media/dashboard.png)
+
+New applications go in their own folder and import the core (`fly_brain`, `fly_eyes`) from the
+repository root.
 
 ### Limitations
 
@@ -92,8 +91,7 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
 * Transmitter sign is a rough rule (GABA, glutamate and histamine inhibitory; everything else
   excitatory). Real effects depend on the receptor.
 * The visual front end is a shortcut, like [Eon's embodied fly](https://eon.systems/updates/embodied-brain-emulation).
-  We inject input into LC4, LPLC2 and LC10a instead of simulating the eye.
-* The game buttons and decoder thresholds were chosen by hand. Flies can't punch.
+  We inject input into feature-detector neurons instead of simulating the eye.
 * None of this is validated against recordings from real flies. It's a demo, not an emulation.
 
 ## Run it
@@ -107,10 +105,14 @@ python -m venv .venv
 pip install -r requirements.txt
 
 python build_brain.py          # downloads MaleCNS v1.0 (~1.1 GB) to ~/fly-data and builds the network
-python fly_fighter.py --offline --seconds 120 --dashboard     # fake opponent, opens http://127.0.0.1:8777
 ```
 
 Set `FLY_DATA=/some/path` to store the data somewhere else.
+
+**Experiments:** `python experiment.py`, `python sweep.py`, `python inject.py`.
+
+**Watch it play:** `python sshfighter/fly_fighter.py --offline --seconds 120 --dashboard`
+(fake opponent, opens http://127.0.0.1:8777). See [sshfighter/README.md](sshfighter/README.md).
 
 ### Getting the data (the "model")
 
@@ -145,24 +147,11 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
 **Other ways to explore the same data**, without downloading anything:
 
 * [neuPrint](https://neuprint.janelia.org) (dataset `male-cns:v1.0`): look up any neuron's inputs and
-  outputs in the browser, for example `DNp01`, the jump neuron. Its top inputs are LC4 and LPLC2.
+  outputs in the browser, for example `DNp01`, the giant fiber. Its top inputs are LC4 and LPLC2.
   For code, use `pip install neuprint-python` with an API token from your neuPrint account page.
 * The [MaleCNS site](https://male-cns.janelia.org): cell type and dimorphism explorers, 3D viewers,
   and the full download list (synapse positions, skeletons, EM images; far larger and not needed
   here).
-
-**Playing online.** Give the bot its own SSH key and name:
-
-```sh
-ssh-keygen -t ed25519 -f ~/.ssh/sshfighter-mybot -N ''
-ssh -i ~/.ssh/sshfighter-mybot -o IdentitiesOnly=yes MYBOT@sshfighter.com   # press Enter, type the name, Enter, quit
-python fly_fighter.py --user MYBOT --identity ~/.ssh/sshfighter-mybot --opponents bots --matches 3 --dashboard
-```
-
-The server labels bots automatically. Please keep `--opponents bots` unless people actually want
-to fight a fly.
-
-**Experiments:** `python experiment.py`, `python sweep.py`, `python inject.py`.
 
 ## Files
 
@@ -171,9 +160,15 @@ to fight a fly.
 | `build_brain.py` | downloads MaleCNS v1.0 and builds the weight matrix, readout groups, eye layout and neuron positions |
 | `fly_brain.py` | integrate-and-fire simulation (numba, multi-threaded) |
 | `fly_eyes.py` | photoreceptor rendering plus the looming/chase feature-detector input |
-| `fly_fighter.py` | game loop, decoder, offline dummy, SSH Fighter bot protocol |
-| `fly_dashboard.py`, `dashboard.html` | live dashboard (Server-Sent Events, no extra dependencies) |
 | `experiment.py`, `sweep.py`, `inject.py` | the experiments above |
+| `sshfighter/` | the SSH Fighter bot, dashboard and trained readout ([README](sshfighter/README.md)) |
+
+## What's next
+
+* A generic encoder/readout interface, so any task (images, sound, odour-like patterns, sensor
+  readings) plugs into the same frozen brain.
+* A benchmark: does the real wiring beat randomly rewired copies of itself on the same tasks?
+* Learning inside the brain through the mushroom body's dopamine rule, the way real flies learn.
 
 ## Credits
 
@@ -183,8 +178,6 @@ to fight a fly.
 * **[Fly64](https://github.com/ornata/fly)** by Jessica Paquette, who got the MaleCNS brain
   to play Super Mario 64. The neuron model, weight normalization and optic-column handling here
   are adapted from it.
-* **[SSH Fighter](https://sshfighter.com)** by Thomas Davis
-  ([source](https://github.com/thomasdavis/sshfighter.com)), including its bot API.
 * **[Eon Systems](https://eon.systems/updates/embodied-brain-emulation)**, for the idea of
   feeding a visual front end into an embodied connectome.
 * Written with [Claude Code](https://claude.com/claude-code).
@@ -216,5 +209,4 @@ The code in this repository is released under the [MIT License](LICENSE).
 
 The MaleCNS connectome data is **not** included. `build_brain.py` downloads it from its source, and
 it stays under its own [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license from
-FlyEM (HHMI Janelia) and collaborators. SSH Fighter is a separate project by Thomas Davis and is
-not part of this repository.
+FlyEM (HHMI Janelia) and collaborators.

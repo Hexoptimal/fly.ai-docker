@@ -25,8 +25,10 @@ from pathlib import Path
 
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # the fly.ai core lives one level up
 from fly_brain import FlyBrain
 from fly_eyes import Eyes, FeatureDetectors, blob_for
+from reservoir import EXPLORE_P, MOVE_EXPLORE, MOVE_HOLD, Featurizer, Readout, Recorder
 
 STEER_WINDOW = 25     # brain steps (0.5 s) for comparing left vs right DNa02
 STEER_MARGIN = 2      # spikes more on one side needed to walk that way
@@ -101,16 +103,20 @@ PROJECTILE_RADIUS = {"blue": 11, "fire": 11, "sonic": 11, "citation": 11, "knowl
                      "mote": 5, "boomerang": 7, "rope": 8}
 
 
-def objects_for_detectors(state: dict) -> list[tuple[str, float, float]]:
+def detector_inputs(state: dict):
+    """-> (opponent (dx, size) or None, hostile projectiles [(key, dx, size)], threat 0..1)."""
     you, opp = state.get("you"), state.get("opp")
     if state.get("phase") != "fight" or not you or not opp:
-        return []
-    objs = [("opp", opp["x"] - you["x"], 30.0)]
+        return None, [], 0.0
+    dx = opp["x"] - you["x"]
+    attacking = opp.get("hitboxActive") or opp.get("movePhase") in ("startup", "active")
+    threat = float(np.clip((90 - abs(dx)) / 60, 0, 1)) if attacking else 0.0   # full within 30, none beyond 90
+    shots = []
     for p in state.get("projectiles") or []:
         if p.get("ownedBy") == "opponent" and p.get("dangerous") is not False and p.get("canHit") is not False:
             size = 2.0 * PROJECTILE_RADIUS.get(p.get("style"), 11)
-            objs.append((f"p{p.get('id')}", p["x"] - you["x"], size))
-    return objs
+            shots.append((f"p{p.get('id')}", p["x"] - you["x"], size))
+    return (dx, 30.0), shots, threat
 
 
 class Fly:
@@ -121,6 +127,15 @@ class Fly:
         self.brain = FlyBrain()
         self.eyes = Eyes(self.brain.azimuth)
         self.features = FeatureDetectors(self.brain)
+        self.featurizer = Featurizer(self.brain)   # descending-neuron traces for the trained readout
+        self.explore = False                       # random punches/kicks while recording
+        self.readout: Readout | None = None
+        self.rng = np.random.default_rng()
+        # Movement held for MOVE_HOLD frames: -1 away, 0 still, +1 toward; None = brain's own steering.
+        self.move_rel: int | None = None
+        self.move_left = 0
+        self.move_rel_sent = 0         # what was actually sent, relative to the opponent
+        self.move_start_logged = False  # True on the first frame of a random (exploration) hold
         self.decoder = Decoder(self.brain.groups, self.brain.n)
         self.game_time = 0.0
         self.step_ms = 0.0
@@ -134,13 +149,14 @@ class Fly:
     def react(self, state: dict) -> dict:
         self.game_time += 1 / 30
         blobs = what_the_fly_sees(state)
-        inject = self.features.inject(objects_for_detectors(state))
+        inject = self.features.inject(*detector_inputs(state))
         t = time.perf_counter()
         steps = 0
         fired_this_frame = []
         while self.brain.steps * self.brain.dt < self.game_time and steps < 3:
             fired = self.brain.step(self.eyes.drive(blobs), inject)
             self.decoder.observe(fired)
+            self.featurizer.observe(fired)
             fired_this_frame.append(fired)
             steps += 1
         self.frame_spikes = np.concatenate(fired_this_frame) if fired_this_frame else np.empty(0, np.int64)
@@ -149,8 +165,41 @@ class Fly:
         self.step_ms = 0.9 * self.step_ms + 0.1 * (time.perf_counter() - t) * 1000
         you = state.get("you") or {}
         if state.get("phase") != "fight":
+            self.move_left = 0
+            self.move_rel_sent, self.move_start_logged = 0, False
             return {"t": "input", "moveX": 0, "motion": "N"}
-        return self.decoder.command(int(you.get("facing", 1)), self.brain.steps * self.brain.dt)
+        cmd = self.decoder.command(int(you.get("facing", 1)), self.brain.steps * self.brain.dt)
+        if self.explore or self.readout:
+            cmd.pop("punch", None)
+            cmd.pop("kick", None)
+            if you.get("actionable"):
+                if self.explore:
+                    r = self.rng.random()
+                    if r < EXPLORE_P["punch"]:
+                        cmd["punch"] = True
+                    elif r < EXPLORE_P["punch"] + EXPLORE_P["kick"]:
+                        cmd["kick"] = True
+                else:
+                    action = self.readout.choose(self.featurizer.features())
+                    if action:
+                        cmd[action] = True
+        opp = state.get("opp") or {}
+        toward = 1 if opp.get("x", 0) >= you.get("x", 0) else -1
+        self.move_start_logged = False
+        if self.explore or (self.readout and self.readout.has_move):
+            if self.move_left <= 0:
+                self.move_left = MOVE_HOLD
+                if self.explore:
+                    # half the holds are random moves (labelled for training), half the brain's own steering
+                    self.move_rel = int(self.rng.integers(-1, 2)) if self.rng.random() < MOVE_EXPLORE else None
+                    self.move_start_logged = self.move_rel is not None
+                else:
+                    self.move_rel = self.readout.choose_move(self.featurizer.features())
+            self.move_left -= 1
+            if self.move_rel is not None:
+                cmd["moveX"] = self.move_rel * toward
+        self.move_rel_sent = cmd["moveX"] * toward
+        return cmd
 
 
 class MatchLog:
@@ -259,6 +308,7 @@ def play(fly: Fly, args, dash=None) -> None:
 
     wins = losses = 0
     log: MatchLog | None = None
+    rec: Recorder | None = None
     last_sent = time.monotonic()
     requeue_at = None
     try:
@@ -303,6 +353,7 @@ def play(fly: Fly, args, dash=None) -> None:
                 elif t == "matchStart":
                     print(f"\nMATCH vs {msg.get('oppName')} ({msg.get('oppType')}) on {msg.get('stage')}  id {msg.get('mid')}")
                     log = MatchLog(msg.get("mid", "match"))
+                    rec = Recorder(args.record, msg.get("mid", "match")) if args.record else None
                     print(f"watch live: https://sshfighter.com/watch/{msg.get('mid')}")
                     if dash:
                         dash.set_match(msg.get("mid"), msg.get("oppName"))
@@ -313,6 +364,9 @@ def play(fly: Fly, args, dash=None) -> None:
                     if log:
                         log.close()
                         log = None
+                    if rec:
+                        rec.save()
+                        rec = None
                     if args.matches and wins + losses >= args.matches:
                         send({"t": "leave"})
                         return
@@ -328,6 +382,8 @@ def play(fly: Fly, args, dash=None) -> None:
                 last_sent = time.monotonic()
                 if log:
                     log.write(state, out, fly)
+                if rec:
+                    rec.add(state, out, fly.featurizer.features(), fly.move_rel_sent, fly.move_start_logged)
                 if dash:
                     dash.publish(state, out, fly)
                 if state.get("frame", 0) % 10 == 0:
@@ -341,6 +397,8 @@ def play(fly: Fly, args, dash=None) -> None:
     finally:
         if log:
             log.close()
+        if rec:
+            rec.save()   # keep a partial match too
         ssh.terminate()
 
 
@@ -355,10 +413,23 @@ def main():
     p.add_argument("--matches", type=int, default=0, help="stop after N matches (0 = forever)")
     p.add_argument("--dashboard", action="store_true", help="live brain view at http://127.0.0.1:8777")
     p.add_argument("--no-browser", action="store_true", help="don't open the dashboard automatically")
+    p.add_argument("--record", help="folder to save brain activity + outcomes (random punches/kicks)")
+    p.add_argument("--readout", help="trained readout.npz: attacks chosen from descending-neuron activity")
+    p.add_argument("--no-move-readout", action="store_true",
+                   help="with --readout: keep the fly's own steering instead of the trained movement readout")
     args = p.parse_args()
     if not args.offline and not args.user:
         sys.exit("--user is required for live play (or use --offline)")
+    if args.record and args.readout:
+        sys.exit("use --record (collect data) or --readout (use a trained readout), not both")
     fly = Fly()
+    fly.explore = bool(args.record)
+    if args.readout:
+        fly.readout = Readout(args.readout)
+        if args.no_move_readout:
+            fly.readout.move = None
+        parts = list(fly.readout.models) + (["movement"] if fly.readout.has_move else [])
+        print(f"trained readout loaded: {', '.join(parts) or 'nothing usable'}")
     dash = None
     if args.dashboard:
         from fly_dashboard import Dashboard

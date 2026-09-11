@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>FLYBRAIN</title>
 <style>
-:root{--bg:#0b0d10;--panel:#12161b;--line:#222a33;--text:#e7ecf1;--dim:#8793a0;--amber:#ffb23e;--red:#ff5a5a;--cyan:#3ed8ff;--green:#6cf08a}
+:root{--bg:#0b0d10;--panel:#12161b;--line:#222a33;--text:#e7ecf1;--dim:#8793a0;--amber:#ffb23e;--red:#ff5a5a;--cyan:#3ed8ff;--green:#6cf08a;--pink:#ff5ad2;--yellow:#ffe14d}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);font:13px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;
@@ -56,6 +56,8 @@ a{color:var(--cyan)}
     <div class="small">
       <section class="panel"><h2><span>Eyes → brain</span><span>left · right</span></h2>
         <div class="row"><span>looming</span><div class="bar"><i id="loomL" style="background:var(--red)"></i></div><div class="bar"><i id="loomR" style="background:var(--red)"></i></div></div>
+        <div class="row"><span>threat</span><div class="bar"><i id="threatL" style="background:var(--pink)"></i></div><div class="bar"><i id="threatR" style="background:var(--pink)"></i></div></div>
+        <div class="row"><span>shots</span><div class="bar"><i id="shotL" style="background:var(--yellow)"></i></div><div class="bar"><i id="shotR" style="background:var(--yellow)"></i></div></div>
         <div class="row"><span>chase</span><div class="bar"><i id="chaseL" style="background:var(--cyan)"></i></div><div class="bar"><i id="chaseR" style="background:var(--cyan)"></i></div></div>
         <div class="buttons"><span class="btn" id="b-left">◀</span><span class="btn" id="b-right">▶</span><span class="btn" id="b-jump">JUMP</span><span class="btn" id="b-punch">PUNCH</span><span class="btn" id="b-kick">KICK</span></div>
       </section>
@@ -66,7 +68,7 @@ a{color:var(--cyan)}
   </div>
   <section class="panel" id="brainpanel"><h2><span>Nervous system</span><span id="spk"></span></h2>
     <div class="wrap" id="brainwrap"><canvas id="brain" width="900" height="900"></canvas></div>
-    <div class="legend"><span><i style="background:var(--amber)"></i>fired</span><span><i style="background:var(--red)"></i>looming detectors</span><span><i style="background:var(--cyan)"></i>chase neurons</span><span><i style="background:var(--green)"></i>command neurons</span></div>
+    <div class="legend"><span><i style="background:var(--amber)"></i>fired</span><span><i style="background:var(--red)"></i>looming (LPLC2)</span><span><i style="background:var(--pink)"></i>threat (LC4)</span><span><i style="background:var(--yellow)"></i>shots (LPLC1)</span><span><i style="background:var(--cyan)"></i>chase (LC10a)</span><span><i style="background:var(--green)"></i>command neurons</span></div>
   </section>
 </main>
 <script>
@@ -119,7 +121,8 @@ function drawBrain(d) {
   bctx.drawImage(base, 0, 0); bctx.drawImage(glow, 0, 0);
   const tint = (ids, color, a) => { if (a <= 0) return; bctx.globalAlpha = Math.min(1, a * 1.25); bctx.fillStyle = color;
     for (const i of ids) bctx.fillRect(S.x[i] * 0.9 - 1.5, S.y[i] * 0.9 - 1.5, 3.2, 3.2); bctx.globalAlpha = 1; };
-  for (const s of "LR") { tint(S.groups["loom" + s], css("--red"), d.drive["loom" + s]); tint(S.groups["chase" + s], css("--cyan"), d.drive["chase" + s]); }
+  const colors = { loom: "--red", threat: "--pink", shot: "--yellow", chase: "--cyan" };
+  for (const s of "LR") for (const [ch, c] of Object.entries(colors)) tint(S.groups[ch + s] || [], css(c), d.drive[ch + s] || 0);
   bctx.font = "600 17px ui-monospace,Consolas,monospace";
   for (const [key, [neuron]] of Object.entries(S.labels)) for (const s of "LR") {
     const ids = S.groups[`${key}_${s}`] || []; if (!ids.length) continue;
@@ -174,7 +177,7 @@ function draw(d) {
     layout();
   }
   if (!d.mid) drawArena(d);
-  for (const k of ["loomL", "loomR", "chaseL", "chaseR"]) $(k).style.width = `${Math.min(100, d.drive[k] / 0.8 * 100)}%`;
+  for (const [k, v] of Object.entries(d.drive)) { const el = $(k); if (el) el.style.width = `${Math.min(100, v / 0.8 * 100)}%`; }
   for (const [g, c] of Object.entries(d.counts)) { const el = $("m-" + g); if (el) el.style.width = `${Math.min(100, c * 20)}%`; }
   $("b-left").classList.toggle("on", d.cmd.moveX === -1);
   $("b-right").classList.toggle("on", d.cmd.moveX === 1);

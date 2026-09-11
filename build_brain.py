@@ -190,7 +190,7 @@ def main() -> None:
     sparse.save_npz(DATA / "weights.npz", W, compressed=False)
     np.savez(DATA / "brain.npz", ids=ids, visual=visual, azimuth=azimuth,
              cell_type=cell_type.to_numpy().astype(str), side=side.to_numpy().astype(str),
-             positions=positions,
+             positions=positions, superclass=ann["superclass"].to_numpy().astype(str),
              **{f"group_{k}": v for k, v in groups.items()})
     (DATA / "brain.json").write_text(json.dumps(
         {"neurons": n, "connections": int(W.nnz), "photoreceptors": int(len(visual)),

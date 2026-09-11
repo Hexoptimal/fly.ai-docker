@@ -8,8 +8,13 @@ fly-data/
 *.npz
 *.feather
 
-# Per-match logs written by fly_fighter.py
+# Per-match logs and reservoir recordings written by fly_fighter.py
 logs/
+recordings*/
+readout.npz
+
+# Private planning notes
+ROADMAP.md
 
 # Never commit SSH keys or API tokens
 *.pem

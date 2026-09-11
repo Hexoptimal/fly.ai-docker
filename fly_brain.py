@@ -62,6 +62,7 @@ class FlyBrain:
         self.cell_type = meta["cell_type"]
         self.side = meta["side"]
         self.positions = meta["positions"] if "positions" in meta.files else None
+        self.superclass = meta["superclass"] if "superclass" in meta.files else None
         self.groups = {k.removeprefix("group_"): meta[k] for k in meta.files if k.startswith("group_")}
         self.rng = np.random.default_rng(seed)
         self.decay = np.float32(np.exp(-self.dt / self.tau))
