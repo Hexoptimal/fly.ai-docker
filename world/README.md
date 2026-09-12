@@ -249,8 +249,9 @@ Flies have a sex, an age, and a death. **640 neurons / 4,923 synapses** now.
   panorama the photoreceptors see, so a fly at night is genuinely working with a
   darker world. There is no "it is night" flag anywhere in the brain.
 * **Every action shows on the map.** Mating, egg-laying, a hatch, the start of a
-  meal, a spider strike and a death each drop a marker where they happened, which
-  fades over 6 s, and the same six events fill the "Happening now" feed in the
+  meal, a dropping, a spider strike and a death each drop a marker where they
+  happened, which
+  fades over 6 s, and the same events fill the "Happening now" feed in the
   panel. A meal marks once rather than once per bounce, and a spider that misses
   marks at most once every 8 s.
 

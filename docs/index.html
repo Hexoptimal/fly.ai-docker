@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>$FLYAI — a real fruit fly brain on Robinhood Chain</title>
-<meta name="description" content="$FLYAI funds fly.ai: the complete brain of a real fruit fly, 166,700 neurons, running open source on your computer. Launching on Pons, on Robinhood Chain. 60% of creator fees buy $FLYAI and burn it.">
-<meta property="og:title" content="$FLYAI — a real fruit fly brain on Robinhood Chain">
-<meta property="og:description" content="166,700 real neurons. 25.6 million real connections. Zero training. Open source. The coin that funds it.">
-<meta property="og:image" content="https://alextitonis.github.io/fly.ai/assets/dashboard.png">
+<title>$FLYAI &mdash; a real fruit fly brain on Robinhood Chain</title>
+<meta name="description" content="$FLYAI funds fly.ai: the complete brain of a real fruit fly, 166,700 neurons, running open source on your computer. Launching on Pons, on Robinhood Chain.">
+<meta property="og:title" content="$FLYAI &mdash; a real fruit fly brain on Robinhood Chain">
+<meta property="og:description" content="$FLYAI funds fly.ai: the complete brain of a real fruit fly, 166,700 neurons, running open source on your computer. Launching on Pons, on Robinhood Chain.">
+<meta property="og:image" content="assets/dashboard.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
@@ -15,161 +15,23 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #07090c; --bg-2: #0d1117; --panel: #11161e; --line: #222a35;
-    --text: #eef1f5; --muted: #95a0ae; --dim: #5f6b7a;
-    --red: #e0342c; --red-hi: #ff5b4f; --green: #3ddc84; --cool: #6cc4d8;
-    --display: "Space Grotesk", "Inter", system-ui, sans-serif;
-    --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-    --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 var(--sans); overflow-x: hidden; }
-  a { color: inherit; }
-  img, video { max-width: 100%; display: block; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 24px; }
-  section { padding-block: 84px; border-top: 1px solid var(--line); }
-  .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--red-hi); margin: 0 0 16px; }
-  h1, h2, h3 { margin: 0; font-family: var(--display); letter-spacing: -.02em; line-height: 1.05; }
-  h2 { font-size: clamp(30px, 5vw, 48px); margin-bottom: 18px; }
-  h3 { font-size: 19px; margin-bottom: 8px; }
-  p { margin: 0 0 14px; }
-  .lede { color: var(--muted); font-size: 18px; max-width: 640px; margin-bottom: 40px; }
-  .mono { font-family: var(--mono); }
-
-  nav { position: sticky; top: 0; z-index: 10; background: rgba(7,9,12,.85); backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-  nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 58px; }
-  .brand { display: flex; align-items: center; gap: 10px; font: 700 18px var(--display); text-decoration: none; }
-  .logo { mix-blend-mode: screen; }          /* the file has a black plate, not alpha */
-  .brand .logo { height: 34px; width: auto; margin: -6px -8px; }
-  .hero-logo { width: min(300px, 62vw); height: auto; margin: 0 0 18px -14px; }
-  .eye { width: 12px; height: 12px; border-radius: 50%; background: var(--red); box-shadow: 0 0 14px rgba(224,52,44,.8); animation: blink 3.2s infinite; }
-  @keyframes blink { 0%, 92%, 100% { opacity: 1; } 95% { opacity: .25; } }
-  nav ul { display: flex; gap: 22px; list-style: none; margin: 0; padding: 0; font-size: 14px; align-items: center; }
-  nav ul a { color: var(--muted); text-decoration: none; }
-  nav ul a:hover { color: var(--text); }
-  @media (max-width: 760px) { nav ul .opt { display: none; } }
-
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 20px; border-radius: 10px; font-weight: 600;
-         font-size: 15px; text-decoration: none; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; }
-  .btn:hover { border-color: var(--muted); }
-  .btn.red { background: var(--red); border-color: var(--red); color: #fff; }
-  .btn.red:hover { background: #c92b24; }
-  .btn.sm { padding: 8px 14px; font-size: 13px; border-radius: 8px; }
-  .btn[disabled] { opacity: .45; cursor: not-allowed; }
-
-  /* hero */
-  .hero { border-top: 0; padding-block: 72px 84px; position: relative; overflow: hidden; }
-  .hero::before { content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(640px 400px at 80% 0%, rgba(224,52,44,.18), transparent 70%),
-                radial-gradient(600px 420px at 0% 100%, rgba(108,196,216,.07), transparent 70%); }
-  .hero .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 48px; align-items: center; }
-  .ticker { font: 700 clamp(64px, 12vw, 132px)/.9 var(--display); letter-spacing: -.04em; margin: 0 0 18px; }
-  .ticker span { color: var(--red); }
-  .tagline { font: 500 clamp(22px, 3vw, 30px)/1.2 var(--display); margin: 0 0 18px; }
-  .hero .sub { color: var(--muted); font-size: 17px; max-width: 540px; margin-bottom: 30px; }
-  .cta { display: flex; flex-wrap: wrap; gap: 12px; }
-
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; min-width: 0; }
-  .specimen { padding: 22px 22px 18px; font-family: var(--mono); font-size: 13px; }
-  .specimen .head { display: flex; justify-content: space-between; color: var(--dim); font-size: 11px; letter-spacing: .12em;
-                    text-transform: uppercase; padding-bottom: 12px; border-bottom: 1px dashed var(--line); margin-bottom: 8px; }
-  .row { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid rgba(34,42,53,.6); }
-  .row:last-child { border-bottom: 0; }
-  .row .k { color: var(--dim); }
-  .row .v { text-align: right; overflow-wrap: anywhere; }
-  .live { color: var(--green); }
-  .pending { color: #f0bc5f; }
-
-  /* CA bar */
-  .ca { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 28px; padding: 12px 14px;
-        border: 1px dashed #3a4454; border-radius: 12px; background: rgba(13,17,23,.7); font-family: var(--mono); font-size: 14px; max-width: 600px; }
-  .ca .label { color: var(--dim); }
-  .ca code { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; color: #f0bc5f; }
-
-  /* stats band */
-  .band { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line);
-          border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-  .band div { background: var(--bg-2); padding: 22px; }
-  .band b { display: block; font: 700 clamp(24px, 3.4vw, 36px)/1.1 var(--display); }
-  .band span { color: var(--muted); font-size: 14px; }
-
-  .frame { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #000; }
-  .frame video { width: 100%; height: auto; }
-  .caption { color: var(--muted); font-size: 14px; margin-top: 12px; }
-
-  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-  .pad { padding: 26px; }
-  .card p { color: var(--muted); margin: 0; }
-  .num { display: block; font: 500 12px var(--mono); color: var(--red-hi); margin-bottom: 12px; letter-spacing: .08em; }
-
-  /* roadmap */
-  .phases { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-  .phases li { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 18px; align-items: baseline;
-               padding: 16px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
-  .phases .st { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
-  .phases .done .st { color: var(--green); }
-  .phases .now .st { color: #f0bc5f; }
-  .phases .next .st { color: var(--dim); }
-  .phases b { font-weight: 600; }
-  .phases span.d { color: var(--muted); }
-
-  /* chain */
-  .chain { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
-  .steps { counter-reset: s; list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-  .steps li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; color: var(--muted); }
-  .steps li::before { counter-increment: s; content: counter(s); width: 34px; height: 34px; border-radius: 50%;
-                      border: 1px solid var(--line); display: grid; place-items: center; font: 500 13px var(--mono); color: var(--text); }
-  .steps b { color: var(--text); display: block; }
-
-  .fees ul { margin: 0 0 14px; padding-left: 20px; color: var(--muted); }
-  .fees li { margin-bottom: 8px; }
-  .fees li b { color: var(--text); }
-  .fees .addr { font-size: 12px; color: var(--dim); word-break: break-all; }
-  .notreal { border-left: 3px solid var(--red); }
-  .notreal ul { margin: 0; padding-left: 20px; color: var(--muted); }
-  .notreal li { margin-bottom: 8px; }
-
-  .dev { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; }
-
-  footer { border-top: 1px solid var(--line); padding-block: 40px; color: var(--dim); font-size: 13px; }
-  footer .links { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 18px; }
-  footer .links a { color: var(--muted); text-decoration: none; }
-  footer .links a:hover { color: var(--text); }
-  footer p { max-width: 820px; }
-
-  @media (max-width: 900px) {
-    .hero .wrap, .chain { grid-template-columns: minmax(0, 1fr); }
-    .grid3 { grid-template-columns: minmax(0, 1fr); }
-    .band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (max-width: 600px) {
-    .wrap { padding-inline: 16px; }
-    section { padding-block: 60px; }
-    .grid2 { grid-template-columns: minmax(0, 1fr); }
-    .phases li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
-    .band div, .pad { padding: 18px; }
-  }
-</style>
+<link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
 
 <nav aria-label="Main">
   <div class="wrap">
-    <a class="brand" href="#top"><img class="logo" src="assets/logo.webp" alt="fly.ai" width="1774" height="887">$FLYAI</a>
+    <a class="brand" href="index.html"><img class="logo" src="assets/logo.webp" alt="fly.ai" width="1774" height="887">$FLYAI</a>
     <ul>
-      <li class="opt"><a href="#brain">The brain</a></li>
-      <li class="opt"><a href="#roadmap">Roadmap</a></li>
-      <li class="opt"><a href="#chain">On-chain</a></li>
+      <li class="opt"><a class="on" href="index.html">Home</a></li>
+      <li class="opt"><a href="research.html">Research</a></li>
+      <li class="opt"><a href="roadmap.html">Roadmap</a></li>
+      <li class="opt"><a href="token.html">$FLYAI</a></li>
+      <li class="opt"><a href="/simulation/">Simulation</a></li>
       <li><a class="btn sm" href="https://x.com/flydotai" target="_blank" rel="noopener">Follow @flydotai</a></li>
     </ul>
   </div>
 </nav>
-
 <header class="hero" id="top">
   <div class="wrap">
     <div>
@@ -180,10 +42,11 @@
       <p class="sub">Not a model trained to look like a fly. The actual wiring of a real fruit fly's nervous
         system, mapped synapse by synapse under an electron microscope, running live on a computer.
         $FLYAI funds fly.ai, the open-source project that runs it.</p>
-      <div class="cta">
+      <div class="cta buylinks">
         <a class="btn red" href="https://x.com/flydotai" target="_blank" rel="noopener">Follow @flydotai on X</a>
-        <a class="btn" href="#demo">Watch it fight</a>
         <a class="btn" href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn" href="/simulation/">Open the simulation</a>
+        <a class="btn" href="#demo">Watch it fight</a>
       </div>
       <div class="ca" id="ca-box">
         <span class="label">CA</span>
@@ -208,26 +71,38 @@
     </div>
   </div>
 </header>
-
 <section id="demo">
   <div class="wrap">
     <p class="eyebrow">Proof, not promises</p>
     <h2>The fly is already fighting</h2>
-    <p class="lede">The fly's brain plays SSH Fighter, an online fighting game, against other bots. On the right,
-      every dot is one of its real neurons, flashing when it fires.</p>
-    <div class="frame">
-      <video controls muted loop playsinline preload="metadata" poster="assets/dashboard.png">
-        <source src="assets/video.mp4" type="video/mp4">
-        <a href="assets/video.mp4">Watch the video</a>
-      </video>
+    <p class="lede">The fly's brain plays SSH Fighter, an online fighting game, against other bots, over SSH
+      and on its own. Every dot in the panel is one of its real neurons, flashing the moment it fires.</p>
+    <div class="videos">
+      <figure>
+        <div class="frame">
+          <video controls muted loop playsinline preload="metadata" poster="assets/dashboard.png">
+            <source src="assets/video.mp4" type="video/mp4">
+            <a href="assets/video.mp4">Watch the video</a>
+          </video>
+        </div>
+        <figcaption>The brain playing, with the live neuron dashboard beside it.</figcaption>
+      </figure>
+      <figure>
+        <div class="frame">
+          <video controls muted loop playsinline preload="metadata">
+            <source src="assets/fight-2.mp4" type="video/mp4">
+            <a href="assets/fight-2.mp4">Watch the video</a>
+          </video>
+        </div>
+        <figcaption>A second recorded match, 12 September 2026.</figcaption>
+      </figure>
     </div>
-    <p class="caption">It loses most matches &mdash; and on 12 September 2026 it
-      <a href="https://sshfighter.com/matches/mmtyehkmd5947" target="_blank" rel="noopener">won one</a>,
-      two rounds to none. It chases its opponent, and the reason it chases is real fly biology:
-      the neurons a male fly uses to chase a mate steer it toward the enemy.</p>
+    <p class="caption">On 12 September 2026 it
+      <a href="https://sshfighter.com/matches/mmtyehkmd5947" target="_blank" rel="noopener">won a match</a>,
+      two rounds to none. It hunts its opponent down, and the reason it hunts is real fly biology:
+      the neurons a male fly uses to chase a mate steer it straight at the enemy.</p>
   </div>
 </section>
-
 <section id="brain">
   <div class="wrap">
     <p class="eyebrow">Why it's different</p>
@@ -262,13 +137,36 @@
     </div>
   </div>
 </section>
-
+<section id="world">
+  <div class="wrap">
+    <p class="eyebrow">Live in your browser</p>
+    <h2>A world of flies</h2>
+    <p class="lede">Out of the fighting game and into a 3-D field: dozens of flies, each one running its own
+      spiking brain, foraging on fruit and carrion, tracking odour plumes upwind, mating, laying eggs,
+      dodging spiders and dying. Nothing in their behaviour is scripted.</p>
+    <div class="grid3">
+      <div class="card pad"><span class="num">01 &middot; SENSES</span><h3>Smell, sight, wind, touch</h3>
+        <p>A turbulent plume of odour packets, a luminance panorama, airflow on the antennae and bristles on
+          the legs &mdash; each injected into the neurons that carry it in a real fly.</p></div>
+      <div class="card pad"><span class="num">02 &middot; LIFE</span><h3>It eats, mates and dies</h3>
+        <p>Courtship runs through P1 and pIP10, the real command neurons. Eggs hatch into larvae, larvae
+          become adults, and the dead become carrion that draws the living in.</p></div>
+      <div class="card pad"><span class="num">03 &middot; DAY</span><h3>Night is real to them</h3>
+        <p>A 300-second day dims the luminance the photoreceptors see. There is no &ldquo;it is night&rdquo;
+          flag anywhere in the brain &mdash; there is just less light.</p></div>
+    </div>
+    <div class="cta" style="margin-top: 26px;">
+      <a class="btn red" href="/simulation/">Open the simulation</a>
+      <a class="btn" href="research.html">See what it measures</a>
+    </div>
+  </div>
+</section>
 <section id="funding">
   <div class="wrap">
     <p class="eyebrow">What $FLYAI pays for</p>
     <h2>Making a real brain do more</h2>
-    <p class="lede">The coin exists to fund the research and the compute. We only improve the fly itself:
-      no scripted game rules, and results get published whether they go up or down.</p>
+    <p class="lede">The coin funds the research and the compute. Every improvement comes out of the fly
+      itself &mdash; no scripted game rules, ever &mdash; and all of it ships open source.</p>
     <div class="grid2">
       <div class="card pad"><span class="num">COMPUTE</span><h3>GPUs for bigger experiments</h3>
         <p>Many flies running at once, and far more matches and tests.</p></div>
@@ -281,110 +179,23 @@
     </div>
   </div>
 </section>
-
-<section id="roadmap">
+<section id="more">
   <div class="wrap">
-    <p class="eyebrow">Roadmap</p>
-    <h2>Where the fly is</h2>
-    <p class="lede">No dates we can't keep. This is what's done and what's next.</p>
-    <ol class="phases">
-      <li class="done"><span class="st">Done</span><div><b>The whole brain runs.</b> <span class="d">166,700 neurons and 25.6M connections, simulated in real time.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>Its eyes are wired in.</b> <span class="d">Looming and chase signals reach the right command neurons, on the correct side.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>It fights online.</b> <span class="d">It plays SSH Fighter as a bot, with a live view of every neuron firing.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>GPU brain.</b> <span class="d">6.3× faster on a laptop GPU, and now many flies can run at once.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>Open source.</b> <span class="d">Code, notebook and this site are public.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>Eight flies vote.</b> <span class="d">Eight copies of the brain decide together. They chase harder (72% of moves toward the opponent, against 63% for one fly) and make fewer random moves.</span></div></li>
-      <li class="now"><span class="st">Now</span><div><b>$FLYAI launch on Pons, on Robinhood Chain.</b> <span class="d">Fair launch: all of the supply in the pool, liquidity burned, no team tokens. The contract address is posted here and on @flydotai only.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>It won a match.</b> <span class="d">The brain was thinking too slowly &mdash; eight copies voting took twice as long as a game frame, so the fly acted two frames late. Running two copies put it back in real time, and it won its first fight, two rounds to none.</span></div></li>
-      <li class="now"><span class="st">Now</span><div><b>Sharper senses.</b> <span class="d">Retuning how the game reaches the fly's looming neurons made its punch signal clearly better in replays. Next: learning to dodge. The brain itself stays untouched.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>Learning inside the brain.</b> <span class="d">Dopamine-driven learning in the mushroom body, the way real flies learn.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>Real vs random wiring.</b> <span class="d">Does nature's wiring beat shuffled wiring? We'll publish whatever we find.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>A world to fly in.</b> <span class="d">Out of the 2-D fighting game and into a 3-D world with a body and physics, where many flies live at once &mdash; each one its own copy of the brain.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>The fly drives a Smol.</b> <span class="d">The same brain, embodied in the world as a <a href="https://opensea.io/collection/smols-752105135" target="_blank" rel="noopener">Smol</a>. A real nervous system moving a character you recognise.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>The fly flies a drone.</b> <span class="d">The same brain again, this time on a quadrotor &mdash; in simulation first, then a real drone indoors, camera streamed to the brain and stick commands sent back. The altitude it holds already comes from the optic-flow cells real insects use.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>Factions.</b> <span class="d">One shared world everybody watches, with flies belonging to player-created factions. Colour is your faction, you can feed it, and it can be wiped out for good.</span></div></li>
-    </ol>
-  </div>
-</section>
-
-<section id="chain">
-  <div class="wrap">
-    <p class="eyebrow">On-chain</p>
-    <h2>$FLYAI on Robinhood Chain</h2>
-    <p class="lede">The token isn't live yet. When it is, the contract address will appear on this page and on
-      <a href="https://x.com/flydotai" target="_blank" rel="noopener">@flydotai</a>. Treat any other address as a scam.
-      Every term is fixed before launch and written down in
-      <a href="https://github.com/alextitonis/fly.ai/blob/main/TOKEN.md" target="_blank" rel="noopener">TOKEN.md</a>.</p>
-    <div class="chain">
-      <div class="card specimen">
-        <div class="head"><span>Token</span><span id="chain-state">pre-launch</span></div>
-        <div class="row"><span class="k">name</span><span class="v">fly.ai</span></div>
-        <div class="row"><span class="k">ticker</span><span class="v">$FLYAI</span></div>
-        <div class="row"><span class="k">chain</span><span class="v">Robinhood Chain</span></div>
-        <div class="row"><span class="k">launchpad</span><span class="v">Pons</span></div>
-        <div class="row"><span class="k">contract</span><span class="v pending" id="ca-2">not deployed yet</span></div>
-        <div class="row"><span class="k">supply</span><span class="v">1,000,000,000</span></div>
-        <div class="row"><span class="k">liquidity</span><span class="v live">100% of supply &middot; LP burned by Pons</span></div>
-        <div class="row"><span class="k">team tokens</span><span class="v live">none</span></div>
-        <div class="row"><span class="k">tax</span><span class="v live">none</span></div>
-        <div class="row"><span class="k">creator fees</span><span class="v">60% buy &amp; burn $FLYAI &middot; 40% $MAGIC</span></div>
-      </div>
-      <div class="card pad">
-        <h3 style="margin-bottom: 18px;">How to get $FLYAI at launch</h3>
-        <ol class="steps">
-          <li><div><b>Get a wallet</b>Use one that supports Robinhood Chain.</div></li>
-          <li><div><b>Fund it</b>Add funds for gas and your buy on Robinhood Chain.</div></li>
-          <li><div><b>Check the address</b>Copy the contract address from this page or @flydotai. Nowhere else.</div></li>
-          <li><div><b>Swap for $FLYAI</b>Paste the address into Pons, or any Robinhood Chain swap, and confirm.</div></li>
-        </ol>
-      </div>
-    </div>
-    <div class="card pad fees" style="margin-top: 18px;">
-      <h3 style="margin-bottom: 12px;">What $FLYAI is for</h3>
-      <p>One shared 3-D world, where flies run by the real connectome forage, mate, age and die.
-        Everyone watches the same world, and $FLYAI is what you spend in it:</p>
-      <ul>
-        <li><b>Create a faction</b> &mdash; a colour. Those flies are yours to watch.</li>
-        <li><b>Feed it</b> &mdash; spend again to drop food into the world for your flies.</li>
-        <li><b>It can die.</b> A faction can be wiped out entirely: predators, starvation, or flies
-          that simply do not do well. Extinction is permanent. Nothing you pay guarantees survival.</li>
-      </ul>
-      <p>What separates factions is meant to be their <b>brain settings</b> &mdash; sensory gains and
-        wiring seed &mdash; so the world doubles as a live experiment in which settings survive.
-        This is the roadmap, not a live feature, and it is no promise of a return. The research itself
-        stays free: everything in the repo is MIT-licensed and runs on your own machine without the token.</p>
-      <h3 style="margin: 22px 0 12px;">Where the fees go</h3>
-      <p>$FLYAI takes nothing from your trade. There is no transfer tax, and nothing is skimmed from holders.
-        The only revenue is the creator fee the launchpad pays on swaps, and it is split two ways:</p>
-      <ul>
-        <li><b>60% buys $FLYAI on the open market and burns it.</b> The tokens are destroyed, not held.
-          Supply only ever goes down.</li>
-        <li><b>40% buys $MAGIC</b>, the token of the company behind fly.ai &mdash;
-          <code class="addr">0xF1572d1Da5c3CcE14eE5a1c9327d17e9ff0E3f43</code></li>
-      </ul>
-      <p>The buyback runs on a fixed weekly schedule from one public wallet &mdash; no waiting for a good price,
-        no trading against the people holding it. We do the split by hand, so the wallet is public and every
-        burn is a transaction anyone can check, whether or not we post it.</p>
+    <p class="eyebrow">Read on</p>
+    <h2>The rest of it</h2>
+    <div class="next-pages">
+      <a class="card pad" href="research.html"><h3>Research</h3>
+        <p>The numbers behind all of it: ablation tables, plume tracking upwind, and the escape reflex
+          measured under predation.</p><p class="go">Read the findings &rarr;</p></a>
+      <a class="card pad" href="roadmap.html"><h3>Roadmap</h3>
+        <p>What is done, what is running now, and what comes next &mdash; a drone, a Smol, and factions in
+          one shared world.</p><p class="go">See the roadmap &rarr;</p></a>
+      <a class="card pad" href="token.html"><h3>$FLYAI</h3>
+        <p>The launch terms, the contract address, where the creator fees go, and what the token does and
+          does not give you.</p><p class="go">Token details &rarr;</p></a>
     </div>
   </div>
 </section>
-
-<section id="honest">
-  <div class="wrap">
-    <p class="eyebrow">Stated plainly</p>
-    <h2>What isn't real</h2>
-    <div class="card pad notreal">
-      <ul>
-        <li>The wiring is real. The neurons are simplified: one simple model for every cell, with no dendrites, no neuromodulators and no learning yet.</li>
-        <li>The eye is a shortcut. We feed signals into the fly's own motion-detecting neurons instead of simulating its eyes.</li>
-        <li>Flies can't punch. Which neurons press which game buttons was chosen by us.</li>
-        <li>It loses most matches. One win is one win; the fighting is a demo of the brain, not a trading bot or a product.</li>
-        <li>It's not a digital fly. It's a demo built from real data, not a validated emulation of a living fly.</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
 <section id="dev">
   <div class="wrap">
     <div class="card pad dev">
@@ -400,7 +211,6 @@
     </div>
   </div>
 </section>
-
 <footer>
   <div class="wrap">
     <div class="links">
@@ -408,33 +218,10 @@
       <a href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/alextitonis/fly.ai/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
     </div>
-    <p>$FLYAI is a meme coin with no intrinsic value and no expectation of financial return. Nothing on this
-      site is financial advice. Crypto is volatile; only use money you can afford to lose. $FLYAI is not
-      affiliated with or endorsed by Robinhood, Pons, HHMI Janelia, FlyEM or SSH Fighter.</p>
     <p>Connectome data: MaleCNS v1.0 by FlyEM (HHMI Janelia) and collaborators, used under CC BY 4.0. Code MIT licensed.</p>
   </div>
 </footer>
 
-<script>
-  // Set this when the token is deployed. Everything else updates from it.
-  const CONTRACT_ADDRESS = "";
-
-  if (CONTRACT_ADDRESS) {
-    document.getElementById("ca").textContent = CONTRACT_ADDRESS;
-    document.getElementById("ca-2").textContent = CONTRACT_ADDRESS;
-    document.getElementById("ca-2").className = "v live";
-    document.getElementById("token-status").textContent = "live";
-    document.getElementById("token-status").className = "v live";
-    document.getElementById("chain-state").textContent = "live";
-    const btn = document.getElementById("ca-copy");
-    btn.disabled = false;
-    btn.addEventListener("click", () => {
-      navigator.clipboard.writeText(CONTRACT_ADDRESS).then(() => {
-        btn.textContent = "Copied";
-        setTimeout(() => (btn.textContent = "Copy"), 1500);
-      });
-    });
-  }
-</script>
+<script src="assets/site.js"></script>
 </body>
 </html>

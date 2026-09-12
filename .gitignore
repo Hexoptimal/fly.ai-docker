@@ -21,3 +21,7 @@ ROADMAP.md
 id_*
 sshfighter-*
 .env
+
+# Vercel build output (docs/ + the built simulator, assembled at deploy time)
+.vercel-out/
+.vercel/

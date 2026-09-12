@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fly.ai research &mdash; what the fly brain actually does</title>
+<meta name="description" content="Every measurement of the fly connectome model, including the ones that failed: ablation tables, plume tracking, the escape reflex under predation, and readouts against game-state baselines.">
+<meta property="og:title" content="fly.ai research">
+<meta property="og:description" content="What the fly brain does, what it does not, and the numbers behind both.">
+<meta property="og:image" content="assets/dashboard.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@flydotai">
+<meta name="theme-color" content="#07090c">
+<link rel="icon" href="assets/logo.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<nav aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="index.html"><img class="logo" src="assets/logo.webp" alt="fly.ai" width="1774" height="887">$FLYAI</a>
+    <ul>
+      <li class="opt"><a href="index.html">Home</a></li>
+      <li class="opt"><a class="on" href="research.html">Research</a></li>
+      <li class="opt"><a href="roadmap.html">Roadmap</a></li>
+      <li class="opt"><a href="token.html">$FLYAI</a></li>
+      <li class="opt"><a href="/simulation/">Simulation</a></li>
+      <li><a class="btn sm" href="https://x.com/flydotai" target="_blank" rel="noopener">Follow @flydotai</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="pagehead">
+  <div class="wrap">
+    <p class="eyebrow">Research</p>
+    <h1>What it does, and what it doesn't</h1>
+    <p class="lede">Every number here came out of code in the public repository, and the failures are on this
+      page next to the successes. A result that goes the wrong way is still a result; the point of the
+      project is what the connectome can do, not what we can script it into doing.</p>
+  </div>
+</header>
+
+<section class="firstsec">
+  <div class="wrap">
+    <p class="eyebrow">In the fighting game</p>
+    <h2>The brain plays SSH Fighter</h2>
+    <p class="lede">The fly's senses are fed the game; its descending neurons press the buttons. The brain
+      itself is never trained &mdash; only the encoder going in and the readout coming out.</p>
+
+    <div class="finding good">
+      <h3>It chases, and it chases for the right reason</h3>
+      <p>Against a scripted dummy for 90 seconds, <b>64% of its moves went toward the opponent</b>, where
+        chance is 50%. The pathway doing it is LC10a &rarr; DNa02 &mdash; the same circuit a male fly uses to
+        chase a mate. With eight copies of the brain voting, that rises to <b>72%</b> (against 63% for a
+        single fly), with far fewer random moves.</p>
+    </div>
+
+    <div class="finding bad">
+      <h3>It does not dodge</h3>
+      <p><b>22% of its jumps</b> happened while a projectile was nearby, against <b>20%</b> for random
+        jumping. That is chance. The escape pathway fires, but nothing has taught it when to use it.</p>
+    </div>
+
+    <div class="finding">
+      <h3>The readouts, against a baseline that sees the game directly</h3>
+      <p>A linear readout is trained on recorded matches to predict whether a press will connect, then scored
+        on held-out matches. The honest comparison is a baseline that just looks at the distance between the
+        fighters &mdash; information the fly does not get cleanly.</p>
+    </div>
+
+    <div class="scroller">
+      <table class="data">
+        <tr><th>Readout</th><th>Samples</th><th>Fly (held-out)</th><th>Game-state baseline</th><th>Chance</th></tr>
+        <tr class="hi"><td>Punch: will it connect?</td><td>407 presses, 41 connected</td><td>AUC 0.77</td><td>0.83</td><td>0.50</td></tr>
+        <tr><td>Kick: will it connect?</td><td>205 presses, 28 connected</td><td>AUC 0.67</td><td>0.88</td><td>0.50</td></tr>
+      </table>
+    </div>
+    <p class="caption">At its chosen threshold the punch readout presses on 9% of chances and 19% of those
+      connect, against 10% for random presses &mdash; but a one-line &ldquo;punch when in reach&rdquo; rule
+      presses on 8% of chances and connects 50% of the time. The fly loses to the rule. We do not use the
+      rule: a win from scripted rules would tell us nothing about the connectome.</p>
+
+    <div class="finding">
+      <h3>Tuning the encoder, not the brain</h3>
+      <p>Searching how the game reaches the looming neurons moved the punch readout from
+        <b>AUC 0.685</b> (hand-set) to <b>0.789</b> (looming scaled by size 0.6), replicated across three
+        runs and flat up to 1.2 before collapsing at 1.8. The distance-only baseline still wins at
+        <b>0.867</b>. <b>The interface, not the wiring, is the bottleneck</b> &mdash; which is why the
+        roadmap learns the interface first and treats wiring edits as a separate experiment.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">In the 3-D world</p>
+    <h2>Flies that forage, mate and die</h2>
+    <p class="lede">A second model, smaller and built to the same block diagram: 612 leaky
+      integrate-and-fire neurons per fly, 4,718 synapses, never trained. Because every fly is cheap, whole
+      pathways can be cut and the population measured with and without them.</p>
+
+    <h3 style="margin-bottom: 14px;">Cast-and-surge falls out of the wiring</h3>
+    <p>16 flies, wind 1.6 m/s, 180 s, binned by how long it has been since a puff of odour hit:</p>
+    <div class="scroller">
+      <table class="data">
+        <tr><th>Time since a puff</th><th>Speed</th><th>Upwind heading</th><th>Steering</th><th>Wing motor</th></tr>
+        <tr class="hi"><td>Under 0.25 s (a hit)</td><td>2.71 m/s</td><td>0.771</td><td>2.31</td><td>8.7 Hz</td></tr>
+        <tr><td>0.25&ndash;0.75 s</td><td>2.76</td><td>0.653</td><td>2.62</td><td>8.5</td></tr>
+        <tr><td>0.75&ndash;1.5 s</td><td>2.55</td><td>0.616</td><td>2.72</td><td>8.1</td></tr>
+        <tr><td>1.5&ndash;3 s</td><td>2.37</td><td>0.633</td><td>2.72</td><td>7.8</td></tr>
+        <tr class="hi"><td>Over 3 s (plume lost)</td><td>2.11</td><td>0.595</td><td>2.93</td><td>7.4</td></tr>
+      </table>
+    </div>
+    <p class="caption">Monotonic in all four columns: on contact a fly speeds up, straightens, heads further
+      upwind and drives its wings harder; as the plume is lost it slows, turns more and drifts off the wind
+      axis. That is textbook surge-and-cast, and nothing in the code says to do it. It falls out of receptors
+      that report the <i>onset</i> of a puff feeding the same steering and thrust populations the wind
+      pathway feeds.</p>
+
+    <h3 style="margin: 34px 0 14px;">The escape reflex is worth something under predation</h3>
+    <p>Spiders rear up &mdash; which the eyes see as real looming &mdash; and strike. 24 flies, 250 s, four
+      independent world seeds. Deaths are per 1,000 fly-seconds, so a run that loses flies early is not
+      scored as safer.</p>
+    <div class="scroller">
+      <table class="data">
+        <tr><th>Wiring</th><th>Eaten / 1000 fly-s</th><th>Giant fibre</th><th>Near the ground</th></tr>
+        <tr class="hi"><td>Intact</td><td>0.30 &plusmn; 0.16</td><td>0.91 Hz</td><td>41.2%</td></tr>
+        <tr><td>Looming input cut</td><td>1.94 &plusmn; 0.96</td><td>0.00 Hz</td><td>78.1%</td></tr>
+        <tr class="hi"><td>Jump-muscle output cut</td><td>0.71 &plusmn; 0.29</td><td>1.06 Hz</td><td>36.8%</td></tr>
+      </table>
+    </div>
+    <p class="caption">Cutting the looming input raises deaths 6.5&times;, but it also parks the flies near the
+      ground, so most of that is posture rather than a failed escape. Cutting the giant fibre's <i>output</i>
+      is the clean test: the neuron still fires, time near the ground is unchanged, and deaths still more than
+      double. That is the escape circuit doing its job, measured with the confound removed.</p>
+
+    <h3 style="margin: 34px 0 14px;">The motor stage is real</h3>
+    <p>Cut the descending neurons off the premotor pool and the flies stop being flies: wing motor
+      7.4 &rarr; 2.5 Hz, speed 1.89 &rarr; 0.07 m/s, altitude 3.51 &rarr; 0.42 m. They sit on the ground
+      twitching. Cut the ventral optic-flow cells instead and altitude collapses from 3.5 m to 0.89 m &mdash;
+      height in this model is held by the same optic-flow loop insects use, not by a controller.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Published either way</p>
+    <h2>What failed</h2>
+
+    <div class="finding bad">
+      <h3>Aversion does not work</h3>
+      <p>The geosmin pathway &mdash; the labelled line a real fly uses to avoid mould &mdash; is wired in and
+        it fires: the receptor runs at 1.6 Hz and the lateral horn at 6.5&ndash;9 Hz next to mouldy fruit. But
+        the flies do not avoid the mould. In a two-choice arena the side-swap variance is larger than any
+        ablation effect. The aversive signal reaches steering at a few Hz against a much larger arousal
+        background, and it loses.</p>
+    </div>
+
+    <div class="finding bad">
+      <h3>The aggregation pheromone does not attract</h3>
+      <p>Flies looked like they clustered around each other. Measured speed-independently &mdash; is a fly
+        <i>heading</i> at its nearest neighbour? &mdash; the effect is &minus;0.049 intact and &minus;0.000
+        with the pheromone cut. The clustering was arousal, not attraction. The original result did not
+        survive a better measurement.</p>
+    </div>
+
+    <div class="finding bad">
+      <h3>Smell does not win foraging in a crowd</h3>
+      <p>Cutting the food odour channel entirely changes mean distance to fruit from 11.37 m to 11.21 m. In a
+        32 m field with dozens of food sources, where flies settle dominates what they search for. Surge is
+        real and measurable; it just does not show up in this particular metric.</p>
+    </div>
+
+    <div class="finding">
+      <h3>A caveat that applies to every ablation above</h3>
+      <p>Each neuron's incoming weights are normalised to sum to 1, so cutting one input <i>raises</i> the
+        weight of the rest. These are not clean knockouts, and small differences between rows should not be
+        trusted. Stated here rather than buried, because it limits every table on this page.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Stated plainly</p>
+    <h2>What isn't real</h2>
+    <div class="card pad notreal">
+      <ul>
+        <li>The wiring is real; the neurons are simplified. One simple model per cell, no dendrites, no
+          neuromodulators, no learning yet.</li>
+        <li>The 3-D world is <b>not</b> the connectome: 612 neurons against 166,700, with real cell-type
+          names but invented counts and weights.</li>
+        <li>The eye is a shortcut. Signals are fed into the fly's motion-detecting neurons rather than
+          simulating its optics.</li>
+        <li>Which neurons press which game buttons was chosen by us.</li>
+      </ul>
+    </div>
+    <div class="cta" style="margin-top: 26px;">
+      <a class="btn" href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener">All of it on GitHub</a>
+      <a class="btn" href="/simulation/">Open the simulation</a>
+      <a class="btn" href="roadmap.html">What comes next</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://x.com/flydotai" target="_blank" rel="noopener">X @flydotai</a>
+      <a href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/alextitonis/fly.ai/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+    </div>
+    <p>Connectome data: MaleCNS v1.0 by FlyEM (HHMI Janelia) and collaborators, used under CC BY 4.0. Code MIT licensed.</p>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

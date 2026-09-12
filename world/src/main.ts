@@ -270,6 +270,7 @@ const EVENT_FACE: Record<string, string> = {
   feed: "◆",      // a meal started
   attack: "✖",    // a spider strike
   death: "☠",     // a fly died
+  poop: "○",      // a dropping: amines for everybody else
 };
 const eventEls: HTMLElement[] = [];
 const seenEvents = new WeakSet<object>();

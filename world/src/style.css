@@ -40,6 +40,22 @@ body {
   max-width: calc(100% - 400px);
 }
 
+#back {
+  pointer-events: auto;
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(8, 11, 16, 0.72);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+}
+
+#back:hover { color: var(--text); border-color: var(--muted); }
+
 h1 {
   margin: 0;
   font-size: 17px;
@@ -128,6 +144,7 @@ h1 b { color: var(--accent); }
 .feed-row.feed i { color: #3ed8ff; }
 .feed-row.attack i { color: #ff5a5a; }
 .feed-row.death i { color: #9aa7b5; }
+.feed-row.poop i { color: #d8a05a; }
 .feed-empty { color: var(--dim); font-size: 11px; }
 
 .ev {
@@ -153,6 +170,7 @@ h1 b { color: var(--accent); }
 .ev.feed { border-color: #1d3c48; } .ev.feed i { color: #3ed8ff; }
 .ev.attack { border-color: #5a2323; } .ev.attack i { color: #ff5a5a; }
 .ev.death { border-color: #3a3f47; } .ev.death i { color: #9aa7b5; }
+.ev.poop { border-color: #43382a; } .ev.poop i { color: #d8a05a; }
 
 .about p {
   margin: 0 0 8px;

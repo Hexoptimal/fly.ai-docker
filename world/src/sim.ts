@@ -125,7 +125,7 @@ export class Fly {
 
 interface PopRef { L: number; R: number }
 
-export type EventKind = "mate" | "egg" | "hatch" | "feed" | "attack" | "death";
+export type EventKind = "mate" | "egg" | "hatch" | "feed" | "attack" | "death" | "poop";
 
 const DEATH_WORD: Record<string, string> = {
   age: "dies of old age",
@@ -585,6 +585,7 @@ export class World {
         }
         this.place("poop", fly.x + (this.rand() - 0.5) * 0.3, fly.z + (this.rand() - 0.5) * 0.3,
           { radius: 0.3, height: 0.46, y: 0.44, life: 150 });
+        this.mark("poop", `${fly.name} leaves a dropping`, fly.x, fly.y, fly.z);
       }
 
       // ---- the label above its head, read straight off the populations -----
