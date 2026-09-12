@@ -141,6 +141,11 @@ function substrate(label: string, seeds = 4): void {
     `ratio ${ratio.toFixed(2)}   LB3 ${pm(lb3)} Hz   LH ${pm(lh)} Hz`);
 }
 
+// `node --experimental-strip-types tools/lifeab.ts courtship` runs one section
+const only = process.argv[2] ?? "";
+const run = (name: string) => !only || only === name;
+
+if (run("predation")) {
 console.log("--- 1. predation: 24 flies, 30 s settle + 250 s, 4 seeds -------------------");
 predation("intact");
 cut(["LPLC2", "DNp01"], ["LC4", "DNp01"]);
@@ -148,6 +153,9 @@ predation("no loom -> DNp01"); restore();
 cut(["DNp01", "Ti extensor MN"], ["DNp01", "Sternotrochanter MN"], ["DNp01", "VNC-IN"]);
 predation("no DNp01 -> jump muscles"); restore();
 
+}
+
+if (run("courtship")) {
 console.log("\n--- 2. courtship: 24 flies, 50 s settle + 250 s, 4 seeds ------------------");
 courtship("intact");
 cut(["LC10a", "P1"]);
@@ -157,9 +165,14 @@ courtship("no Gr68a -> P1 (contact)"); restore();
 cut(["AL-LN", "P1"]);
 courtship("no AL-LN -| P1 (cVA veto)"); restore();
 
+}
+
+if (run("substrate")) {
 console.log("\n--- 3. egg substrate: 20 flies, fruit vs mould 8 m apart, 300 s, 4 seeds --");
 substrate("intact");
 cut(["Or56a", "DA2 PN"]);
 substrate("no geosmin -> DA2"); restore();
 cut(["LH", "LAL"], ["LH", "LPi"], ["LH", "MDN"]);
 substrate("no LH output (steering)"); restore();
+
+}

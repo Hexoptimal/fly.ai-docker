@@ -282,9 +282,56 @@ fires at 1.06 Hz, time near the ground is unchanged, and deaths by spider still
 more than double, 0.30 → 0.71. That is the giant fibre doing its job, measured
 with the confound removed.
 
-**Still not measured.** Courtship (mating with LC10a, Gr68a or the cVA veto cut)
-and egg-laying on good versus mouldy substrate are in `tools/lifeab.ts` and were
-not run — this round stopped at a working prototype. Tracked in the roadmap.
+### Courtship: the circuit fires, but it does not control mating
+
+24 flies, 50 s settle then 250 s measured, four seeds. P1 is the male command
+population; pIP10 drives the wing motor neurons that make the song.
+
+| wiring | matings | eggs | P1 (males) | pIP10 |
+|---|---|---|---|---|
+| **intact** | 6.0 ± 1.6 | 17.0 ± 4.2 | 5.07 Hz | 6.03 Hz |
+| no LC10a → P1 (vision) | 7.5 ± 1.7 | 11.5 ± 5.7 | **1.78** | **1.64** |
+| no Gr68a → P1 (contact) | 4.3 ± 1.9 | 11.0 ± 5.8 | **11.30** | 12.00 |
+| no AL-LN ⊣ P1 (cVA veto) | 6.0 ± 0.7 | 15.8 ± 3.4 | 10.98 | 12.90 |
+
+**A clean negative, and it indicts our own code rather than the wiring.** P1 spans
+1.8 to 11.3 Hz across these rows — a six-fold range — and the number of matings
+does not move: every row overlaps 6.0 ± 1.6. Mating here is proximity plus a
+threshold that noise crosses in either direction, exactly as the "fudged" note
+below admits. The courtship circuit is real and it responds to its inputs; it
+simply is not what decides whether a mating happens.
+
+Two further warnings sit in this table. Cutting the *contact* input **raises** P1
+from 5.07 to 11.30 Hz, because normalised weights hand the dead input's share to
+the survivors — large enough here to invert the expected direction. And the cVA
+veto cannot be tested this way at all: removing an inhibitory input raises P1 for
+two reasons at once, and the mating rule ignores both.
+
+### Egg-laying substrate: the assay does not work
+
+20 flies, one fruit and one mould patch 8 m apart in a 13 m arena, 300 s, four
+seeds, sides swapped between seeds. Counts are eggs and larvae still sitting on
+each patch at the end.
+
+| wiring | on fruit | on mould | LB3 (taste) | LH (aversion) |
+|---|---|---|---|---|
+| intact | 0.3 ± 0.4 | 0.0 ± 0.0 | 0.21 Hz | 6.66 Hz |
+| no geosmin → DA2 | 0.3 ± 0.4 | 0.8 ± 0.8 | 0.20 | **8.42** |
+| no LH output | 0.5 ± 0.9 | 0.3 ± 0.4 | 0.20 | **9.61** |
+
+**Nothing can be concluded from these numbers, and the reason is worth more than
+the numbers would have been.** Egg-laying drive is `LB3 − LH`, but LB3 idles
+around 0.2 Hz while LH sits near 7 Hz, so the drive is negative almost everywhere
+and fewer than one egg per run is laid in the arena. The rate constants are simply
+mismatched: two populations subtracted from each other with no common scale.
+
+Worse, the obvious fix — cut the aversive input and see whether eggs return — is
+**unavailable in this model**. Cutting Or56a → DA2 PN *raises* LH to 8.42 Hz, and
+cutting LH's output raises it to 9.61 Hz, because in both cases the remaining
+inputs absorb the normalised budget. There is no way to lower LH by removing
+something that feeds it. Any future test of this pathway has to compare LH against
+its own baseline, or gate on the geosmin channel directly, rather than subtract
+one raw population rate from another.
 
 **Fudged, and worth knowing.** Mating is a world rule that reads P1 (above 6 Hz
 and within 0.8 m) rather than a courtship sequence; female receptivity is a
