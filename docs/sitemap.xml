@@ -16,6 +16,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://flyaiworld.com/flybook</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://flyaiworld.com/roadmap</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

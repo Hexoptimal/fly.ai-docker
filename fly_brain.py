@@ -67,12 +67,23 @@ class FlyBrain:
     dt = 0.020
     tau = 0.100
     gain = 3.0
-    tonic = 0.14
+    tonic = 0.14            # calibrated at dt = 0.020; rescaled for other steps (see __init__)
     noise_hz = 1.2
     noise_amp = 0.22
     eye_gain = 0.62
 
-    def __init__(self, data: Path = DATA, seed: int = 64, device: str | None = None, batch: int = 1):
+    def __init__(self, data: Path = DATA, seed: int = 64, device: str | None = None, batch: int = 1,
+                 dt: float | None = None, sensory_input: bool = True, refractory: float = 0.0):
+        """dt: step length in seconds (default 0.020). tonic is rescaled so a silent
+        neuron settles at the same voltage as in the calibrated 20 ms model.
+
+        sensory_input: False removes every synapse onto sensory neurons (any superclass
+        containing "sensory"), so they fire only from noise and what you inject. With
+        True (the original model), olfactory receptor neurons excite each other into a
+        runaway loop and sit near maximum rate at rest, so odours add nothing.
+
+        refractory: seconds a neuron is held at 0 after it spikes (0 = none; at 20 ms
+        steps the step itself already caps rates at 50 Hz)."""
         device = device or os.environ.get("FLY_DEVICE", "cpu")
         if device == "auto":
             device = "cuda" if cuda_available() else "cpu"
@@ -80,7 +91,18 @@ class FlyBrain:
             raise ValueError(f"device must be cpu, cuda or auto, not {device!r}")
         self.device = device
         self.batch = int(batch)
+        if dt is not None:
+            self.dt = float(dt)
+        self.tonic = type(self).tonic * (1 - np.exp(-self.dt / self.tau)) / (1 - np.exp(-0.020 / self.tau))
+        self.refractory_steps = int(round(refractory / self.dt))
+        self.sensory_input = sensory_input
+        meta = np.load(data / "brain.npz")
         W = sparse.load_npz(data / "weights.npz")
+        if not sensory_input:
+            if "superclass" not in meta.files:
+                raise SystemExit("brain.npz has no superclass; rerun build_brain.py")
+            sensory = np.char.find(meta["superclass"].astype(str), "sensory") >= 0
+            W = sparse.diags((~sensory).astype(np.float32)) @ W.tocsr()   # rows = postsynaptic
         if device == "cuda":
             import cupy
             from cupyx.scipy import sparse as cusparse
@@ -91,7 +113,6 @@ class FlyBrain:
         W = W.tocsc()
         self.n = W.shape[0]
         self.indptr, self.indices, self.weights = W.indptr, W.indices, W.data
-        meta = np.load(data / "brain.npz")
         self.visual = meta["visual"]
         self.azimuth = meta["azimuth"]  # -1 far left ... +1 far right
         self.cell_type = meta["cell_type"]
@@ -110,9 +131,15 @@ class FlyBrain:
         self.v = xp.zeros((self.n, self.batch), xp.float32)
         self.fired = xp.empty(0, xp.int64)   # flat indices into v
         self.steps = 0
+        # step of each neuron's last spike, for the refractory period
+        self.last_spike = xp.full((self.n, self.batch), -10**6, xp.int32) if self.refractory_steps else None
 
     def cells(self, types: list[str], side: str | None = None) -> np.ndarray:
+        """Neurons whose cell type is in `types`. A superclass name
+        ("descending_neuron", "visual_projection", ...) selects the whole class."""
         mask = np.isin(self.cell_type, types)
+        if self.superclass is not None:
+            mask |= np.isin(self.superclass, types)
         if side:
             mask &= self.side == side
         return np.flatnonzero(mask)
@@ -140,7 +167,7 @@ class FlyBrain:
                                 for b in range(B)])
 
     def step(self, eye_drive: np.ndarray | None = None, inject=()):
-        """Advance 20 ms. eye_drive: 0..1 per photoreceptor (len(self.visual)), or
+        """Advance one step (dt, 20 ms by default). eye_drive: 0..1 per photoreceptor (len(self.visual)), or
         (len(self.visual), batch); inject: (neuron indices, extra voltage) pairs
         added this step. Returns the indices of the neurons that fired (NumPy):
         one array with batch 1, else a list with one array per fly."""
@@ -154,8 +181,12 @@ class FlyBrain:
             self.v[self._visual] += (drive[:, None] if drive.ndim == 1 else drive) * self.eye_gain
         for idx, amount in inject:
             self.v[xp.asarray(idx)] += self._amount(amount)
+        if self.refractory_steps:
+            self.v[(self.steps - self.last_spike) <= self.refractory_steps] = 0.0
         fired = xp.flatnonzero(self.v >= 1.0)
         self.v.ravel()[fired] = 0.0
+        if self.refractory_steps:
+            self.last_spike.ravel()[fired] = self.steps
         self.fired = fired
         self.steps += 1
         flat = fired if xp is np else fired.get()

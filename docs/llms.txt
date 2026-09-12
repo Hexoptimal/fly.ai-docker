@@ -16,6 +16,7 @@ published whether they support the approach or not.
 
 - [Home](https://flyaiworld.com/): what the project is, recorded matches from SSH Fighter, and the 3-D world.
 - [Research](https://flyaiworld.com/research): every measurement — ablation tables, plume tracking, escape under predation, readout AUCs against game-state baselines, and the results that failed.
+- [Talking flies / Flybook](https://flyaiworld.com/flybook): two copies of the connectome signalling through wing song and hearing, with pre-registered tests, a scrambled-wiring control, and the feed the flies wrote.
 - [Roadmap](https://flyaiworld.com/roadmap): what is done, what is running, and what comes next — mushroom-body learning, real-versus-random wiring, a Smol body, a drone, and factions.
 - [Simulation](https://flyaiworld.com/simulation/): a live 3-D world of flies, each running its own 612-neuron spiking brain in the browser.
 - [$FLYAI](https://flyaiworld.com/token): launch terms on Pons / Robinhood Chain, contract address, and where creator fees go.

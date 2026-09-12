@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flybook &mdash; can two fly brains talk?</title>
+<meta name="description" content="Two copies of the real fruit-fly connectome. One sees a threat and sings with its wings; the other hears it and flinches. Three runs, pre-registered tests, a scrambled-wiring control, and the feed the flies wrote.">
+<meta property="og:title" content="Flybook &mdash; can two fly brains talk?">
+<meta property="og:description" content="Two copies of the real fruit-fly connectome. One sees a threat, the other hears it and flinches 77% of the time. What got through, what didn't, and the feed they wrote.">
+<meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@flydotai">
+<meta name="theme-color" content="#07090c">
+<link rel="canonical" href="https://flyaiworld.com/flybook">
+<meta property="og:url" content="https://flyaiworld.com/flybook">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="fly.ai">
+<meta name="twitter:image" content="https://flyaiworld.com/assets/dashboard.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Flybook: can two fly brains talk?",
+  "description": "Two copies of the real fruit-fly connectome signalling through wing song and hearing: three runs, pre-registered tests, a scrambled-wiring control, and the feed the flies wrote.",
+  "url": "https://flyaiworld.com/flybook",
+  "author": { "@type": "Organization", "name": "fly.ai" },
+  "publisher": { "@type": "Organization", "name": "fly.ai" }
+}
+</script>
+<link rel="icon" href="assets/logo.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .fb-label { font: 500 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 0 0 10px; }
+  .fb-word { font: 700 clamp(48px, 9vw, 84px)/.9 var(--display); letter-spacing: -.045em; margin: 0 0 18px; }
+  .fb-word i { font-style: normal; color: var(--red); }
+  .fb-thesis { font: 500 clamp(21px, 2.8vw, 28px)/1.3 var(--display); max-width: 32ch; margin: 0 0 14px; text-wrap: balance; }
+  .fb-thesis .a { color: var(--red-hi); } .fb-thesis .b { color: var(--cool); }
+
+  .loop { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--bg-2); margin-top: 8px; }
+  .loop div { padding: 14px 14px 12px; border-right: 1px solid var(--line); display: grid; gap: 4px; align-content: start; }
+  .loop div:last-child { border-right: 0; }
+  .loop b { font: 600 14px var(--sans); }
+  .loop span { font: 12px/1.4 var(--mono); color: var(--dim); }
+  .loop .sA b { color: var(--red-hi); } .loop .sB b { color: var(--cool); }
+  .loop .wire { background: repeating-linear-gradient(90deg, transparent 0 6px, rgba(108,196,216,.06) 6px 7px), var(--bg-2); }
+
+  .headline { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 40px; }
+  .headline div { background: var(--bg-2); padding: 20px 22px; display: grid; gap: 6px; align-content: start; }
+  .headline b { font: 700 clamp(28px, 3.6vw, 38px)/1 var(--display); font-variant-numeric: tabular-nums; }
+  .headline b small { font: 500 15px var(--sans); color: var(--muted); margin-left: 4px; }
+  .headline span { color: var(--muted); font-size: 14px; }
+
+  .runs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 26px; }
+  .runs div { border-top: 2px solid var(--line); padding-top: 10px; display: grid; gap: 4px; }
+  .runs div.r3 { border-top-color: var(--cool); }
+  .runs b { font-weight: 600; }
+  .runs p { color: var(--muted); font-size: 14px; margin: 0; }
+
+  table.cmp td, table.cmp th { white-space: nowrap; }
+  table.cmp td:first-child { white-space: normal; min-width: 220px; }
+  table.cmp th.r3, table.cmp td.r3 { background: rgba(108,196,216,.05); }
+  table.cmp td b { color: var(--text); font-weight: 500; }
+  table.cmp td .no { color: var(--red-hi); }
+  table.cmp td .yes { color: var(--green); }
+  table.cmp tr.group td { font: 500 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); padding-top: 20px; background: none; }
+  .star { color: #f0bc5f; }
+
+  .ledger { display: grid; margin-top: 8px; }
+  .check { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 18px; padding: 16px 0; border-top: 1px solid rgba(34,42,53,.6); align-items: start; }
+  .check:first-child { border-top: 0; }
+  .state { font: 500 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; padding: 6px 8px; border-radius: 5px; text-align: center; border: 1px solid; }
+  .state.pass { color: var(--green); border-color: rgba(61,220,132,.35); background: rgba(61,220,132,.07); }
+  .state.fail { color: var(--red-hi); border-color: rgba(255,91,79,.35); background: rgba(255,91,79,.07); }
+  .state.weak { color: #f0bc5f; border-color: rgba(240,188,95,.35); background: rgba(240,188,95,.07); }
+  .check h3 { font-size: 17px; margin-bottom: 4px; }
+  .check p { color: var(--muted); font-size: 15px; margin: 0; max-width: 72ch; }
+  .fb-note { margin-top: 16px; color: var(--dim); font: 12px/1.6 var(--mono); max-width: 90ch; }
+
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; padding: 3px; gap: 3px; margin-bottom: 16px; flex-wrap: wrap; }
+  .seg button { all: unset; cursor: pointer; padding: 7px 12px; border-radius: 6px; font: 500 13px var(--sans); color: var(--muted); }
+  .seg button:hover { color: var(--text); }
+  .seg button:focus-visible { outline: 2px solid var(--cool); outline-offset: 2px; }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+  .grids { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .grid-card { padding: 18px; }
+  .grid-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .grid-head h3 { font-size: 16px; margin: 0; }
+  .fig { font: 13px/1.55 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .fig b { color: var(--text); font-weight: 500; }
+  .cm { display: grid; grid-template-columns: 70px repeat(4, minmax(0, 1fr)); gap: 3px; font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+  .cm .h { color: var(--dim); font-size: 10.5px; display: flex; align-items: end; justify-content: center; padding-bottom: 4px; }
+  .cm .r { color: var(--muted); display: flex; align-items: center; font-size: 11px; }
+  .cm .c { aspect-ratio: 1.5; max-width: 100%; display: grid; place-items: center; border-radius: 4px; color: var(--text); }
+  .axis { display: flex; justify-content: space-between; color: var(--dim); font: 11px var(--mono); margin-top: 10px; gap: 10px; flex-wrap: wrap; }
+  .cm-caption { color: var(--muted); font-size: 14px; margin-top: 14px; max-width: 80ch; }
+
+  .feedwrap { display: grid; grid-template-columns: 230px minmax(0, 640px); gap: 36px; align-items: start; }
+  .rail { position: sticky; top: 76px; display: grid; gap: 18px; }
+  .filters { display: grid; gap: 6px; }
+  .filters button { all: unset; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 8px; font-size: 14px; color: var(--muted); border: 1px solid transparent; }
+  .filters button:hover { color: var(--text); background: var(--bg-2); }
+  .filters button:focus-visible { outline: 2px solid var(--cool); outline-offset: 2px; }
+  .filters button[aria-pressed="true"] { color: var(--text); background: var(--panel); border-color: var(--line); }
+  .filters button span { font: 12px var(--mono); color: var(--dim); font-variant-numeric: tabular-nums; }
+  .glossary { font-size: 13px; color: var(--muted); display: grid; gap: 8px; }
+  .glossary p { margin: 0; }
+  .glossary b { color: var(--text); font-weight: 500; }
+
+  .feed { display: grid; gap: 14px; }
+  .post { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px 12px; display: grid; gap: 12px; }
+  .who { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+  .facet { width: 40px; height: 44px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); display: grid; place-items: center; font: 600 13px var(--display); color: #07090c; }
+  .who .name { font-weight: 600; }
+  .who .meta { color: var(--dim); font: 12px var(--mono); }
+  .conf { font: 12px var(--mono); color: var(--muted); text-align: right; }
+  .conf b { color: var(--text); font-weight: 500; }
+  .says { font: 500 19px/1.35 var(--display); margin: 0; }
+  .says small { display: block; font: 12px var(--mono); color: var(--dim); margin-top: 2px; }
+  .spark { width: 100%; height: 58px; display: block; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 12px var(--mono); color: var(--dim); font-variant-numeric: tabular-nums; }
+  .facts b { color: var(--muted); font-weight: 400; }
+  .truth { display: inline-flex; font: 12px var(--mono); padding: 5px 9px; border-radius: 6px; width: fit-content; }
+  .truth.ok { color: var(--green); background: rgba(61,220,132,.08); }
+  .truth.no { color: #f0bc5f; background: rgba(240,188,95,.08); }
+  .comment { border-top: 1px solid rgba(34,42,53,.6); padding-top: 10px; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 14px; }
+  .comment .facet { width: 26px; height: 29px; font-size: 9px; }
+  .comment .rx { color: var(--muted); }
+  .comment .rx b { color: var(--cool); font-weight: 500; }
+  .comment small { display: block; font: 11px var(--mono); color: var(--dim); }
+  .feed .empty { color: var(--dim); font: 13px var(--mono); }
+
+  .limits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 32px; }
+  .limits div { display: grid; gap: 4px; padding-block: 10px; border-top: 1px solid rgba(34,42,53,.6); }
+  .limits b { font-weight: 600; }
+  .limits p { color: var(--muted); font-size: 15px; margin: 0; }
+
+  @media (max-width: 860px) {
+    .loop { grid-template-columns: minmax(0, 1fr); }
+    .loop div { border-right: 0; border-bottom: 1px solid var(--line); }
+    .loop div:last-child { border-bottom: 0; }
+    .headline, .runs { grid-template-columns: minmax(0, 1fr); }
+    .grids, .limits { grid-template-columns: minmax(0, 1fr); }
+    .feedwrap { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .rail { position: static; }
+    .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 460px) {
+    .check { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .state { width: fit-content; }
+    .cm { grid-template-columns: 56px repeat(4, minmax(0, 1fr)); }
+    table.cmp td:first-child { min-width: 170px; }
+  }
+</style>
+</head>
+<body>
+
+<nav aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="index.html"><img class="logo" src="assets/logo.webp" alt="fly.ai" width="1774" height="887">$FLYAI</a>
+    <ul>
+      <li class="opt"><a href="index.html">Home</a></li>
+      <li class="opt dd"><a class="on" href="research.html">Research</a><button class="ddbtn" type="button" aria-expanded="false" aria-controls="dd-research" aria-label="More research pages">&#9662;</button>
+        <ul class="ddmenu" id="dd-research">
+          <li><a href="research.html">All findings<small>Fighting, the 3-D world, what failed</small></a></li>
+          <li><a class="on" href="flybook.html">Talking flies<small>Flybook: can two brains signal?</small></a></li>
+        </ul></li>
+      <li class="opt"><a href="roadmap.html">Roadmap</a></li>
+      <li class="opt"><a href="token.html">$FLYAI</a></li>
+      <li class="opt"><a href="/simulation/">Simulation</a></li>
+      <li><a class="btn sm" href="https://x.com/flydotai" target="_blank" rel="noopener">Follow @flydotai</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="pagehead">
+  <div class="wrap">
+    <p class="eyebrow">Research &middot; talking flies</p>
+    <p class="fb-word">Fly<i>book</i></p>
+    <h1 class="fb-thesis">Two copies of a real fly brain. <span class="a">One sees a threat and sings.</span> <span class="b">The other hears it and flinches.</span></h1>
+    <p class="lede">Both flies are the full MaleCNS connectome, 166,700 neurons, frozen. Nothing in between is scripted. Fly A's song is its own wing motor neurons firing, and fly B hears it through its own ear neurons. We fixed the tests before running, ran the experiment three times, and report every result, including the one that failed.</p>
+    <div class="loop" aria-label="Signal path from fly A to fly B">
+      <div class="sA"><b>Fly A senses</b><span>LC4 + LPLC2 looming<br>LC10a mate &middot; ORN food</span></div>
+      <div class="sA"><b>A's wings sing</b><span>58 wing motor neurons<br>spikes above rest</span></div>
+      <div class="wire"><b>Song</b><span>loudness every step<br>one-step delay</span></div>
+      <div class="sB"><b>B's ear</b><span>138 Johnston's organ<br>neurons, JO-A / JO-B</span></div>
+      <div class="sB"><b>B's brain</b><span>1,314 descending<br>neurons read out</span></div>
+    </div>
+  </div>
+</header>
+
+<section class="firstsec" id="results">
+  <div class="wrap">
+    <p class="fb-label">Where it landed</p>
+    <h2>An alarm call that works</h2>
+    <p class="lede">In the most detailed brain (run 3), a threatened fly's song makes the listener react three times out of four, and its escape neurons fire three times harder than in silence.</p>
+    <div class="headline">
+      <div><b>77.5%<small>vs 17.5%</small></b><span>listeners that react after a threat song, against silence (p &lt; 0.001)</span></div>
+      <div><b>120 / 120</b><span>threat songs recognised from the wings alone, run 3</span></div>
+      <div><b>0.83<small>bits</small></b><span>about what happened to the singer, carried by its song (of 2 possible)</span></div>
+    </div>
+
+    <p class="fb-label">Three runs</p>
+    <div class="runs">
+      <div><b>Run 1 &middot; original model, 20&nbsp;ms</b><p>The brain as FLYBRAIN uses it. Smell neurons excite each other into a runaway loop and fire flat out, so an odour can add nothing.</p></div>
+      <div><b>Run 2 &middot; smell fixed, 20&nbsp;ms</b><p>Synapses onto sensory neurons are removed, which is how whole-brain spiking models of the fly treat them. Food now reaches its own relay neurons.</p></div>
+      <div class="r3"><b>Run 3 &middot; smell fixed, 2&nbsp;ms</b><p>Ten times finer steps, with a 4&nbsp;ms refractory period. We chose that period before running, as the one that matched the calibrated brain's resting rate without runaway neurons.</p></div>
+    </div>
+    <div class="scroller">
+      <table class="data cmp">
+        <thead><tr><th>Measure</th><th>Run 1</th><th>Run 2</th><th class="r3">Run 3</th></tr></thead>
+        <tbody>
+          <tr class="group"><td colspan="4">The song</td></tr>
+          <tr><td>Song tells what happened to the singer</td><td><b>41.1%</b> &middot; 0.30 bits &middot; p 0.02</td><td><b>46.7%</b> &middot; 0.63 bits &middot; p 0.02</td><td class="r3"><b>55.0%</b> &middot; 0.83 bits &middot; p 0.02</td></tr>
+          <tr><td>Threat songs recognised</td><td><b>163 / 180</b></td><td><b>180 / 180</b></td><td class="r3"><b>120 / 120</b></td></tr>
+          <tr><td>Same test, scrambled wiring</td><td><b>23.5%</b> &middot; 0.01 bits &middot; p 0.18</td><td><b>22.6%</b> &middot; 0.01 bits &middot; p 0.45</td><td class="r3"><b>47.1%</b> &middot; 0.87 bits &middot; p 0.02</td></tr>
+          <tr><td>Loudness alone <span class="star">*</span></td><td>0.29 bits</td><td>0.43 bits</td><td class="r3">0.64 bits</td></tr>
+          <tr><td>Spectrum shape alone, loudness removed <span class="star">*</span></td><td>0.05 bits</td><td>0.14 bits</td><td class="r3">0.54 bits</td></tr>
+          <tr><td>Food odour reaches its relay neurons</td><td><span class="no">no</span> &middot; pinned at 50 Hz</td><td><span class="yes">yes</span> &middot; 28 vs 16 Hz</td><td class="r3"><span class="yes">yes</span> &middot; 125 vs 4 Hz</td></tr>
+          <tr class="group"><td colspan="4">The listener</td></tr>
+          <tr><td>Listener's brain, real song</td><td><b>40.8%</b> &middot; 0.27 bits &middot; p 0.02</td><td><b>45.8%</b> &middot; 0.41 bits &middot; p 0.02</td><td class="r3"><b>55.6%</b> &middot; 0.73 bits &middot; p 0.02</td></tr>
+          <tr><td>Listener's brain, time-shuffled song</td><td><b>43.3%</b> &middot; 0.31 bits &middot; p 0.02</td><td><b>40.4%</b> &middot; 0.49 bits &middot; p 0.02</td><td class="r3"><b>52.5%</b> &middot; 0.75 bits &middot; p 0.02</td></tr>
+          <tr><td>Listener's brain, silence</td><td><b>26.7%</b> &middot; 0.02 bits &middot; p 0.41</td><td><b>27.5%</b> &middot; 0.03 bits &middot; p 0.25</td><td class="r3"><b>21.9%</b> &middot; 0.03 bits &middot; p 0.55</td></tr>
+          <tr><td>Listener reacts after a threat song, vs silence <span class="star">*</span></td><td><b>23.1%</b> vs 16.7% &middot; p 0.18</td><td><b>21.2%</b> vs 13.8% &middot; p 0.13</td><td class="r3"><b>77.5%</b> vs 17.5% &middot; p &lt; 0.001</td></tr>
+          <tr><td>Listener escape firing after a threat song, vs silence <span class="star">*</span></td><td><b>0.12</b> vs 0.09 Hz &middot; p 0.34</td><td><b>1.12</b> vs 0.70 Hz &middot; p &lt; 0.001</td><td class="r3"><b>3.95</b> vs 1.35 Hz &middot; p &lt; 0.001</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fb-note">Chance is 25% (four situations). p-values come from 50 label shuffles per decoding test, so 0.02 is the lowest possible; the reaction tests use 5,000 shuffles. Rows marked <span class="star">*</span> are follow-up controls we added after seeing run 2, so they were not fixed before running. Runs 1 and 2 have 720 songs each, run 3 has 480.</p>
+
+    <p class="fb-label" style="margin-top:44px">The checks we set before running</p>
+    <div class="ledger">
+      <div class="check"><span class="state pass">Pass &times;3</span>
+        <div><h3>The song carries what happened to the singer</h3><p>This held in every run, and it got clearer each time: 0.30, then 0.63, then 0.83 bits. Threat was always the loudest and clearest. In run 3 a mate in view became partly readable too.</p></div></div>
+      <div class="check"><span class="state fail">Fails in run 3</span>
+        <div><h3>The real wiring matters</h3><p>At 20&nbsp;ms, a brain with the same neurons and scrambled connections sang nothing useful (0.01 bits), even when its wings were louder than the real brain's. At 2&nbsp;ms it carries as many bits as the real brain (0.87 vs 0.83), so the test as we set it fails. The brains still differ in <em>which</em> situations they keep apart, a difference we noticed afterwards and report only as a description: the real brain keeps mate and threat almost completely separate, while the scrambled brain lumps them together, and it lumps food in with nothing.</p></div></div>
+      <div class="check"><span class="state pass">Pass &times;3</span>
+        <div><h3>The listener's brain registers it</h3><p>We can read what fly A went through from fly B's descending neurons, even though B only heard it. In silence the same readout stays at chance, which rules out the labels leaking into the analysis.</p></div></div>
+      <div class="check"><span class="state weak">Mostly no</span>
+        <div><h3>The message has rhythm, not just loudness</h3><p>The listener doesn't care about timing: in every run, the song with its time steps shuffled works as well as the real one. The song itself does have some shape beyond loudness, but in run 3 the threat song's strongest rhythm is 125&nbsp;Hz, exactly one spike every 4 steps. That points to the model's timing grid, not fly song.</p></div></div>
+      <div class="check"><span class="state pass">Run 3</span>
+        <div><h3>The listener does something about it <span class="star">*</span></h3><p>This was weak at 20&nbsp;ms. In run 2 the listener's escape neurons responded (p &lt; 0.001), but rarely enough to count as a reaction. At 2&nbsp;ms, 77.5% of listeners react to a threat song, against 17.5% in silence. A mate song (26%) and a food song (6%) don't reliably trigger anything.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="wiring">
+  <div class="wrap">
+    <p class="fb-label">Real vs scrambled wiring</p>
+    <h2>What the song says, cell by cell</h2>
+    <p class="lede">Rows are what really happened to fly A. Columns are what a decoder read from its wings. A clean diagonal would mean four distinct words.</p>
+    <div class="seg" role="group" aria-label="Choose a run">
+      <button id="run-1" type="button" data-run="1" aria-pressed="false">Run 1 &middot; original</button>
+      <button id="run-2" type="button" data-run="2" aria-pressed="false">Run 2 &middot; smell fixed</button>
+      <button id="run-3" type="button" data-run="3" aria-pressed="true">Run 3 &middot; 2&nbsp;ms</button>
+    </div>
+    <div class="grids">
+      <div class="card grid-card"><div class="grid-head"><h3>Real connectome</h3><span class="fig" id="bits-real"></span></div><div class="cm" id="cm-real"></div></div>
+      <div class="card grid-card"><div class="grid-head"><h3>Scrambled connectome</h3><span class="fig" id="bits-fake"></span></div><div class="cm" id="cm-fake"></div></div>
+    </div>
+    <div class="axis"><span id="cm-n">rows: true situation</span><span>columns: decoded &middot; green = correct</span></div>
+    <p class="cm-caption" id="cm-caption"></p>
+  </div>
+</section>
+
+<section id="feed-section">
+  <div class="wrap">
+    <p class="fb-label">The feed</p>
+    <h2>What they posted</h2>
+    <p class="lede" id="feedlede">Twelve flies are paired at random each round. A fly posts only when the translator hears a word in its wing song, and its partner's reaction is the comment.</p>
+    <div class="feedwrap">
+      <aside class="rail">
+        <div class="filters" role="group" aria-label="Filter posts">
+          <button id="f-all" type="button" data-f="all" aria-pressed="true">All posts <span></span></button>
+          <button id="f-threat" type="button" data-f="threat" aria-pressed="false">Alarm calls <span></span></button>
+          <button id="f-mate" type="button" data-f="mate" aria-pressed="false">Mate calls <span></span></button>
+          <button id="f-false" type="button" data-f="false" aria-pressed="false">Mistranslated <span></span></button>
+          <button id="f-react" type="button" data-f="react" aria-pressed="false">Listener reacted <span></span></button>
+        </div>
+        <div class="glossary">
+          <p><b>Confidence</b> is how often the translator was right when it used this word on songs it hadn't seen.</p>
+          <p><b>Song trace</b> is wing motor spikes per 20&nbsp;ms, with every post on the same scale. The dashed line is the resting level.</p>
+          <p><b>Reactions</b> are read from the listener's own neurons. The same rule fires in silence 17.5% of the time.</p>
+          <p id="feed-config"></p>
+        </div>
+      </aside>
+      <div class="feed" id="feed"><p class="empty">Loading the feed&hellip;</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <p class="fb-label">Not there yet</p>
+    <h2>What the flies still can't say</h2>
+    <div class="limits">
+      <div><b>"Food over here"</b><p>The smell fix worked: in run 3 a food odour drives its relay neurons at 125&nbsp;Hz, against 4&nbsp;Hz without it. But the signal never reaches the wings, so food songs look like no song at all. The smell gets into the brain and stops there.</p></div>
+      <div><b>"I like you"</b><p>A mate in view is now partly readable from the song: when the translator says "mate", it's right 69% of the time. Listeners, though, don't react to it reliably: 26%, against 17.5% in silence (p = 0.12).</p></div>
+      <div><b>What makes the real wiring special</b><p>At 2&nbsp;ms, a scrambled brain's song carries as many bits as the real one. What's left to test is whether the real brain's specific split (threat kept apart from mate) is what listeners need.</p></div>
+      <div><b>Conversation</b><p>Hearing doesn't make a fly sing back: driving the ear produced 1 spike in the song-command neurons. For now it's one fly broadcasting and the other listening, and rhythm and a real reply would take a model of the wings themselves.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="more">
+  <div class="wrap">
+    <p class="eyebrow">Read on</p>
+    <h2>The rest of it</h2>
+    <div class="next-pages">
+      <a class="card pad" href="research.html"><h3>All findings</h3>
+        <p>The fighting brain, the 3-D world, the ablation tables, and what failed.</p><p class="go">Read the findings &rarr;</p></a>
+      <a class="card pad" href="roadmap.html"><h3>Roadmap</h3>
+        <p>What's done, what's running, and what comes next.</p><p class="go">See the roadmap &rarr;</p></a>
+      <a class="card pad" href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener"><h3>Run it yourself</h3>
+        <p><span class="mono">flytalk.py</span> runs the experiment and <span class="mono">flybook.py</span> writes this feed. Everything is open source.</p><p class="go">GitHub &rarr;</p></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://x.com/flydotai" target="_blank" rel="noopener">X @flydotai</a>
+      <a href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/alextitonis/fly.ai/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+    </div>
+    <p>Connectome data: MaleCNS v1.0 by FlyEM (HHMI Janelia) and collaborators, used under CC BY 4.0. Code MIT licensed. Every fly in the feed is the same male brain with its own noise; the lab-strain names are just names.</p>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+<script>
+(function () {
+  const RUNS = {"1": {"real": {"confusion": [[33, 51, 42, 54], [27, 56, 39, 58], [4, 10, 163, 3], [42, 60, 34, 44]], "bits": 0.2995055165976583, "p": 0.0196078431372549}, "rewired": {"confusion": [[43, 46, 26, 65], [51, 38, 26, 65], [42, 50, 32, 56], [48, 49, 27, 56]], "bits": 0.0053891055333856195, "p": 0.17647058823529413}}, "2": {"real": {"confusion": [[62, 53, 9, 56], [63, 51, 11, 55], [0, 0, 180, 0], [79, 44, 14, 43]], "bits": 0.6303037034002645, "p": 0.0196078431372549}, "rewired": {"confusion": [[37, 77, 17, 49], [34, 58, 29, 59], [25, 77, 26, 52], [33, 80, 25, 42]], "bits": 0.01337904998449228, "p": 0.45098039215686275}}, "3": {"real": {"confusion": [[68, 7, 0, 45], [51, 33, 1, 35], [0, 0, 120, 0], [68, 8, 1, 43]], "bits": 0.8276937015082168, "p": 0.0196078431372549}, "rewired": {"confusion": [[72, 0, 0, 48], [1, 61, 57, 1], [0, 52, 67, 1], [84, 3, 7, 26]], "bits": 0.8666326261436347, "p": 0.0196078431372549}}};
+  const CTX = ["nothing", "mate", "threat", "food"];
+  const CAPTIONS = {
+    1: "Original model: one bright cell, threat. The scrambled brain has none.",
+    2: "Smell fixed: threat becomes perfect. Food still blurs with nothing, and the scrambled brain still has nothing.",
+    3: "2 ms: the real brain keeps threat and mate apart. The scrambled brain carries as many bits, but lumps mate with threat and food with nothing.",
+  };
+
+  function grid(id, m) {
+    let html = "<span></span>" + CTX.map((c) => `<span class="h">${c}</span>`).join("");
+    m.forEach((row, i) => {
+      const n = row.reduce((a, b) => a + b, 0);
+      html += `<span class="r">${CTX[i]}</span>`;
+      row.forEach((v, j) => {
+        const rgb = i === j ? "61,220,132" : "108,196,216";
+        html += `<span class="c" style="background: rgba(${rgb},${(0.05 + (v / n) * 0.85).toFixed(3)})" title="${v} of ${n}">${v}</span>`;
+      });
+    });
+    document.getElementById(id).innerHTML = html;
+  }
+  function showRun(k) {
+    const r = RUNS[k];
+    grid("cm-real", r.real.confusion);
+    grid("cm-fake", r.rewired.confusion);
+    document.getElementById("bits-real").innerHTML = `<b>${r.real.bits.toFixed(2)}</b> bits &middot; p ${r.real.p.toFixed(2)}`;
+    document.getElementById("bits-fake").innerHTML = `<b>${r.rewired.bits.toFixed(2)}</b> bits &middot; p ${r.rewired.p.toFixed(2)}`;
+    document.getElementById("cm-n").textContent = `rows: true situation · ${r.real.confusion[0].reduce((a, b) => a + b, 0)} songs each`;
+    document.getElementById("cm-caption").textContent = CAPTIONS[k];
+    document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.run === String(k))));
+  }
+  document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => showRun(b.dataset.run)));
+  showRun(3);
+
+  const TRUTH = { baseline: "nothing happened to it", mate: "a mate was in view", threat: "something was looming at it", food: "it smelled food" };
+  const SAYS = { threat: "Something big is coming at me.", mate: "There's someone here I like.", food: "Food over here." };
+  const HUE = [8, 196, 42, 150, 330, 24, 270, 176, 60, 220, 300, 110];
+  const NOTHING = "heard it, did nothing";
+
+  fetch("assets/flybook.json")
+    .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(start)
+    .catch(() => { document.getElementById("feed").innerHTML = '<p class="empty">The feed did not load. Reload the page to try again.</p>'; });
+
+  function start(FEED) {
+    const flies = FEED.flies;
+    const initials = (n) => n.replace(/[^A-Za-z0-9]/g, " ").trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+    const facet = (id) => `<span class="facet" style="background:hsl(${HUE[id % HUE.length]} 62% 64%)" aria-hidden="true">${initials(flies[id].name)}</span>`;
+    const PEAK = Math.max(1, ...FEED.posts.flatMap((p) => p.envelope));
+    const REST = FEED.rest ?? 1;
+    const isTrue = (p) => p.truth === p.word;
+    const reacted = (p) => p.comments.some((c) => c.reaction !== NOTHING);
+    const FILTERS = { all: () => true, threat: (p) => p.word === "threat", mate: (p) => p.word === "mate", false: (p) => !isTrue(p), react: reacted };
+
+    function spark(env) {
+      const W = 600, H = 58, pad = 3, n = env.length;
+      const x = (i) => pad + (i / (n - 1)) * (W - 2 * pad);
+      const y = (v) => H - pad - (Math.min(v, PEAK) / PEAK) * (H - 2 * pad);
+      const pts = env.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+      const top = env.indexOf(Math.max(...env));
+      return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Wing song trace, peak ${env[top]} spikes per 20 ms">
+        <line x1="0" x2="${W}" y1="${y(REST)}" y2="${y(REST)}" stroke="#5f6b7a" stroke-dasharray="3 4" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        <polygon points="${pad},${H - pad} ${pts} ${W - pad},${H - pad}" fill="rgba(224,52,44,.16)"/>
+        <polyline points="${pts}" fill="none" stroke="#ff5b4f" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+        <circle cx="${x(top)}" cy="${y(env[top])}" r="2.5" fill="#ff5b4f"/></svg>`;
+    }
+
+    function render(f) {
+      const posts = FEED.posts.filter(FILTERS[f]);
+      document.getElementById("feed").innerHTML = posts.length ? posts.map((p) => {
+        const c = p.comments[0];
+        const did = c.reaction !== NOTHING;
+        const food = p.neurons.food_pn !== undefined ? `<span><b>food relay</b> ${p.neurons.food_pn}</span>` : "";
+        return `<article class="post">
+          <div class="who">${facet(p.fly)}<div><div class="name">${flies[p.fly].name}</div><div class="meta">t = ${p.t.toFixed(1)} s &middot; round ${p.round + 1}</div></div>
+            <div class="conf">confidence<br><b>${Math.round(p.confidence * 100)}%</b></div></div>
+          <p class="says">${SAYS[p.word] ?? p.word}<small>translated from its wing song &middot; word: ${p.word}</small></p>
+          ${spark(p.envelope)}
+          <div class="facts"><span><b>wing MN</b> ${p.neurons.wing_mn} sp/s</span><span><b>escape DNp01</b> ${p.neurons.escape}</span><span><b>song cmd</b> ${p.neurons.song_cmd}</span><span><b>courtship pC1/P1</b> ${p.neurons.courtship}</span>${food}</div>
+          <span class="truth ${isTrue(p) ? "ok" : "no"}">${isTrue(p) ? "&check; true" : "&cross; mistranslated"}: ${TRUTH[p.truth]}</span>
+          <div class="comment">${facet(c.fly)}<div class="rx"><b>${flies[c.fly].name}</b> heard it${did ? " and <b>" + c.reaction + "</b>" : ", did nothing"}
+            <small>escape ${c.z.escape}&sigma; &middot; forward ${c.z.forward}&sigma; &middot; back ${c.z.backward}&sigma; &middot; turn ${c.z.turn}&sigma; vs silence</small></div></div>
+        </article>`;
+      }).join("") : '<p class="empty">No posts match this filter.</p>';
+    }
+
+    document.querySelectorAll(".filters button").forEach((b) => {
+      b.querySelector("span").textContent = FEED.posts.filter(FILTERS[b.dataset.f]).length;
+      b.addEventListener("click", () => {
+        document.querySelectorAll(".filters button").forEach((o) => o.setAttribute("aria-pressed", String(o === b)));
+        render(b.dataset.f);
+      });
+    });
+    const cfg = FEED.config || {};
+    const words = (FEED.translator && FEED.translator.posted_words) || [];
+    document.getElementById("feed-config").innerHTML =
+      `<b>Brain</b>: ${cfg.dt ? cfg.dt * 1000 : 20} ms steps${cfg.fix_sensory ? ", smell fixed" : ""}${cfg.refractory ? `, ${cfg.refractory * 1000} ms refractory` : ""} (run 3). Words it can post: ${words.join(" and ")}.`;
+    document.getElementById("feedlede").textContent =
+      `${FEED.rounds} rounds of ${FEED.seconds_per_round} s each, with ${flies.length} flies paired at random. A fly posts only when the translator hears a word in its wing song. Of ${FEED.posts.length} posts, ${FEED.posts.filter(isTrue).length} are true, and each partner's reaction is the comment.`;
+    render("all");
+  }
+})();
+</script>
+</body>
+</html>
