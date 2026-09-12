@@ -195,6 +195,10 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
   readings) plugs into the same frozen brain.
 * A benchmark: does the real wiring beat randomly rewired copies of itself on the same tasks?
 * Learning inside the brain through the mushroom body's dopamine rule, the way real flies learn.
+* A 3-D world with a body and physics instead of a 2-D game, with many flies in it at once, each
+  running its own copy of the brain.
+* The same brain in a different body: driving a [Smol](https://opensea.io/collection/smols-752105135)
+  inside that world. The connectome stays frozen; only the encoder and the readout change.
 
 ## Credits
 
