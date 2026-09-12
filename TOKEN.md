@@ -3,7 +3,7 @@
 $FLYAI is the token that funds [fly.ai](README.md). This document is the only place in this
 repository where the token is described; the rest of the repo is about the fly.
 
-**Contract address: not deployed yet.** When it is, the address appears here, on
+**Contract address: `0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C`** (Robinhood Chain). It is published here, on
 [alextitonis.github.io/fly.ai](https://alextitonis.github.io/fly.ai) and on
 [@flydotai](https://x.com/flydotai) — nowhere else. Any address from any other source is a scam.
 
@@ -11,11 +11,13 @@ repository where the token is described; the rest of the repo is about the fly.
 |---|---|
 | ticker | $FLYAI |
 | chain | Robinhood Chain |
-| launchpad | Pons |
-| contract | not deployed yet |
+| launchpad | [Pons](https://www.ponsfamily.com/launchpad/0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C) |
+| explorer | [Blockscout](https://robinhoodchain.blockscout.com/token/0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C) |
+| contract | `0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C` |
 | supply | 1,000,000,000 |
+| pair | NVDA (bonding curve, then Uniswap V4) |
 | liquidity | 100% of supply; bonding curve -> Uniswap V4, LP burned by Pons |
-| team allocation | none |
+| team allocation | none (the developer bought 0.156314 NVDA worth on the curve at launch, like anyone else) |
 | tax | none (no transfer tax; fees come from the launchpad) |
 | mint / owner functions | disabled after launch |
 | creator fees | 60% buys $FLYAI and burns it, 40% buys $MAGIC |
@@ -95,7 +97,7 @@ being public: every cycle is posted with its transaction hashes, and the wallet 
 whether or not anything is announced.
 
 At launch this section will list the fee address, the burn address and the running total burned.
-As of now: **not deployed; nothing collected and nothing burned.**
+As of launch day (12 September 2026): **deployed; nothing collected and nothing burned yet.**
 
 ## Funding the work
 

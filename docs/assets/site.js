@@ -9,13 +9,16 @@
  */
 
 /** The deployed $FLYAI contract on Robinhood Chain. Empty until launch. */
-const CONTRACT_ADDRESS = "";
+const CONTRACT_ADDRESS = "0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C";
 
 /**
  * Where to send people to buy it: the Pons / Robinhood Chain page for the
  * token. Paste the real URL here at launch - it is deliberately not guessed.
  */
-const SWAP_URL = "";
+const SWAP_URL = "https://www.ponsfamily.com/launchpad/0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C";
+
+/** Blockscout page for the token on Robinhood Chain. */
+const EXPLORER_URL = "https://robinhoodchain.blockscout.com/token/0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C";
 
 const X_URL = "https://x.com/flydotai";
 const GITHUB_URL = "https://github.com/alextitonis/fly.ai";
@@ -55,8 +58,17 @@ const GITHUB_URL = "https://github.com/alextitonis/fly.ai";
       a.href = SWAP_URL;
       a.target = "_blank";
       a.rel = "noopener";
-      a.textContent = "Buy $FLYAI on Robinhood Chain";
+      a.textContent = "Buy $FLYAI on Pons";
       host.prepend(a);
+      if (EXPLORER_URL) {
+        const ex = document.createElement("a");
+        ex.className = "btn";
+        ex.href = EXPLORER_URL;
+        ex.target = "_blank";
+        ex.rel = "noopener";
+        ex.textContent = "View on explorer";
+        a.after(ex);
+      }
     } else {
       const p = document.createElement("p");
       p.className = "srcline";
