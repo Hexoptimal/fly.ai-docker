@@ -8,6 +8,10 @@ gain 1.5, which parks every neuron at threshold (0.18 / (1 - 0.82) = 1.0) so
 the network ticks on its own. inject.py showed tonic 0.14, gain 3.0 keeps
 descending neurons quiet at rest (~1 Hz) while LC4/LPLC2 -> DNp01 and
 LC10a -> DNa02 signals still get through, ipsilaterally.
+
+batch > 1 runs that many independent flies (same wiring, own voltages and
+noise) in lock-step; on a GPU one sparse multiply serves them all, so 8 flies
+cost about as much as 1-2.
 """
 from __future__ import annotations
 
@@ -54,7 +58,12 @@ def cuda_available() -> bool:
 class FlyBrain:
     """device: "cpu" (numba), "cuda" (CuPy, NVIDIA GPU) or "auto"; defaults to
     $FLY_DEVICE, else "cpu". Both run the same model; the noise streams differ,
-    so individual spikes differ between devices but statistics match."""
+    so individual spikes differ between devices but statistics match.
+
+    batch: number of independent flies. Voltages are (n, batch). With batch 1,
+    step() returns the fired neuron indices; with batch > 1, a list of them,
+    one array per fly. Inputs broadcast: an amount can be a number (same for
+    every fly) or an array of length batch (one per fly)."""
     dt = 0.020
     tau = 0.100
     gain = 3.0
@@ -63,13 +72,14 @@ class FlyBrain:
     noise_amp = 0.22
     eye_gain = 0.62
 
-    def __init__(self, data: Path = DATA, seed: int = 64, device: str | None = None):
+    def __init__(self, data: Path = DATA, seed: int = 64, device: str | None = None, batch: int = 1):
         device = device or os.environ.get("FLY_DEVICE", "cpu")
         if device == "auto":
             device = "cuda" if cuda_available() else "cpu"
         if device not in ("cpu", "cuda"):
             raise ValueError(f"device must be cpu, cuda or auto, not {device!r}")
         self.device = device
+        self.batch = int(batch)
         W = sparse.load_npz(data / "weights.npz")
         if device == "cuda":
             import cupy
@@ -97,8 +107,8 @@ class FlyBrain:
         """Silence the network (all voltages 0, no spikes) and restart the noise."""
         xp = self.xp
         self.rng = xp.random.default_rng(seed)
-        self.v = xp.zeros(self.n, xp.float32)
-        self.fired = xp.empty(0, xp.int64)
+        self.v = xp.zeros((self.n, self.batch), xp.float32)
+        self.fired = xp.empty(0, xp.int64)   # flat indices into v
         self.steps = 0
 
     def cells(self, types: list[str], side: str | None = None) -> np.ndarray:
@@ -107,32 +117,50 @@ class FlyBrain:
             mask &= self.side == side
         return np.flatnonzero(mask)
 
-    def stimulate(self, idx: np.ndarray, amount: float) -> None:
+    def _amount(self, amount):
+        """A number, or one value per fly, shaped to broadcast over v[idx]."""
+        a = self.xp.asarray(amount, dtype=self.xp.float32)
+        return a if a.ndim == 0 else a.reshape(1, -1)
+
+    def stimulate(self, idx: np.ndarray, amount) -> None:
         """Add voltage to these neurons right now (before the next step)."""
-        self.v[self.xp.asarray(idx)] += np.float32(amount)
+        self.v[self.xp.asarray(idx)] += self._amount(amount)
 
     def synaptic_input(self, fired):
+        """Input current (n, batch) from the flat spike indices of the last step."""
+        xp, B = self.xp, self.batch
         if self.device == "cuda":
-            spikes = self.xp.zeros(self.n, self.xp.float32)
-            spikes[fired] = 1.0
+            spikes = xp.zeros((self.n, B), xp.float32)
+            spikes.ravel()[fired] = 1.0
+            if B == 1:
+                return (self._W @ spikes[:, 0])[:, None]
             return self._W @ spikes
-        return _propagate(self.indptr, self.indices, self.weights, fired, self.n)
+        rows, cols = np.divmod(fired, B)
+        return np.column_stack([_propagate(self.indptr, self.indices, self.weights, rows[cols == b], self.n)
+                                for b in range(B)])
 
-    def step(self, eye_drive: np.ndarray | None = None, inject=()) -> np.ndarray:
-        """Advance 20 ms. eye_drive: 0..1 per photoreceptor (len(self.visual));
-        inject: (neuron indices, extra voltage) pairs added this step.
-        Returns the indices of the neurons that fired, always as a NumPy array."""
-        xp = self.xp
+    def step(self, eye_drive: np.ndarray | None = None, inject=()):
+        """Advance 20 ms. eye_drive: 0..1 per photoreceptor (len(self.visual)), or
+        (len(self.visual), batch); inject: (neuron indices, extra voltage) pairs
+        added this step. Returns the indices of the neurons that fired (NumPy):
+        one array with batch 1, else a list with one array per fly."""
+        xp, B = self.xp, self.batch
         current = self.synaptic_input(self.fired) * self.gain
         self.v *= self.decay
         self.v += current + self.tonic
-        self.v += (self.rng.random(self.n) < self.noise_hz * self.dt) * np.float32(self.noise_amp)
+        self.v += (self.rng.random((self.n, B)) < self.noise_hz * self.dt) * np.float32(self.noise_amp)
         if eye_drive is not None:
-            self.v[self._visual] += xp.asarray(eye_drive, dtype=xp.float32) * self.eye_gain
+            drive = xp.asarray(eye_drive, dtype=xp.float32)
+            self.v[self._visual] += (drive[:, None] if drive.ndim == 1 else drive) * self.eye_gain
         for idx, amount in inject:
-            self.v[xp.asarray(idx)] += np.float32(amount)
+            self.v[xp.asarray(idx)] += self._amount(amount)
         fired = xp.flatnonzero(self.v >= 1.0)
-        self.v[fired] = 0.0
+        self.v.ravel()[fired] = 0.0
         self.fired = fired
         self.steps += 1
-        return fired if xp is np else fired.get()
+        flat = fired if xp is np else fired.get()
+        if B == 1:
+            return flat
+        rows, cols = np.divmod(flat, B)
+        order = np.argsort(cols, kind="stable")
+        return np.split(rows[order], np.cumsum(np.bincount(cols, minlength=B))[:-1])

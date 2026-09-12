@@ -16,6 +16,10 @@ output (the commands its brain sends to the body). Everything in between is the 
 The goal is a general-purpose "fly reservoir": plug any task into the same frozen brain, read
 out what it does, and find out what a real nervous system's wiring is good for.
 
+**$FLYAI** — contract: *not deployed yet*. The address is posted only here, on the
+[site](https://alextitonis.github.io/fly.ai) and on [@flydotai](https://x.com/flydotai).
+Details: [TOKEN.md](TOKEN.md).
+
 ## How it works
 
 ```
@@ -126,6 +130,11 @@ GPU memory. On an RTX 4060 laptop GPU a step takes **1.4 ms, against 8.9 ms on a
 Both devices run the same model and give the same results. Only the random noise differs, so
 individual spikes differ between them.
 
+**Many flies at once:** `FlyBrain(batch=8)` runs 8 independent copies of the brain with the
+same wiring, each with its own voltages and noise. On a GPU they share one sparse multiply, at
+about 1.2 ms per fly per step. Inputs can be the same for every fly or differ per fly, which is
+how `sshfighter/` runs voting flies and compares encoders side by side.
+
 **Experiments:** `python experiment.py`, `python sweep.py`, `python inject.py`.
 
 **Watch it play:** `python sshfighter/fly_fighter.py --offline --seconds 120 --dashboard`
@@ -175,8 +184,8 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
 | File | What it does |
 |---|---|
 | `build_brain.py` | downloads MaleCNS v1.0 and builds the weight matrix, readout groups, eye layout and neuron positions |
-| `fly_brain.py` | integrate-and-fire simulation (numba, multi-threaded) |
-| `fly_eyes.py` | photoreceptor rendering plus the looming/chase feature-detector input |
+| `fly_brain.py` | integrate-and-fire simulation: CPU (numba) or NVIDIA GPU (CuPy), one fly or a batch |
+| `fly_eyes.py` | photoreceptor rendering plus the looming/chase feature-detector input, with tunable encoder parameters (`ENCODER`) |
 | `experiment.py`, `sweep.py`, `inject.py` | the experiments above |
 | `sshfighter/` | the SSH Fighter bot, dashboard and trained readout ([README](sshfighter/README.md)) |
 

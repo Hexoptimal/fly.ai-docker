@@ -18,6 +18,8 @@ regularised linear model. Everything is scored leave-one-match-out.
 """
 from __future__ import annotations
 
+import gzip
+import json
 import sys
 from pathlib import Path
 
@@ -56,24 +58,32 @@ class Featurizer:
         self.trace = np.zeros(len(self.idx), np.float32)
         self.decay = np.float32(np.exp(-brain.dt / TRACE_TAU))
 
-    def observe(self, fired: np.ndarray) -> None:
+    def observe(self, flies: list[np.ndarray]) -> None:
+        """Spikes of one step, one array per fly; the trace is the flies' average."""
         self.trace *= self.decay
-        slots = self.slot[fired]
-        self.trace[slots[slots >= 0]] += 1.0
+        for fired in flies:
+            slots = self.slot[fired]
+            self.trace[slots[slots >= 0]] += 1.0 / len(flies)
 
     def features(self) -> np.ndarray:
         return self.trace.copy()
 
 
 class Recorder:
-    """Brain features + game outcome for every frame of one match."""
+    """Brain features + game outcome for every frame of one match. The full game
+    state of every frame also goes to <mid>.states.jsonl.gz, so matches can be
+    replayed through the brain later with different encoders."""
 
     def __init__(self, folder: str | Path, mid: str):
         self.path = Path(folder) / f"{mid}.npz"
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.X, self.rows, self.attack = [], [], []
+        self.states = gzip.open(self.path.with_suffix(".states.jsonl.gz"), "wt", encoding="utf-8")
 
-    def add(self, state: dict, cmd: dict, features: np.ndarray, move_rel: int = 0, move_start: bool = False) -> None:
+    def add(self, state: dict, cmd: dict, features: np.ndarray, move_rel: int = 0, move_start: bool = False,
+            jump_random: bool = False) -> None:
+        self.states.write(json.dumps({"state": state, "cmd": {k: v for k, v in cmd.items() if k != "t"},
+                                      "jump_random": jump_random}) + "\n")
         you, opp = state.get("you") or {}, state.get("opp") or {}
         self.X.append(features.astype(np.float16))
         self.rows.append([state.get("frame", 0), you.get("x", 0), opp.get("x", 0), you.get("hp", 0), opp.get("hp", 0),
@@ -85,6 +95,7 @@ class Recorder:
         self.attack.append(str(you.get("attack", "none")))
 
     def save(self) -> None:
+        self.states.close()
         if not self.X:
             return
         np.savez_compressed(self.path, X=np.stack(self.X), rows=np.asarray(self.rows, np.float32),

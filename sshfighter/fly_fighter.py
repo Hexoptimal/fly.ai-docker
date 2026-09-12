@@ -35,6 +35,9 @@ STEER_MARGIN = 2      # spikes more on one side needed to walk that way
 JUMP_WINDOW = 5       # brain steps (0.1 s); DNp01 fires ~1/s at rest
 JUMP_SPIKES = 2
 COOLDOWN = {"jump": 0.8, "punch": 0.3, "kick": 0.4}
+# While recording, jumps are random (labels for a dodge readout): per actionable grounded
+# frame, more often when a hostile projectile is within JUMP_NEAR world units.
+EXPLORE_JUMP, EXPLORE_JUMP_NEAR, JUMP_NEAR = 0.01, 0.08, 60.0
 LOGS = Path(__file__).resolve().parent / "logs"
 
 
@@ -45,45 +48,58 @@ class Decoder:
     counts in short windows with hand-picked thresholds. (Comparing each neuron
     to its own running average doesn't work: a target that stays on one side
     becomes the new "normal" and the turn signal cancels itself.)
+
+    With several flies, each fly decides with exactly these rules and the flies
+    vote: the most common move wins (ties -> stand still), and an action fires
+    only if at least half of them want it. With one fly this is the plain rule.
+    (Averaging spike counts instead breaks the thresholds: e.g. MDN's resting
+    ~1 Hz beats DNg100's ~0 in almost every window, so the average backs off.)
     """
 
     def __init__(self, groups: dict[str, np.ndarray], n: int):
+        self.names = list(groups)
+        self.col = {g: i for i, g in enumerate(self.names)}
         self.groups = groups
-        self.history = deque(maxlen=STEER_WINDOW)
+        self.history = deque(maxlen=STEER_WINDOW)   # per step: (flies, groups) spike counts
         self.last = {a: -10.0 for a in COOLDOWN}
         self.mask = np.zeros(n, bool)
 
-    def observe(self, fired: np.ndarray) -> None:
-        self.mask[:] = False
-        self.mask[fired] = True
-        self.history.append({g: int(self.mask[idx].sum()) for g, idx in self.groups.items()})
+    def observe(self, flies: list[np.ndarray]) -> None:
+        counts = np.zeros((len(flies), len(self.names)))
+        for f, fired in enumerate(flies):
+            self.mask[:] = False
+            self.mask[fired] = True
+            for g, idx in self.groups.items():
+                counts[f, self.col[g]] = self.mask[idx].sum()
+        self.history.append(counts)
 
-    def count(self, *groups: str, window: int = STEER_WINDOW) -> int:
-        recent = list(self.history)[-window:]
-        return sum(h[g] for h in recent for g in groups)
+    def count(self, *groups: str, window: int = STEER_WINDOW) -> np.ndarray:
+        """Spikes of these groups over the last `window` steps, one number per fly."""
+        recent = np.sum(list(self.history)[-window:], axis=0)
+        return recent[:, [self.col[g] for g in groups]].sum(axis=1)
 
     def command(self, facing: int, now: float) -> dict:
         c = self.count
         cmd = {"t": "input", "moveX": 0, "motion": "N"}
         turn = c("steer_R") - c("steer_L")
         fwd, back = c("forward_L", "forward_R"), c("backward_L", "backward_R")
-        if abs(turn) >= STEER_MARGIN:
-            cmd["moveX"] = 1 if turn > 0 else -1        # turn right -> walk right on screen
-        elif fwd > back:
-            cmd["moveX"] = facing                        # DNg100: walk forward
-        elif back > fwd:
-            cmd["moveX"] = -facing                       # MDN moonwalk: back off (= block)
+        move = np.where(np.abs(turn) >= STEER_MARGIN, np.sign(turn),   # turn right -> walk right on screen
+                        np.where(fwd > back, facing,                    # DNg100: walk forward
+                                 np.where(back > fwd, -facing, 0)))     # MDN moonwalk: back off (= block)
+        options = (0, -1, 1)                                            # first = winner on a tie
+        cmd["moveX"] = options[int(np.argmax([(move == m).sum() for m in options]))]
         triggers = {"jump": c("escape_L", "escape_R", window=JUMP_WINDOW) >= JUMP_SPIKES,
                     "punch": c("punch_L", "punch_R", window=1) > 0,
                     "kick": c("kick_L", "kick_R", window=1) > 0}
-        for action, fired in triggers.items():
-            if fired and now - self.last[action] >= COOLDOWN[action]:
+        for action, wants in triggers.items():
+            if wants.mean() >= 0.5 and now - self.last[action] >= COOLDOWN[action]:
                 cmd[action] = True
                 self.last[action] = now
         return cmd
 
-    def snapshot(self) -> dict[str, int]:
-        return {g: self.count(g) for g in self.groups}
+    def snapshot(self) -> dict[str, float]:
+        """Spikes per group over the steering window, averaged over flies."""
+        return {g: float(self.count(g).mean()) for g in self.names}
 
 
 def what_the_fly_sees(state: dict) -> list:
@@ -120,13 +136,14 @@ def detector_inputs(state: dict):
 
 
 class Fly:
-    """Keeps the brain running in step with game time (50 brain steps per 30 frames)."""
+    """Keeps the brain running in step with game time (50 brain steps per 30 frames).
+    flies > 1 runs that many copies of the brain (same wiring, own noise) that vote."""
 
-    def __init__(self, device: str | None = None):
+    def __init__(self, device: str | None = None, flies: int = 1, seed: int = 64, encoder: dict | None = None):
         print("loading connectome...", flush=True)
-        self.brain = FlyBrain(device=device)
+        self.brain = FlyBrain(device=device, batch=flies, seed=seed)
         self.eyes = Eyes(self.brain.azimuth)
-        self.features = FeatureDetectors(self.brain)
+        self.features = FeatureDetectors(self.brain, **(encoder or {}))
         self.featurizer = Featurizer(self.brain)   # descending-neuron traces for the trained readout
         self.explore = False                       # random punches/kicks while recording
         self.readout: Readout | None = None
@@ -141,24 +158,28 @@ class Fly:
         self.step_ms = 0.0
         self.frame_spikes = np.empty(0, np.int64)   # every neuron that fired during the last game frame
         print(f"brain ready: {self.brain.n:,} neurons, {len(self.brain.indices):,} connections "
-              f"on {self.brain.device}", flush=True)
+              f"on {self.brain.device}" + (f", {flies} flies voting" if flies > 1 else ""), flush=True)
         # Settle spontaneous activity so baselines are meaningful before the first fight.
         for _ in range(250):
-            self.decoder.observe(self.brain.step(self.eyes.drive([])))
+            self.decoder.observe(self._flies(self.brain.step(self.eyes.drive([]))))
         self.game_time = self.brain.steps * self.brain.dt   # start the game clock after warm-up
+
+    def _flies(self, fired) -> list[np.ndarray]:
+        return fired if isinstance(fired, list) else [fired]
 
     def react(self, state: dict) -> dict:
         self.game_time += 1 / 30
+        self.jump_random = False
         blobs = what_the_fly_sees(state)
         inject = self.features.inject(*detector_inputs(state))
         t = time.perf_counter()
         steps = 0
         fired_this_frame = []
         while self.brain.steps * self.brain.dt < self.game_time and steps < 3:
-            fired = self.brain.step(self.eyes.drive(blobs), inject)
-            self.decoder.observe(fired)
-            self.featurizer.observe(fired)
-            fired_this_frame.append(fired)
+            flies = self._flies(self.brain.step(self.eyes.drive(blobs), inject))
+            self.decoder.observe(flies)
+            self.featurizer.observe(flies)
+            fired_this_frame.append(flies[0])   # the dashboard shows the first fly
             steps += 1
         self.frame_spikes = np.concatenate(fired_this_frame) if fired_this_frame else np.empty(0, np.int64)
         if self.brain.steps * self.brain.dt < self.game_time - 0.1:   # fell behind: skip ahead
@@ -184,6 +205,14 @@ class Fly:
                     action = self.readout.choose(self.featurizer.features())
                     if action:
                         cmd[action] = True
+        if self.explore:
+            cmd.pop("jump", None)
+            if you.get("actionable") and not you.get("y"):
+                near = any(p.get("ownedBy") == "opponent" and abs(p.get("x", 1e9) - you.get("x", 0)) < JUMP_NEAR
+                           for p in state.get("projectiles") or [])
+                if self.rng.random() < (EXPLORE_JUMP_NEAR if near else EXPLORE_JUMP):
+                    cmd["jump"] = True
+                    self.jump_random = True
         opp = state.get("opp") or {}
         toward = 1 if opp.get("x", 0) >= you.get("x", 0) else -1
         self.move_start_logged = False
@@ -227,8 +256,8 @@ def print_status(state: dict, cmd: dict, fly: Fly) -> None:
     s = fly.decoder.snapshot()
     side = "L" if opp.get("x", 0) < you.get("x", 0) else "R"
     print(f"\rR{state.get('round')} hp {you.get('hp', 0):3d} vs {opp.get('hp', 0):3d}  opp {side} {abs(opp.get('x', 0) - you.get('x', 0)):5.1f}"
-          f"  move {move} {acts:3s}  DNa02 L{s['steer_L']:2d} R{s['steer_R']:2d}"
-          f"  DNp01 {s['escape_L'] + s['escape_R']:2d}  brain {fly.step_ms:4.1f} ms   ", end="", flush=True)
+          f"  move {move} {acts:3s}  DNa02 L{s['steer_L']:4.1f} R{s['steer_R']:4.1f}"
+          f"  DNp01 {s['escape_L'] + s['escape_R']:4.1f}  brain {fly.step_ms:4.1f} ms   ", end="", flush=True)
 
 
 # ---- offline opponent, for testing without the network --------------------------------
@@ -237,7 +266,6 @@ def offline(fly: Fly, seconds: float, dash=None) -> None:
     you = {"character": "FLY", "x": 60.0, "y": 0, "facing": 1, "hp": 100}
     opp = {"character": "DUMMY", "x": 180.0, "y": 0, "facing": -1, "hp": 100, "movePhase": "neutral", "hitboxActive": False}
     shots: list[dict] = []
-    rng = np.random.default_rng(1)
     counts = {"toward": 0, "away": 0, "still": 0, "jump": 0, "jump_near_shot": 0,
               "frames_shot_near": 0, "punch": 0, "kick": 0}
     frames = int(seconds * 30)
@@ -384,7 +412,8 @@ def play(fly: Fly, args, dash=None) -> None:
                 if log:
                     log.write(state, out, fly)
                 if rec:
-                    rec.add(state, out, fly.featurizer.features(), fly.move_rel_sent, fly.move_start_logged)
+                    rec.add(state, out, fly.featurizer.features(), fly.move_rel_sent, fly.move_start_logged,
+                            fly.jump_random)
                 if dash:
                     dash.publish(state, out, fly)
                 if state.get("frame", 0) % 10 == 0:
@@ -419,12 +448,26 @@ def main():
     p.add_argument("--no-move-readout", action="store_true",
                    help="with --readout: keep the fly's own steering instead of the trained movement readout")
     p.add_argument("--device", choices=["cpu", "cuda", "auto"], help="where to run the brain (default: $FLY_DEVICE or cpu)")
+    p.add_argument("--flies", type=int, default=1, help="copies of the brain that vote (same wiring, own noise); "
+                   "use with --device cuda, where 8 fit in real time")
+    p.add_argument("--seed", type=int, default=64, help="brain noise seed")
+    p.add_argument("--encoder", default="", help="encoder parameters, e.g. loom_size=0.3,chase_gain=0.6 "
+                   "(see fly_eyes.ENCODER; unset ones keep the hand-set value)")
     args = p.parse_args()
+    try:
+        encoder = {k.strip(): float(v) for k, v in (kv.split("=") for kv in args.encoder.split(",") if kv.strip())}
+    except ValueError:
+        sys.exit("--encoder takes name=value pairs separated by commas")
+    from fly_eyes import ENCODER
+    if set(encoder) - set(ENCODER):
+        sys.exit(f"unknown encoder parameters {sorted(set(encoder) - set(ENCODER))}; known: {', '.join(ENCODER)}")
     if not args.offline and not args.user:
         sys.exit("--user is required for live play (or use --offline)")
     if args.record and args.readout:
         sys.exit("use --record (collect data) or --readout (use a trained readout), not both")
-    fly = Fly(args.device)
+    fly = Fly(args.device, args.flies, args.seed, encoder)
+    if encoder:
+        print(f"encoder: {encoder}")
     fly.explore = bool(args.record)
     if args.readout:
         fly.readout = Readout(args.readout)

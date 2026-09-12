@@ -60,7 +60,23 @@ game state (30 Hz)
    toward the opponent, where chance is 50%. This is the LC10a → DNa02 courtship-pursuit pathway.
 2. **It doesn't dodge.** 22% of its jumps happened while a projectile was nearby, against 20% by
    chance. It jumps when the opponent rushes in, not at shots.
-3. **Live record:** 0 wins, 6 losses against other bots when this was written. It dealt 311
+3. **Eight flies voting chase harder.** With `--flies 8` the GPU runs 8 copies of the brain (same
+   wiring, each with its own noise). Each copy decides with the same rule, and the majority wins.
+   Against the dummy (90 s, 4 noise seeds each):
+
+   | | Moves toward the opponent | Punches | Kicks | Jumps near a shot |
+   |---|---|---|---|---|
+   | 1 fly | 61–66% (mean 63%) | 197–203 | 49–69 | 17–32% (chance 16–22%) |
+   | 8 flies voting | **70–74% (mean 72%)** | 71–89 | 0–1 | 9–21% (chance 14–16%) |
+
+   Voting filters out noise. The chase signal is shared by all copies, so it gets stronger, while
+   the random punches and kicks, which were never driven by the game, mostly disappear. Dodging
+   stays at chance.
+
+   Averaging the flies' spike counts instead of voting fails badly: 97% of moves go away from
+   the opponent. The backward-walking neuron MDN fires about 1 spike/s at rest and forward almost
+   never, so the average is backward almost all the time.
+4. **Live record:** 0 wins, 6 losses against other bots when this was written. It dealt 311
    damage, took 1,200 and landed 40 hits. Punches and kicks come only from background noise.
    Current record: [sshfighter.com/players/FLYBRAIN](https://sshfighter.com/players/FLYBRAIN).
 
@@ -127,6 +143,56 @@ damage faster. The readout's offline edge (19% of chosen punches connecting, aga
 random) didn't carry over to live play. The bottleneck looks like the interface, meaning what
 the brain is told and how its output becomes actions, not yet the wiring.
 
+### Encoder search (replays of 20 new matches)
+
+The next step, following the "interface first" principle, is to improve what the brain is told
+while the brain stays frozen. We recorded 20 new matches with 8 voting flies. They went 0–20
+against nine different bots, with random punches and kicks as usual while recording. We then
+replayed them through fresh brains with different encoders (`replay.py`). Each encoder is
+scored by the held-out AUC of a punch readout: will this press connect? The data is 329 presses,
+51 of which connected.
+
+| Encoder | Punch AUC (held-out) |
+|---|---|
+| distance only (game-state baseline) | **0.867** |
+| hand-set, 8 noise draws | 0.685 ± 0.028 (0.640 to 0.728) |
+| hand-set, 8 flies averaged | 0.698 |
+| no looming channel | **0.555** |
+| threat ×2 | 0.602 |
+| no chase / no threat / no shot / shot ×2 / all ×1.5 | 0.643 to 0.692, within noise |
+
+* **Looming carries the punch signal.** Without the looming input (LPLC2), the readout barely
+  beats chance.
+* **The fly doesn't see distance well.** The baseline that knows the distance is far ahead. In
+  the hand-set encoder, the chase signal is squeezed into a narrow range and looming fires only
+  while the opponent approaches. So the next round gives the fly distance through its own
+  neurons: looming neurons that also respond to the opponent's size, a steeper chase signal,
+  and a higher cap (`fly_eyes.ENCODER`, `--encoder`).
+* **Second sweep: looming by size.** Real looming neurons respond to how big an object is, not
+  only to how fast it grows. Adding that (`loom_size`) lifts the punch readout step by step:
+
+  | Encoder (second sweep) | Punch AUC (held-out) |
+  |---|---|
+  | hand-set | 0.698 |
+  | `loom_size=0.3` | 0.735 |
+  | **`loom_size=0.6`** | **0.789** |
+  | steeper chase, higher cap, looming ×2 | 0.689 to 0.733, within noise or near it |
+
+  At 0.789, `loom_size=0.6` is about 3.7 noise standard deviations above the hand-set encoder.
+  It still trails the distance baseline (0.867). The side effect shows up in the fly's own
+  behaviour. Against the dummy (90 s, same noise seed), it still chases as much (64% toward
+  the opponent), but it jumps 2.5 times as often (86 jumps against 35). Looming neurons drive the
+  escape neuron DNp01, so a big opponent close by now triggers escape jumps.
+* **Third sweep: how far to push it.** `loom_size=0.6` holds up with fresh noise: three runs
+  gave 0.789, 0.806 and 0.780. The readout plateaus around 0.80 from 0.6 to 1.2 (0.9 scored
+  0.805, or 0.810 with cap 1.2; 1.2 scored 0.798), then collapses at 1.8 (0.62). An input that
+  strong swamps the neurons. `loom_size=0.6` is the pick: the smallest setting that reaches the
+  plateau, and the only one tested three times.
+* **Next:** a live test of `--encoder loom_size=0.6` against the hand-set encoder, both with 8
+  voting flies.
+* **Dodging can't be measured yet.** These bots mostly fight up close. Only 12 of the moments in
+  these matches had a shot approaching, and a held-out score needs at least 30.
+
 ### Limitations
 
 * The game buttons and decoder thresholds were chosen by hand. Flies can't punch.
@@ -144,6 +210,13 @@ python fly_fighter.py --offline --seconds 120 --dashboard     # fake opponent, o
 
 Add `--device cuda` to run the brain on an NVIDIA GPU (see the [main README](../README.md#run-it)).
 It brings brain time down to about 2.6 ms per game frame, against about 15 ms on the CPU.
+Add `--flies 8` for eight voting copies. On an RTX 4060 laptop GPU that runs at about 40 frames
+per second, just above the game's 30. Live, brain time was 24–34 ms per frame, which leaves
+little room.
+
+`--encoder name=value,...` changes what the fly is told, for example `--encoder loom_size=0.6`.
+The parameters are listed in `fly_eyes.ENCODER`; any you don't set keep the hand-set value.
+`--seed` sets the brain's noise seed.
 
 **Playing online.** Give the bot its own SSH key and name:
 
@@ -166,13 +239,28 @@ python fly_fighter.py --user MYBOT --identity ~/.ssh/sshfighter-mybot --opponent
 
 Match logs are written to `sshfighter/logs/`.
 
+**Replay matches with a different encoder.** With `--record`, every game state is also saved to
+`<match>.states.jsonl.gz`, and jumps become random: rarely at other times, more often when an
+enemy shot is close. Those random jumps are the labels for a dodge readout. `replay.py` runs
+recorded matches back through fresh brains, open-loop. The fly's actions stay what they were,
+but the brain can be told the game differently. Each fly in a batch gets its own encoder, so
+8 encoders cost about one replay on the GPU:
+
+```sh
+python replay.py encoders recordings3    # punch and dodge readouts for 8 encoder variants, held-out
+python replay.py dodge recordings3       # dodge readout from 8 voting flies vs always/never jumping
+```
+
+Replays are cached in `<folder>/replay/`.
+
 ## Files
 
 | File | What it does |
 |---|---|
 | `fly_fighter.py` | game loop, decoder, offline dummy, SSH Fighter bot protocol |
 | `fly_dashboard.py`, `dashboard.html` | live dashboard (Server-Sent Events, no extra dependencies) |
-| `reservoir.py` | records descending-neuron activity, and trains and applies the linear punch/kick/move readout |
+| `reservoir.py` | records descending-neuron activity and game states, and trains and applies the linear punch/kick/move readout |
+| `replay.py` | replays recorded matches through fresh brains to compare encoders and train a dodge readout |
 | `media/`, `video.mp4` | screenshots and the demo video |
 
 ## Credits
