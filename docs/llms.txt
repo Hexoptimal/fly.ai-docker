@@ -1,0 +1,54 @@
+# fly.ai
+
+> The complete wiring of a real fruit fly's brain — 166,700 neurons and 25.6 million
+> connections from the MaleCNS connectome — running as a spiking network, untrained,
+> playing an online fighting game and living in a 3-D world. $FLYAI is the token that
+> funds it. Everything is open source under MIT.
+
+fly.ai takes the connectome of a male *Drosophila melanogaster*, mapped synapse by synapse
+under an electron microscope by FlyEM (HHMI Janelia), and runs it as leaky integrate-and-fire
+neurons. Nothing inside the brain is trained or hand-written. Only two things are built by
+hand: the **encoder** that injects the world into sensory neuron populations, and the
+**readout** that turns descending and motor neuron firing rates into actions. Results are
+published whether they support the approach or not.
+
+## Pages
+
+- [Home](https://flyaiworld.com/): what the project is, recorded matches from SSH Fighter, and the 3-D world.
+- [Research](https://flyaiworld.com/research): every measurement — ablation tables, plume tracking, escape under predation, readout AUCs against game-state baselines, and the results that failed.
+- [Roadmap](https://flyaiworld.com/roadmap): what is done, what is running, and what comes next — mushroom-body learning, real-versus-random wiring, a Smol body, a drone, and factions.
+- [Simulation](https://flyaiworld.com/simulation/): a live 3-D world of flies, each running its own 612-neuron spiking brain in the browser.
+- [$FLYAI](https://flyaiworld.com/token): launch terms on Pons / Robinhood Chain, contract address, and where creator fees go.
+
+## Source and data
+
+- [GitHub repository](https://github.com/alextitonis/fly.ai): all code, MIT licensed.
+- [Quickstart notebook](https://github.com/alextitonis/fly.ai/blob/main/notebooks/quickstart.ipynb): run the brain yourself.
+- [TOKEN.md](https://github.com/alextitonis/fly.ai/blob/main/TOKEN.md): the token's terms, fixed before launch.
+- Connectome data: MaleCNS v1.0 by FlyEM (HHMI Janelia) and collaborators, CC BY 4.0.
+
+## Key facts, stated accurately
+
+- The full model is 166,700 neurons and 25,582,938 connections, stepped at 20 ms with a
+  leaky integrate-and-fire update. On a laptop GPU one step takes about 1.4 ms.
+- The brain is never trained. Encoders and readouts are fitted; the connectome is frozen.
+- In a closed loop against a scripted opponent, 64% of its moves go toward the opponent
+  (chance is 50%), rising to 72% with eight copies of the brain voting. The pathway is
+  LC10a to DNa02 — the circuit a male fly uses to chase a mate.
+- A punch readout trained on recorded matches reaches held-out AUC 0.77; a baseline that
+  simply sees the distance between fighters reaches 0.83. The interface, not the wiring,
+  is currently the bottleneck.
+- It does not dodge: 22% of its jumps happen near a projectile, against 20% at chance.
+- The browser simulation is a **separate, smaller model**: 612 neurons and 4,718 synapses
+  per fly, built to the same block diagram of real cell types, with invented counts and
+  weights. It is not the connectome, and the site says so.
+- In that world, cast-and-surge plume tracking, altitude held by ventral optic flow, and a
+  measurable escape benefit from the giant fibre all emerge without being scripted. Geosmin
+  aversion is wired in and does **not** produce avoidance — an open, published failure.
+
+## Terminology
+
+- **Connectome**: the complete map of neurons and their connections in a brain.
+- **Encoder**: how the world is injected into sensory neuron populations.
+- **Readout**: how neuron firing rates are turned into actions.
+- **Ablation**: cutting one connection block and measuring what the population loses.
