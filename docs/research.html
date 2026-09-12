@@ -111,6 +111,39 @@
         <b>0.867</b>. <b>The interface, not the wiring, is the bottleneck</b> &mdash; which is why the
         roadmap learns the interface first and treats wiring edits as a separate experiment.</p>
     </div>
+
+    <div class="finding good">
+      <h3>It was thinking two frames late, and fixing that won a match</h3>
+      <p>Eight voting copies of the brain took <b>59&ndash;70 ms per frame</b> in a game that gives you 33 ms.
+        Two copies take 16&ndash;27 ms, and with the same encoder and readout the fly won its first match,
+        100&ndash;67 and 61&ndash;15. On recordings made with the tuned encoder, the trained punch readout
+        reaches <b>AUC 0.863</b>, against 0.890 for the distance baseline, so the gap nearly closed.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Between two brains</p>
+    <h2>A fly's alarm call reaches another fly</h2>
+    <p class="lede">Two copies of the connectome. One lives through a situation, and its wing motor
+      neurons sing. The other hears the song through its own ear neurons. Nothing between them is
+      scripted, and the tests were fixed before any run.</p>
+    <div class="scroller">
+      <table class="data">
+        <tr><th>Measure</th><th>Run 1: original, 20&nbsp;ms</th><th>Run 2: smell fixed, 20&nbsp;ms</th><th>Run 3: smell fixed, 2&nbsp;ms</th></tr>
+        <tr class="hi"><td>Song carries what happened to the singer</td><td>0.30 bits</td><td>0.63 bits</td><td>0.83 bits</td></tr>
+        <tr><td>Same test, scrambled wiring</td><td>0.01 bits</td><td>0.01 bits</td><td>0.87 bits</td></tr>
+        <tr class="hi"><td>Listener reacts to a threat song, vs silence</td><td>23% vs 17%</td><td>21% vs 14%</td><td>77.5% vs 17.5%</td></tr>
+      </table>
+    </div>
+    <p class="caption">Threat is the clear word in every run, and a mate in view becomes partly readable at
+      2&nbsp;ms. The listener's brain carries the singer's situation in every run and stays at chance in
+      silence. Fixing the smell neurons &mdash; they were exciting each other into a runaway loop &mdash;
+      lets a food odour reach the brain.</p>
+    <div class="cta" style="margin-top: 20px;">
+      <a class="btn" href="flybook.html">Read the full experiment and the feed</a>
+    </div>
   </div>
 </section>
 
@@ -203,6 +236,21 @@
         proximity plus a threshold, not courtship. The circuit is real; our use of it was not.</p>
     </div>
 
+    <div class="finding bad">
+      <h3>Scrambled wiring talks too, at 2&nbsp;ms</h3>
+      <p>At 20&nbsp;ms, a brain with the same neurons but scrambled connections sang nothing useful
+        (0.01 bits). At 2&nbsp;ms its song carries <b>0.87 bits</b>, as much as the real brain's 0.83, so the
+        test we set for &ldquo;the real wiring matters&rdquo; fails there. The two brains group the situations
+        differently, but we only noticed that after seeing the data.</p>
+    </div>
+
+    <div class="finding bad">
+      <h3>Smell reaches the brain but not the wings</h3>
+      <p>With the smell loop fixed, a food odour drives the fly's odour relay neurons at 125&nbsp;Hz, against
+        4&nbsp;Hz without it. The signal then never reaches the wing motor neurons, so a food song looks the
+        same as no song, and listeners ignore it.</p>
+    </div>
+
     <div class="finding">
       <h3>A caveat that applies to every ablation above</h3>
       <p>Each neuron's incoming weights are normalised to sum to 1, so cutting one input <i>raises</i> the
@@ -225,6 +273,8 @@
         <li>The eye is a shortcut. Signals are fed into the fly's motion-detecting neurons rather than
           simulating its optics.</li>
         <li>Which neurons press which game buttons was chosen by us.</li>
+        <li>Flybook's words are a decoder's labels for measured wing activity, with the decoder's accuracy
+          shown on every post. The flies have two words, not a language.</li>
       </ul>
     </div>
     <div class="cta" style="margin-top: 26px;">

@@ -35,6 +35,14 @@ The $FLYAI contract on Robinhood Chain is `0x0088CE7905025c4B5ea1d49aB6179B6aaAD
 - The full model is 166,700 neurons and 25,582,938 connections, stepped at 20 ms with a
   leaky integrate-and-fire update. On a laptop GPU one step takes about 1.4 ms.
 - The brain is never trained. Encoders and readouts are fitted; the connectome is frozen.
+- `FlyBrain` can also run at 2 ms steps (with a 4 ms refractory period) and with synapses onto
+  sensory neurons removed, which fixes a runaway loop among olfactory receptor neurons. The
+  defaults are unchanged.
+- Two copies of the connectome signal to each other through wing song and hearing (the Flybook
+  page). At 2 ms, a threatened fly's song carries 0.83 bits about its situation and makes the
+  listener react 77.5% of the time, against 17.5% in silence. At 2 ms a degree-preserving
+  scrambled brain's song also carries 0.87 bits, so the "real wiring matters" test fails there;
+  at 20 ms the scrambled brain carries 0.01 bits.
 - In a closed loop against a scripted opponent, 64% of its moves go toward the opponent
   (chance is 50%), rising to 72% with eight copies of the brain voting. The pathway is
   LC10a to DNa02 — the circuit a male fly uses to chase a mate.

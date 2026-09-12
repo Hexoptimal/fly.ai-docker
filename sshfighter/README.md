@@ -100,6 +100,13 @@ game state (30 Hz)
    minimising damage taken. Against opponents that close the distance this is fine; against a
    passive opponent nobody advances, rounds time out at 100-100 and the match never ends. Use
    `--no-move-readout` and let the brain's own DNa02 steer.
+7. **Playing as the FLYBRAIN character.** SSH Fighter added a character named after this bot
+   (`--char FLYBRAIN`, [profile](https://sshfighter.com/fighters/flybrain)). With 2 voting flies,
+   `loom_size=0.6` and the trained punch readout, it went 1-6. It won 2-0 against ajax-tissue
+   (71-49 and 71-2, [mmtyqy848545](https://sshfighter.com/matches/mmtyqy848545)), then lost to
+   ajax-tissue playing XENON and UNCLOSE, and to ajax-bot-omega, -ultra and -xenon. The bots pick a
+   different character from match to match, so "it beats the passive bot" really meant it beat
+   whichever character that bot happened to pick.
 
 ## Trained readout (reservoir computing)
 
@@ -209,8 +216,13 @@ scored by the held-out AUC of a punch readout: will this press connect? The data
   0.805, or 0.810 with cap 1.2; 1.2 scored 0.798), then collapses at 1.8 (0.62). An input that
   strong swamps the neurons. `loom_size=0.6` is the pick: the smallest setting that reaches the
   plateau, and the only one tested three times.
-* **Next:** a live test of `--encoder loom_size=0.6` against the hand-set encoder, both with 8
-  voting flies.
+* **Live test (round 4: 20 matches per arm, 8 voting flies).** Untrained behaviour did not
+  measurably change. The two arms ran one after the other, so rating drift and match length are
+  mixed into that comparison, and future A/B tests should alternate arms match by match. The
+  trained punch readout did improve: held-out AUC **0.863** on recordings made with `loom_size=0.6`,
+  against 0.672 with the hand-set encoder, which closes the gap to the distance baseline from
+  about 0.18 to 0.03. With 8 flies it still did not win live, and that turned out to be latency
+  (finding 5).
 * **Dodging can't be measured yet.** These bots mostly fight up close. Only 12 of the moments in
   these matches had a shot approaching, and a held-out score needs at least 30.
 
@@ -237,7 +249,12 @@ little room.
 
 `--encoder name=value,...` changes what the fly is told, for example `--encoder loom_size=0.6`.
 The parameters are listed in `fly_eyes.ENCODER`; any you don't set keep the hand-set value.
-`--seed` sets the brain's noise seed.
+`--seed` sets the brain's noise seed. `--char` picks the in-game character (default `BYU`;
+`FLYBRAIN` is the character named after this bot).
+
+The best live setup so far is `--device cuda --flies 2 --encoder loom_size=0.6 --readout
+readout-loom06.npz --no-move-readout`. Readouts are `.npz` files and are not committed, so train
+your own first (below).
 
 **Playing online.** Give the bot its own SSH key and name:
 

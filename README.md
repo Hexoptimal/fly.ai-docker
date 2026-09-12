@@ -18,16 +18,17 @@ output (the commands its brain sends to the body). Everything in between is the 
 The goal is a general-purpose "fly reservoir": plug any task into the same frozen brain, read
 out what it does, and find out what a real nervous system's wiring is good for.
 
-**$FLYAI** — contract: *not deployed yet*. The address is posted only here, on the
-[site](https://alextitonis.github.io/fly.ai) and on [@flydotai](https://x.com/flydotai).
-Details: [TOKEN.md](TOKEN.md).
+**$FLYAI** is live on Robinhood Chain (launched on Pons):
+`0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C`. The address is posted only here, on the
+[site](https://flyaiworld.com) and on [@flydotai](https://x.com/flydotai); any other address is a
+scam. Details: [TOKEN.md](TOKEN.md).
 
 ## How it works
 
 ```
 task input
   └─> encoder: drives the fly's own sensory / feature-detector neurons
-        └─> 166,700-neuron connectome, leaky integrate-and-fire, 50 steps/s
+        └─> 166,700-neuron connectome, leaky integrate-and-fire, 50 steps/s (500 with `dt=0.002`)
               └─> descending neurons (the brain's 1,314 output cables to the body)
                     └─> decoder or trained linear readout
                           └─> task output
@@ -78,12 +79,39 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
 
    None of the other readout neurons changed. These are the known looming → escape and
    courtship pursuit → steering pathways, and they come out of the wiring alone.
+4. **Smell neurons ran away until sensory neurons stopped receiving synapses.** In the original
+   model, olfactory receptor neurons get 0.43 of their 0.45 net input from each other
+   (ORN-to-ORN connections). At gain 3.0 that loop pins them near maximum rate, so the
+   food-odour projection neurons (DM1/DM2) sat at 50 Hz, the model's ceiling, with or without an
+   odour. `FlyBrain(sensory_input=False)` removes every synapse onto sensory neurons, as
+   whole-brain spiking models of the fly do. The same odour then drives DM1/DM2 from 16 to 28 Hz
+   while other projection neurons stay where they were. The default is unchanged, so every earlier
+   result still holds.
+5. **Two brains can signal to each other** (`flytalk.py`, [flyaiworld.com/flybook](https://flyaiworld.com/flybook)).
+   Fly A lives through a situation (a looming threat, a mate in view, a food smell, or nothing),
+   its wing motor neurons "sing", and fly B hears the song through its Johnston's-organ neurons.
+   Three runs, with the tests fixed before running and 50-shuffle permutation nulls:
+
+   | | Run 1: original, 20 ms | Run 2: smell fixed, 20 ms | Run 3: smell fixed, 2 ms |
+   |---|---|---|---|
+   | song → what happened to the singer | 0.30 bits | 0.63 bits | 0.83 bits |
+   | same test, degree-preserving scrambled wiring | 0.01 bits | 0.01 bits | **0.87 bits** |
+   | listener reacts to a threat song (vs silence) | 23% vs 17% | 21% vs 14% | **77.5% vs 17.5%** (p < 0.001) |
+
+   Threat is the clear word in every run, and "mate" becomes partly readable at 2 ms. In every
+   run the listener's descending neurons carry the singer's situation and stay at chance in
+   silence, but the listener only uses loudness: a time-shuffled song works as well. The "real
+   wiring matters" test **fails at 2 ms**, where the scrambled brain's song carries as many bits,
+   although it groups the situations differently. Food reaches the brain but never the wings,
+   and hearing a song never makes a fly sing back. `flybook.py` turns the 2 ms brain into a feed
+   of posts, each with the neurons behind it.
 
 ## Applications
 
 | Folder | What the fly does |
 |---|---|
 | [`sshfighter/`](sshfighter/) | plays [SSH Fighter](https://sshfighter.com), an online terminal fighting game, as a registered bot, with a live dashboard of every neuron firing and a trained punch readout |
+| [`flytalk.py`](flytalk.py), [`flybook.py`](flybook.py) | two copies of the brain signal to each other through wing song and hearing; the posts they produce make up the feed at [flyaiworld.com/flybook](https://flyaiworld.com/flybook) |
 
 ![Dashboard: the fight on the left, every neuron of the fly's nervous system on the right](sshfighter/media/dashboard.png)
 
@@ -146,6 +174,20 @@ a random network of the same size).
 Batching and the GPU option work the same way they do in `fly_brain.py`: `FlyBrain(batch=8)` or
 `FlyBrain(device="cuda")` (or `FLY_DEVICE=cuda`); `Trace(..., aggregate="mean")` (the default)
 gives one feature vector averaged across the batch, `aggregate="batch"` keeps one per fly.
+
+### Brain options
+
+`FlyBrain` takes three options. The defaults are the model every earlier result used.
+
+* `dt` (default `0.020`): the step length. `tonic` is rescaled so a silent neuron settles at the
+  same voltage. At `dt=0.002` the network runs far hotter unless you also set a refractory
+  period; `refractory=0.004` matched the 20 ms brain's resting descending-neuron rate with no
+  neurons above 100 Hz.
+* `sensory_input` (default `True`): `False` removes every synapse onto sensory neurons, which
+  fixes the olfactory runaway loop (finding 4).
+* `refractory` (default `0`): seconds a neuron is held at 0 after it spikes.
+
+`brain.cells([...])` accepts superclass names such as `"descending_neuron"` as well as cell types.
 
 ### Limitations
 
@@ -248,6 +290,9 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
 | `flyreservoir.py` | generic reservoir readout: spike trace of any neuron population, PCA + linear/logistic readout, cross-validated |
 | `flyreservoir_example.py` | the module above, end to end, on a synthetic task |
 | `experiment.py`, `sweep.py`, `inject.py` | the experiments above |
+| `flytalk.py` | the talking-flies experiment: two brains coupled through wing song and hearing, a scrambled-wiring control, permutation tests (`pilot`, `run`, `report`, `followup`) |
+| `flybook.py` | turns a `flytalk.py` run into the Flybook feed (`docs/assets/flybook.json`) |
+| `talk/`, `talk-fix/`, `talk-2ms/` | results of the three talking-flies runs (`results.json`; the raw `.npz` recordings are not committed) |
 | `sshfighter/` | the SSH Fighter bot, dashboard and trained readout ([README](sshfighter/README.md)), built on `flyreservoir.py` |
 
 ## What's next
@@ -256,9 +301,15 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
   odour-like patterns, sensor readings onto neuron groups) are still written per task -- see
   ROADMAP.md for candidate tasks to try it on next.
 * A benchmark: does the real wiring beat randomly rewired copies of itself on the same tasks?
+  The talking-flies control is the first data point, and it points both ways: scrambled wiring
+  carries nothing at 20 ms and as much as the real brain at 2 ms.
 * Learning inside the brain through the mushroom body's dopamine rule, the way real flies learn.
-* A 3-D world with a body and physics instead of a 2-D game, with many flies in it at once, each
-  running its own copy of the brain.
+* ~~A 3-D world~~ built as a prototype in [`world/`](world/)
+  ([flyaiworld.com/simulation](https://flyaiworld.com/simulation/)). It runs a separate,
+  612-neuron model per fly, not the connectome.
+* **Flybook:** people create their own fly (its senses, its temperament, which neuron types are
+  boosted or muted), and the flies post, react and set off chains of reactions from their real
+  signals.
 * The same brain in a different body: driving a [Smol](https://opensea.io/collection/smols-752105135)
   inside that world. The connectome stays frozen; only the encoder and the readout change.
 
