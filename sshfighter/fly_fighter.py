@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import gzip
 import queue
 import subprocess
 import sys
@@ -145,7 +146,10 @@ class Fly:
         self.eyes = Eyes(self.brain.azimuth)
         self.features = FeatureDetectors(self.brain, **(encoder or {}))
         self.featurizer = Featurizer(self.brain)   # descending-neuron traces for the trained readout
-        self.explore = False                       # random punches/kicks while recording
+        # Exploration while recording. Attacks and movement are separate so a trained attack
+        # readout can play while movement is still randomised for fresh movement labels.
+        self.explore_attacks = False
+        self.explore_moves = False
         self.readout: Readout | None = None
         self.rng = np.random.default_rng()
         # Movement held for MOVE_HOLD frames: -1 away, 0 still, +1 toward; None = brain's own steering.
@@ -191,11 +195,11 @@ class Fly:
             self.move_rel_sent, self.move_start_logged = 0, False
             return {"t": "input", "moveX": 0, "motion": "N"}
         cmd = self.decoder.command(int(you.get("facing", 1)), self.brain.steps * self.brain.dt)
-        if self.explore or self.readout:
+        if self.explore_attacks or self.readout:
             cmd.pop("punch", None)
             cmd.pop("kick", None)
             if you.get("actionable"):
-                if self.explore:
+                if self.explore_attacks:
                     r = self.rng.random()
                     if r < EXPLORE_P["punch"]:
                         cmd["punch"] = True
@@ -205,7 +209,7 @@ class Fly:
                     action = self.readout.choose(self.featurizer.features())
                     if action:
                         cmd[action] = True
-        if self.explore:
+        if self.explore_moves:
             cmd.pop("jump", None)
             if you.get("actionable") and not you.get("y"):
                 near = any(p.get("ownedBy") == "opponent" and abs(p.get("x", 1e9) - you.get("x", 0)) < JUMP_NEAR
@@ -216,10 +220,10 @@ class Fly:
         opp = state.get("opp") or {}
         toward = 1 if opp.get("x", 0) >= you.get("x", 0) else -1
         self.move_start_logged = False
-        if self.explore or (self.readout and self.readout.has_move):
+        if self.explore_moves or (self.readout and self.readout.has_move):
             if self.move_left <= 0:
                 self.move_left = MOVE_HOLD
-                if self.explore:
+                if self.explore_moves:
                     # half the holds are random moves (labelled for training), half the brain's own steering
                     self.move_rel = int(self.rng.integers(-1, 2)) if self.rng.random() < MOVE_EXPLORE else None
                     self.move_start_logged = self.move_rel is not None
@@ -315,6 +319,53 @@ def offline(fly: Fly, seconds: float, dash=None) -> None:
 
 # ---- live play over SSH ---------------------------------------------------------------
 
+def replay(fly: Fly, path: str, dash=None, speed: float = 1.0) -> None:
+    """Push a recorded match's states back through the brain, for the dashboard.
+
+    Only matches recorded with --record have the full per-frame state (<mid>.states.jsonl.gz);
+    the match logs keep decoder rates, not enough to drive the brain again. The brain re-runs
+    from scratch, so the spikes are a fresh run of the same wiring on the same input, not a
+    recording of the original ones.
+    """
+    src = Path(path)
+    if src.is_dir():
+        found = sorted(src.glob("*.states.jsonl.gz"))
+        if not found:
+            sys.exit(f"no recorded states in {src}")
+        src = found[0]
+    mid = src.name.split(".")[0].split("-")[-1]
+    print(f"replaying {mid} from {src}")
+    if dash:
+        dash.set_match(mid, f"{mid} (replay)")
+    frames = 0
+    opener = (lambda: gzip.open(src, "rt", encoding="utf-8")) if src.suffix == ".gz"         else (lambda: src.open(encoding="utf-8"))
+    with opener() as fh:
+        for line in fh:
+            try:
+                rec = json.loads(line)
+            except ValueError:
+                continue
+            if "state" in rec:                      # <mid>.states.jsonl.gz: the full game state
+                state = rec["state"]
+            else:                                   # logs/<stamp>-<mid>.jsonl: positions and HP only
+                you, opp = rec.get("you") or [0, 0, 0], rec.get("opp") or [0, 0, 0]
+                facing = 1 if opp[0] >= you[0] else -1
+                state = {"frame": rec.get("frame"), "phase": rec.get("phase"), "round": rec.get("round"),
+                         "you": {"x": you[0], "y": you[1], "hp": you[2], "facing": facing,
+                                 "character": "FLY", "actionable": True},
+                         "opp": {"x": opp[0], "y": opp[1], "hp": opp[2], "facing": -facing,
+                                 "character": "OPPONENT"},
+                         "projectiles": []}
+            state.setdefault("t", "state")
+            cmd = fly.react(state)
+            if dash:
+                dash.publish(state, cmd, fly)
+            frames += 1
+            if speed:
+                time.sleep(1 / (30 * speed))
+    print(f"replayed {frames} frames")
+
+
 def play(fly: Fly, args, dash=None) -> None:
     cmd = ["ssh", "-T", "-o", "ServerAliveInterval=30"]
     if args.identity:
@@ -335,7 +386,7 @@ def play(fly: Fly, args, dash=None) -> None:
         ssh.stdin.write(json.dumps(obj) + "\n")
         ssh.stdin.flush()
 
-    wins = losses = 0
+    wins = losses = draws = 0
     log: MatchLog | None = None
     rec: Recorder | None = None
     last_sent = time.monotonic()
@@ -383,20 +434,31 @@ def play(fly: Fly, args, dash=None) -> None:
                     print(f"\nMATCH vs {msg.get('oppName')} ({msg.get('oppType')}) on {msg.get('stage')}  id {msg.get('mid')}")
                     log = MatchLog(msg.get("mid", "match"))
                     rec = Recorder(args.record, msg.get("mid", "match")) if args.record else None
-                    print(f"watch live: https://sshfighter.com/watch/{msg.get('mid')}")
+                    mid = msg.get("mid")
+                    # /watch/ only works while the match is running; /matches/ stays afterwards.
+                    print(f"watch live: https://sshfighter.com/watch/{mid}")
+                    print(f"replay:     https://sshfighter.com/matches/{mid}")
                     if dash:
                         dash.set_match(msg.get("mid"), msg.get("oppName"))
                 elif t == "matchEnd":
-                    won = bool((msg.get("result") or {}).get("youWon"))
-                    wins, losses = wins + won, losses + (not won)
-                    print(f"\nmatch over: {'WON' if won else 'lost'}  (record {wins}-{losses})")
+                    res = msg.get("result") or {}
+                    # A round that times out at equal HP is a draw, and a fly that never closes
+                    # can draw every round forever; youWon alone has reported those as wins.
+                    won = bool(res.get("youWon"))
+                    drew = bool(res.get("draw") or res.get("isDraw")
+                                or (res.get("youScore") is not None and res.get("youScore") == res.get("oppScore")))
+                    wins += won and not drew
+                    draws += drew
+                    losses += not won and not drew
+                    print(f"\nmatch over: {'DRAW' if drew else 'WON' if won else 'lost'}"
+                          f"  (record {wins}-{losses}-{draws})  result: {res}")
                     if log:
                         log.close()
                         log = None
                     if rec:
                         rec.save()
                         rec = None
-                    if args.matches and wins + losses >= args.matches:
+                    if args.matches and wins + losses + draws >= args.matches:
                         send({"t": "leave"})
                         return
                     requeue_at = time.monotonic() + 1.0
@@ -435,6 +497,10 @@ def play(fly: Fly, args, dash=None) -> None:
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--offline", action="store_true", help="play a fake opponent locally")
+    p.add_argument("--replay", help="watch a match again through the brain: a recorded "
+                                    "<mid>.states.jsonl.gz, a recordings folder, or a "
+                                    "logs/<stamp>-<mid>.jsonl match log; use with --dashboard")
+    p.add_argument("--speed", type=float, default=1.0, help="replay speed multiplier")
     p.add_argument("--seconds", type=float, default=20)
     p.add_argument("--user", help="bot handle on sshfighter.com")
     p.add_argument("--identity", help="the bot's own SSH private key")
@@ -461,18 +527,20 @@ def main():
     from fly_eyes import ENCODER
     if set(encoder) - set(ENCODER):
         sys.exit(f"unknown encoder parameters {sorted(set(encoder) - set(ENCODER))}; known: {', '.join(ENCODER)}")
-    if not args.offline and not args.user:
-        sys.exit("--user is required for live play (or use --offline)")
-    if args.record and args.readout:
-        sys.exit("use --record (collect data) or --readout (use a trained readout), not both")
+    if not args.offline and not args.replay and not args.user:
+        sys.exit("--user is required for live play (or use --offline / --replay)")
     fly = Fly(args.device, args.flies, args.seed, encoder)
     if encoder:
         print(f"encoder: {encoder}")
-    fly.explore = bool(args.record)
+    # Recording alone: attacks and movement are both random (clean labels for both).
+    # Recording with a trained readout: it attacks, movement stays random, so movement
+    # labels are collected by a fly that can actually land a hit.
+    fly.explore_moves = bool(args.record)
+    fly.explore_attacks = bool(args.record) and not args.readout
     if args.readout:
         fly.readout = Readout(args.readout)
-        if args.no_move_readout:
-            fly.readout.move = None
+        if args.no_move_readout or args.record:
+            fly.readout.move = None   # while recording, movement must stay random or brain-steered
         parts = list(fly.readout.models) + (["movement"] if fly.readout.has_move else [])
         print(f"trained readout loaded: {', '.join(parts) or 'nothing usable'}")
     dash = None
@@ -480,7 +548,9 @@ def main():
         from fly_dashboard import Dashboard
         dash = Dashboard(fly)
         dash.start(open_browser=not args.no_browser)
-    if args.offline:
+    if args.replay:
+        replay(fly, args.replay, dash, args.speed)
+    elif args.offline:
         offline(fly, args.seconds, dash)
     else:
         play(fly, args, dash)

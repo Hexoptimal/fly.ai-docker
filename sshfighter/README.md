@@ -11,7 +11,7 @@ called FLYBRAIN.
 The game only touches the network at a few neuron types known from the literature to detect
 things and to issue movement commands. Everything in between is the connectome.
 
-It loses almost every match. It does chase its opponent, though, and the reason it chases turns
+It loses most matches, though it has now won one. It chases its opponent, and the reason it chases turns
 out to be real fly biology.
 
 ![Dashboard: the fight on the left, every neuron of the fly's nervous system on the right](media/dashboard.png)
@@ -79,6 +79,27 @@ game state (30 Hz)
 4. **Live record:** 0 wins, 6 losses against other bots when this was written. It dealt 311
    damage, took 1,200 and landed 40 hits. Punches and kicks come only from background noise.
    Current record: [sshfighter.com/players/FLYBRAIN](https://sshfighter.com/players/FLYBRAIN).
+5. **The fly was reacting two frames late, and fixing that produced the first win.** Eight
+   voting copies cost 59-70 ms of brain time per frame, against a 30 Hz game that gives you
+   33 ms. Dropping to `--flies 2` puts the step at 16-27 ms, inside the budget. Nothing else
+   changed - same trained readout, same encoder, same steering:
+
+   | | brain time / frame | result |
+   |---|---|---|
+   | 8 flies voting | 59-70 ms (over budget) | 0 wins, opponent finished around 86 HP |
+   | 2 flies voting | 16-27 ms | **first win**, and 1-7 over the run |
+
+   The win was against ajax-tissue, 100-67 and 61-15 over two rounds:
+   [sshfighter.com/matches/mmtyehkmd5947](https://sshfighter.com/matches/mmtyehkmd5947).
+   Every live measurement taken before this was made under the latency handicap, so the earlier
+   "the trained readout doesn't help live" results are worth re-reading: the offline gains were
+   real, they just could not get through a loop running at half the game's frame rate.
+6. **A trained movement readout learns to back away, and that is correct.** Trained on
+   `damage dealt - damage taken` over the next second it always picks "away" (-16.1, against
+   -18.3 for "toward"), because the fly deals little damage, so the objective reduces to
+   minimising damage taken. Against opponents that close the distance this is fine; against a
+   passive opponent nobody advances, rounds time out at 100-100 and the match never ends. Use
+   `--no-move-readout` and let the brain's own DNa02 steer.
 
 ## Trained readout (reservoir computing)
 
@@ -235,6 +256,10 @@ to fight a fly.
 python fly_fighter.py --user MYBOT --identity ~/.ssh/sshfighter-mybot --opponents bots --matches 8 --record recordings
 python reservoir.py train recordings          # held-out report, writes readout.npz
 python fly_fighter.py --user MYBOT --identity ~/.ssh/sshfighter-mybot --opponents bots --matches 4 --readout readout.npz
+
+# watch a finished match again, driven through the brain, with the dashboard
+python fly_fighter.py --replay logs/20260912-160803-mmtyehkmd5947.jsonl --dashboard --speed 0.5
+python fly_fighter.py --replay recordings5/<mid>.states.jsonl.gz --dashboard
 ```
 
 Match logs are written to `sshfighter/logs/`.

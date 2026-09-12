@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>$FLYAI — a real fruit fly brain on Robinhood Chain</title>
-<meta name="description" content="$FLYAI funds fly.ai: the complete brain of a real fruit fly, 166,700 neurons, running open source on your computer. Launching on Bags, on Robinhood Chain. 60% of creator fees buy $FLYAI and burn it.">
+<meta name="description" content="$FLYAI funds fly.ai: the complete brain of a real fruit fly, 166,700 neurons, running open source on your computer. Launching on Pons, on Robinhood Chain. 60% of creator fees buy $FLYAI and burn it.">
 <meta property="og:title" content="$FLYAI — a real fruit fly brain on Robinhood Chain">
 <meta property="og:description" content="166,700 real neurons. 25.6 million real connections. Zero training. Open source. The coin that funds it.">
 <meta property="og:image" content="https://alextitonis.github.io/fly.ai/assets/dashboard.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
+<link rel="icon" href="assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -42,6 +43,9 @@
         -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
   nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 58px; }
   .brand { display: flex; align-items: center; gap: 10px; font: 700 18px var(--display); text-decoration: none; }
+  .logo { mix-blend-mode: screen; }          /* the file has a black plate, not alpha */
+  .brand .logo { height: 34px; width: auto; margin: -6px -8px; }
+  .hero-logo { width: min(300px, 62vw); height: auto; margin: 0 0 18px -14px; }
   .eye { width: 12px; height: 12px; border-radius: 50%; background: var(--red); box-shadow: 0 0 14px rgba(224,52,44,.8); animation: blink 3.2s infinite; }
   @keyframes blink { 0%, 92%, 100% { opacity: 1; } 95% { opacity: .25; } }
   nav ul { display: flex; gap: 22px; list-style: none; margin: 0; padding: 0; font-size: 14px; align-items: center; }
@@ -156,7 +160,7 @@
 
 <nav aria-label="Main">
   <div class="wrap">
-    <a class="brand" href="#top"><span class="eye" aria-hidden="true"></span>$FLYAI</a>
+    <a class="brand" href="#top"><img class="logo" src="assets/logo.webp" alt="fly.ai" width="1774" height="887">$FLYAI</a>
     <ul>
       <li class="opt"><a href="#brain">The brain</a></li>
       <li class="opt"><a href="#roadmap">Roadmap</a></li>
@@ -169,7 +173,8 @@
 <header class="hero" id="top">
   <div class="wrap">
     <div>
-      <p class="eyebrow">Launching on Bags &middot; Robinhood Chain</p>
+      <img class="logo hero-logo" src="assets/logo.webp" alt="fly.ai" width="1774" height="887">
+      <p class="eyebrow">Launching on Pons &middot; Robinhood Chain</p>
       <h1 class="ticker"><span>$</span>FLYAI</h1>
       <p class="tagline">A real fruit fly's brain. Every neuron. Open source.</p>
       <p class="sub">Not a model trained to look like a fly. The actual wiring of a real fruit fly's nervous
@@ -198,7 +203,7 @@
       <div class="row"><span class="k">brain step</span><span class="v">1.4 ms on a laptop GPU</span></div>
       <div class="row"><span class="k">code</span><span class="v live">open source · MIT</span></div>
       <div class="row"><span class="k">chain</span><span class="v">Robinhood Chain</span></div>
-      <div class="row"><span class="k">launchpad</span><span class="v">Bags</span></div>
+      <div class="row"><span class="k">launchpad</span><span class="v">Pons</span></div>
       <div class="row"><span class="k">token</span><span class="v pending" id="token-status">pre-launch</span></div>
     </div>
   </div>
@@ -216,8 +221,10 @@
         <a href="assets/video.mp4">Watch the video</a>
       </video>
     </div>
-    <p class="caption">It loses almost every match. It does chase its opponent, and the reason it chases is
-      real fly biology: the neurons a male fly uses to chase a mate steer it toward the enemy.</p>
+    <p class="caption">It loses most matches &mdash; and on 12 September 2026 it
+      <a href="https://sshfighter.com/matches/mmtyehkmd5947" target="_blank" rel="noopener">won one</a>,
+      two rounds to none. It chases its opponent, and the reason it chases is real fly biology:
+      the neurons a male fly uses to chase a mate steer it toward the enemy.</p>
   </div>
 </section>
 
@@ -287,12 +294,15 @@
       <li class="done"><span class="st">Done</span><div><b>GPU brain.</b> <span class="d">6.3× faster on a laptop GPU, and now many flies can run at once.</span></div></li>
       <li class="done"><span class="st">Done</span><div><b>Open source.</b> <span class="d">Code, notebook and this site are public.</span></div></li>
       <li class="done"><span class="st">Done</span><div><b>Eight flies vote.</b> <span class="d">Eight copies of the brain decide together. They chase harder (72% of moves toward the opponent, against 63% for one fly) and make fewer random moves.</span></div></li>
-      <li class="now"><span class="st">Now</span><div><b>$FLYAI launch on Bags, on Robinhood Chain.</b> <span class="d">Fair launch: all of the supply in the pool, liquidity burned, no team tokens. The contract address is posted here and on @flydotai only.</span></div></li>
+      <li class="now"><span class="st">Now</span><div><b>$FLYAI launch on Pons, on Robinhood Chain.</b> <span class="d">Fair launch: all of the supply in the pool, liquidity burned, no team tokens. The contract address is posted here and on @flydotai only.</span></div></li>
+      <li class="done"><span class="st">Done</span><div><b>It won a match.</b> <span class="d">The brain was thinking too slowly &mdash; eight copies voting took twice as long as a game frame, so the fly acted two frames late. Running two copies put it back in real time, and it won its first fight, two rounds to none.</span></div></li>
       <li class="now"><span class="st">Now</span><div><b>Sharper senses.</b> <span class="d">Retuning how the game reaches the fly's looming neurons made its punch signal clearly better in replays. Next: learning to dodge. The brain itself stays untouched.</span></div></li>
       <li class="next"><span class="st">Next</span><div><b>Learning inside the brain.</b> <span class="d">Dopamine-driven learning in the mushroom body, the way real flies learn.</span></div></li>
       <li class="next"><span class="st">Next</span><div><b>Real vs random wiring.</b> <span class="d">Does nature's wiring beat shuffled wiring? We'll publish whatever we find.</span></div></li>
       <li class="next"><span class="st">Next</span><div><b>A world to fly in.</b> <span class="d">Out of the 2-D fighting game and into a 3-D world with a body and physics, where many flies live at once &mdash; each one its own copy of the brain.</span></div></li>
       <li class="next"><span class="st">Next</span><div><b>The fly drives a Smol.</b> <span class="d">The same brain, embodied in the world as a <a href="https://opensea.io/collection/smols-752105135" target="_blank" rel="noopener">Smol</a>. A real nervous system moving a character you recognise.</span></div></li>
+      <li class="next"><span class="st">Next</span><div><b>The fly flies a drone.</b> <span class="d">The same brain again, this time on a quadrotor &mdash; in simulation first, then a real drone indoors, camera streamed to the brain and stick commands sent back. The altitude it holds already comes from the optic-flow cells real insects use.</span></div></li>
+      <li class="next"><span class="st">Next</span><div><b>Factions.</b> <span class="d">One shared world everybody watches, with flies belonging to player-created factions. Colour is your faction, you can feed it, and it can be wiped out for good.</span></div></li>
     </ol>
   </div>
 </section>
@@ -311,10 +321,10 @@
         <div class="row"><span class="k">name</span><span class="v">fly.ai</span></div>
         <div class="row"><span class="k">ticker</span><span class="v">$FLYAI</span></div>
         <div class="row"><span class="k">chain</span><span class="v">Robinhood Chain</span></div>
-        <div class="row"><span class="k">launchpad</span><span class="v">Bags</span></div>
+        <div class="row"><span class="k">launchpad</span><span class="v">Pons</span></div>
         <div class="row"><span class="k">contract</span><span class="v pending" id="ca-2">not deployed yet</span></div>
         <div class="row"><span class="k">supply</span><span class="v">1,000,000,000</span></div>
-        <div class="row"><span class="k">liquidity</span><span class="v live">100% of supply &middot; LP burned</span></div>
+        <div class="row"><span class="k">liquidity</span><span class="v live">100% of supply &middot; LP burned by Pons</span></div>
         <div class="row"><span class="k">team tokens</span><span class="v live">none</span></div>
         <div class="row"><span class="k">tax</span><span class="v live">none</span></div>
         <div class="row"><span class="k">creator fees</span><span class="v">60% buy &amp; burn $FLYAI &middot; 40% $MAGIC</span></div>
@@ -325,14 +335,27 @@
           <li><div><b>Get a wallet</b>Use one that supports Robinhood Chain.</div></li>
           <li><div><b>Fund it</b>Add funds for gas and your buy on Robinhood Chain.</div></li>
           <li><div><b>Check the address</b>Copy the contract address from this page or @flydotai. Nowhere else.</div></li>
-          <li><div><b>Swap for $FLYAI</b>Paste the address into Bags, or any Robinhood Chain swap, and confirm.</div></li>
+          <li><div><b>Swap for $FLYAI</b>Paste the address into Pons, or any Robinhood Chain swap, and confirm.</div></li>
         </ol>
       </div>
     </div>
     <div class="card pad fees" style="margin-top: 18px;">
-      <h3 style="margin-bottom: 12px;">Where the fees go</h3>
+      <h3 style="margin-bottom: 12px;">What $FLYAI is for</h3>
+      <p>One shared 3-D world, where flies run by the real connectome forage, mate, age and die.
+        Everyone watches the same world, and $FLYAI is what you spend in it:</p>
+      <ul>
+        <li><b>Create a faction</b> &mdash; a colour. Those flies are yours to watch.</li>
+        <li><b>Feed it</b> &mdash; spend again to drop food into the world for your flies.</li>
+        <li><b>It can die.</b> A faction can be wiped out entirely: predators, starvation, or flies
+          that simply do not do well. Extinction is permanent. Nothing you pay guarantees survival.</li>
+      </ul>
+      <p>What separates factions is meant to be their <b>brain settings</b> &mdash; sensory gains and
+        wiring seed &mdash; so the world doubles as a live experiment in which settings survive.
+        This is the roadmap, not a live feature, and it is no promise of a return. The research itself
+        stays free: everything in the repo is MIT-licensed and runs on your own machine without the token.</p>
+      <h3 style="margin: 22px 0 12px;">Where the fees go</h3>
       <p>$FLYAI takes nothing from your trade. There is no transfer tax, and nothing is skimmed from holders.
-        The only revenue is the creator fee Bags pays on swaps, and it is split two ways:</p>
+        The only revenue is the creator fee the launchpad pays on swaps, and it is split two ways:</p>
       <ul>
         <li><b>60% buys $FLYAI on the open market and burns it.</b> The tokens are destroyed, not held.
           Supply only ever goes down.</li>
@@ -355,7 +378,7 @@
         <li>The wiring is real. The neurons are simplified: one simple model for every cell, with no dendrites, no neuromodulators and no learning yet.</li>
         <li>The eye is a shortcut. We feed signals into the fly's own motion-detecting neurons instead of simulating its eyes.</li>
         <li>Flies can't punch. Which neurons press which game buttons was chosen by us.</li>
-        <li>It loses almost every match. The fighting is a demo of the brain, not a trading bot or a product.</li>
+        <li>It loses most matches. One win is one win; the fighting is a demo of the brain, not a trading bot or a product.</li>
         <li>It's not a digital fly. It's a demo built from real data, not a validated emulation of a living fly.</li>
       </ul>
     </div>
@@ -387,7 +410,7 @@
     </div>
     <p>$FLYAI is a meme coin with no intrinsic value and no expectation of financial return. Nothing on this
       site is financial advice. Crypto is volatile; only use money you can afford to lose. $FLYAI is not
-      affiliated with or endorsed by Robinhood, Bags, HHMI Janelia, FlyEM or SSH Fighter.</p>
+      affiliated with or endorsed by Robinhood, Pons, HHMI Janelia, FlyEM or SSH Fighter.</p>
     <p>Connectome data: MaleCNS v1.0 by FlyEM (HHMI Janelia) and collaborators, used under CC BY 4.0. Code MIT licensed.</p>
   </div>
 </footer>

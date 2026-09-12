@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07090c" />
+    <title>fly.ai world — flies with spiking brains</title>
+    <meta
+      name="description"
+      content="A low-poly world of flies, each flying on its own spiking neural network, with a live view of the brain."
+    />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='%233ed8ff'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="labels"></div>
+
+    <header id="top">
+      <h1>fly.ai <b>world</b></h1>
+      <div class="sub" id="stats">starting…</div>
+    </header>
+
+    <aside id="panel">
+      <section class="card about">
+        <h2><span>What this is</span><span id="abouttoggle" class="link">hide</span></h2>
+        <div id="aboutbody">
+          <p>A field of fruit flies, each one flying on its own <b>spiking neural network</b> &mdash;
+            612 leaky integrate-and-fire neurons named after real <i>Drosophila</i> cell types and
+            wired in the shape of the pathways measured in the MaleCNS connectome.</p>
+          <p><b>Nothing in a fly's behaviour is scripted.</b> Light, odour puffs, airflow and leg
+            contact are injected into sensory neurons; the network runs; and flight is read back out
+            of the <b>motor neurons</b>. There is no <code>if (nearFruit) goToFruit</code>. Feeding,
+            landing, escaping the swatter, plume tracking, courtship and egg-laying all fall out of
+            the wiring &mdash; or fail to, which is reported just as plainly.</p>
+          <p>A full life runs here: flies <b>eat, mate, lay eggs, hatch, hunt for food, get
+            eaten by spiders and die</b> &mdash; each of those drops a marker on the map where it
+            happened. The clock runs a 300-second day, and night is real to the flies: it dims the
+            luminance their photoreceptors see, rather than setting any &ldquo;it is night&rdquo; flag.</p>
+          <p>Click any fly to watch its brain fire. Every bar, tag and number in this panel is a
+            readout of population firing rates, never a driver of them.</p>
+          <p class="warn">It is <b>not</b> the real connectome: 612 neurons against 166,700, with real
+            cell-type names but invented counts and weights. Nothing here is trained.
+            <a href="https://github.com/alextitonis/fly.ai/blob/main/world/README.md" target="_blank" rel="noreferrer">What is and isn't real →</a></p>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2><span>Nervous system</span><span id="flyid">fly —</span></h2>
+        <canvas id="brain"></canvas>
+        <div class="legend">
+          <span><i style="background:#3ed8ff"></i>vision</span>
+          <span><i style="background:#ffb23e"></i>olfaction</span>
+          <span><i style="background:#7ce0c0"></i>mechanosensory</span>
+          <span><i style="background:#9fb4c8"></i>central</span>
+          <span><i style="background:#6cf08a"></i>descending</span>
+          <span><i style="background:#b8ffcf"></i>motor</span>
+          <span><i style="background:#b07cff"></i>inhibitory (GABA)</span>
+        </div>
+        <h3>spike raster · last 5 s</h3>
+        <canvas id="raster"></canvas>
+      </section>
+
+      <section class="card">
+        <h2><span>Senses → brain</span><span>left · right</span></h2>
+        <div id="eyes"></div>
+      </section>
+
+      <section class="card">
+        <h2><span>Firing rate</span><span>Hz per neuron · L · R</span></h2>
+        <div id="rates"></div>
+      </section>
+
+      <section class="card">
+        <h2><span>Brain → body</span><span>descending → VNC → muscle</span></h2>
+        <h3>descending neurons</h3>
+        <div id="dn"></div>
+        <h3>motor neurons — flight is read here</h3>
+        <div id="motor"></div>
+      </section>
+
+      <section class="card">
+        <h2><span>The field</span><span>what is out there</span></h2>
+        <div class="legend" id="worldlegend"></div>
+      </section>
+
+      <section class="card">
+        <h2><span>Happening now</span><span id="clock">—</span></h2>
+        <div id="feed"></div>
+      </section>
+
+      <section class="card">
+        <h2><span>Population</span><span id="popnow">—</span></h2>
+        <canvas id="popgraph"></canvas>
+        <div class="legend">
+          <span><i style="background:#6cf08a"></i>adults</span>
+          <span><i style="background:#ffb23e"></i>eggs + larvae</span>
+        </div>
+        <div id="popstats"></div>
+      </section>
+
+      <section class="card">
+        <h2><span>Leaderboard</span><span>live</span></h2>
+        <div id="board"></div>
+      </section>
+
+      <section class="card">
+        <h2><span>Controls</span><span id="reset" class="link">reset</span></h2>
+        <div id="sliders"></div>
+        <div class="buttons">
+          <button id="threat">SWAT!</button>
+          <button id="gust">gust of wind</button>
+          <button id="flycam">fly cam</button>
+          <button id="drama">drama cam</button>
+          <button id="next">next fly</button>
+          <button id="follow">follow: off</button>
+        </div>
+        <p class="note">
+          Click a fly to select it. Drag to orbit, scroll to zoom. Every fly runs its own
+          leaky integrate-and-fire network: eyes, antennae, Johnston's organ and leg
+          bristles in, motor neurons out. Nothing in its flight is scripted.
+          <a href="https://github.com/alextitonis/fly-streetfighter" target="_blank" rel="noreferrer">fly.ai</a>
+        </p>
+      </section>
+    </aside>
+
+    <button id="toggle" aria-label="toggle panel">☰</button>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

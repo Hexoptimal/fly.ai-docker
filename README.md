@@ -1,3 +1,5 @@
+<p align="center"><img src="logo.webp" alt="fly.ai" width="440"></p>
+
 # fly.ai: a real fruit fly brain, running on your computer
 
 https://github.com/user-attachments/assets/7c3b91e5-9b50-4017-a03a-123aedd4d7b4
@@ -87,6 +89,63 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
 
 New applications go in their own folder and import the core (`fly_brain`, `fly_eyes`) from the
 repository root.
+
+## Use it on your own task
+
+`flyreservoir.py` is the reusable half of the SSH Fighter bot's reservoir readout, pulled out so
+any task can use it, not just the game:
+
+```
+input -> encoder -> fly brain (frozen) -> trace -> trained readout -> output
+```
+
+The brain never trains, on any task: `FlyBrain`'s weights are the connectome, fixed at load
+time. Only two things ever get fit:
+
+* **An encoder**, which you write: pick the neuron types your input should drive with
+  `brain.cells([...types], side=...)` and pass `(indices, amount)` pairs to
+  `brain.step(inject=...)`. `fly_eyes.py` is a worked example for SSH Fighter's visual input;
+  the neuron types available are whatever the MaleCNS connectome names (look one up on
+  [neuPrint](https://neuprint.janelia.org)).
+* **A readout**, which `flyreservoir.Readout.fit` trains for you: a linear (`kind="ridge"`) or
+  logistic (`kind="logistic"`) fit on the top principal components of neural activity, with the
+  PCA rank and L2 strength picked by cross-validation. This is the exact method
+  `sshfighter/reservoir.py` uses for the punch and movement readouts, generalised off SSH
+  Fighter's game state.
+
+`flyreservoir.Trace` collects a decaying spike trace of any neuron population (a cell type, a
+`brain.groups[...]` set, or your own index array) step by step; `flyreservoir.run` steps the
+brain over a sequence of encoded inputs and returns the trace stacked over time, so the whole
+loop is one call from a notebook:
+
+```python
+from fly_brain import FlyBrain
+from flyreservoir import Trace, Readout, run
+
+brain = FlyBrain(device="auto")
+trace = Trace(brain, types=["descending_neuron"])   # or group=..., or idx=your_own_array
+
+def encode(t):
+    return [(brain.cells(["LC10a"], side="L"), my_inputs[t])]   # your task's encoder
+
+activity = run(brain, len(my_inputs), encode=encode, trace=trace)
+readout = Readout.fit(activity, my_labels, kind="ridge")        # or "logistic" for 0/1 labels
+prediction = readout.predict(activity[-1])
+readout.save("readout.npz")                                      # Readout.load(...) later
+```
+
+`flyreservoir_example.py` runs this end to end on a synthetic task (classify and measure the
+strength of a left/right stimulus) with no game or recordings needed:
+`python flyreservoir_example.py`. Its held-out numbers are printed as they come out, not curated
+— on the fixed seed it ships with, the classifier does better than chance and the strength
+regression is close to just predicting the average; that is the honest state of a two-line
+encoder on an invented task, not a claim about what the connectome can do in general (see
+"What's next" and `ROADMAP.md` for the open question of how much the real wiring helps versus
+a random network of the same size).
+
+Batching and the GPU option work the same way they do in `fly_brain.py`: `FlyBrain(batch=8)` or
+`FlyBrain(device="cuda")` (or `FLY_DEVICE=cuda`); `Trace(..., aggregate="mean")` (the default)
+gives one feature vector averaged across the batch, `aggregate="batch"` keeps one per fly.
 
 ### Limitations
 
@@ -186,13 +245,16 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
 | `build_brain.py` | downloads MaleCNS v1.0 and builds the weight matrix, readout groups, eye layout and neuron positions |
 | `fly_brain.py` | integrate-and-fire simulation: CPU (numba) or NVIDIA GPU (CuPy), one fly or a batch |
 | `fly_eyes.py` | photoreceptor rendering plus the looming/chase feature-detector input, with tunable encoder parameters (`ENCODER`) |
+| `flyreservoir.py` | generic reservoir readout: spike trace of any neuron population, PCA + linear/logistic readout, cross-validated |
+| `flyreservoir_example.py` | the module above, end to end, on a synthetic task |
 | `experiment.py`, `sweep.py`, `inject.py` | the experiments above |
-| `sshfighter/` | the SSH Fighter bot, dashboard and trained readout ([README](sshfighter/README.md)) |
+| `sshfighter/` | the SSH Fighter bot, dashboard and trained readout ([README](sshfighter/README.md)), built on `flyreservoir.py` |
 
 ## What's next
 
-* A generic encoder/readout interface, so any task (images, sound, odour-like patterns, sensor
-  readings) plugs into the same frozen brain.
+* ~~A generic readout interface~~ done: `flyreservoir.py`. Encoders (mapping images, sound,
+  odour-like patterns, sensor readings onto neuron groups) are still written per task -- see
+  ROADMAP.md for candidate tasks to try it on next.
 * A benchmark: does the real wiring beat randomly rewired copies of itself on the same tasks?
 * Learning inside the brain through the mushroom body's dopamine rule, the way real flies learn.
 * A 3-D world with a body and physics instead of a 2-D game, with many flies in it at once, each

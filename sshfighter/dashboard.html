@@ -171,12 +171,21 @@ function draw(d) {
   $("oppname").textContent = d.opp_name || d.opp.name || "dummy";
   $("spk").textContent = `${d.total.toLocaleString()} spikes/frame · ${d.ms} ms`;
   if (d.mid && d.mid !== liveMid) {
-    liveMid = d.mid; const url = `https://sshfighter.com/watch/${d.mid}`;
+    liveMid = d.mid; const url = `https://sshfighter.com/matches/${d.mid}`;   // works live AND after the match
     $("live").src = url; $("live").hidden = false; $("arena").hidden = true;
-    $("watch").innerHTML = `<a href="${url}" target="_blank" rel="noopener">live on sshfighter.com ↗</a>`;
+    $("watch").innerHTML = `<a href="${url}" target="_blank" rel="noopener">on sshfighter.com ↗</a>`;
     layout();
   }
-  if (!d.mid) drawArena(d);
+  if (!d.mid) {                       // offline or replay: draw the arena ourselves
+    if (liveMid !== null) {           // coming back from a live match, put the iframe away
+      liveMid = null;
+      $("live").hidden = true; $("live").src = "about:blank";
+      $("arena").hidden = false;
+      $("watch").textContent = "replay: game state as the fly receives it";
+      layout();
+    }
+    drawArena(d);
+  }
   for (const [k, v] of Object.entries(d.drive)) { const el = $(k); if (el) el.style.width = `${Math.min(100, v / 0.8 * 100)}%`; }
   for (const [g, c] of Object.entries(d.counts)) { const el = $("m-" + g); if (el) el.style.width = `${Math.min(100, c * 20)}%`; }
   $("b-left").classList.toggle("on", d.cmd.moveX === -1);

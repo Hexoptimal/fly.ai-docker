@@ -1,6 +1,7 @@
-"""Reservoir computing on the fly connectome.
+"""Reservoir computing on the fly connectome, for SSH Fighter specifically.
 
-The brain stays fixed. Only linear readouts are trained, from the ~1,300
+This is a worked example of `flyreservoir.py` (the generic module, one level up):
+the brain stays fixed, only linear readouts are trained, from the ~1,300
 descending neurons (the brain's output cables to the body):
   * punch / kick: P(this press connects)
   * movement: predicted HP swing (damage dealt - damage taken, next second)
@@ -11,6 +12,11 @@ at random and holds random moves half the time. The readout first compresses
 descending-neuron activity to its top principal components (activity driven by
 what the fly sees shows up there; independent noise mostly doesn't), then fits a
 regularised linear model. Everything is scored leave-one-match-out.
+
+Everything game-specific lives here (what a "sample" is, leave-one-*match*-out,
+the F-beta press threshold); the shared PCA/ridge/logistic machinery underneath
+it is `flyreservoir.bases_for/project/fit_logistic/auc`, and the spike-trace
+feature (`Featurizer`) is `flyreservoir.Trace` over the descending neurons.
 
     python fly_fighter.py --user FLYBRAIN --identity KEY --opponents bots --matches 20 --record recordings
     python reservoir.py train recordings          # held-out report + readout.npz
@@ -24,8 +30,10 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from scipy.optimize import minimize
 from scipy.special import expit
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # the fly.ai core lives one level up
+from flyreservoir import Trace, auc, bases_for, fit_logistic, fit_ridge, project  # noqa: E402
 
 TRACE_TAU = 0.1       # s; each descending neuron's spike trace decays with this time constant
 HORIZON = 15          # frames (0.5 s) after a press to see whether the attack connected
@@ -46,27 +54,15 @@ COLS = ["frame", "you_x", "opp_x", "you_hp", "opp_hp", "actionable", "connected"
 C = {c: i for i, c in enumerate(COLS)}
 
 
-class Featurizer:
-    """Exponentially decaying spike trace of every descending neuron."""
+class Featurizer(Trace):
+    """Exponentially decaying spike trace of every descending neuron, averaged
+    across the (possibly several, voting) flies. A thin, task-specific alias of
+    `flyreservoir.Trace`."""
 
     def __init__(self, brain):
         if brain.superclass is None:
             raise SystemExit("brain.npz has no superclass; rerun build_brain.py")
-        self.idx = np.flatnonzero(brain.superclass == "descending_neuron")
-        self.slot = np.full(brain.n, -1, np.int64)
-        self.slot[self.idx] = np.arange(len(self.idx))
-        self.trace = np.zeros(len(self.idx), np.float32)
-        self.decay = np.float32(np.exp(-brain.dt / TRACE_TAU))
-
-    def observe(self, flies: list[np.ndarray]) -> None:
-        """Spikes of one step, one array per fly; the trace is the flies' average."""
-        self.trace *= self.decay
-        for fired in flies:
-            slots = self.slot[fired]
-            self.trace[slots[slots >= 0]] += 1.0 / len(flies)
-
-    def features(self) -> np.ndarray:
-        return self.trace.copy()
+        super().__init__(brain, types=["descending_neuron"], tau=TRACE_TAU, aggregate="mean")
 
 
 class Recorder:
@@ -101,29 +97,6 @@ class Recorder:
         np.savez_compressed(self.path, X=np.stack(self.X), rows=np.asarray(self.rows, np.float32),
                             attack=np.asarray(self.attack))
         print(f"\nrecorded {len(self.X)} frames -> {self.path}")
-
-
-# ---- projection shared by training and play ----------------------------------------------
-
-def bases_for(X: np.ndarray, ks) -> dict:
-    """For each k: (mean, projection, scale). k=None just standardises every column."""
-    mu = X.mean(0)
-    out, vt = {}, None
-    for k in ks:
-        if k is None:
-            P = np.eye(X.shape[1], dtype=np.float32)
-        else:
-            if vt is None:
-                vt = np.linalg.svd(X - mu, full_matrices=False)[2]
-            P = vt[:min(k, len(vt))].T.astype(np.float32)
-        sd = ((X - mu) @ P).std(0) + 1e-6
-        out[k] = (mu, P, sd)
-    return out
-
-
-def project(basis, X: np.ndarray) -> np.ndarray:
-    mu, P, sd = basis
-    return ((X - mu) @ P) / sd
 
 
 class Readout:
@@ -175,26 +148,6 @@ def press_samples(path: Path, action: str):
         dist.append(abs(R[t, C["opp_x"]] - R[t, C["you_x"]]))
         ys.append(float((R[window, C["connected"]] > 0).any()))
     return np.asarray(xs, np.float32).reshape(-1, X.shape[1]), np.asarray(dist, np.float32), np.asarray(ys)
-
-
-def fit_logistic(Z, y, lam):
-    def objective(w):
-        z = Z @ w[:-1] + w[-1]
-        loss = np.mean(np.logaddexp(0, z) - y * z) + 0.5 * lam * w[:-1] @ w[:-1]
-        r = (expit(z) - y) / len(y)
-        return loss, np.append(Z.T @ r + lam * w[:-1], r.sum())
-
-    w = minimize(objective, np.zeros(Z.shape[1] + 1), jac=True, method="L-BFGS-B").x
-    return w[:-1], w[-1]
-
-
-def auc(y, s):
-    pos, neg = y == 1, y == 0
-    if pos.sum() == 0 or neg.sum() == 0:
-        return float("nan")
-    ranks = np.empty(len(s))
-    ranks[np.argsort(s, kind="stable")] = np.arange(1, len(s) + 1)
-    return (ranks[pos].sum() - pos.sum() * (pos.sum() + 1) / 2) / (pos.sum() * neg.sum())
 
 
 def distance_features(dist):
@@ -335,11 +288,7 @@ def fit_moves(Z, acts, r, lam):
         if sel.sum() < 5:
             b[i] = r.mean()
             continue
-        Zs, rs = Z[sel], r[sel]
-        zm = Zs.mean(0)
-        Zc = Zs - zm
-        W[i] = np.linalg.solve(Zc.T @ Zc + lam * len(rs) * np.eye(Z.shape[1]), Zc.T @ (rs - rs.mean()))
-        b[i] = rs.mean() - zm @ W[i]
+        W[i], b[i] = fit_ridge(Z[sel], r[sel], lam)
     return W, b
 
 
@@ -400,7 +349,6 @@ def train(folder: str, out: str = "readout.npz") -> None:
         sys.exit(f"need at least 3 recorded matches in {folder}, found {len(files)}")
     if np.load(files[0])["rows"].shape[1] != len(COLS):
         sys.exit(f"{files[0].name} was recorded with an older format; record a new set")
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # the fly.ai core lives one level up
     from fly_brain import DATA
     meta = np.load(DATA / "brain.npz")
     dn_types = meta["cell_type"][meta["superclass"] == "descending_neuron"]

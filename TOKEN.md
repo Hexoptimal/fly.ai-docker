@@ -11,10 +11,10 @@ repository where the token is described; the rest of the repo is about the fly.
 |---|---|
 | ticker | $FLYAI |
 | chain | Robinhood Chain |
-| launchpad | Bags |
+| launchpad | Pons |
 | contract | not deployed yet |
 | supply | 1,000,000,000 |
-| liquidity | 100% of supply, LP tokens burned |
+| liquidity | 100% of supply; bonding curve -> Uniswap V4, LP burned by Pons |
 | team allocation | none |
 | tax | none (no transfer tax; fees come from the launchpad) |
 | mint / owner functions | disabled after launch |
@@ -23,19 +23,45 @@ repository where the token is described; the rest of the repo is about the fly.
 
 ## What it is
 
-A funding token, and nothing more. **$FLYAI gives you no rights, no revenue share, no governance
-and no claim on this project or its work.** It does not gate any part of the code: everything in
-this repository is MIT-licensed and runs without it.
+$FLYAI funds fly.ai, and it is the currency of the shared world (see *The world* below).
 
-There is no staking, no emission schedule and no promise about price. The one mechanism the token
-has is the buyback below, and it is mechanical: it runs on a schedule, not on anyone's judgement.
-It is not a promise that the price will go anywhere.
+**It gives you no rights, no revenue share, no governance and no claim on this project, its work
+or its earnings.** The research stays free: every line of code in this repository is MIT-licensed
+and runs on your own machine without the token, forever. What the token buys is a place in the
+shared simulation that we host, nothing else.
+
+There is no staking, no emission schedule and no promise about price. The only automatic mechanism
+is the buyback below, and it runs on a schedule rather than on anyone's judgement. It is not a
+promise that the price will go anywhere.
+
+## The world
+
+fly.ai is building one persistent 3-D world where flies driven by the connectome live, forage,
+mate, age and die. It is shared: everyone watches the same world.
+
+$FLYAI is what you spend in it.
+
+* **Create a faction.** A faction is a colour. Its flies carry that colour, and they are yours to
+  watch.
+* **Feed it.** Spend again to drop food into the world for your faction.
+* **It can die.** A faction can be wiped out entirely - by luck, by predators, by starvation, or
+  because its flies simply do not do well. Extinction is permanent and real. Nothing you pay
+  guarantees survival, and anyone telling you otherwise is wrong.
+
+What separates one faction from another is meant to be its **brain settings** - the fly's sensory
+gains and wiring seed - so the world doubles as a live experiment in which settings actually
+survive. That is the point of it, and it is also why no amount of feeding makes a faction safe.
+
+This is not built yet. It is the roadmap, written down before launch rather than after, and none
+of it is a promise of a return.
 
 ## Launch
 
-Fair launch. The entire supply goes into the liquidity pool at deployment, the LP tokens are
-burned, and minting and owner privileges are renounced. There is no presale, no allocation, no
-vesting schedule and no locked tranche to unlock later.
+Fair launch on Pons. Trading starts on a bonding curve; once it has taken enough liquidity the
+token graduates to a Uniswap V4 pool and **the LP tokens are burned automatically by the
+launchpad**, so the liquidity cannot be withdrawn by anyone, including us. Minting and owner
+privileges are renounced. There is no presale, no allocation, no vesting schedule and no locked
+tranche to unlock later.
 
 There is no team wallet. Any tokens the author holds are bought at launch from a public address,
 which is published here on launch day and stays published. That is verifiable on-chain, which is
@@ -50,7 +76,7 @@ At launch this section will list:
 ## Fees and buyback
 
 $FLYAI charges nothing on transfers. There is no tax, and no fee is taken from anyone holding or
-trading the token. The only revenue is the **creator fee Bags pays on swaps**, which Bags
+trading the token. The only revenue is the **creator fee the launchpad pays on swaps**, which Pons
 collects and sends to the creator address. Because that fee is external to the token
 contract, the liquidity stays burned and the contract keeps no owner function that could change it.
 
