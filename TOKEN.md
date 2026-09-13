@@ -16,7 +16,8 @@ repository where the token is described; the rest of the repo is about the fly.
 | contract | `0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C` |
 | supply | 1,000,000,000 |
 | pair | NVDA (bonding curve, then Uniswap V4) |
-| liquidity | 100% of supply; bonding curve -> Uniswap V4, LP burned by Pons |
+| liquidity | bonding curve -> Uniswap V4; the pool position is locked permanently by Pons |
+| locker | `0x267444d099b10fb5ed7c3cc7b7c767adca574952` (Pons launch locker; also holds 81,632,653 FLYAI, 4/49 of supply, permanently) |
 | team allocation | none (the developer bought 0.156314 NVDA worth on the curve at launch, like anyone else) |
 | tax | none (no transfer tax; fees come from the launchpad) |
 | mint / owner functions | disabled after launch |
@@ -60,8 +61,10 @@ of it is a promise of a return.
 ## Launch
 
 Fair launch on Pons. Trading starts on a bonding curve; once it has taken enough liquidity the
-token graduates to a Uniswap V4 pool and **the LP tokens are burned automatically by the
-launchpad**, so the liquidity cannot be withdrawn by anyone, including us. Minting and owner
+token graduates to a Uniswap V4 pool and **the pool's liquidity position is locked permanently in
+the Pons launch locker** (`0x267444d099b10fb5ed7c3cc7b7c767adca574952`), so the liquidity cannot be
+withdrawn by anyone, including us. The same contract permanently holds 4/49 of the supply
+(81,632,653 FLYAI), which never unlocks. Minting and owner
 privileges are renounced. There is no presale, no allocation, no vesting schedule and no locked
 tranche to unlock later.
 
@@ -72,7 +75,7 @@ worth more than a vesting promise.
 At launch this section will list:
 
 * the contract address,
-* the LP burn transaction,
+* the liquidity locker address,
 * the author's public address.
 
 ## Fees and buyback
@@ -80,7 +83,7 @@ At launch this section will list:
 $FLYAI charges nothing on transfers. There is no tax, and no fee is taken from anyone holding or
 trading the token. The only revenue is the **creator fee the launchpad pays on swaps**, which Pons
 collects and sends to the creator address. Because that fee is external to the token
-contract, the liquidity stays burned and the contract keeps no owner function that could change it.
+contract, the liquidity stays locked and the contract keeps no owner function that could change it.
 
 That revenue is split:
 

@@ -18,6 +18,8 @@ output (the commands its brain sends to the body). Everything in between is the 
 The goal is a general-purpose "fly reservoir": plug any task into the same frozen brain, read
 out what it does, and find out what a real nervous system's wiring is good for.
 
+**Install it:** `pip install flybrain`. Latest release: [flybrain 0.1.0 on PyPI](https://pypi.org/project/flybrain/0.1.0/).
+
 **$FLYAI** is live on Robinhood Chain (launched on Pons):
 `0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C`. The address is posted only here, on the
 [site](https://flyaiworld.com) and on [@flydotai](https://x.com/flydotai); any other address is a
@@ -204,7 +206,7 @@ gives one feature vector averaged across the batch, `aggregate="batch"` keeps on
 A multi-core CPU helps: one brain step takes about 12–15 ms on 24 threads, and real time needs
 under 20 ms.
 
-**Just the brain, as a library** (Python 3.10+):
+**Just the brain, as a library** (Python 3.10+, [flybrain 0.1.0 on PyPI](https://pypi.org/project/flybrain/0.1.0/)):
 
 ```sh
 pip install flybrain            # or "flybrain[gpu]" for an NVIDIA GPU

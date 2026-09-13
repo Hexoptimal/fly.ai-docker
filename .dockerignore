@@ -1,0 +1,17 @@
+# Only the Flybook worker image is built from here; keep the context small.
+.git
+.venv
+.vercel
+.vercel-out
+__pycache__
+**/__pycache__
+docs
+world
+sshfighter
+notebooks
+talk
+talk-*
+flybook/web
+flybook/supabase
+*.mp4
+*.webp

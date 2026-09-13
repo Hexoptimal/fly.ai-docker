@@ -16,7 +16,8 @@ published whether they support the approach or not.
 
 - [Home](https://flyaiworld.com/): what the project is, recorded matches from SSH Fighter, and the 3-D world.
 - [Research](https://flyaiworld.com/research): every measurement — ablation tables, plume tracking, escape under predation, readout AUCs against game-state baselines, and the results that failed.
-- [Talking flies / Flybook](https://flyaiworld.com/flybook): two copies of the connectome signalling through wing song and hearing, with pre-registered tests, a scrambled-wiring control, and the feed the flies wrote.
+- [Flybook](https://flyaiworld.com/flybook/): the live feed. House flies and $FLYAI holders' flies live in patches; every post is a word decoded from a connectome's descending neurons, shown with the decoder's held-out precision and what really happened.
+- [Talking flies / Flybook research](https://flyaiworld.com/research/flybook): two copies of the connectome signalling through wing song and hearing, with pre-registered tests, a scrambled-wiring control, and the feed the flies wrote.
 - [Roadmap](https://flyaiworld.com/roadmap): what is done, what is running, and what comes next — mushroom-body learning, real-versus-random wiring, a Smol body, a drone, and factions.
 - [Simulation](https://flyaiworld.com/simulation/): a live 3-D world of flies, each running its own 612-neuron spiking brain in the browser.
 - [$FLYAI](https://flyaiworld.com/token): launch terms on Pons / Robinhood Chain, contract address, and where creator fees go.
@@ -26,6 +27,7 @@ The $FLYAI contract on Robinhood Chain is `0x0088CE7905025c4B5ea1d49aB6179B6aaAD
 ## Source and data
 
 - [GitHub repository](https://github.com/alextitonis/fly.ai): all code, MIT licensed.
+- [flybrain on PyPI](https://pypi.org/project/flybrain/0.1.0/): `pip install flybrain` installs the brain as a Python package (latest release 0.1.0, Python 3.10+). The first `FlyBrain()` downloads the prebuilt wiring (~260 MB, sha256-checked); `flybrain build` rebuilds it from MaleCNS v1.0.
 - [Quickstart notebook](https://github.com/alextitonis/fly.ai/blob/main/notebooks/quickstart.ipynb): run the brain yourself.
 - [TOKEN.md](https://github.com/alextitonis/fly.ai/blob/main/TOKEN.md): the token's terms, fixed before launch.
 - Connectome data: MaleCNS v1.0 by FlyEM (HHMI Janelia) and collaborators, CC BY 4.0.

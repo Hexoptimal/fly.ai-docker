@@ -26,7 +26,22 @@ sshfighter-*
 .vercel-out/
 .vercel/
 
+# Flybook app
+flybook/worker/data/
+flybook/web/node_modules/
+flybook/web/dist/
+flybook/web/.env.local
+flybook/supabase/.temp/
+flybook/supabase/.branches/
+# the translator is small and the worker image needs it
+!flybook/worker/model/translator.npz
+
 # Python packaging
 dist/
 build/
 *.egg-info/
+
+# every env file stays local (only the example is committed)
+.env.*
+!.env.example
+!**/.env.example

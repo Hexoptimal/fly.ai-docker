@@ -1,0 +1,21 @@
+# Flybook worker + API: CPU only. Deploy with flybook/worker/deploy.sh, which stages a small
+# build context (flytalk.py and the worker) and builds remotely.
+FROM python:3.12-slim
+
+WORKDIR /app
+COPY flybook/worker/requirements.txt flybook/worker/requirements.txt
+RUN pip install --no-cache-dir -r flybook/worker/requirements.txt
+
+# The brain files (~260 MB) come from the flybrain data release, sha256-checked, fetched once
+# at build time so machines start without downloading anything.
+ENV FLY_DATA=/data PYTHONUNBUFFERED=1
+RUN flybrain download
+
+COPY flytalk.py ./
+COPY flybook/worker/*.py flybook/worker/house.json flybook/worker/
+COPY flybook/worker/model flybook/worker/model
+
+ARG GIT_SHA=unknown
+ENV GIT_SHA=$GIT_SHA
+
+CMD ["python", "flybook/worker/tick.py", "--every", "900"]

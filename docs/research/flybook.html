@@ -11,8 +11,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
-<link rel="canonical" href="https://flyaiworld.com/flybook">
-<meta property="og:url" content="https://flyaiworld.com/flybook">
+<link rel="canonical" href="https://flyaiworld.com/research/flybook">
+<meta property="og:url" content="https://flyaiworld.com/research/flybook">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="fly.ai">
 <meta name="twitter:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -22,16 +22,16 @@
   "@type": "Article",
   "headline": "Flybook: can two fly brains talk?",
   "description": "Two copies of the real fruit-fly connectome signalling through wing song and hearing: three runs, pre-registered tests, a scrambled-wiring control, and the feed the flies wrote.",
-  "url": "https://flyaiworld.com/flybook",
+  "url": "https://flyaiworld.com/research/flybook",
   "author": { "@type": "Organization", "name": "fly.ai" },
   "publisher": { "@type": "Organization", "name": "fly.ai" }
 }
 </script>
-<link rel="icon" href="assets/logo.webp" type="image/webp">
+<link rel="icon" href="../assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="../assets/site.css">
 <style>
   .fb-label { font: 500 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin: 0 0 10px; }
   .fb-word { font: 700 clamp(48px, 9vw, 84px)/.9 var(--display); letter-spacing: -.045em; margin: 0 0 18px; }
@@ -159,16 +159,17 @@
 
 <nav aria-label="Main">
   <div class="wrap">
-    <a class="brand" href="index.html"><img class="logo" src="assets/logo.webp" alt="fly.ai" width="1774" height="887">$FLYAI</a>
+    <a class="brand" href="../index.html"><img class="logo" src="../assets/logo.webp" alt="fly.ai" width="1774" height="887">$FLYAI</a>
     <ul>
-      <li class="opt"><a href="index.html">Home</a></li>
-      <li class="opt dd"><a class="on" href="research.html">Research</a><button class="ddbtn" type="button" aria-expanded="false" aria-controls="dd-research" aria-label="More research pages">&#9662;</button>
+      <li class="opt"><a href="../index.html">Home</a></li>
+      <li class="opt dd"><a class="on" href="../research.html">Research</a><button class="ddbtn" type="button" aria-expanded="false" aria-controls="dd-research" aria-label="More research pages">&#9662;</button>
         <ul class="ddmenu" id="dd-research">
-          <li><a href="research.html">All findings<small>Fighting, the 3-D world, what failed</small></a></li>
+          <li><a href="../research.html">All findings<small>Fighting, the 3-D world, what failed</small></a></li>
           <li><a class="on" href="flybook.html">Talking flies<small>Flybook: can two brains signal?</small></a></li>
+          <li><a href="/flybook/">Flybook<small>The live feed written by fly brains</small></a></li>
         </ul></li>
-      <li class="opt"><a href="roadmap.html">Roadmap</a></li>
-      <li class="opt"><a href="token.html">$FLYAI</a></li>
+      <li class="opt"><a href="../roadmap.html">Roadmap</a></li>
+      <li class="opt"><a href="../token.html">$FLYAI</a></li>
       <li class="opt"><a href="/simulation/">Simulation</a></li>
       <li><a class="btn sm" href="https://x.com/flydotai" target="_blank" rel="noopener">Follow @flydotai</a></li>
     </ul>
@@ -309,9 +310,9 @@
     <p class="eyebrow">Read on</p>
     <h2>The rest of it</h2>
     <div class="next-pages">
-      <a class="card pad" href="research.html"><h3>All findings</h3>
+      <a class="card pad" href="../research.html"><h3>All findings</h3>
         <p>The fighting brain, the 3-D world, the ablation tables, and what failed.</p><p class="go">Read the findings &rarr;</p></a>
-      <a class="card pad" href="roadmap.html"><h3>Roadmap</h3>
+      <a class="card pad" href="../roadmap.html"><h3>Roadmap</h3>
         <p>What's done, what's running, and what comes next.</p><p class="go">See the roadmap &rarr;</p></a>
       <a class="card pad" href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener"><h3>Run it yourself</h3>
         <p><span class="mono">flytalk.py</span> runs the experiment and <span class="mono">flybook.py</span> writes this feed. Everything is open source.</p><p class="go">GitHub &rarr;</p></a>
@@ -330,7 +331,7 @@
   </div>
 </footer>
 
-<script src="assets/site.js"></script>
+<script src="../assets/site.js"></script>
 <script>
 (function () {
   const RUNS = {"1": {"real": {"confusion": [[33, 51, 42, 54], [27, 56, 39, 58], [4, 10, 163, 3], [42, 60, 34, 44]], "bits": 0.2995055165976583, "p": 0.0196078431372549}, "rewired": {"confusion": [[43, 46, 26, 65], [51, 38, 26, 65], [42, 50, 32, 56], [48, 49, 27, 56]], "bits": 0.0053891055333856195, "p": 0.17647058823529413}}, "2": {"real": {"confusion": [[62, 53, 9, 56], [63, 51, 11, 55], [0, 0, 180, 0], [79, 44, 14, 43]], "bits": 0.6303037034002645, "p": 0.0196078431372549}, "rewired": {"confusion": [[37, 77, 17, 49], [34, 58, 29, 59], [25, 77, 26, 52], [33, 80, 25, 42]], "bits": 0.01337904998449228, "p": 0.45098039215686275}}, "3": {"real": {"confusion": [[68, 7, 0, 45], [51, 33, 1, 35], [0, 0, 120, 0], [68, 8, 1, 43]], "bits": 0.8276937015082168, "p": 0.0196078431372549}, "rewired": {"confusion": [[72, 0, 0, 48], [1, 61, 57, 1], [0, 52, 67, 1], [84, 3, 7, 26]], "bits": 0.8666326261436347, "p": 0.0196078431372549}}};
@@ -371,7 +372,7 @@
   const HUE = [8, 196, 42, 150, 330, 24, 270, 176, 60, 220, 300, 110];
   const NOTHING = "heard it, did nothing";
 
-  fetch("assets/flybook.json")
+  fetch("../assets/flybook.json")
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(start)
     .catch(() => { document.getElementById("feed").innerHTML = '<p class="empty">The feed did not load. Reload the page to try again.</p>'; });

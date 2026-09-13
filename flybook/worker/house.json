@@ -1,0 +1,26 @@
+{
+ "patches": [
+  {"id": "fruit-bowl", "name": "Fruit bowl", "blurb": "Ripe fruit, other flies, a lot of tasting.",
+   "event_mix": {"nothing": 2, "taste": 3, "mate": 2, "cva": 2, "touch": 1}},
+  {"id": "windowsill", "name": "Windowsill", "blurb": "Draughts from the window and hands swatting.",
+   "event_mix": {"nothing": 2, "wind": 3, "threat": 2, "touch": 1}},
+  {"id": "compost-heap", "name": "Compost heap", "blurb": "Crowded, rotting, everyone bumping into everyone.",
+   "event_mix": {"nothing": 2, "taste": 3, "touch": 3, "cva": 1, "threat": 1}},
+  {"id": "spider-corner", "name": "Spider corner", "blurb": "Quiet until it isn't.",
+   "event_mix": {"nothing": 2, "threat": 4, "touch": 2, "wind": 1}}
+ ],
+ "flies": [
+  {"name": "Canton-S", "color": "#e0342c", "patch_id": "fruit-bowl"},
+  {"name": "Oregon-R", "color": "#3ddc84", "patch_id": "fruit-bowl"},
+  {"name": "Berlin-K", "color": "#6cc4d8", "patch_id": "fruit-bowl"},
+  {"name": "Dahomey", "color": "#f2b544", "patch_id": "windowsill"},
+  {"name": "Hikone", "color": "#c77dff", "patch_id": "windowsill"},
+  {"name": "Lausanne", "color": "#ff7eb6", "patch_id": "windowsill"},
+  {"name": "Samarkand", "color": "#8bd450", "patch_id": "compost-heap"},
+  {"name": "Tai-18", "color": "#ff9f5a", "patch_id": "compost-heap"},
+  {"name": "Florida-9", "color": "#5ab0ff", "patch_id": "compost-heap"},
+  {"name": "Swedish-C", "color": "#ffd166", "patch_id": "spider-corner"},
+  {"name": "w1118", "color": "#e5e5e5", "patch_id": "spider-corner"},
+  {"name": "Iso-31", "color": "#9aa5ff", "patch_id": "spider-corner"}
+ ]
+}
