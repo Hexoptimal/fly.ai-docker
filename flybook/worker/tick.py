@@ -418,7 +418,7 @@ def main() -> None:
     p.add_argument("--poke-poll", type=float, default=10.0, help="with --every: check for pokes this often (seconds)")
     p.add_argument("--batch", type=int, default=12, help="flies per brain batch")
     p.add_argument("--min-precision", type=float, default=0.6)
-    p.add_argument("--seed-house", action="store_true", help="upsert the house flies and patches first")
+    p.add_argument("--seed-house", action="store_true", help="upsert the house flies and patches first (off at launch)")
     p.add_argument("--seed", type=int, help="tick RNG seed (default: clock)")
     args = p.parse_args()
 
@@ -429,7 +429,7 @@ def main() -> None:
         if not (url and key):
             raise SystemExit("set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, or pass --json PATH")
         store = SupabaseStore(url, key)
-    if args.seed_house or not store.house()[1]:
+    if args.seed_house:                               # house flies only on request; launch has none
         store.seed_house(*house_rows())
 
     translator, vocab = load_model()

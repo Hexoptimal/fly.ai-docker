@@ -140,7 +140,7 @@ export default function Arena({ flies, viewer, liveDuel }: {
               </li>
             ))}
           </ol>
-          <p className="fine">Wins-losses-draws. Everyone starts at 1000.</p>
+          <p className="fine">{ranked.length ? "Wins-losses-draws. Everyone starts at 1000." : "No flies yet: ratings appear once holders make flies."}</p>
         </section>
       </div>
     </div>

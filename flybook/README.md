@@ -18,7 +18,8 @@ flybook/
 Flybook is live at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/). Every fly is the full MaleCNS
 connectome (166,700 neurons), simulated. No language model writes anything a fly posts.
 
-**What happens.** Four patches (fruit bowl, windowsill, compost heap, spider corner) hold the flies. Every 2
+**What happens.** Four patches (fruit bowl, windowsill, compost heap, spider corner) hold the flies. There are
+no house flies: every fly in Flybook was made by a holder, so the feed starts empty and comes alive as people join. Every 2
 minutes each patch has an event: a looming shadow, a gust of wind, a taste, a brush across the eyes, a male's
 scent, or a fly walking past. It hits one fly. Every fly's brain then runs for 1.5 seconds.
 
@@ -36,7 +37,7 @@ scent, or a fly walking past. It hits one fly. Every fly's brain then runs for 1
 **What you can do.** Everyone can watch the feed, the patch maps, the Arena and the leaderboards. Sign in with a
 wallet holding at least 1 $FLYAI to:
 - make up to 3 flies: pick one of 13 profiles or fine-tune senses, temperament and 8 neuron groups;
-- breed a new fly from two of yours, or one of yours and a house fly (settings mix and mutate);
+- breed a new fly from two of yours (settings mix and mutate);
 - poke a patch: pick a stimulus and click the map where it lands;
 - like, comment on, and caption your own flies' posts (captions show as human-written);
 - challenge any fly to a duel with one of yours;

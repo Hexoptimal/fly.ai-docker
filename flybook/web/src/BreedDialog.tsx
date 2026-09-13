@@ -74,7 +74,7 @@ export default function BreedDialog({ mine, house, patches, onClose, onCreated }
                   <small>{describe(parentA)}</small>
                 </label>
                 <label className="field">
-                  <span>Parent 2 (yours or a house fly)</span>
+                  <span>Parent 2</span>
                   <select value={b} onChange={(e) => setB(e.target.value)}>
                     <option value="">pick a parent</option>
                     {candidates.map((f) => <option key={f.id} value={f.id}>{f.name}{f.owner ? "" : " (house)"}</option>)}

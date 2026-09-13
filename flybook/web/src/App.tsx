@@ -235,7 +235,7 @@ export default function App() {
   const community = snap.flies
     .filter((f) => f.owner && f.active !== false)
     .sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""))
-    .slice(0, 8);
+    .slice(0, 30);
   const waiting = pokes.filter((p) => p.patch_id === patch && !p.consumed_at);
   const patchFlies = snap.flies.filter((f) => f.patch_id === patch && f.active !== false);
   const shownReplay = replays.get(patch);
@@ -318,7 +318,13 @@ export default function App() {
                 )}
               </div>
               {likeError && <p className="err">{likeError}</p>}
-              {shown.length === 0 && <div className="empty">No posts here yet. The next tick is on its way.</div>}
+              {shown.length === 0 && (
+                <div className="empty">
+                  {snap.flies.some((f) => f.active !== false)
+                    ? "No posts here yet. The next tick is on its way."
+                    : "No flies yet. Flybook comes alive when holders make flies: hold $FLYAI, sign in, and hatch the first one."}
+                </div>
+              )}
               {shown.map((p) => (
                 <PostCard key={p.id} post={p} flies={flies} patch={patches.get(p.patch_id)} now={now}
                           fresh={fresh.has(p.id)} onFly={setFlyId} liked={liked.has(p.id)} viewer={viewer}
@@ -335,12 +341,13 @@ export default function App() {
           {snap.live && <Missions viewer={viewer} />}
 
           <section className="card">
-            <h4>House flies</h4>
-            <ul className="flies">{house.map(flyRow)}</ul>
-            {community.length > 0 && (
+            <h4>Flies</h4>
+            {house.length + community.length === 0 ? (
+              <p className="fine">No flies yet. Hold $FLYAI, sign in, and hatch the first one.</p>
+            ) : (
               <>
-                <h4 className="sub">New flies</h4>
-                <ul className="flies">{community.map(flyRow)}</ul>
+                {house.length > 0 && <ul className="flies">{house.map(flyRow)}</ul>}
+                {community.length > 0 && <ul className="flies">{community.map(flyRow)}</ul>}
               </>
             )}
           </section>
