@@ -28,7 +28,7 @@ class Dashboard:
         self.port = port
         brain = fly.brain
         if brain.positions is None:
-            raise SystemExit("brain.npz has no positions; rerun build_brain.py")
+            raise SystemExit("brain.npz has no positions; run `flybrain build`")
         ok = ~np.isnan(brain.positions).any(axis=1)
         self.pos_index = np.full(brain.n, -1, np.int32)
         self.pos_index[ok] = np.arange(ok.sum(), dtype=np.int32)

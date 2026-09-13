@@ -2,7 +2,7 @@
 
     input -> encoder -> fly brain (frozen) -> trace -> trained readout -> output
 
-`fly_brain.FlyBrain` is never trained: its weights come straight from the connectome.
+`flybrain.FlyBrain` is never trained: its weights come straight from the connectome.
 This module is everything task-agnostic around it:
 
   * `Trace` turns the neurons that fire each step into a decaying feature vector,
@@ -21,7 +21,7 @@ or recordings.
 
 Encoders (turning task input into neuron drive) are necessarily task-specific --
 you write them by picking `brain.cells([...types], side=...)` and passing
-`(idx, amount)` pairs to `brain.step(inject=...)`. `fly_eyes.py` is a worked
+`(idx, amount)` pairs to `brain.step(inject=...)`. `flybrain/eyes.py` is a worked
 example of a visual encoder for SSH Fighter.
 """
 from __future__ import annotations
@@ -93,7 +93,7 @@ class Trace:
 
 def run(brain, steps: int, encode=None, trace: Trace | None = None, eye_drive=None) -> np.ndarray:
     """Step the brain `steps` times and collect activity, so a whole task can run
-    from one call: `activity = flyreservoir.run(brain, len(inputs), encode=...)`.
+    from one call: `activity = flybrain.run(brain, len(inputs), encode=...)`.
 
     `encode(t)`, if given, returns the `inject` list for step `t` (see
     `FlyBrain.step`) -- typically `encoder.inject(...)` for some task-specific

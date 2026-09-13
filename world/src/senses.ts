@@ -1,5 +1,5 @@
 /**
- * The non-visual senses, in the same style as fly_eyes.py: geometry in, voltage
+ * The non-visual senses, in the same style as flybrain/eyes.py: geometry in, voltage
  * on named sensory neurons out. Nothing here decides what the fly does.
  *
  *  * Olfaction: a turbulent puff field. Every source releases discrete packets
@@ -39,7 +39,7 @@ export const SMELL = {
   antenna: 0.3, // half the distance between the antennae, metres
   reach: 0.35, // how far forward the antennae sit
   near: 2.2, // metres: the still-air near field of a source
-  cap: 0.8, // most voltage any channel adds in one step (fly_eyes.ENCODER.cap)
+  cap: 0.8, // most voltage any channel adds in one step (flybrain.eyes.ENCODER.cap)
 };
 
 /** Puff plume parameters. */

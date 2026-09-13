@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from fly_eyes import FeatureDetectors
+from flybrain.eyes import FeatureDetectors
 from fly_fighter import Fly, play
 from reservoir import Readout
 

@@ -1,5 +1,5 @@
 /**
- * Leaky integrate-and-fire, the same update as fly_brain.py:
+ * Leaky integrate-and-fire, the same update as flybrain/brain.py:
  *
  *   v <- exp(-dt/tau) * v + gain * (W @ spikes) + tonic + noise + injected
  *   v >= 1  ->  spike, reset to 0
@@ -20,7 +20,7 @@ export interface BrainParams {
 }
 
 export const DEFAULT_PARAMS: BrainParams = {
-  dt: 0.02, // 50 steps/s, as in fly_brain.py
+  dt: 0.02, // 50 steps/s, as in flybrain/brain.py
   tau: 0.1,
   gain: 1.5, // swept in tools/sweep.ts: descending neurons quiet at rest,
   tonic: 0.07, // looming still gets through (the Python uses 3.0 / 0.14 on 166,700 neurons)

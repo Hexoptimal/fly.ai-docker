@@ -18,8 +18,8 @@ import sys
 import numpy as np
 import pyarrow.feather as feather
 
-from fly_brain import DATA, FlyBrain
-from fly_eyes import Eyes, blob_for
+from flybrain import DATA, FlyBrain
+from flybrain.eyes import Eyes, blob_for
 
 SECONDS = 2.0
 STATIONS = ["R1-6", "L1", "LC4", "LPLC2", "DNp01", "DNa02", "MDN", "DNg100"]

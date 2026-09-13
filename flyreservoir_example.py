@@ -1,4 +1,4 @@
-"""Minimal end-to-end use of flyreservoir.py, with synthetic data instead of a
+"""Minimal end-to-end use of flybrain/reservoir.py, with synthetic data instead of a
 game -- no recordings, no game logic, nothing task-specific. Shows the whole
 loop: encoder -> frozen brain -> trace -> trained readout.
 
@@ -20,8 +20,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from flyreservoir import Readout, Trace, run
-from fly_brain import FlyBrain
+from flybrain.reservoir import Readout, Trace, run
+from flybrain import FlyBrain
 
 
 def main() -> None:

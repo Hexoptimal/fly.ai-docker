@@ -1,7 +1,7 @@
 /**
  * Wiring of the page: fixed-timestep simulation, rendering, and the overlay.
  *
- * The simulation runs at a fixed 50 Hz (fly_brain.dt = 20 ms) in its own
+ * The simulation runs at a fixed 50 Hz (flybrain.dt = 20 ms) in its own
  * accumulator loop, so the network step is decoupled from the frame rate.
  * Every label and bar on screen is a readout of population firing rates.
  */

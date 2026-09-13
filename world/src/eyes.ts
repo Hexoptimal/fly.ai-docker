@@ -1,5 +1,5 @@
 /**
- * What a fly sees, and how that reaches the brain. Both routes from fly_eyes.py:
+ * What a fly sees, and how that reaches the brain. Both routes from flybrain/eyes.py:
  *
  *  1. Eyes: a 1-D luminance panorama over azimuth (-1 far left .. +1 far right),
  *     projected onto the R1-6 photoreceptors, drive = 0.45*lum + 1.6*|change|.
@@ -26,7 +26,7 @@ export interface Seen {
   kind: Kind;
 }
 
-/** Encoder parameters, same names as fly_eyes.ENCODER (values retuned for a
+/** Encoder parameters, same names as flybrain.eyes.ENCODER (values retuned for a
  *  50 Hz 3-D world instead of a 2-D game at frame rate). */
 export const ENCODER = {
   loom_gain: 26.0, // angular growth per step -> LPLC2
@@ -36,12 +36,12 @@ export const ENCODER = {
   threat_max: 0.85, // LC4 when a threat is close and coming
   small_gain: 20.0, // small-object angular growth -> LPLC1
   cap: 0.8, // most voltage any channel adds in one step
-  eye_gain: 0.62, // photoreceptor drive scale (fly_brain.eye_gain)
+  eye_gain: 0.62, // photoreceptor drive scale (flybrain.eye_gain)
 };
 
 export const FOV_HALF = 2.3; // radians either side of straight ahead
 const MIN_DIST = 0.8;
-const BACKGROUND = 0.9; // fly_eyes.BACKGROUND
+const BACKGROUND = 0.9; // flybrain.eyes.BACKGROUND
 
 const DARKNESS: Record<Kind, number> = {
   fly: 0.55, fruit: 0.5, mould: 0.5, carrion: 0.6, dung: 0.5, compost: 0.65,
@@ -167,7 +167,7 @@ export class Vision {
     this.prevAngle = this.seenNow;
     this.seenNow = tmp;
 
-    // photoreceptors: luminance plus change, exactly fly_eyes.Eyes.drive
+    // photoreceptors: luminance plus change, exactly flybrain.eyes.Eyes.drive
     if (!this.prevLum) this.prevLum = new Float32Array(this.lum);
     for (let s = 0; s < 2; s++) {
       const { pop } = this.photo[s];

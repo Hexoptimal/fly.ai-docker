@@ -27,8 +27,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # the fly.ai core lives one level up
-from fly_brain import FlyBrain
-from fly_eyes import Eyes, FeatureDetectors, blob_for
+from flybrain import FlyBrain
+from flybrain.eyes import Eyes, FeatureDetectors, blob_for
 from reservoir import EXPLORE_P, MOVE_EXPLORE, MOVE_HOLD, Featurizer, Readout, Recorder
 
 STEER_WINDOW = 25     # brain steps (0.5 s) for comparing left vs right DNa02
@@ -518,13 +518,13 @@ def main():
                    "use with --device cuda, where 8 fit in real time")
     p.add_argument("--seed", type=int, default=64, help="brain noise seed")
     p.add_argument("--encoder", default="", help="encoder parameters, e.g. loom_size=0.3,chase_gain=0.6 "
-                   "(see fly_eyes.ENCODER; unset ones keep the hand-set value)")
+                   "(see flybrain.eyes.ENCODER; unset ones keep the hand-set value)")
     args = p.parse_args()
     try:
         encoder = {k.strip(): float(v) for k, v in (kv.split("=") for kv in args.encoder.split(",") if kv.strip())}
     except ValueError:
         sys.exit("--encoder takes name=value pairs separated by commas")
-    from fly_eyes import ENCODER
+    from flybrain.eyes import ENCODER
     if set(encoder) - set(ENCODER):
         sys.exit(f"unknown encoder parameters {sorted(set(encoder) - set(ENCODER))}; known: {', '.join(ENCODER)}")
     if not args.offline and not args.replay and not args.user:

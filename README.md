@@ -34,13 +34,13 @@ task input
                           └─> task output
 ```
 
-* **Network** (`build_brain.py`, `fly_brain.py`): every neuron with a MaleCNS superclass
+* **Network** (`flybrain/build.py`, `flybrain/brain.py`): every neuron with a MaleCNS superclass
   annotation, and every connection between them. The weight is the synapse count, made negative
   when the presynaptic neuron's predicted transmitter is GABA, glutamate or histamine, then scaled
   so each neuron's inputs add up to 1. Each neuron is a simple leaky integrate-and-fire unit
   (`v ← e^(-dt/τ)·v + gain·W·spikes + tonic + noise`; it spikes and resets at 1). This recipe
   follows [Fly64](https://github.com/ornata/fly). The simulation is multi-threaded with numba.
-* **Visual encoder** (`fly_eyes.py`): two routes into the brain.
+* **Visual encoder** (`flybrain/eyes.py`): two routes into the brain.
   * *Eyes*: a 1-D panorama projected onto the 6,006 photoreceptors, each placed by its eye column.
   * *Feature detectors*: drive the fly's own visual projection neurons directly, on the side
     where things are:
@@ -115,12 +115,12 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
 
 ![Dashboard: the fight on the left, every neuron of the fly's nervous system on the right](sshfighter/media/dashboard.png)
 
-New applications go in their own folder and import the core (`fly_brain`, `fly_eyes`) from the
-repository root.
+New applications go in their own folder and import the core from the `flybrain` package
+(`from flybrain import FlyBrain`), either from the repository root or after `pip install flybrain`.
 
 ## Use it on your own task
 
-`flyreservoir.py` is the reusable half of the SSH Fighter bot's reservoir readout, pulled out so
+`flybrain/reservoir.py` is the reusable half of the SSH Fighter bot's reservoir readout, pulled out so
 any task can use it, not just the game:
 
 ```
@@ -132,23 +132,23 @@ time. Only two things ever get fit:
 
 * **An encoder**, which you write: pick the neuron types your input should drive with
   `brain.cells([...types], side=...)` and pass `(indices, amount)` pairs to
-  `brain.step(inject=...)`. `fly_eyes.py` is a worked example for SSH Fighter's visual input;
+  `brain.step(inject=...)`. `flybrain/eyes.py` is a worked example for SSH Fighter's visual input;
   the neuron types available are whatever the MaleCNS connectome names (look one up on
   [neuPrint](https://neuprint.janelia.org)).
-* **A readout**, which `flyreservoir.Readout.fit` trains for you: a linear (`kind="ridge"`) or
+* **A readout**, which `flybrain.Readout.fit` trains for you: a linear (`kind="ridge"`) or
   logistic (`kind="logistic"`) fit on the top principal components of neural activity, with the
   PCA rank and L2 strength picked by cross-validation. This is the exact method
   `sshfighter/reservoir.py` uses for the punch and movement readouts, generalised off SSH
   Fighter's game state.
 
-`flyreservoir.Trace` collects a decaying spike trace of any neuron population (a cell type, a
-`brain.groups[...]` set, or your own index array) step by step; `flyreservoir.run` steps the
+`flybrain.Trace` collects a decaying spike trace of any neuron population (a cell type, a
+`brain.groups[...]` set, or your own index array) step by step; `flybrain.run` steps the
 brain over a sequence of encoded inputs and returns the trace stacked over time, so the whole
 loop is one call from a notebook:
 
 ```python
-from fly_brain import FlyBrain
-from flyreservoir import Trace, Readout, run
+from flybrain import FlyBrain
+from flybrain.reservoir import Trace, Readout, run
 
 brain = FlyBrain(device="auto")
 trace = Trace(brain, types=["descending_neuron"])   # or group=..., or idx=your_own_array
@@ -171,7 +171,7 @@ encoder on an invented task, not a claim about what the connectome can do in gen
 "What's next" and `ROADMAP.md` for the open question of how much the real wiring helps versus
 a random network of the same size).
 
-Batching and the GPU option work the same way they do in `fly_brain.py`: `FlyBrain(batch=8)` or
+Batching and the GPU option work the same way they do in `flybrain/brain.py`: `FlyBrain(batch=8)` or
 `FlyBrain(device="cuda")` (or `FLY_DEVICE=cuda`); `Trace(..., aggregate="mean")` (the default)
 gives one feature vector averaged across the batch, `aggregate="batch"` keeps one per fly.
 
@@ -201,15 +201,27 @@ gives one feature vector averaged across the batch, `aggregate="batch"` keeps on
 
 ## Run it
 
-Requires Python 3.12+ and about 1.5 GB of disk. A multi-core CPU helps: one brain step takes
-about 12–15 ms on 24 threads, and real time needs under 20 ms.
+A multi-core CPU helps: one brain step takes about 12–15 ms on 24 threads, and real time needs
+under 20 ms.
+
+**Just the brain, as a library** (Python 3.10+):
+
+```sh
+pip install flybrain            # or "flybrain[gpu]" for an NVIDIA GPU
+flybrain download               # optional: the first FlyBrain() does this itself (~260 MB, once)
+flybrain info                   # where the data lives, and whether CUDA works
+```
+
+**This repository** (experiments, the SSH Fighter bot, flytalk): the `flybrain/` package sits at
+the root, so scripts run from a clone without installing it.
 
 ```sh
 python -m venv .venv
 # Windows: .venv\Scripts\activate    macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 
-python build_brain.py          # downloads MaleCNS v1.0 (~1.1 GB) to ~/fly-data and builds the network
+python -m flybrain download       # prebuilt brain (~260 MB) into ~/fly-data
+# or: python -m flybrain build    # download MaleCNS v1.0 (~1.1 GB) and build the network yourself
 ```
 
 Set `FLY_DATA=/some/path` to store the data somewhere else.
@@ -219,7 +231,7 @@ brain, stimulates the left looming detectors and shows the left giant fiber fire
 the activity goes, and tests the chase pathway. It needs `pip install matplotlib jupyter`.
 
 ```python
-from fly_brain import FlyBrain
+from flybrain import FlyBrain
 brain = FlyBrain(device="auto")                      # GPU if available, else CPU
 brain.stimulate(brain.cells(["LC4", "LPLC2"], side="L"), 0.8)
 fired = brain.step()                                 # advance 20 ms; indices of neurons that spiked
@@ -243,8 +255,9 @@ how `sshfighter/` runs voting flies and compares encoders side by side.
 
 ### Getting the data (the "model")
 
-There are no trained weights to download. The "model" is the fly's wiring diagram, and
-`build_brain.py` builds it from the public MaleCNS v1.0 release. It downloads these files into
+There are no trained weights. The "model" is the fly's wiring diagram. `flybrain download` fetches
+a prebuilt copy (checked against its sha256); `flybrain build` (needs `pip install "flybrain[build]"`,
+already in `requirements.txt`) builds the same files from the public MaleCNS v1.0 release. It downloads these files into
 `$FLY_DATA/raw/` and skips any that are already there. An interrupted download starts over on
 the next run:
 
@@ -266,7 +279,7 @@ curl -LO -C - $B/body-neurotransmitters-male-cns-v1.0.feather
 curl -L -o optic-columns.xlsx https://raw.githubusercontent.com/flyconnectome/2025malecns/67767d2233657983993ff6c2be48e836a935863c/supplemental_data/optic-column-type-assignments-v1.0.xlsx
 ```
 
-Then `python build_brain.py` builds the network in about a minute. It writes
+Then `python -m flybrain build` builds the network in about a minute. It writes
 `weights.npz` (205 MB, the signed and normalized connection matrix) and `brain.npz` (neuron
 types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect exactly
 **166,700 neurons and 25,582,938 connections**. If you get different numbers, the data changed.
@@ -284,20 +297,22 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
 
 | File | What it does |
 |---|---|
-| `build_brain.py` | downloads MaleCNS v1.0 and builds the weight matrix, readout groups, eye layout and neuron positions |
-| `fly_brain.py` | integrate-and-fire simulation: CPU (numba) or NVIDIA GPU (CuPy), one fly or a batch |
-| `fly_eyes.py` | photoreceptor rendering plus the looming/chase feature-detector input, with tunable encoder parameters (`ENCODER`) |
-| `flyreservoir.py` | generic reservoir readout: spike trace of any neuron population, PCA + linear/logistic readout, cross-validated |
+| `flybrain/` | the pip package (`pyproject.toml`); `flybrain download/build/info` is its command line |
+| `flybrain/data.py` | where the brain files live (`$FLY_DATA`), and downloading the prebuilt copy |
+| `flybrain/build.py` | downloads MaleCNS v1.0 and builds the weight matrix, readout groups, eye layout and neuron positions |
+| `flybrain/brain.py` | integrate-and-fire simulation: CPU (numba) or NVIDIA GPU (CuPy), one fly or a batch |
+| `flybrain/eyes.py` | photoreceptor rendering plus the looming/chase feature-detector input, with tunable encoder parameters (`ENCODER`) |
+| `flybrain/reservoir.py` | generic reservoir readout: spike trace of any neuron population, PCA + linear/logistic readout, cross-validated |
 | `flyreservoir_example.py` | the module above, end to end, on a synthetic task |
 | `experiment.py`, `sweep.py`, `inject.py` | the experiments above |
 | `flytalk.py` | the talking-flies experiment: two brains coupled through wing song and hearing, a scrambled-wiring control, permutation tests (`pilot`, `run`, `report`, `followup`) |
 | `flybook.py` | turns a `flytalk.py` run into the Flybook feed (`docs/assets/flybook.json`) |
 | `talk/`, `talk-fix/`, `talk-2ms/` | results of the three talking-flies runs (`results.json`; the raw `.npz` recordings are not committed) |
-| `sshfighter/` | the SSH Fighter bot, dashboard and trained readout ([README](sshfighter/README.md)), built on `flyreservoir.py` |
+| `sshfighter/` | the SSH Fighter bot, dashboard and trained readout ([README](sshfighter/README.md)), built on `flybrain/reservoir.py` |
 
 ## What's next
 
-* ~~A generic readout interface~~ done: `flyreservoir.py`. Encoders (mapping images, sound,
+* ~~A generic readout interface~~ done: `flybrain/reservoir.py`. Encoders (mapping images, sound,
   odour-like patterns, sensor readings onto neuron groups) are still written per task -- see
   ROADMAP.md for candidate tasks to try it on next.
 * A benchmark: does the real wiring beat randomly rewired copies of itself on the same tasks?
@@ -350,6 +365,7 @@ If you use the connectome data, cite reference 1 and follow the
 
 The code in this repository is released under the [MIT License](LICENSE).
 
-The MaleCNS connectome data is **not** included. `build_brain.py` downloads it from its source, and
-it stays under its own [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license from
+The MaleCNS connectome data is **not** in the repository or the pip package. `flybrain build`
+downloads it from its source; `flybrain download` fetches files derived from it (the normalized
+weight matrix and neuron annotations). Both stay under the data's own [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license from
 FlyEM (HHMI Janelia) and collaborators.

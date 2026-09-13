@@ -3,7 +3,7 @@
 fly_fighter.py --record saves every game state (<mid>.states.jsonl.gz).
 Replaying re-runs the brain open-loop on those states: the fly's actions stay
 what they were, but the brain can be told the game differently. Each fly in a
-batch gets its own encoder (fly_eyes.ENCODER parameters), so 8 encoders cost
+batch gets its own encoder (flybrain.eyes.ENCODER parameters), so 8 encoders cost
 about one replay's GPU time.
 
 Readouts are scored leave-one-match-out, exactly as in reservoir.py:
@@ -30,8 +30,8 @@ from reservoir import (COMPONENTS, HORIZON, LAMBDAS, bases_for, cv_attack, fit_l
                        project)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from fly_brain import FlyBrain
-from fly_eyes import ENCODER, Eyes, FeatureDetectors
+from flybrain import FlyBrain
+from flybrain.eyes import ENCODER, Eyes, FeatureDetectors
 
 DODGE_WINDOW = 30              # frames (1 s) after a decision in which a projectile hit counts
 NO_JUMP_EVERY = 5              # keep every 5th shot-near frame without a jump (they're highly correlated)
@@ -137,7 +137,7 @@ def dodge_moments(frames: list[dict]):
 # ---- replay -------------------------------------------------------------------------------
 
 def replay(frames: list[dict], brain: FlyBrain, encoder: dict, want: set[int], seed: int = 0) -> dict:
-    """Run one match through `brain`; encoder: fly_eyes.ENCODER parameters, each an array with one
+    """Run one match through `brain`; encoder: flybrain.eyes.ENCODER parameters, each an array with one
     value per fly. -> {frame: (flies, descending neurons) spike traces} for the frames in `want`."""
     dn = np.flatnonzero(brain.superclass == "descending_neuron")
     slot = np.full(brain.n, -1, np.int64)

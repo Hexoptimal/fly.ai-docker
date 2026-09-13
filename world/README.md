@@ -37,7 +37,7 @@ Static Vite site, no backend. Import the repository, set the root directory to
 
 ## The brain
 
-`src/brain.ts` runs the same update as `fly_brain.py`:
+`src/brain.ts` runs the same update as `flybrain/brain.py`:
 
 ```
 v <- exp(-dt/tau) * v + gain * (W @ spikes) + tonic + noise + sensory input
@@ -46,7 +46,7 @@ v >= 1  ->  spike, reset to 0
 
 `dt` 20 ms, `tau` 100 ms, threshold 1. **612 neurons per fly (306 per side),
 4,718 synapses**, generated once from seed 64 and never trained, with
-`build_brain.py`'s weight recipe: synapse counts, negative when the presynaptic
+`flybrain/build.py`'s weight recipe: synapse counts, negative when the presynaptic
 neuron is inhibitory, then each neuron's incoming weights normalised to sum to 1.
 All flies share the matrix and keep their own voltages and noise, exactly as
 `FlyBrain(batch=N)` does.
@@ -57,7 +57,7 @@ Population sizes follow the proportions of the real MaleCNS sensory classes
 
 ## The senses
 
-**Vision** (`src/eyes.ts`) — the two routes from `fly_eyes.py`: a luminance
+**Vision** (`src/eyes.ts`) — the two routes from `flybrain/eyes.py`: a luminance
 panorama onto R1-6, and the feature detectors driven by angular size and its
 growth, on the side the object is on. Plus **VS**, the lobula plate cells that
 report ventral optic flow (ground speed over height) — this is what regulates
@@ -372,9 +372,9 @@ have no brain at all.
 
 | File | What it does |
 |---|---|
-| `src/wiring.ts` | populations, connection blocks, `build_brain.py` normalisation |
+| `src/wiring.ts` | populations, connection blocks, `flybrain/build.py` normalisation |
 | `src/brain.ts` | the LIF step, one shared matrix, per-fly state |
-| `src/eyes.ts` | panorama, feature detectors, the `fly_eyes.py` encoder |
+| `src/eyes.ts` | panorama, feature detectors, the `flybrain/eyes.py` encoder |
 | `src/senses.ts` | the puff field, receptor tuning and adaptation, JO, legs |
 | `src/sim.ts` | world, ecology, fixed-timestep loop, motor decoder, physics |
 | `src/scene.ts` | low-poly Three.js: instanced flies, props, swatter, wind motes |

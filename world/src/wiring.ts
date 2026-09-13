@@ -11,7 +11,7 @@
  * MaleCNS annotation (ol_sensory 6,098 / cb_sensory 4,868 / vnc_sensory 6,370 /
  * vnc_motor 708), scaled down by about 30x.
  *
- * Weight recipe copied from build_brain.py:
+ * Weight recipe copied from flybrain/build.py:
  *   weight = synapse count, negative when the PREsynaptic neuron is inhibitory
  *   (GABA / glutamate / histamine), then every neuron's incoming weights are
  *   scaled so their absolute values sum to 1.

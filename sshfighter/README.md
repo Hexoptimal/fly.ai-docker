@@ -36,7 +36,7 @@ game state (30 Hz)
 | DNg11 | nothing to do with fighting (arbitrary choice) | punch |
 | pIP10 | courtship song | kick |
 
-* **Eyes** (`../fly_eyes.py`): the game state drives four of the fly's own visual neuron types,
+* **Eyes** (`../flybrain/eyes.py`): the game state drives four of the fly's own visual neuron types,
   on the side where things are:
 
   | Neuron type | Driven by |
@@ -195,7 +195,7 @@ scored by the held-out AUC of a punch readout: will this press connect? The data
   the hand-set encoder, the chase signal is squeezed into a narrow range and looming fires only
   while the opponent approaches. So the next round gives the fly distance through its own
   neurons: looming neurons that also respond to the opponent's size, a steeper chase signal,
-  and a higher cap (`fly_eyes.ENCODER`, `--encoder`).
+  and a higher cap (`flybrain.eyes.ENCODER`, `--encoder`).
 * **Second sweep: looming by size.** Real looming neurons respond to how big an object is, not
   only to how fast it grows. Adding that (`loom_size`) lifts the punch readout step by step:
 
@@ -248,7 +248,7 @@ per second, just above the game's 30. Live, brain time was 24–34 ms per frame,
 little room.
 
 `--encoder name=value,...` changes what the fly is told, for example `--encoder loom_size=0.6`.
-The parameters are listed in `fly_eyes.ENCODER`; any you don't set keep the hand-set value.
+The parameters are listed in `flybrain.eyes.ENCODER`; any you don't set keep the hand-set value.
 `--seed` sets the brain's noise seed. `--char` picks the in-game character (default `BYU`;
 `FLYBRAIN` is the character named after this bot).
 

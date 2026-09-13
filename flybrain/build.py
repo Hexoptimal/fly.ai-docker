@@ -6,13 +6,13 @@ normalization. Also records where each photoreceptor sits in the eye so a
 1-D "scene" (opponent to the left/right, near/far) can be projected onto it.
 
 Output: <DATA>/brain.npz  (weights as CSR, neuron groups, eye azimuths)
+
+    flybrain build [--data DIR]      (needs pip install "flybrain[build]")
 """
 from __future__ import annotations
 
 import json
-import os
 import re
-import sys
 import urllib.request
 import zipfile
 import xml.etree.ElementTree as ET
@@ -22,8 +22,7 @@ import numpy as np
 import pyarrow.feather as feather
 from scipy import sparse
 
-DATA = Path(os.environ.get("FLY_DATA", Path.home() / "fly-data"))
-RAW = DATA / "raw"
+from .data import DATA
 
 BUCKET = "https://storage.googleapis.com/flyem-male-cns/v1.0/connectome-data/flat-connectome"
 SOURCES = {
@@ -35,11 +34,11 @@ SOURCES = {
 }
 
 
-def download_all() -> None:
-    """Fetch the MaleCNS v1.0 tables (~1.1 GB) into RAW unless already present."""
-    RAW.mkdir(parents=True, exist_ok=True)
+def download_all(raw: Path) -> None:
+    """Fetch the MaleCNS v1.0 tables (~1.1 GB) into `raw` unless already present."""
+    raw.mkdir(parents=True, exist_ok=True)
     for name, url in SOURCES.items():
-        target = RAW / name
+        target = raw / name
         if target.exists():
             continue
         partial = target.with_suffix(target.suffix + ".part")
@@ -98,10 +97,13 @@ def optic_columns(path: Path) -> dict[int, tuple[str, int, int]]:
     return result
 
 
-def main() -> None:
-    download_all()
-    ann = feather.read_table(RAW / "body-annotations-male-cns-v1.0-minconf-0.5.feather").to_pandas()
-    nt = feather.read_table(RAW / "body-neurotransmitters-male-cns-v1.0.feather",
+def build(data: Path | str = DATA) -> None:
+    """Download MaleCNS v1.0 into <data>/raw and write weights.npz, brain.npz and brain.json to `data`."""
+    data = Path(data)
+    raw = data / "raw"
+    download_all(raw)
+    ann = feather.read_table(raw / "body-annotations-male-cns-v1.0-minconf-0.5.feather").to_pandas()
+    nt = feather.read_table(raw / "body-neurotransmitters-male-cns-v1.0.feather",
                             columns=["body", "consensus_nt"]).to_pandas()
 
     ann = ann.loc[ann["superclass"].notna() & ann["superclass"].ne("")]
@@ -113,7 +115,7 @@ def main() -> None:
     labels = nt.drop_duplicates("body").set_index("body").reindex(ids)["consensus_nt"]
     sign = np.where(labels.fillna("unclear").str.lower().str.contains(INHIBITORY), -1.0, 1.0).astype(np.float32)
 
-    edges = feather.read_table(RAW / "connectome-weights-male-cns-v1.0-minconf-0.5.feather",
+    edges = feather.read_table(raw /"connectome-weights-male-cns-v1.0-minconf-0.5.feather",
                                columns=["body_pre", "body_post", "weight"], memory_map=True)
     pre_parts, post_parts, w_parts = [], [], []
     for i, batch in enumerate(edges.to_batches(max_chunksize=4_000_000), 1):
@@ -160,7 +162,7 @@ def main() -> None:
 
     # Photoreceptors and their azimuth in the eye (-1 = far left ... +1 = far right).
     visual = pick(["R1-6", "R7", "R8"])
-    columns = optic_columns(RAW / "optic-columns.xlsx")
+    columns = optic_columns(raw / "optic-columns.xlsx")
     known = np.array([i for i, b in enumerate(ids) if int(b) in columns], np.int32)
     to_known = abs(W[known][:, visual]).tocsc()  # R1-6 -> strongest column-assigned partner
     h1_max = max(h1 for _, h1, _ in columns.values())
@@ -185,18 +187,18 @@ def main() -> None:
     for name, idx in groups.items():
         print(f"  {name:11s} {len(idx):3d} neurons  {sorted(set(cell_type.iloc[idx]))}")
     if any(len(g) == 0 for g in groups.values()):
-        sys.exit("a motor group resolved to zero neurons; check MOTOR_TYPES")
+        raise RuntimeError("a motor group resolved to zero neurons; check MOTOR_TYPES")
 
-    sparse.save_npz(DATA / "weights.npz", W, compressed=False)
-    np.savez(DATA / "brain.npz", ids=ids, visual=visual, azimuth=azimuth,
+    sparse.save_npz(data / "weights.npz", W, compressed=False)
+    np.savez(data / "brain.npz", ids=ids, visual=visual, azimuth=azimuth,
              cell_type=cell_type.to_numpy().astype(str), side=side.to_numpy().astype(str),
              positions=positions, superclass=ann["superclass"].to_numpy().astype(str),
              **{f"group_{k}": v for k, v in groups.items()})
-    (DATA / "brain.json").write_text(json.dumps(
+    (data / "brain.json").write_text(json.dumps(
         {"neurons": n, "connections": int(W.nnz), "photoreceptors": int(len(visual)),
          "groups": {k: int(len(v)) for k, v in groups.items()}}, indent=2))
-    print(f"saved to {DATA}")
+    print(f"saved to {data}")
 
 
 if __name__ == "__main__":
-    main()
+    build()

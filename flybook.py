@@ -32,7 +32,7 @@ from pathlib import Path
 
 import numpy as np
 
-from flyreservoir import Readout
+from flybrain.reservoir import Readout
 from flytalk import (BEHAVIOUR, BIN_S, EAR_CAP, NAMES, ROOT, Counter, context_injector, decode, describe, ear_cells,
                      envelope, make_brain, reaction_quantities, silence_reference, song_features, wing_groups, windows)
 

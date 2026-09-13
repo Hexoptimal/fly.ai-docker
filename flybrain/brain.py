@@ -22,7 +22,7 @@ import numba
 import numpy as np
 from scipy import sparse
 
-DATA = Path(os.environ.get("FLY_DATA", Path.home() / "fly-data"))
+from .data import DATA, ensure_data
 
 
 @numba.njit(nogil=True, parallel=True)
@@ -72,9 +72,12 @@ class FlyBrain:
     noise_amp = 0.22
     eye_gain = 0.62
 
-    def __init__(self, data: Path = DATA, seed: int = 64, device: str | None = None, batch: int = 1,
+    def __init__(self, data: Path | str | None = None, seed: int = 64, device: str | None = None, batch: int = 1,
                  dt: float | None = None, sensory_input: bool = True, refractory: float = 0.0):
-        """dt: step length in seconds (default 0.020). tonic is rescaled so a silent
+        """data: folder with brain.npz and weights.npz (default $FLY_DATA, else ~/fly-data).
+        If they aren't there, the prebuilt brain is downloaded into it first (~260 MB, once).
+
+        dt: step length in seconds (default 0.020). tonic is rescaled so a silent
         neuron settles at the same voltage as in the calibrated 20 ms model.
 
         sensory_input: False removes every synapse onto sensory neurons (any superclass
@@ -96,11 +99,12 @@ class FlyBrain:
         self.tonic = type(self).tonic * (1 - np.exp(-self.dt / self.tau)) / (1 - np.exp(-0.020 / self.tau))
         self.refractory_steps = int(round(refractory / self.dt))
         self.sensory_input = sensory_input
+        data = ensure_data(data)
         meta = np.load(data / "brain.npz")
         W = sparse.load_npz(data / "weights.npz")
         if not sensory_input:
             if "superclass" not in meta.files:
-                raise SystemExit("brain.npz has no superclass; rerun build_brain.py")
+                raise RuntimeError("brain.npz has no superclass; run `flybrain build`")
             sensory = np.char.find(meta["superclass"].astype(str), "sensory") >= 0
             W = sparse.diags((~sensory).astype(np.float32)) @ W.tocsr()   # rows = postsynaptic
         if device == "cuda":

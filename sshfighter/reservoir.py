@@ -1,6 +1,6 @@
 """Reservoir computing on the fly connectome, for SSH Fighter specifically.
 
-This is a worked example of `flyreservoir.py` (the generic module, one level up):
+This is a worked example of `flybrain/reservoir.py` (the generic module, one level up):
 the brain stays fixed, only linear readouts are trained, from the ~1,300
 descending neurons (the brain's output cables to the body):
   * punch / kick: P(this press connects)
@@ -15,8 +15,8 @@ regularised linear model. Everything is scored leave-one-match-out.
 
 Everything game-specific lives here (what a "sample" is, leave-one-*match*-out,
 the F-beta press threshold); the shared PCA/ridge/logistic machinery underneath
-it is `flyreservoir.bases_for/project/fit_logistic/auc`, and the spike-trace
-feature (`Featurizer`) is `flyreservoir.Trace` over the descending neurons.
+it is `flybrain.bases_for/project/fit_logistic/auc`, and the spike-trace
+feature (`Featurizer`) is `flybrain.Trace` over the descending neurons.
 
     python fly_fighter.py --user FLYBRAIN --identity KEY --opponents bots --matches 20 --record recordings
     python reservoir.py train recordings          # held-out report + readout.npz
@@ -33,7 +33,7 @@ import numpy as np
 from scipy.special import expit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # the fly.ai core lives one level up
-from flyreservoir import Trace, auc, bases_for, fit_logistic, fit_ridge, project  # noqa: E402
+from flybrain.reservoir import Trace, auc, bases_for, fit_logistic, fit_ridge, project  # noqa: E402
 
 TRACE_TAU = 0.1       # s; each descending neuron's spike trace decays with this time constant
 HORIZON = 15          # frames (0.5 s) after a press to see whether the attack connected
@@ -57,11 +57,11 @@ C = {c: i for i, c in enumerate(COLS)}
 class Featurizer(Trace):
     """Exponentially decaying spike trace of every descending neuron, averaged
     across the (possibly several, voting) flies. A thin, task-specific alias of
-    `flyreservoir.Trace`."""
+    `flybrain.Trace`."""
 
     def __init__(self, brain):
         if brain.superclass is None:
-            raise SystemExit("brain.npz has no superclass; rerun build_brain.py")
+            raise SystemExit("brain.npz has no superclass; run `flybrain build`")
         super().__init__(brain, types=["descending_neuron"], tau=TRACE_TAU, aggregate="mean")
 
 
@@ -349,7 +349,7 @@ def train(folder: str, out: str = "readout.npz") -> None:
         sys.exit(f"need at least 3 recorded matches in {folder}, found {len(files)}")
     if np.load(files[0])["rows"].shape[1] != len(COLS):
         sys.exit(f"{files[0].name} was recorded with an older format; record a new set")
-    from fly_brain import DATA
+    from flybrain import DATA
     meta = np.load(DATA / "brain.npz")
     dn_types = meta["cell_type"][meta["superclass"] == "descending_neuron"]
     width = np.load(files[0])["X"].shape[1]
