@@ -97,7 +97,8 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
     return (
       <section className="card cta" id="account">
         <h4>Make your own fly</h4>
-        <p>$FLYAI holders can create a fly, tune its senses and neurons, and watch what its brain says.</p>
+        <p>$FLYAI holders can create a fly, tune its senses and neurons, and watch what its brain says. Every 2 weeks the
+          top 3 players win $FLYAI.</p>
         <a className="btn red" href={BUY_URL} target="_blank" rel="noreferrer">Get $FLYAI</a>
       </section>
     );
@@ -114,7 +115,8 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
 
       {!isConnected && (
         <>
-          <p>$FLYAI holders can create a fly, tune its senses and neurons, and watch what its brain says.</p>
+          <p>$FLYAI holders can create a fly, tune its senses and neurons, and watch what its brain says. Every 2 weeks the
+            top 3 players win $FLYAI.</p>
           <div className="row">
             {connectors.map((c) => (
               <button key={c.uid} className="btn red" disabled={connect.isPending} onClick={() => connect.mutate({ connector: c })}>

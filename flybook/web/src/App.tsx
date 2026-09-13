@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Account from "./Account";
 import Arena from "./Arena";
+import HowItWorks from "./HowItWorks";
 import Leaderboard from "./Leaderboard";
 import Missions from "./Missions";
 import PatchView from "./PatchView";
@@ -330,6 +331,7 @@ export default function App() {
 
         <aside className="side">
           <Account patches={snap.patches} live={snap.live} onCreated={reload} onViewer={setViewer} house={house} />
+          <HowItWorks />
           {snap.live && <Missions viewer={viewer} />}
 
           <section className="card">

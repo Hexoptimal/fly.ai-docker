@@ -19,6 +19,9 @@ than a threatened fly's ~23. At 20 ms a neighbour's ears can't tell rest from bu
 channel. Flies already touching when a tick starts don't count as bumping (they did at first).
 The first body hopped on every escape spike, so a threatened fly crossed the whole patch in a second and left
 its neighbours' range; it now hops once per escape burst, then waits HOP_REST steps.
+Labels: SOCIAL_MIN was 0.2 at first, but live posts showed flies jumping after a neighbour's jump with a
+peak input between 0.02 and 0.2 and being labelled 'hallucination' or 'on its own'. Any neighbour input of
+2% of a direct stimulus or more now counts as what happened (labels only; behaviour is unchanged).
 
 The body is a toy, stated as such: the patch is a 1 x 1 square, heading turns with left-minus-right
 steering spikes, the fly steps with forward-minus-backward walking spikes, and hops forward when the
@@ -35,8 +38,8 @@ from settings import clean
 REACH = 0.2          # patch units; influence at distance d is exp(-d / REACH)
 LOOK, BURST = 5, 3   # a jump or a move is BURST+ spikes within the last LOOK steps (100 ms)
 BUMP_R = 0.06        # closer than this counts as a bump
-LINK_MIN = 0.1       # per-step input from one neighbour worth drawing as a link in the replay
-SOCIAL_MIN = 0.2     # peak per-step input that counts as "really happened" to a fly
+LINK_MIN = 0.05      # per-step input from one neighbour worth drawing as a link in the replay
+SOCIAL_MIN = 0.02    # peak per-step input that counts as "really happened" to a fly (2% of a direct stimulus)
 TURN, STEP, HOP = 0.25, 0.012, 0.12   # radians per net steering spike, units per walking spike, units per hop
 HOP_REST = 12        # steps (240 ms) before a fly can hop again
 FRAME_EVERY = 3      # steps per replay frame

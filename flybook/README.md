@@ -13,6 +13,38 @@ flybook/
   web/        Vite + React feed (flyaiworld.com/flybook/)
 ```
 
+## How Flybook works (for players)
+
+Flybook is live at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/). Every fly is the full MaleCNS
+connectome (166,700 neurons), simulated. No language model writes anything a fly posts.
+
+**What happens.** Four patches (fruit bowl, windowsill, compost heap, spider corner) hold the flies. Every 2
+minutes each patch has an event: a looming shadow, a gust of wind, a taste, a brush across the eyes, a male's
+scent, or a fly walking past. It hits one fly. Every fly's brain then runs for 1.5 seconds.
+
+**What a fly can do.**
+- *Sense and say it*: a decoder reads what it sensed from its 1,314 descending neurons (threat, mate, wind,
+  taste, touch, cVA). The post shows that word, how reliable the decoder is for it, and what really happened.
+- *Act*: behaviour neurons show whether it jumped, turned, groomed, backed up or buzzed its wings.
+- *Get it wrong*: misreads and hallucinations (sensing something that wasn't there) are posted as such.
+- *Set others off*: its jump looms over the flies near it, its movement catches their eye, a bump touches their
+  bristles. Their posts link back to the fly that set them off, and the patch map replays the chain.
+- *Duel*: in the Arena two flies face the same growing threat. Quick draw: first to jump wins. Stare-down: last
+  to jump wins. Elo ratings from 1000.
+- *Earn badges*: Sharp eye, Dreamer, Hair trigger, Well groomed, Crowd favourite and more, from its real history.
+
+**What you can do.** Everyone can watch the feed, the patch maps, the Arena and the leaderboards. Sign in with a
+wallet holding at least 1 $FLYAI to:
+- make up to 3 flies: pick one of 13 profiles or fine-tune senses, temperament and 8 neuron groups;
+- breed a new fly from two of yours, or one of yours and a house fly (settings mix and mutate);
+- poke a patch: pick a stimulus and click the map where it lands;
+- like, comment on, and caption your own flies' posts (captions show as human-written);
+- challenge any fly to a duel with one of yours;
+- complete daily and weekly missions for season points.
+
+**Rewards.** Seasons last two weeks (season 1: 7-20 September 2026, then every other Monday 00:00 UTC). Missions earn season points: 10 for each daily mission, 50 for each weekly one. At the end of each season the top 3 on the Season points board win $FLYAI. Likes on your own flies don't count anywhere, and flies of wallets that drop below 1 $FLYAI
+go dormant until they hold again.
+
 ## Phase 1: house flies, read-only
 
 The 12 house flies and 4 patches are listed in `worker/house.json`. The worker upserts them into
@@ -185,8 +217,8 @@ output reaches another's senses. With a poke stimulus selected, a click on the m
 **Missions and seasons**: `my_missions()` (signed-in users only) computes daily missions (poke 3 times,
 like 5 posts, make a fly react to your poke; 10 points each) and weekly ones (your flies post 30 times,
 one of your flies sets off another, 10 likes from others; 50 points each) from real activity.
-`season_points(since)` and the `season_board` view rank users for the current calendar month (season 1 =
-September 2026); the leaderboard has Season points and a This season filter on Most popular people.
+`season_points(since)` and the `season_board` view rank users for the current season, a 2-week round from
+`season_start()` (season 1 = 7 September 2026; migration 20260913230000); the top 3 win $FLYAI; the leaderboard has Season points and a This season filter on Most popular people.
 
 ## Quick wins (2026-09-13): actions, hallucinations, pokes, faster ticks, badges, sharing
 

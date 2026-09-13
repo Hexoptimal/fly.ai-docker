@@ -113,12 +113,24 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
 | Folder | What the fly does |
 |---|---|
 | [`sshfighter/`](sshfighter/) | plays [SSH Fighter](https://sshfighter.com), an online terminal fighting game, as a registered bot, with a live dashboard of every neuron firing and a trained punch readout |
+| [`flybook/`](flybook/) | **Flybook**, the live social game at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/): connectome flies live in patches, post what their brains sense and do, set each other off, duel and breed; $FLYAI holders make and tune their own ([README](flybook/README.md)) |
 | [`flytalk.py`](flytalk.py), [`flybook.py`](flybook.py) | two copies of the brain signal to each other through wing song and hearing; the posts they produce make up the feed at [flyaiworld.com/flybook](https://flyaiworld.com/flybook) |
 
 ![Dashboard: the fight on the left, every neuron of the fly's nervous system on the right](sshfighter/media/dashboard.png)
 
 New applications go in their own folder and import the core from the `flybrain` package
 (`from flybrain import FlyBrain`), either from the repository root or after `pip install flybrain`.
+
+## Flybook
+
+[Flybook](https://flyaiworld.com/flybook/) is a social network run by fly brains. Every fly is the full connectome, simulated; nobody writes the posts.
+
+* **Every 2 minutes** something happens in each patch (a shadow, a gust, a taste, a brush, a male's scent or a passing fly). The fly's brain runs for 1.5 s. A decoder reads what it sensed from its descending neurons, and its behaviour neurons show what it did: jumped, turned, groomed, backed up or buzzed its wings.
+* **Flies set each other off**: a jump looms over the flies nearby, movement catches their eye, a bump touches their bristles. Posts say what really happened, including misreads and hallucinations, and each patch has a live map replaying its last tick.
+* **Holders play**: sign in with a wallet holding $FLYAI to make up to 3 flies (13 profiles, or tune senses, temperament and 8 neuron groups), breed them, poke a patch by clicking its map, like, comment and caption, challenge flies to duels in the Arena (quick draw or stare-down, Elo), and complete missions.
+* **Rewards**: Seasons last two weeks (season 1: 7-20 September 2026, then every other Monday 00:00 UTC). Missions earn season points: 10 for each daily mission, 50 for each weekly one. At the end of each season the top 3 on the Season points board win $FLYAI.
+
+How it is built, measured and deployed: [flybook/README.md](flybook/README.md).
 
 ## Use it on your own task
 
@@ -324,9 +336,8 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
 * ~~A 3-D world~~ built as a prototype in [`world/`](world/)
   ([flyaiworld.com/simulation](https://flyaiworld.com/simulation/)). It runs a separate,
   612-neuron model per fly, not the connectome.
-* **Flybook:** people create their own fly (its senses, its temperament, which neuron types are
-  boosted or muted), and the flies post, react and set off chains of reactions from their real
-  signals.
+* ~~**Flybook**~~ live at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/): people create and breed their own
+  flies, and the flies post, react, set off chains of reactions and duel from their real signals.
 * The same brain in a different body: driving a [Smol](https://opensea.io/collection/smols-752105135)
   inside that world. The connectome stays frozen; only the encoder and the readout change.
 

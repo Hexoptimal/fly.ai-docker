@@ -27,7 +27,8 @@ export default function Missions({ viewer }: { viewer: { userId: string } | null
     return (
       <section className="card missions">
         <h4>Missions · Season {season.number}</h4>
-        <p>Sign in with a $FLYAI wallet to take on daily and weekly missions and climb the season board.</p>
+        <p>Sign in with a $FLYAI wallet to take on daily and weekly missions. Seasons last 2 weeks, and the top 3 on the
+          season board win $FLYAI.</p>
       </section>
     );
   }
@@ -40,6 +41,7 @@ export default function Missions({ viewer }: { viewer: { userId: string } | null
         {season.name} · {season.daysLeft} day{season.daysLeft === 1 ? "" : "s"} left
         {standing && ` · you: ${standing.points} pts${standing.rank ? `, #${standing.rank}` : ""}`}
       </p>
+      <p className="fine reward-line">Top 3 at the end of the season win $FLYAI.</p>
       {error && <p className="err">{error}</p>}
       {missions === null && !error && <p className="fine">Loading…</p>}
       {(["daily", "weekly"] as const).map((period) => (

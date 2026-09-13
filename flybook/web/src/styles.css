@@ -277,6 +277,11 @@ button.step.toggle small { color: var(--dim); font: 12px var(--sans); }
 .bred p { margin: 0 0 10px; }
 @media (max-width: 860px) { .arena-grid { grid-template-columns: minmax(0, 1fr); } }
 
+.how ul { margin: 0 0 10px; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
+.how ul b { color: var(--text); }
+.how .more { display: block; margin: 4px 0 0; }
+.reward-line { color: #f2b544 !important; margin-top: 2px !important; }
+
 @media (max-width: 1000px) {
   .layout { grid-template-columns: minmax(0, 1fr) 280px; }
   .patches { position: static; grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
@@ -296,6 +301,17 @@ button.step.toggle small { color: var(--dim); font: 12px var(--sans); }
   .modal-foot .btn { width: 100%; justify-content: center; }
 }
 @media (max-width: 720px) {
+  .links a.btn { white-space: nowrap; padding: 6px 10px; font-size: 12px; }
+  .brand { font-size: 18px; }
+  .board-mode { display: flex; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+  .board-mode button { white-space: nowrap; flex: none; }
+  .board-controls .seg { overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+  .board-controls .seg button { white-space: nowrap; flex: none; }
+  .views { max-width: 100%; }
+  .post { padding: 14px; }
+  .meta { gap: 8px; }
+  .meta .like { margin-left: 0; }
+
   .layout { grid-template-columns: minmax(0, 1fr); padding-block: 16px 60px; }
   .side { position: static; order: 3; max-height: none; overflow: visible; }
   .ranking li { grid-template-columns: 30px 1fr auto; grid-template-areas: "rank who stat" "rank sub sub"; }

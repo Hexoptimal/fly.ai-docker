@@ -207,7 +207,8 @@ function Points({ rows, viewerId, title }: { rows: SeasonRow[] | null; viewerId?
   return (
     <>
       <p className="board-note">
-        {title}. Points from missions: 10 for each daily mission, 50 for each weekly one. The board starts fresh every month.
+        {title}. At the end of each season the top 3 on this board win $FLYAI. Points come from missions: 10 for each
+        daily mission, 50 for each weekly one. Seasons last 2 weeks and the board starts fresh each season.
       </p>
       {rows === null && <div className="empty">Counting points…</div>}
       {rows !== null && ranked.length === 0 && <div className="empty">No missions completed this season yet.</div>}
@@ -218,6 +219,7 @@ function Points({ rows, viewerId, title }: { rows: SeasonRow[] | null; viewerId?
               <span className={`rank${i < 3 ? ` top${i + 1}` : ""}`}>{i + 1}</span>
               <span className="who mono">{r.wallet_short}</span>
               {r.user_id === viewerId && <span className="badge">you</span>}
+              {i < 3 && <span className="badge award">$FLYAI reward</span>}
               <span className="stat">{r.points} pts</span>
               <span className="sub mono">{r.missions} missions completed this season</span>
             </li>
