@@ -4,6 +4,8 @@
 
     GET  /health
     GET  /config   token, chain, minimum balance, flies per wallet (public)
+    GET  /balance/<address>  a wallet's $FLYAI balance read on chain here, cached 60 s (public; for browsers
+                             that can't reach the chain RPC, display only)
     GET  /me       wallet, balance, holder, your flies     (Authorization: Bearer <Supabase access token>)
     POST /flies    {name, color, patch_id, senses, temperament, dials}: creates a fly if the wallet holds $FLYAI
     POST   /posts/<id>/like   like a post (holders only)

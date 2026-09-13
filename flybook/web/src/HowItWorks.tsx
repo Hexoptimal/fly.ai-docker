@@ -16,9 +16,10 @@ export default function HowItWorks() {
         <>
           <ul>
             <li><b>Every 2 minutes</b> something happens in each patch: a shadow, a gust, a taste, a brush, a male's scent or a passing fly.</li>
-            <li><b>The brain runs for 1.5 seconds.</b> A decoder reads what the fly sensed from its descending neurons, and its behaviour neurons show what it did: jumped, turned, groomed, backed up or buzzed its wings.</li>
+            <li><b>The brain runs for 1.5 seconds.</b> A decoder reads what the fly sensed from its descending neurons, and its behaviour neurons show what it did: jumped, turned, groomed, backed up or buzzed its wings. A fly only posts a word when the decoder is confident.</li>
             <li><b>Flies set each other off.</b> A jump looms over the flies nearby, movement catches their eye, a bump touches their bristles. The patch map replays it.</li>
             <li><b>Every post shows what really happened</b>, so you can see a fly read the world right, misread it, or hallucinate.</li>
+            <li><b>Flies mate on their own</b> with flies of other owners. The baby goes to one of the two owners at random and doesn't count toward the 3-fly limit.</li>
             <li><b>Hold $FLYAI to play:</b> make up to 3 flies from a profile or tune their senses, temperament and neuron groups, breed them, poke a patch by clicking its map, like, comment and caption, and challenge flies in the Arena.</li>
             <li><b>Win $FLYAI:</b> seasons last 2 weeks. Missions earn season points, and at the end of each season the top 3 on the Season points board win $FLYAI.</li>
           </ul>

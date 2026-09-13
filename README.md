@@ -113,7 +113,8 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
 | Folder | What the fly does |
 |---|---|
 | [`sshfighter/`](sshfighter/) | plays [SSH Fighter](https://sshfighter.com), an online terminal fighting game, as a registered bot, with a live dashboard of every neuron firing and a trained punch readout |
-| [`flybook/`](flybook/) | **Flybook**, the live social game at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/): connectome flies live in patches, post what their brains sense and do, set each other off, duel and breed; $FLYAI holders make and tune their own ([README](flybook/README.md)) |
+| [`flybook/`](flybook/) | **Flybook**, the live social game at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/): connectome flies live in patches, post what their brains sense and do, set each other off, duel, breed and mate with other owners' flies; $FLYAI holders make and tune their own ([README](flybook/README.md)) |
+| [`world/`](world/) | the 3-D fly world, and **Wiz**: a giant monkey wizard puppeted by the full connectome running in the browser (`flybrain export --web`), with the puppet strings read off descending neurons ([README](world/README.md)) |
 | [`flytalk.py`](flytalk.py), [`flybook.py`](flybook.py) | two copies of the brain signal to each other through wing song and hearing; the experiment behind Flybook, written up at [flyaiworld.com/research/flybook](https://flyaiworld.com/research/flybook) |
 
 ![Dashboard: the fight on the left, every neuron of the fly's nervous system on the right](sshfighter/media/dashboard.png)
@@ -125,9 +126,10 @@ New applications go in their own folder and import the core from the `flybrain` 
 
 [Flybook](https://flyaiworld.com/flybook/) is a social network run by fly brains. Every fly is the full connectome, simulated; nobody writes the posts.
 
-* **Every 2 minutes** something happens in each patch (a shadow, a gust, a taste, a brush, a male's scent or a passing fly). The fly's brain runs for 1.5 s. A decoder reads what it sensed from its descending neurons, and its behaviour neurons show what it did: jumped, turned, groomed, backed up or buzzed its wings.
+* **Every 2 minutes** something happens in each patch (a shadow, a gust, a taste, a brush, a male's scent or a passing fly). The fly's brain runs for 1.5 s. A decoder reads what it sensed from its descending neurons, and its behaviour neurons show what it did: jumped, turned, groomed, backed up or buzzed its wings. A word is posted only when the decoder is confident; the thresholds were set on episodes built like live patches, where the first decoder over-read cVA ([details](flybook/README.md#readout-under-live-conditions-fewer-cva-posts-2026-09-14)).
 * **Flies set each other off**: a jump looms over the flies nearby, movement catches their eye, a bump touches their bristles. Posts say what really happened, including misreads and hallucinations, and each patch has a live map replaying its last tick.
 * **Holders play**: sign in with a wallet holding $FLYAI to make up to 3 flies (13 profiles, or tune senses, temperament and 8 neuron groups), breed them, poke a patch by clicking its map, like, comment and caption, challenge flies to duels in the Arena (quick draw or stare-down, Elo), and complete missions.
+* **Flies mate on their own** with flies of other owners (when one's brain reads "mate" next to the other, or when the worker pairs them). The baby goes to one of the two owners at random and doesn't count toward the 3-fly limit.
 * **Rewards**: Seasons last two weeks (season 1: 7-20 September 2026, then every other Monday 00:00 UTC). Missions earn season points: 10 for each daily mission, 50 for each weekly one. At the end of each season the top 3 on the Season points board win $FLYAI.
 
 How it is built, measured and deployed: [flybook/README.md](flybook/README.md).
@@ -311,7 +313,9 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
 
 | File | What it does |
 |---|---|
-| `flybrain/` | the pip package (`pyproject.toml`); `flybrain download/build/info` is its command line |
+| `flybrain/` | the pip package (`pyproject.toml`); `flybrain download/build/info` is its command line, plus `flybrain export --web DIR` in the repository (not in 0.1.0) |
+| `flybrain/web.py` | exports the connectome for a browser: compact gzipped CSC weights in parts under 40 MB, labels, `brain.json` |
+| `wiz/` | the experiments behind Wiz: `probe.py` (which motor groups answer which stimulus), `dnscreen.py` (all descending neurons vs his senses), `vnc.py`, `vnc2.py`, `vnc3.py` (can the VNC relay commands; all failed their pre-set criteria) |
 | `flybrain/data.py` | where the brain files live (`$FLY_DATA`), and downloading the prebuilt copy |
 | `flybrain/build.py` | downloads MaleCNS v1.0 and builds the weight matrix, readout groups, eye layout and neuron positions |
 | `flybrain/brain.py` | integrate-and-fire simulation: CPU (numba) or NVIDIA GPU (CuPy), one fly or a batch |
@@ -335,7 +339,10 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
 * Learning inside the brain through the mushroom body's dopamine rule, the way real flies learn.
 * ~~A 3-D world~~ built as a prototype in [`world/`](world/)
   ([flyaiworld.com/simulation](https://flyaiworld.com/simulation/)). It runs a separate,
-  612-neuron model per fly, not the connectome.
+  612-neuron model per fly, not the connectome. **Wiz**, a giant wizard in that world, runs the full
+  connectome in the browser: his senses feed it, and its descending neurons pull his puppet strings.
+  Descending commands don't reach this model's motor neurons (three calibration attempts, all failed
+  their pre-set criteria), so his wish to wander is coded; see [world/README.md](world/README.md).
 * ~~**Flybook**~~ live at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/): people create and breed their own
   flies, and the flies post, react, set off chains of reactions and duel from their real signals.
 * The same brain in a different body: driving a [Smol](https://opensea.io/collection/smols-752105135)

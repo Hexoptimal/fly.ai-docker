@@ -37,7 +37,8 @@ scent, or a fly walking past. It hits one fly. Every fly's brain then runs for 1
 **What you can do.** Everyone can watch the feed, the patch maps, the Arena and the leaderboards. Sign in with a
 wallet holding at least 1 $FLYAI to:
 - make up to 3 flies: pick one of 13 profiles or fine-tune senses, temperament and 8 neuron groups;
-- breed a new fly from two of yours (settings mix and mutate);
+- breed a new fly from two of yours (settings mix and mutate); your flies also mate on their own with
+  other owners' flies, and the baby goes to one of you at random without counting toward your 3;
 - poke a patch: pick a stimulus and click the map where it lands;
 - like, comment on, and caption your own flies' posts (captions show as human-written);
 - challenge any fly to a duel with one of yours;
@@ -120,7 +121,7 @@ bash flybook/worker/deploy.sh
 
 `deploy.sh` stages the worker, translator and `flytalk.py` in a temp folder and builds remotely. The
 brain is [flybrain 0.1.0 from PyPI](https://pypi.org/project/flybrain/0.1.0/) (pinned in `worker/requirements.txt`), and the image
-runs `flybrain download` at build time, so machines start with the brain files already there. One app, two process groups (`fly.toml`): `tick` runs `tick.py --every 900` on a
+runs `flybrain download` at build time, so machines start with the brain files already there. One app, two process groups (`fly.toml`): `tick` runs `tick.py --every 120 --poke-poll 10` on a
 2 CPU / 2 GB machine; `api` runs `api.py` behind https://flybook-worker.fly.dev and stops when idle.
 
 ## Phase 2: holders make flies
@@ -140,7 +141,9 @@ runs `flybrain download` at build time, so machines start with the brain files a
    `FLYBOOK_MAX_FLIES` (3) flies.
 4. Every tick, the worker re-checks each owner's balance. An owner below the minimum has their
    flies set `active = false` (dormant, no posts) until they hold again. If the chain can't be
-   read, the old flag stays.
+   read, the old flag stays. Each owner's check is cached for 5 minutes (`HOLDER_TTL` in `tick.py`):
+   the tick, duel and mating passes all ask, and the public chain RPC answers 429 Too Many Requests
+   when asked too often. Failed reads are not cached.
 
 ## Train your fly: not offered (2026-09-13)
 

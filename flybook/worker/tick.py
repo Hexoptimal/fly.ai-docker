@@ -14,6 +14,9 @@ adds what the fly did (jumped, turned, groomed...). Post kinds: sense (read it r
 (read the wrong thing), hallucination (read something when nothing happened), action (no word,
 but it did something). A fly that reads nothing and does nothing doesn't post. A poke (queued by
 a holder through the API) replaces the patch's random event for every fly in that patch.
+A word is posted only when the translator's score reaches that word's threshold (model/vocab.json,
+picked by readout.py on patch episodes). After each full tick the worker settles duels and pairs
+flies of different owners to mate (mating.py). Owners' holder checks are cached for HOLDER_TTL.
 No text is generated.
 """
 from __future__ import annotations

@@ -390,7 +390,10 @@ cannot come from the brain.
 
 * **Files.** `flybrain export --web public/connectome` (see `flybrain/web.py`): CSC columns with
   varint-coded target gaps and one byte per weight on a log scale (mean error 2.3%, max 4.7%), gzipped:
-  57.6 MB of weights, 0.34 MB of labels, 126 MB in memory. The model is `public/models/wiz.glb`, 0.85 MB
+  57.6 MB of weights split into `weights.0.bin` (40 MB) and `weights.1.bin` (listed in `brain.json`, so no
+  file passes GitHub's 50 MB warning), 0.34 MB of labels in `meta.bin`, 126 MB in memory. The files are
+  named `.bin`, not `.gz`, because dev servers send `.gz` with `Content-Encoding: gzip`; the loaders check
+  the gzip magic bytes instead. They are committed and served at `/simulation/connectome/`. The model is `public/models/wiz.glb`, 0.85 MB
   (FBX2glTF, then meshopt geometry and WebP textures with gltf-transform).
 * **Checked against Python** (`tools/connectome.ts` vs `wiz/probe.py`): 7,712 vs 7,731 neurons fired per
   step at rest; looming on the left raises DNp01 L by 19.0 vs 18.6 Hz; a target on the left raises
