@@ -1,0 +1,388 @@
+<title>Be My ValentFLY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#EEEAF3; --surface:#FFFFFF; --surface-2:#F5F1FA; --line:#DAD3E6;
+    --ink:#201A2B; --muted:#6C6578;
+    --accent:#D81B72; --accent-ink:#FFFFFF;
+    --gold:#9C6A00; --gold-bg:#F7ECD2;
+    --crimson:#B4302B; --crimson-bg:#F8E2E0;
+    --shadow: 0 1px 2px rgba(32,26,43,.06), 0 8px 24px -12px rgba(32,26,43,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#14121A; --surface:#1E1A28; --surface-2:#241F30; --line:#362F44;
+      --ink:#F4EFF8; --muted:#9B95AC;
+      --accent:#FF3E8C; --accent-ink:#1A0A12;
+      --gold:#E8B84B; --gold-bg:#332A17;
+      --crimson:#FF6259; --crimson-bg:#3A1917;
+      --shadow: 0 1px 0 rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#14121A; --surface:#1E1A28; --surface-2:#241F30; --line:#362F44;
+    --ink:#F4EFF8; --muted:#9B95AC;
+    --accent:#FF3E8C; --accent-ink:#1A0A12;
+    --gold:#E8B84B; --gold-bg:#332A17;
+    --crimson:#FF6259; --crimson-bg:#3A1917;
+    --shadow: 0 1px 0 rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:'Manrope',system-ui,-apple-system,Segoe UI,sans-serif;
+    padding:0 20px; padding-block:28px 56px;
+  }
+  .wrap{max-width:960px; margin:0 auto;}
+  .display{font-family:'Big Shoulders Display',system-ui,sans-serif; font-weight:800; letter-spacing:.01em; text-wrap:balance;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums;}
+
+  /* ---- broadcast header ---- */
+  .broadcast-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    flex-wrap:wrap;
+    border-bottom:2px solid var(--line); padding-bottom:16px; margin-bottom:20px;
+  }
+  .wordmark{display:flex; align-items:center; gap:10px;}
+  .wordmark svg{flex:none;}
+  .wordmark h1{
+    font-size:clamp(28px,5vw,40px); line-height:1; margin:0; text-transform:uppercase;
+  }
+  .wordmark h1 .fly-pop{color:var(--accent);}
+  .on-air{
+    display:inline-flex; align-items:center; gap:7px; font-size:11px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--muted); font-weight:600;
+  }
+  .on-air .dot{
+    width:8px; height:8px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce){ .on-air .dot{animation:none;} }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .record-chip{
+    font-family:'Big Shoulders Display',sans-serif; font-weight:700; font-size:15px;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:999px;
+    padding:8px 16px; white-space:nowrap;
+  }
+  .record-chip b{color:var(--accent); font-size:17px;}
+
+  /* ---- episode tabs ---- */
+  .tabs{
+    display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:22px;
+    scrollbar-width:thin;
+  }
+  .tab{
+    flex:none; font-family:'Big Shoulders Display',sans-serif; font-weight:700;
+    font-size:14px; letter-spacing:.03em; text-transform:uppercase;
+    background:var(--surface); color:var(--muted); border:1px solid var(--line);
+    border-radius:8px; padding:9px 14px; cursor:pointer; position:relative;
+  }
+  .tab .badge{display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:7px; vertical-align:middle;}
+  .tab[data-verdict="correct"] .badge{background:var(--gold);}
+  .tab[data-verdict="wrong"] .badge{background:var(--crimson);}
+  .tab[aria-selected="true"]{
+    color:var(--ink); border-color:var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+  .tab:hover{color:var(--ink);}
+  .tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  /* ---- layout grid ---- */
+  .stage{display:grid; grid-template-columns:1.1fr .9fr; gap:20px;}
+  @media (max-width:760px){ .stage{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:20px; box-shadow:var(--shadow);
+  }
+  .panel h2{
+    font-family:'Big Shoulders Display',sans-serif; font-size:15px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0 0 14px;
+  }
+
+  /* ---- roster ---- */
+  .roster{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+  .contestant{
+    border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--surface-2);
+    display:flex; flex-direction:column; gap:6px; min-height:120px; position:relative;
+  }
+  .contestant.picked{border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent);}
+  .contestant .head{display:flex; align-items:center; gap:10px;}
+  .avatar{border-radius:50%; flex:none; display:block;}
+  .contestant .id{display:flex; flex-direction:column; gap:1px; min-width:0;}
+  .contestant .name{font-family:'Big Shoulders Display',sans-serif; font-weight:700; font-size:19px;}
+  .contestant .reading{margin-top:auto; display:flex; align-items:baseline; gap:6px;}
+  .contestant .reading .val{font-size:26px; font-weight:700;}
+  .contestant .reading .val.hidden-val{color:var(--muted); font-weight:400;}
+  .contestant .reading .unit{font-size:11px; color:var(--muted);}
+  .contestant .dates{font-size:11px; color:var(--muted);}
+  .pick-tag{
+    position:absolute; top:-9px; right:10px; background:var(--accent); color:var(--accent-ink);
+    font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    padding:3px 8px; border-radius:999px;
+  }
+
+  /* ---- timeline / control-room log ---- */
+  .log{display:flex; flex-direction:column; gap:0;}
+  .log-row{
+    display:grid; grid-template-columns:28px 1fr auto; gap:10px; align-items:center;
+    padding:9px 0; border-bottom:1px dashed var(--line);
+  }
+  .log-row:last-child{border-bottom:none;}
+  .log-row .rnd{font-size:12px; color:var(--muted); font-weight:600;}
+  .log-row .what{font-size:14px; display:flex; align-items:center; gap:8px;}
+  .log-row .what b{font-weight:700;}
+  .log-row .read{font-size:12px; color:var(--muted); text-align:right;}
+  .log-row.propose .what b{color:var(--accent);}
+
+  /* ---- verdict ---- */
+  .verdict{
+    margin-top:20px; border-radius:14px; padding:22px 24px; display:flex; flex-wrap:wrap;
+    align-items:center; gap:18px; justify-content:space-between;
+  }
+  .verdict.correct{background:var(--gold-bg); border:1px solid color-mix(in srgb, var(--gold) 40%, transparent);}
+  .verdict.wrong{background:var(--crimson-bg); border:1px solid color-mix(in srgb, var(--crimson) 40%, transparent);}
+  .verdict .headline{font-family:'Big Shoulders Display',sans-serif; font-size:clamp(22px,4vw,30px); font-weight:800;}
+  .verdict.correct .headline{color:var(--gold);}
+  .verdict.wrong .headline{color:var(--crimson);}
+  .verdict .sub{font-size:13.5px; color:var(--ink); max-width:46ch;}
+  .verdict .stat{text-align:right;}
+  .verdict .stat .n{font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:600;}
+  .verdict .stat .l{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+
+  .reveal-board{
+    margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;
+  }
+  .reveal-chip{
+    font-family:'JetBrains Mono',monospace; font-size:12px; border-radius:999px;
+    padding:4px 10px 4px 4px; background:var(--surface); border:1px solid var(--line);
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .reveal-chip.best{border-color:var(--gold); color:var(--gold);}
+  .reveal-chip.chosen{border-color:var(--accent); color:var(--accent);}
+
+  footer{
+    margin-top:30px; font-size:12px; color:var(--muted); line-height:1.6; max-width:62ch;
+    border-top:1px solid var(--line); padding-top:16px;
+  }
+  footer code{font-family:'JetBrains Mono',monospace; font-size:11.5px;}
+</style>
+
+<div class="wrap">
+  <div class="broadcast-bar">
+    <div class="wordmark">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+        <ellipse cx="7.5" cy="18" rx="6.2" ry="3.1" fill="currentColor" fill-opacity=".22" transform="rotate(-30 7.5 18)"/>
+        <ellipse cx="22.5" cy="18" rx="6.2" ry="3.1" fill="currentColor" fill-opacity=".22" transform="rotate(30 22.5 18)"/>
+        <line x1="13.2" y1="6.3" x2="11.4" y2="3.6" stroke="currentColor" stroke-width=".9" stroke-linecap="round"/>
+        <line x1="16.8" y1="6.3" x2="18.6" y2="3.6" stroke="currentColor" stroke-width=".9" stroke-linecap="round"/>
+        <circle cx="11.4" cy="3.6" r=".7" fill="currentColor"/>
+        <circle cx="18.6" cy="3.6" r=".7" fill="currentColor"/>
+        <ellipse cx="15" cy="21" rx="4.4" ry="6" fill="currentColor"/>
+        <path d="M10.8 18.5h8.4M10.9 22h8.2" stroke="var(--ground)" stroke-width="1" stroke-opacity=".55" stroke-linecap="round"/>
+        <circle cx="15" cy="10.6" r="5.3" fill="currentColor"/>
+        <path d="M0 .35c0-.9-1.05-1.2-1.05-.4 0 .6.7 1.2 1.05 1.6.35-.4 1.05-1 1.05-1.6 0-.8-1.05-.5-1.05.4z"
+              fill="var(--accent)" transform="translate(12.2,10) scale(2.5)"/>
+        <path d="M0 .35c0-.9-1.05-1.2-1.05-.4 0 .6.7 1.2 1.05 1.6.35-.4 1.05-1 1.05-1.6 0-.8-1.05-.5-1.05.4z"
+              fill="var(--accent)" transform="translate(17.8,10) scale(2.5)"/>
+      </svg>
+      <h1 class="display">Be My Valent<span class="fly-pop">FLY</span></h1>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <span class="on-air"><span class="dot"></span>live connectome, no training</span>
+      <span class="record-chip" id="record-chip"></span>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs" role="tablist" aria-label="Episodes"></div>
+
+  <div class="stage">
+    <section class="panel" aria-label="Contestant roster">
+      <h2>Roster — revealed by date, not by design</h2>
+      <div class="roster" id="roster"></div>
+    </section>
+    <section class="panel" aria-label="Round-by-round log">
+      <h2>Control room — live descending-neuron reading, per date</h2>
+      <div class="log" id="log"></div>
+    </section>
+  </div>
+
+  <div id="verdict"></div>
+
+  <footer>
+    Every date, every reading, and the final proposal above is the real output of
+    <code>flybrain.FlyBrain</code> — the actual 166,700-neuron MaleCNS connectome,
+    simulated spike by spike. There is no model and nothing is trained: each
+    candidate has one dedicated real neuron population; dating them means
+    stimulating that population for 0.5&nbsp;s at a strength set by their true
+    compatibility, then reading the settled mean spike trace of the brain's own
+    descending neurons. The proposal always goes to whichever candidate produced
+    the strongest live reading. The "compatibility by scent" assignment of seats
+    to neuron populations is made up for this demo — nothing here claims a real
+    fly picks mates this way.
+  </footer>
+</div>
+
+<script>
+const SEASONS = __SEASONS_JSON__;
+// No character names: every episode is an INDEPENDENT random problem (a
+// fresh compatibility draw for all 5 seats each time) -- there is no
+// persistent contestant identity for a name to legitimately attach to, so
+// seats are labeled generically.
+function seatLabel(i){ return 'Seat ' + (i + 1); }
+// Well-spaced hues, deliberately avoiding the crimson (~5) and gold (~45)
+// bands those are reserved for the verdict panel's own meaning.
+const SEAT_HUES = [200, 300, 150, 260, 90];
+const MAX_ROUNDS = 6;
+
+function avatarSvg(seat, size){
+  // A cartoon fly, front-on: two angled wings behind a striped oval body,
+  // a round head with big compound eyes (the actual identifying feature
+  // of a fly's face), and a pair of antennae -- not a generic face-blob.
+  const hue = SEAT_HUES[seat % SEAT_HUES.length];
+  const bg = 'hsl(' + hue + ',60%,46%)';
+  return (
+    '<svg class="avatar" width="' + size + '" height="' + size + '" viewBox="0 0 30 30" aria-hidden="true">' +
+      '<circle cx="15" cy="15" r="15" fill="' + bg + '"/>' +
+      '<ellipse cx="7.5" cy="18" rx="6.2" ry="3.1" fill="#fff" fill-opacity=".38" transform="rotate(-30 7.5 18)"/>' +
+      '<ellipse cx="22.5" cy="18" rx="6.2" ry="3.1" fill="#fff" fill-opacity=".38" transform="rotate(30 22.5 18)"/>' +
+      '<line x1="13.2" y1="6.3" x2="11.4" y2="3.6" stroke="#fff" stroke-width=".9" stroke-linecap="round"/>' +
+      '<line x1="16.8" y1="6.3" x2="18.6" y2="3.6" stroke="#fff" stroke-width=".9" stroke-linecap="round"/>' +
+      '<circle cx="11.4" cy="3.6" r=".7" fill="#fff"/>' +
+      '<circle cx="18.6" cy="3.6" r=".7" fill="#fff"/>' +
+      '<ellipse cx="15" cy="21" rx="4.4" ry="6" fill="#fff"/>' +
+      '<path d="M10.8 18.5h8.4M10.9 22h8.2" stroke="' + bg + '" stroke-width="1" stroke-opacity=".55" stroke-linecap="round"/>' +
+      '<circle cx="15" cy="10.6" r="5.3" fill="#fff"/>' +
+      '<circle cx="12.2" cy="10" r="2.5" fill="' + bg + '"/>' +
+      '<circle cx="17.8" cy="10" r="2.5" fill="' + bg + '"/>' +
+      '<circle cx="11.5" cy="9.2" r=".55" fill="#fff" fill-opacity=".85"/>' +
+      '<circle cx="17.1" cy="9.2" r=".55" fill="#fff" fill-opacity=".85"/>' +
+    '</svg>'
+  );
+}
+
+const tabsEl = document.getElementById('tabs');
+const rosterEl = document.getElementById('roster');
+const logEl = document.getElementById('log');
+const verdictEl = document.getElementById('verdict');
+const recordEl = document.getElementById('record-chip');
+
+let active = 0;
+
+function buildTabs(){
+  tabsEl.innerHTML = '';
+  SEASONS.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.className = 'tab';
+    b.setAttribute('role','tab');
+    b.setAttribute('data-verdict', s.correct ? 'correct' : 'wrong');
+    b.setAttribute('aria-selected', i === active ? 'true' : 'false');
+    b.innerHTML = 'Ep ' + String(i+1).padStart(2,'0') + '<span class="badge"></span>';
+    b.addEventListener('click', () => { active = i; render(); });
+    tabsEl.appendChild(b);
+  });
+}
+
+function whoDated(season){
+  const dated = {};
+  season.rounds.forEach(r => {
+    if (r.kind === 'date'){
+      dated[r.candidate] = dated[r.candidate] || {value:r.revealed_value, count:0};
+      dated[r.candidate].count += 1;
+    }
+  });
+  return dated;
+}
+
+function renderRoster(season){
+  const dated = whoDated(season);
+  rosterEl.innerHTML = '';
+  for (let i = 0; i < season.compat.length; i++){
+    const info = dated[i];
+    const div = document.createElement('div');
+    div.className = 'contestant' + (season.proposed === i ? ' picked' : '');
+    const reading = info
+      ? '<span class="val">' + info.value + '</span><span class="unit">/ 10 revealed</span>'
+      : '<span class="val hidden-val">?</span><span class="unit">never dated</span>';
+    div.innerHTML =
+      (season.proposed === i ? '<span class="pick-tag">Proposed to</span>' : '') +
+      '<div class="head">' + avatarSvg(i, 40) +
+        '<div class="id"><span class="name">' + seatLabel(i) + '</span></div>' +
+      '</div>' +
+      '<span class="reading">' + reading + '</span>' +
+      '<span class="dates">' + (info ? info.count + (info.count===1?' date':' dates') : '0 dates') + '</span>';
+    rosterEl.appendChild(div);
+  }
+}
+
+function renderLog(season){
+  logEl.innerHTML = '';
+  season.rounds.forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'log-row' + (r.kind === 'propose' ? ' propose' : '');
+    const what = r.kind === 'date'
+      ? avatarSvg(r.candidate, 20) + 'Dated <b>' + seatLabel(r.candidate) + '</b> — revealed ' + r.revealed_value + '/10'
+      : avatarSvg(r.candidate, 20) + 'PROPOSED to <b>' + seatLabel(r.candidate) + '</b>';
+    row.innerHTML =
+      '<span class="rnd mono">' + (i+1 <= MAX_ROUNDS ? String(i+1).padStart(2,'0') : String(i+1)) + '</span>' +
+      '<span class="what">' + what + '</span>' +
+      '<span class="read mono">brain read ' + r.value_before.toFixed(3) + '</span>';
+    logEl.appendChild(row);
+  });
+}
+
+function renderVerdict(season){
+  const bestName = seatLabel(season.true_best);
+  const proposedName = season.proposed !== null ? seatLabel(season.proposed) : null;
+  const cls = season.correct ? 'correct' : 'wrong';
+  const headline = season.correct ? 'True love, verified.' : 'Heartbreak, verified.';
+  const sub = season.correct
+    ? proposedName + ' really was the best match in the pool (' + season.compat[season.proposed] + '/10). The live reading found it.'
+    : (proposedName
+        ? proposedName + ' scored ' + season.compat[season.proposed] + '/10. ' + bestName + ' was actually the best match at ' + season.compat[season.true_best] + '/10.'
+        : 'No proposal happened this season.');
+
+  const board = season.compat.map((c, i) => {
+    let cls2 = 'reveal-chip';
+    if (i === season.true_best) cls2 += ' best';
+    if (i === season.proposed) cls2 += ' chosen';
+    return '<span class="' + cls2 + '">' + avatarSvg(i, 16) + seatLabel(i) + ' ' + c + '</span>';
+  }).join('');
+
+  verdictEl.innerHTML =
+    '<div class="verdict ' + cls + '">' +
+      '<div>' +
+        '<div class="headline display">' + headline + '</div>' +
+        '<div class="sub">' + sub + '</div>' +
+        '<div class="reveal-board">' + board + '</div>' +
+      '</div>' +
+      '<div class="stat">' +
+        '<div class="n">' + season.dates_used + '</div><div class="l">dates used</div>' +
+      '</div>' +
+      '<div class="stat">' +
+        '<div class="n">' + season.total_reward.toFixed(1) + '</div><div class="l">total reward</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderRecord(){
+  const correct = SEASONS.filter(s => s.correct).length;
+  recordEl.innerHTML = 'Season record <b>' + correct + ' / ' + SEASONS.length + '</b> correct';
+}
+
+function render(){
+  Array.from(tabsEl.children).forEach((b, i) => b.setAttribute('aria-selected', i === active ? 'true':'false'));
+  const season = SEASONS[active];
+  renderRoster(season);
+  renderLog(season);
+  renderVerdict(season);
+}
+
+buildTabs();
+renderRecord();
+render();
+</script>

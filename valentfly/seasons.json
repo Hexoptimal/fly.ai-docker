@@ -1,0 +1,466 @@
+[
+  {
+    "compat": [
+      2,
+      9,
+      1,
+      4,
+      1
+    ],
+    "true_best": 1,
+    "rounds": [
+      {
+        "kind": "date",
+        "candidate": 0,
+        "value_before": 0.2026,
+        "reward": -1.0,
+        "revealed_value": 2
+      },
+      {
+        "kind": "date",
+        "candidate": 1,
+        "value_before": 0.3105,
+        "reward": -1.0,
+        "revealed_value": 9
+      },
+      {
+        "kind": "date",
+        "candidate": 2,
+        "value_before": 0.2825,
+        "reward": -1.0,
+        "revealed_value": 1
+      },
+      {
+        "kind": "date",
+        "candidate": 3,
+        "value_before": 0.3087,
+        "reward": -1.0,
+        "revealed_value": 4
+      },
+      {
+        "kind": "date",
+        "candidate": 4,
+        "value_before": 0.2794,
+        "reward": -1.0,
+        "revealed_value": 1
+      },
+      {
+        "kind": "propose",
+        "candidate": 1,
+        "value_before": 0.3105,
+        "reward": 0.0,
+        "revealed_value": null
+      }
+    ],
+    "proposed": 1,
+    "correct": true,
+    "total_reward": -5.0,
+    "dates_used": 5
+  },
+  {
+    "compat": [
+      7,
+      7,
+      10,
+      6,
+      3
+    ],
+    "true_best": 2,
+    "rounds": [
+      {
+        "kind": "date",
+        "candidate": 0,
+        "value_before": 0.254,
+        "reward": -1.0,
+        "revealed_value": 7
+      },
+      {
+        "kind": "date",
+        "candidate": 1,
+        "value_before": 0.2539,
+        "reward": -1.0,
+        "revealed_value": 7
+      },
+      {
+        "kind": "date",
+        "candidate": 2,
+        "value_before": 0.2774,
+        "reward": -1.0,
+        "revealed_value": 10
+      },
+      {
+        "kind": "date",
+        "candidate": 3,
+        "value_before": 0.2793,
+        "reward": -1.0,
+        "revealed_value": 6
+      },
+      {
+        "kind": "date",
+        "candidate": 4,
+        "value_before": 0.2878,
+        "reward": -1.0,
+        "revealed_value": 3
+      },
+      {
+        "kind": "propose",
+        "candidate": 4,
+        "value_before": 0.2878,
+        "reward": -12.0,
+        "revealed_value": null
+      }
+    ],
+    "proposed": 4,
+    "correct": false,
+    "total_reward": -17.0,
+    "dates_used": 5
+  },
+  {
+    "compat": [
+      7,
+      0,
+      6,
+      6,
+      9
+    ],
+    "true_best": 4,
+    "rounds": [
+      {
+        "kind": "date",
+        "candidate": 0,
+        "value_before": 0.2452,
+        "reward": -1.0,
+        "revealed_value": 7
+      },
+      {
+        "kind": "date",
+        "candidate": 1,
+        "value_before": 0.2811,
+        "reward": -1.0,
+        "revealed_value": 0
+      },
+      {
+        "kind": "date",
+        "candidate": 2,
+        "value_before": 0.2563,
+        "reward": -1.0,
+        "revealed_value": 6
+      },
+      {
+        "kind": "date",
+        "candidate": 3,
+        "value_before": 0.283,
+        "reward": -1.0,
+        "revealed_value": 6
+      },
+      {
+        "kind": "date",
+        "candidate": 4,
+        "value_before": 0.2848,
+        "reward": -1.0,
+        "revealed_value": 9
+      },
+      {
+        "kind": "propose",
+        "candidate": 4,
+        "value_before": 0.2848,
+        "reward": 0.0,
+        "revealed_value": null
+      }
+    ],
+    "proposed": 4,
+    "correct": true,
+    "total_reward": -5.0,
+    "dates_used": 5
+  },
+  {
+    "compat": [
+      7,
+      4,
+      3,
+      9,
+      1
+    ],
+    "true_best": 3,
+    "rounds": [
+      {
+        "kind": "date",
+        "candidate": 0,
+        "value_before": 0.2317,
+        "reward": -1.0,
+        "revealed_value": 7
+      },
+      {
+        "kind": "date",
+        "candidate": 1,
+        "value_before": 0.2802,
+        "reward": -1.0,
+        "revealed_value": 4
+      },
+      {
+        "kind": "date",
+        "candidate": 2,
+        "value_before": 0.2921,
+        "reward": -1.0,
+        "revealed_value": 3
+      },
+      {
+        "kind": "date",
+        "candidate": 3,
+        "value_before": 0.2587,
+        "reward": -1.0,
+        "revealed_value": 9
+      },
+      {
+        "kind": "date",
+        "candidate": 4,
+        "value_before": 0.2976,
+        "reward": -1.0,
+        "revealed_value": 1
+      },
+      {
+        "kind": "propose",
+        "candidate": 4,
+        "value_before": 0.2976,
+        "reward": -13.0,
+        "revealed_value": null
+      }
+    ],
+    "proposed": 4,
+    "correct": false,
+    "total_reward": -18.0,
+    "dates_used": 5
+  },
+  {
+    "compat": [
+      0,
+      0,
+      0,
+      10,
+      8
+    ],
+    "true_best": 3,
+    "rounds": [
+      {
+        "kind": "date",
+        "candidate": 0,
+        "value_before": 0.2224,
+        "reward": -1.0,
+        "revealed_value": 0
+      },
+      {
+        "kind": "date",
+        "candidate": 1,
+        "value_before": 0.3101,
+        "reward": -1.0,
+        "revealed_value": 0
+      },
+      {
+        "kind": "date",
+        "candidate": 2,
+        "value_before": 0.2654,
+        "reward": -1.0,
+        "revealed_value": 0
+      },
+      {
+        "kind": "date",
+        "candidate": 3,
+        "value_before": 0.273,
+        "reward": -1.0,
+        "revealed_value": 10
+      },
+      {
+        "kind": "date",
+        "candidate": 4,
+        "value_before": 0.2697,
+        "reward": -1.0,
+        "revealed_value": 8
+      },
+      {
+        "kind": "propose",
+        "candidate": 1,
+        "value_before": 0.3101,
+        "reward": -15.0,
+        "revealed_value": null
+      }
+    ],
+    "proposed": 1,
+    "correct": false,
+    "total_reward": -20.0,
+    "dates_used": 5
+  },
+  {
+    "compat": [
+      6,
+      10,
+      3,
+      6,
+      0
+    ],
+    "true_best": 1,
+    "rounds": [
+      {
+        "kind": "date",
+        "candidate": 0,
+        "value_before": 0.2418,
+        "reward": -1.0,
+        "revealed_value": 6
+      },
+      {
+        "kind": "date",
+        "candidate": 1,
+        "value_before": 0.2904,
+        "reward": -1.0,
+        "revealed_value": 10
+      },
+      {
+        "kind": "date",
+        "candidate": 2,
+        "value_before": 0.3073,
+        "reward": -1.0,
+        "revealed_value": 3
+      },
+      {
+        "kind": "date",
+        "candidate": 3,
+        "value_before": 0.2713,
+        "reward": -1.0,
+        "revealed_value": 6
+      },
+      {
+        "kind": "date",
+        "candidate": 4,
+        "value_before": 0.2704,
+        "reward": -1.0,
+        "revealed_value": 0
+      },
+      {
+        "kind": "propose",
+        "candidate": 2,
+        "value_before": 0.3073,
+        "reward": -12.0,
+        "revealed_value": null
+      }
+    ],
+    "proposed": 2,
+    "correct": false,
+    "total_reward": -17.0,
+    "dates_used": 5
+  },
+  {
+    "compat": [
+      7,
+      7,
+      8,
+      3,
+      5
+    ],
+    "true_best": 2,
+    "rounds": [
+      {
+        "kind": "date",
+        "candidate": 0,
+        "value_before": 0.2421,
+        "reward": -1.0,
+        "revealed_value": 7
+      },
+      {
+        "kind": "date",
+        "candidate": 1,
+        "value_before": 0.2672,
+        "reward": -1.0,
+        "revealed_value": 7
+      },
+      {
+        "kind": "date",
+        "candidate": 2,
+        "value_before": 0.2719,
+        "reward": -1.0,
+        "revealed_value": 8
+      },
+      {
+        "kind": "date",
+        "candidate": 3,
+        "value_before": 0.2657,
+        "reward": -1.0,
+        "revealed_value": 3
+      },
+      {
+        "kind": "date",
+        "candidate": 4,
+        "value_before": 0.2895,
+        "reward": -1.0,
+        "revealed_value": 5
+      },
+      {
+        "kind": "propose",
+        "candidate": 4,
+        "value_before": 0.2895,
+        "reward": -8.0,
+        "revealed_value": null
+      }
+    ],
+    "proposed": 4,
+    "correct": false,
+    "total_reward": -13.0,
+    "dates_used": 5
+  },
+  {
+    "compat": [
+      10,
+      3,
+      7,
+      4,
+      0
+    ],
+    "true_best": 0,
+    "rounds": [
+      {
+        "kind": "date",
+        "candidate": 0,
+        "value_before": 0.2604,
+        "reward": -1.0,
+        "revealed_value": 10
+      },
+      {
+        "kind": "date",
+        "candidate": 1,
+        "value_before": 0.2531,
+        "reward": -1.0,
+        "revealed_value": 3
+      },
+      {
+        "kind": "date",
+        "candidate": 2,
+        "value_before": 0.2928,
+        "reward": -1.0,
+        "revealed_value": 7
+      },
+      {
+        "kind": "date",
+        "candidate": 3,
+        "value_before": 0.3016,
+        "reward": -1.0,
+        "revealed_value": 4
+      },
+      {
+        "kind": "date",
+        "candidate": 4,
+        "value_before": 0.2928,
+        "reward": -1.0,
+        "revealed_value": 0
+      },
+      {
+        "kind": "propose",
+        "candidate": 3,
+        "value_before": 0.3016,
+        "reward": -11.0,
+        "revealed_value": null
+      }
+    ],
+    "proposed": 3,
+    "correct": false,
+    "total_reward": -16.0,
+    "dates_used": 5
+  }
+]
