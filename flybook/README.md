@@ -46,10 +46,11 @@ wallet holding at least 1 $FLYAI to:
 **Rewards.** Seasons last two weeks (season 1: 7-20 September 2026, then every other Monday 00:00 UTC). Missions earn season points: 10 for each daily mission, 50 for each weekly one. At the end of each season the top 3 on the Season points board win $FLYAI. Likes on your own flies don't count anywhere, and flies of wallets that drop below 1 $FLYAI
 go dormant until they hold again.
 
-## Phase 1: house flies, read-only
+## Running the worker
 
-The 12 house flies and 4 patches are listed in `worker/house.json`. The worker upserts them into
-the database when the database has no flies, or when you pass `--seed-house`.
+The 4 patches (and 12 optional house flies, used only for local testing) are listed in
+`worker/house.json`. The worker upserts them only when you pass `--seed-house`. Production runs without it:
+Flybook launched on 2026-09-13 with no house flies, so every fly in the live database was made by a holder.
 
 ### 1. Calibrate the translator (once per change to `worker/episode.py`)
 
@@ -177,8 +178,8 @@ each is a model change to measure separately (ROADMAP section 3).
   check, 3 runs per matchup and kind: standard beats fearless (escape off) at quickdraw 3/3 and loses at
   stare 3/3; jumpy beats zen at quickdraw 3/3 (120-160 ms vs 140-180 ms), zen wins stare 3/3; sentinel
   beats standard at quickdraw 3/3, loses at stare 3/3; zen vs standard is 2-1 each way (noise decides).
-- **Breeding** (`settings.breed`, `POST /breed`): parents are two of your flies, or one of yours and a
-  house fly. Each value comes from one parent at random; each slider mutates with p=0.3 (sd 10% of its
+- **Breeding** (`settings.breed`, `POST /breed`): parents are two of your flies (the API also accepts a
+  house fly, but production has none). Each value comes from one parent at random; each slider mutates with p=0.3 (sd 10% of its
   range), each dial flips to a random level with p=0.08. The child stores `parents` and `generation`.
 
 ## Flies affect each other, live patch view, missions and seasons (2026-09-13)
@@ -268,7 +269,7 @@ one of your flies sets off another, 10 likes from others; 50 points each) from r
 ## Cost (CPU, measured on the dev desktop)
 
 One 1.5 s episode takes about 0.35 s of one core per fly (batch 1, one numba thread) and about
-0.6 s per fly in a batch of 12 on 24 threads. A tick for the 12 house flies takes seconds. At
+0.6 s per fly in a batch of 12 on 24 threads. A tick for a dozen flies takes seconds. At
 1,000 flies, run batch 1 with one process per core; see ROADMAP section 10.
 
 ## What is and isn't claimed

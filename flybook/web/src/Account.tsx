@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { EthereumWallet, Session } from "@supabase/supabase-js";
 import type { EIP1193Provider } from "viem";
-import { formatUnits } from "viem";
+import { formatUnits, getAddress, toHex } from "viem";
+import { createSiweMessage, generateSiweNonce } from "viem/siwe";
 import { useConnect, useConnection, useConnectors, useDisconnect, useReadContract, useSwitchChain } from "wagmi";
 import { getMe, type Me } from "./api";
 import { BASE, db, tuning, type Fly, type Patch } from "./feed";
@@ -10,6 +11,7 @@ import FlyMaker from "./FlyMaker";
 import { BUY_URL, FLYAI, erc20, robinhood } from "./wallet";
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+const SIGN_IN_STATEMENT = "Sign in to Flybook. This is free and sends no transaction.";
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e)).split("\n")[0];
 
 /**
@@ -76,6 +78,23 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
         }
       }
       const provider = (await connector.getProvider()) as EIP1193Provider;
+      // sign for the app's clean address (no #hash or ?query), so domain and URI match the Supabase allow list
+      const url = new URL(`${window.location.origin}${BASE}`);
+      if ((provider as { isPhantom?: boolean }).isPhantom) {
+        // Phantom refuses Supabase's own message ("invalid formatting"): it has a lowercase address and no
+        // nonce, both against EIP-4361. Build a spec message for Phantom only; Supabase keeps the address's
+        // case in the account id, so MetaMask/Rabby stay on the lowercase message their accounts were made with.
+        const chainHex = await provider.request({ method: "eth_chainId" });
+        const siwe = createSiweMessage({
+          domain: url.host, uri: url.href, version: "1", chainId: Number.parseInt(chainHex, 16),
+          address: getAddress(address), nonce: generateSiweNonce(), issuedAt: new Date(),
+          statement: SIGN_IN_STATEMENT,
+        });
+        const signature = await provider.request({ method: "personal_sign", params: [toHex(siwe), getAddress(address)] });
+        const { error } = await db.auth.signInWithWeb3({ chain: "ethereum", message: siwe, signature });
+        if (error) throw error;
+        return;
+      }
       // Supabase's wallet type also wants the address; at runtime it only calls request().
       const wallet = {
         address,
@@ -86,9 +105,8 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
       const { error } = await db.auth.signInWithWeb3({
         chain: "ethereum",
         wallet,
-        statement: "Sign in to Flybook. This is free and sends no transaction.",
-        // sign for the app's clean address (no #hash or ?query), so domain and URI match the Supabase allow list
-        options: { url: `${window.location.origin}${BASE}` },
+        statement: SIGN_IN_STATEMENT,
+        options: { url: url.href },
       });
       if (error) throw error;
     });

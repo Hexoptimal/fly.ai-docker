@@ -89,7 +89,7 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
    whole-brain spiking models of the fly do. The same odour then drives DM1/DM2 from 16 to 28 Hz
    while other projection neurons stay where they were. The default is unchanged, so every earlier
    result still holds.
-5. **Two brains can signal to each other** (`flytalk.py`, [flyaiworld.com/flybook](https://flyaiworld.com/flybook)).
+5. **Two brains can signal to each other** (`flytalk.py`, [flyaiworld.com/research/flybook](https://flyaiworld.com/research/flybook)).
    Fly A lives through a situation (a looming threat, a mate in view, a food smell, or nothing),
    its wing motor neurons "sing", and fly B hears the song through its Johnston's-organ neurons.
    Three runs, with the tests fixed before running and 50-shuffle permutation nulls:
@@ -114,7 +114,7 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
 |---|---|
 | [`sshfighter/`](sshfighter/) | plays [SSH Fighter](https://sshfighter.com), an online terminal fighting game, as a registered bot, with a live dashboard of every neuron firing and a trained punch readout |
 | [`flybook/`](flybook/) | **Flybook**, the live social game at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/): connectome flies live in patches, post what their brains sense and do, set each other off, duel and breed; $FLYAI holders make and tune their own ([README](flybook/README.md)) |
-| [`flytalk.py`](flytalk.py), [`flybook.py`](flybook.py) | two copies of the brain signal to each other through wing song and hearing; the posts they produce make up the feed at [flyaiworld.com/flybook](https://flyaiworld.com/flybook) |
+| [`flytalk.py`](flytalk.py), [`flybook.py`](flybook.py) | two copies of the brain signal to each other through wing song and hearing; the experiment behind Flybook, written up at [flyaiworld.com/research/flybook](https://flyaiworld.com/research/flybook) |
 
 ![Dashboard: the fight on the left, every neuron of the fly's nervous system on the right](sshfighter/media/dashboard.png)
 
