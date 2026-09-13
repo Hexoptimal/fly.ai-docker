@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import type { EthereumWallet, Session } from "@supabase/supabase-js";
 import type { EIP1193Provider } from "viem";
 import { formatUnits } from "viem";
-import { useConnect, useConnection, useConnectors, useDisconnect, useReadContract } from "wagmi";
+import { useConnect, useConnection, useConnectors, useDisconnect, useReadContract, useSwitchChain } from "wagmi";
 import { getMe, type Me } from "./api";
-import { db, tuning, type Fly, type Patch } from "./feed";
+import { BASE, db, tuning, type Fly, type Patch } from "./feed";
 import BreedDialog from "./BreedDialog";
 import FlyMaker from "./FlyMaker";
 import { BUY_URL, FLYAI, erc20, robinhood } from "./wallet";
@@ -21,10 +21,11 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
   patches: Patch[]; live: boolean; onCreated: () => void; house: Fly[];
   onViewer: (viewer: { userId: string; holder: boolean } | null) => void;
 }) {
-  const { address, isConnected, connector } = useConnection();
+  const { address, isConnected, connector, chainId } = useConnection();
   const connectors = useConnectors();
   const connect = useConnect();
   const disconnect = useDisconnect();
+  const switchChain = useSwitchChain();
   const balance = useReadContract({
     address: FLYAI, abi: erc20, functionName: "balanceOf", chainId: robinhood.id,
     args: address ? [address] : undefined, query: { enabled: !!address },
@@ -66,6 +67,14 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
   const signIn = () =>
     run(async () => {
       if (!db || !connector || !address) throw new Error("Wallet not ready, try connecting again.");
+      // sign on Robinhood Chain: switch the wallet first (wagmi adds the chain if the wallet doesn't have it)
+      if (chainId !== robinhood.id) {
+        try {
+          await switchChain.mutateAsync({ chainId: robinhood.id });
+        } catch {
+          throw new Error("Switch your wallet to Robinhood Chain to sign in.");
+        }
+      }
       const provider = (await connector.getProvider()) as EIP1193Provider;
       // Supabase's wallet type also wants the address; at runtime it only calls request().
       const wallet = {
@@ -78,6 +87,8 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
         chain: "ethereum",
         wallet,
         statement: "Sign in to Flybook. This is free and sends no transaction.",
+        // sign for the app's clean address (no #hash or ?query), so domain and URI match the Supabase allow list
+        options: { url: `${window.location.origin}${BASE}` },
       });
       if (error) throw error;
     });
