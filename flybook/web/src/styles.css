@@ -223,6 +223,19 @@ button.step.toggle small { color: var(--dim); font: 12px var(--sans); }
 .chain { margin: 8px 0 -4px; font: 500 12px var(--mono); color: var(--cool); }
 .chain a { color: var(--cool); }
 .post.caused { box-shadow: inset 3px 0 0 rgba(108,196,216,.55); }
+/* events in the feed: duels, matings, hatchings (App.tsx EventCard) */
+.post.event { padding: 12px 16px; background: transparent; border-style: dashed; }
+.event-line { margin: 0 0 4px; font-size: 15px; line-height: 1.5; }
+.event-line .when { margin-left: 6px; font-size: 12px; color: var(--muted); }
+.event-icon { margin-right: 4px; }
+.who.inline { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+.post.event .fine { margin: 0; }
+.round { list-style: none; margin: 4px 0 0; padding: 0; font-size: 14px; line-height: 1.7; }
+.round .fine { margin-left: 6px; font: 400 11px var(--mono); }
+.repeat { margin-left: auto; font: 500 11px var(--mono); color: var(--muted); background: none; border: 1px solid var(--line);
+  border-radius: 999px; padding: 2px 8px; cursor: pointer; }
+.repeat:hover { color: inherit; }
+.milestone { margin: 10px 0 -4px; font: 600 12px var(--mono); color: #f2b544; letter-spacing: .02em; }
 .missions h5 { margin: 12px 0 6px; font: 600 12px var(--display); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 .missions ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .missions li { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "label pts" "bar count"; gap: 3px 8px; font-size: 13px; }

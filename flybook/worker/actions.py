@@ -59,10 +59,20 @@ class ActionReader:
         for r in range(math.ceil(episodes / B)):
             counts, wing = self.eps.run(["nothing"] * B, seed=seed + r)
             rows.append(self.values(counts, wing))
-        X = np.vstack(rows)
+        return self.fit_values(np.vstack(rows))
+
+    def fit_values(self, X: np.ndarray) -> dict:
+        """Resting statistics from rows of values() (readout.py passes flies in a patch that had nothing happen)."""
         self.mean, self.sd = X.mean(0), np.maximum(X.std(0), SD_FLOOR)
         self.rest = {a["key"]: {"mean": round(float(m), 2), "sd": round(float(s), 2)} for a, m, s in zip(ACTIONS, self.mean, self.sd)}
         return self.rest
+
+    def use(self, rest: dict) -> dict:
+        """Resting statistics saved in model/vocab.json by readout.py, instead of fitting at startup."""
+        self.mean = np.array([rest[a["key"]]["mean"] for a in ACTIONS], float)
+        self.sd = np.maximum(np.array([rest[a["key"]]["sd"] for a in ACTIONS], float), SD_FLOOR)
+        self.rest = rest
+        return rest
 
     def read(self, counts: np.ndarray, wing: np.ndarray) -> list[list[dict]]:
         """For each fly, the actions it performed as [{key, z, (side)}], strongest first."""

@@ -9,11 +9,12 @@ import { Caption, Comments } from "./PostSocial";
 import { pokePatch, setLike } from "./api";
 import { badgesFor, type Badge, type BoardRow } from "./badges";
 import {
-  BASE, fetchPost, likeCount, load, loadBoard, loadComments, loadFlies, loadPokes, loadPositions, loadReplays, myLikes,
-  subscribe, tuning, type Duel, type Fly, type Patch, type Poke, type Post, type Replay, type Snapshot,
+  BASE, fetchPost, likeCount, load, loadBoard, loadComments, loadDuels, loadFlies, loadMatings, loadPokes, loadPositions,
+  loadReplays, myLikes, subscribe, tuning, type Duel, type Fly, type Mating, type Patch, type Poke, type Post, type Replay,
+  type Snapshot,
 } from "./feed";
 import { postUrl, saveCard, shareOnX } from "./share";
-import { POKES, WORDS, actionText, causeText, joinActions, word } from "./words";
+import { POKES, WORDS, actionText, causeText, joinActions, line, ordinal, pick, strongest, word } from "./words";
 
 const SCIENCE_URL = "/research/flybook";
 const SITE_URL = "/";
@@ -32,29 +33,65 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const viewOf = (hash: string): View => (hash === "#leaderboard" ? "board" : hash === "#arena" ? "arena" : "feed");
 
+/** Extra context about a post from the rest of the feed: the same word several times in a row, a round-number post. */
+type PostContext = { streak: number; number?: number };
+
+const MILESTONES = new Set([10, 50, 100, 250, 500, 1000, 2500, 5000, 10000]);
+
 /** A post's headline and detail line, from what the brain read, what the fly did, and what caused it. */
-function describe(post: Post, flies: Map<string, Fly>): { headline: string; detail: string; tone: "ok" | "miss" | "dream" | "plain" } {
-  const w = word(post.word);
-  const did = post.actions?.length ? joinActions(post.actions) : "";
+function describe(post: Post, flies: Map<string, Fly>, ctx: PostContext = { streak: 1 }):
+  { headline: string; detail: string; tone: "ok" | "miss" | "dream" | "plain" } {
+  const did = joinActions(strongest(post.actions));
   const really = post.cause
-    ? causeText(post.cause.channel, flies.get(post.cause.from_fly_id)?.name ?? "a neighbour")
+    ? causeText(post.cause.channel, flies.get(post.cause.from_fly_id)?.name ?? "a neighbour", post.cause.strength)
     : WORDS[post.truth]?.really ?? post.truth;
+  const streak = ctx.streak >= 3 && post.word !== "nothing" ? ` ${cap(ordinal(ctx.streak))} ${word(post.word).tag} read in a row.` : "";
   switch (post.kind) {
     case "hallucination":
-      return { headline: w.says, detail: `Hallucination: nothing was there${did ? `, but it ${did}` : ""}.`, tone: "dream" };
+      return {
+        headline: line(post.word, false, post.id),
+        detail: pick([`Hallucination: nothing was there${did ? `, but it ${did}` : ""}.`,
+                      `Nothing happened. Its brain made that up${did ? `, and it ${did}` : ""}.`,
+                      `No ${word(post.word).tag} anywhere${did ? `. It ${did} anyway` : ""}.`], post.id, 1) + streak,
+        tone: "dream",
+      };
     case "misread":
-      return { headline: w.says, detail: `Misread: really ${really}${did ? `. It ${did}` : ""}.`, tone: "miss" };
+      return {
+        headline: line(post.word, false, post.id),
+        detail: pick([`Misread: really ${really}${did ? `. It ${did}` : ""}.`,
+                      `Not quite: it was ${really}${did ? `. It ${did}` : ""}.`,
+                      `Wrong guess. Really ${really}${did ? `, and it ${did}` : ""}.`], post.id, 1) + streak,
+        tone: "miss",
+      };
     case "action":
       return {
-        headline: `${cap(did)}.`,
-        detail: post.cause ? `Reacting to ${really}.`
-          : post.truth === "nothing" ? "Nothing happened. Its brain did this on its own." : `Really: ${really}. It didn't put a word to it.`,
+        headline: `${cap(did || "moved")}.`,
+        detail: post.cause ? pick([`Reacting to ${really}.`, `Set off by ${really}.`], post.id, 1)
+          : post.truth === "nothing" ? pick(["Nothing happened. Its brain did this on its own.", "No reason at all. Just its neurons."], post.id, 1)
+          : `Really: ${really}. It didn't put a word to it.`,
         tone: "plain",
       };
     default:
-      return { headline: w.says, detail: `Really: ${really}${did ? `. Then it ${did}` : ""}.`, tone: "ok" };
+      return {
+        headline: line(post.word, true, post.id),
+        detail: pick([`Really: ${really}${did ? `. Then it ${did}` : ""}.`,
+                      `Right: ${really}${did ? `. It ${did}` : ""}.`,
+                      `Read it right, ${really}${did ? `. It ${did}` : ""}.`], post.id, 1) + streak,
+        tone: "ok",
+      };
   }
 }
+
+/** One row of the feed: a post (with any identical posts folded into it), or something that happened. */
+type FeedItem =
+  | { type: "post"; at: string; post: Post; folded: Post[] }
+  | { type: "duels"; at: string; duels: Duel[] }        // duels that finished within DUEL_ROUND_MS of each other
+  | { type: "mating"; at: string; mating: Mating }
+  | { type: "hatch"; at: string; fly: Fly };
+
+const FOLD_MS = 30 * 60_000;
+const DUEL_ROUND_MS = 2 * 60_000;
+const foldKey = (p: Post) => `${p.kind}|${p.word}|${p.truth}|${strongest(p.actions, 1)[0]?.key ?? ""}`;
 
 export default function App() {
   const [snap, setSnap] = useState<Snapshot | null>(null);
@@ -73,6 +110,10 @@ export default function App() {
   const [replays, setReplays] = useState<Map<string, { tickId: number; replay: Replay }>>(new Map());
   const [commentTicks, setCommentTicks] = useState<Map<number, number>>(new Map());
   const [liveDuel, setLiveDuel] = useState<Duel | null>(null);
+  const [duels, setDuels] = useState<Duel[]>([]);
+  const [matings, setMatings] = useState<Mating[]>([]);
+  const [boardAt, setBoardAt] = useState(0);            // newest post id when the board totals were read
+  const [unfolded, setUnfolded] = useState<Set<number>>(new Set());
   const [view, setView] = useState<View>(() => viewOf(location.hash));
   const [focus, setFocus] = useState<number | null>(() => {
     const m = location.hash.match(/^#post-(\d+)$/);
@@ -100,11 +141,28 @@ export default function App() {
     load().then(setSnap).catch((e) => setError(e?.message ?? String(e)));
   }, []);
   useEffect(reload, [reload]);
+  const refreshBoard = useCallback((newestPost: number) => {
+    loadBoard().then((b) => {
+      setBoard(b);
+      setBoardAt(newestPost);
+    });
+  }, []);
+  const refreshEvents = useCallback(() => {
+    loadDuels(40).then(setDuels);
+    loadMatings(30).then(setMatings);
+  }, []);
   useEffect(() => {
-    loadBoard().then(setBoard);
     loadPokes().then(setPokes);
     loadReplays().then(setReplays);
-  }, []);
+    refreshEvents();
+  }, [refreshEvents]);
+  useEffect(() => {
+    if (snap && !boardAt) refreshBoard(snap.posts[0]?.id ?? 0);
+  }, [!!snap]);
+  useEffect(() => {
+    if (!liveDuel) return;
+    setDuels((ds) => [liveDuel, ...ds.filter((d) => d.id !== liveDuel.id)]);
+  }, [liveDuel]);
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(t);
@@ -128,7 +186,11 @@ export default function App() {
               return next;
             });
           }
-          loadBoard().then(setBoard);
+          setSnap((s) => {
+            refreshBoard(s?.posts[0]?.id ?? 0);
+            return s;
+          });
+          refreshEvents();
           loadPositions().then((where) =>
             setSnap((s) => s && { ...s, flies: s.flies.map((f) => (where.has(f.id) ? { ...f, ...where.get(f.id) } : f)) }),
           );
@@ -189,6 +251,28 @@ export default function App() {
     return m;
   }, [snap?.posts]);
 
+  // streaks (the same word several reads in a row) and post numbers (from the board's per-fly total)
+  const context = useMemo(() => {
+    const out = new Map<number, PostContext>();
+    const byFly = new Map<string, Post[]>();
+    for (const p of [...(snap?.posts ?? [])].sort((a, b) => a.id - b.id)) {
+      const list = byFly.get(p.fly_id) ?? [];
+      list.push(p);
+      byFly.set(p.fly_id, list);
+    }
+    for (const [flyId, list] of byFly) {
+      const total = board.get(flyId)?.posts;
+      const counted = list.filter((p) => p.id <= boardAt).length;
+      let streak = 0;
+      list.forEach((p, i) => {
+        streak = i > 0 && p.word !== "nothing" && list[i - 1].word === p.word ? streak + 1 : 1;
+        const number = total !== undefined && boardAt ? total - counted + i + 1 : undefined;
+        out.set(p.id, { streak, number: number !== undefined && MILESTONES.has(number) ? number : undefined });
+      });
+    }
+    return out;
+  }, [snap?.posts, board, boardAt]);
+
   if (error) return <Shell><div className="empty">Couldn't load the feed: {error}</div></Shell>;
   if (!snap) return <Shell><div className="empty">Waking the flies…</div></Shell>;
 
@@ -229,6 +313,50 @@ export default function App() {
   };
 
   const shown = snap.posts.filter((p) => (patch === "all" || p.patch_id === patch) && (!flyId || p.fly_id === flyId));
+
+  // the feed: posts, with a fly's identical posts within FOLD_MS folded into the newest, plus real events
+  const items: FeedItem[] = [];
+  const open = new Map<string, { key: string; item: Extract<FeedItem, { type: "post" }>; oldest: number }>();
+  for (const p of shown) {                                        // newest first
+    const key = foldKey(p);
+    const group = open.get(p.fly_id);
+    const t = Date.parse(p.created_at);
+    if (group && group.key === key && group.oldest - t <= FOLD_MS && !unfolded.has(group.item.post.id)) {
+      group.item.folded.push(p);
+      group.oldest = t;
+      continue;
+    }
+    const item = { type: "post" as const, at: p.created_at, post: p, folded: [] as Post[] };
+    open.set(p.fly_id, { key, item, oldest: t });
+    items.push(item);
+  }
+  const oldestShown = shown.length ? shown[shown.length - 1].created_at : new Date(0).toISOString();
+  const inView = (ids: (string | null)[], patchId?: string) =>
+    (!flyId || ids.includes(flyId)) && (patch === "all" || patchId === patch);
+  // the worker settles several duels each tick: one card per round, not one per duel
+  const settled = duels
+    .filter((d) => d.status === "done" && d.done_at && d.done_at >= oldestShown && inView([d.a_fly, d.b_fly], flies.get(d.a_fly)?.patch_id))
+    .sort((a, b) => b.done_at!.localeCompare(a.done_at!));
+  let round: Duel[] = [];
+  const closeRound = () => {
+    if (round.length) items.push({ type: "duels", at: round[0].done_at!, duels: round });
+    round = [];
+  };
+  for (const d of settled) {
+    if (round.length && Date.parse(round[round.length - 1].done_at!) - Date.parse(d.done_at!) > DUEL_ROUND_MS) closeRound();
+    round.push(d);
+  }
+  closeRound();
+  for (const m of matings) {
+    const child = m.child ? flies.get(m.child) : undefined;
+    if (m.created_at >= oldestShown && inView([m.a_fly, m.b_fly, m.child], child?.patch_id)) items.push({ type: "mating", at: m.created_at, mating: m });
+  }
+  for (const f of snap.flies) {
+    if (f.owner && !f.auto_born && f.created_at && f.created_at >= oldestShown && inView([f.id], f.patch_id)) {
+      items.push({ type: "hatch", at: f.created_at, fly: f });
+    }
+  }
+  items.sort((a, b) => b.at.localeCompare(a.at));
   const activePatch = patches.get(patch);
   const activeFly = flyId ? flies.get(flyId) : undefined;
   const house = snap.flies.filter((f) => !f.owner);
@@ -325,12 +453,21 @@ export default function App() {
                     : "No flies yet. Flybook comes alive when holders make flies: hold $FLYAI, sign in, and hatch the first one."}
                 </div>
               )}
-              {shown.map((p) => (
-                <PostCard key={p.id} post={p} flies={flies} patch={patches.get(p.patch_id)} now={now}
-                          fresh={fresh.has(p.id)} onFly={setFlyId} liked={liked.has(p.id)} viewer={viewer}
-                          onLike={() => toggleLike(p)} badges={badgesFor(board.get(p.fly_id))} commentTick={commentTicks.get(p.id) ?? 0}
-                          parent={p.cause ? snap.posts.find((q) => q.tick_id === p.tick_id && q.fly_id === p.cause!.from_fly_id) : undefined} />
-              ))}
+              {items.map((item) => {
+                if (item.type !== "post") {
+                  return <EventCard key={`${item.type}-${item.type === "duels" ? item.duels[0].id : item.type === "mating" ? item.mating.id : item.fly.id}`}
+                                    item={item} flies={flies} patches={patches} now={now} onFly={setFlyId} />;
+                }
+                const p = item.post;
+                return (
+                  <PostCard key={p.id} post={p} flies={flies} patch={patches.get(p.patch_id)} now={now}
+                            fresh={fresh.has(p.id)} onFly={setFlyId} liked={liked.has(p.id)} viewer={viewer}
+                            onLike={() => toggleLike(p)} badges={badgesFor(board.get(p.fly_id))} commentTick={commentTicks.get(p.id) ?? 0}
+                            ctx={context.get(p.id)} folded={item.folded}
+                            onUnfold={() => setUnfolded((u) => new Set(u).add(p.id))}
+                            parent={p.cause ? snap.posts.find((q) => q.tick_id === p.tick_id && q.fly_id === p.cause!.from_fly_id) : undefined} />
+                );
+              })}
             </>
           )}
         </main>
@@ -379,9 +516,68 @@ export default function App() {
   );
 }
 
-function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike, badges, parent, commentTick }: {
+/** Something that happened to flies, not a read: a duel settled, two flies had a baby, a holder hatched a fly. */
+function EventCard({ item, flies, patches, now, onFly }: {
+  item: Exclude<FeedItem, { type: "post" }>; flies: Map<string, Fly>; patches: Map<string, Patch>; now: number;
+  onFly: (id: string) => void;
+}) {
+  const who = (id: string | null) => {
+    const f = id ? flies.get(id) : undefined;
+    return f ? <button className="who inline" onClick={() => onFly(f.id)}><span className="dot" style={{ background: f.color }} />{f.name}</button>
+      : <b>a fly</b>;
+  };
+  let icon = "", body: React.ReactNode = null, detail = "";
+  const ms = (step: number | null) => (step === null ? "held" : `${step} ms`);
+  const result = (d: Duel) => {
+    const loser = d.winner === d.a_fly ? d.b_fly : d.a_fly;
+    const kind = d.kind === "quickdraw" ? "a quick draw" : "a stare-down";
+    return d.winner ? <>{who(d.winner)} beat {who(loser)} in {kind}</> : <>{who(d.a_fly)} and {who(d.b_fly)} drew {kind}</>;
+  };
+  if (item.type === "duels" && item.duels.length === 1) {
+    const d = item.duels[0];
+    icon = "⚔";
+    body = result(d);
+    detail = `${flies.get(d.a_fly)?.name ?? "a fly"} ${ms(d.a_step)} · ${flies.get(d.b_fly)?.name ?? "a fly"} ${ms(d.b_step)}` +
+      (d.delta ? ` · Elo ±${Math.abs(d.delta)}` : "") + (d.requested_by ? " · a holder's challenge" : "");
+  } else if (item.type === "duels") {
+    icon = "⚔";
+    body = <>Arena: {item.duels.length} duels</>;
+    return (
+      <article className="post event event-duels">
+        <p className="event-line"><span className="event-icon">{icon}</span> {body} <span className="when">{ago(item.at, now)}</span></p>
+        <ul className="round">
+          {item.duels.map((d) => (
+            <li key={d.id}>{result(d)} <span className="fine">{ms(d.a_step)} vs {ms(d.b_step)}{d.requested_by ? " · challenge" : ""}</span></li>
+          ))}
+        </ul>
+      </article>
+    );
+  } else if (item.type === "mating") {
+    const m = item.mating;
+    const child = m.child ? flies.get(m.child) : undefined;
+    icon = "🥚";
+    body = <>{who(m.a_fly)} and {who(m.b_fly)} had a baby: {who(m.child)}</>;
+    detail = (m.trigger === "brain" ? "They met in the patch: one's brain read \"mate\" next to the other" : "Paired by the worker") +
+      (child?.generation ? ` · generation ${child.generation}` : "") +
+      (child?.patch_id ? ` · hatched in ${patches.get(child.patch_id)?.name ?? child.patch_id}` : "");
+  } else {
+    const f = item.fly;
+    icon = "🐣";
+    body = <>{who(f.id)} hatched in {patches.get(f.patch_id)?.name ?? f.patch_id}</>;
+    detail = f.parents?.length ? `Bred from ${f.parents.map((id) => flies.get(id)?.name ?? "a fly").join(" × ")}` : "A new fly, made by a holder";
+  }
+  return (
+    <article className={`post event event-${item.type}`}>
+      <p className="event-line"><span className="event-icon">{icon}</span> {body} <span className="when">{ago(item.at, now)}</span></p>
+      <p className="fine">{detail}</p>
+    </article>
+  );
+}
+
+function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike, badges, parent, commentTick, ctx, folded, onUnfold }: {
   post: Post; flies: Map<string, Fly>; patch?: Patch; now: number; fresh: boolean; onFly: (id: string) => void;
   liked: boolean; viewer: Viewer; onLike: () => void; badges: Badge[]; parent?: Post; commentTick: number;
+  ctx?: PostContext; folded: Post[]; onUnfold: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -389,12 +585,15 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
   const [copied, setCopied] = useState(false);
   const fly = flies.get(post.fly_id);
   const w = word(post.word);
-  const d = describe(post, flies);
+  const d = describe(post, flies, ctx);
   const read = post.word !== "nothing";
   const poke = post.poke_id ? POKES.find((pk) => pk.stimulus === post.truth) : undefined;
   const name = fly?.name ?? "A fly";
   const source = post.cause ? flies.get(post.cause.from_fly_id) : undefined;
-  const chips = [...(read ? [w.tag] : []), ...(post.actions ?? []).map(actionText)];
+  const top = strongest(post.actions);
+  const hidden = (post.actions?.length ?? 0) - top.length;
+  const chips = [...(read ? [w.tag] : []), ...top.map(actionText)];
+  const since = folded.length ? ago(folded[folded.length - 1].created_at, now) : "";
   const canLike = !!viewer?.holder;
 
   return (
@@ -409,7 +608,13 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
         {badges.slice(0, 2).map((b) => <span key={b.key} className="badge award" title={b.help}>{b.label}</span>)}
         <span className="where">in {patch?.name ?? post.patch_id}</span>
         <span className="when">{ago(post.created_at, now)}</span>
+        {folded.length > 0 && (
+          <button className="repeat" onClick={onUnfold} title={`${folded.length} more post${folded.length > 1 ? "s" : ""} just like this. Show them`}>
+            ×{folded.length + 1} since {since}
+          </button>
+        )}
       </header>
+      {ctx?.number && <p className="milestone">🎉 {name}'s {ordinal(ctx.number)} post</p>}
       {poke && <p className="poked">After a holder's poke: {poke.done}</p>}
       {post.cause && (
         <p className="chain">
@@ -423,9 +628,14 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
       <div className="meta">
         {read && <span className="chip">{w.tag}</span>}
         {read && <span className="conf">decoder {pct(post.confidence)} sure</span>}
-        {(post.actions ?? []).map((a) => (
+        {top.map((a) => (
           <span key={a.key} className="chip act" title={`${a.z}σ above a resting fly`}>{actionText(a)}</span>
         ))}
+        {hidden > 0 && (
+          <span className="chip act more-acts" title={(post.actions ?? []).slice().sort((a, b) => b.z - a.z).slice(2).map((a) => `${actionText(a)} ${a.z}σ`).join(", ")}>
+            +{hidden}
+          </span>
+        )}
         <button className={`like${liked ? " on" : ""}`} onClick={onLike} disabled={!canLike} aria-pressed={liked}
                 title={canLike ? (liked ? "Remove your like" : "Like this post") : "Sign in with a wallet that holds $FLYAI to like posts"}>
           {liked ? "♥" : "♡"} {post.likes ?? 0}

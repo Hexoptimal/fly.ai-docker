@@ -1,5 +1,5 @@
 {
- "version": "20260914-c9e1a44-patch-d",
+ "version": "20260914-c9e1a44-patch",
  "trained_at": "2026-09-13T21:38:45+00:00",
  "config": {
   "dt": 0.02,
@@ -58,7 +58,7 @@
   "precision": {
    "nothing": 0.0,
    "threat": 1.0,
-   "mate": 0.96,
+   "mate": 0.842,
    "wind": 0.0,
    "taste": 1.0,
    "touch": 1.0,
@@ -67,7 +67,7 @@
   "recall": {
    "nothing": 0.0,
    "threat": 0.727,
-   "mate": 0.442,
+   "mate": 0.792,
    "wind": 0.0,
    "taste": 1.0,
    "touch": 0.346,
@@ -1475,9 +1475,35 @@
  },
  "thresholds": {
   "threat": 0.6216,
-  "mate": 0.6751,
+  "mate": 0.5503,
   "taste": 0.5837,
   "touch": 0.5596
+ },
+ "action_rest": {
+  "jumped": {
+   "mean": 0.63,
+   "sd": 1.0
+  },
+  "backed_up": {
+   "mean": 4.91,
+   "sd": 15.65
+  },
+  "walked": {
+   "mean": 0.37,
+   "sd": 1.0
+  },
+  "turned": {
+   "mean": 3.12,
+   "sd": 7.86
+  },
+  "groomed": {
+   "mean": 95.92,
+   "sd": 142.05
+  },
+  "buzzed": {
+   "mean": 59.39,
+   "sd": 42.28
+  }
  },
  "patch_eval": {
   "criteria": ", fixed before the first run (all must hold on the test set, AFTER):\n  C1  cVA's share of posted words is at most 2x cVA's share of what really happened\n  C2  every postable word that gets posted is >= 80% precise\n  C3  at least 4 of the 6 words stay postable (so it cannot pass by going quiet)\n  C4  flies that had nothing happen post a word at most 15% of the time\n  C5  flies stimulated directly are read right at least 60% of the time\n  C6  'buzzed' shows on at most 30% of flies that had nothing happen, and on at least 80% of flies hit by a threat",
@@ -1559,8 +1585,8 @@
    ],
    "precision": {
     "mate": [
-     0.96,
-     124
+     0.842,
+     253
     ],
     "taste": [
      1.0,
@@ -1576,16 +1602,16 @@
     ]
    },
    "recall": {
-    "mate": 0.442,
+    "mate": 0.792,
     "taste": 1.0,
     "threat": 0.727,
     "touch": 0.346
    },
    "posted_share": {
-    "mate": 0.816,
-    "taste": 0.072,
-    "threat": 0.053,
-    "touch": 0.059
+    "mate": 0.9,
+    "taste": 0.039,
+    "threat": 0.028,
+    "touch": 0.032
    },
    "true_share": {
     "nothing": 0.232,
@@ -1597,28 +1623,26 @@
     "cva": 0.025
    },
    "cva_ratio": 0.0,
-   "hallucination_rate": 0.04,
+   "hallucination_rate": 0.327,
    "direct_right": 0.653,
-   "buzz_rest": 0.158,
-   "buzz_threat": 1.0,
-   "post_rate": 0.349
+   "buzz_rest": 0.02,
+   "buzz_threat": 0.333,
+   "post_rate": 0.646
   },
   "checks": {
    "C1 cVA not over-posted": true,
    "C2 posted words >= 80% precise": true,
    "C3 >= 4 words postable": true,
-   "C4 nothing -> word <= 15%": true,
+   "C4 nothing -> word <= 15%": false,
    "C5 direct reads right >= 60%": true,
-   "C6 buzzed rest <= 30%, threat >= 80%": true
+   "C6 buzzed rest <= 30%, threat >= 80%": false
   },
-  "passed": true,
+  "passed": false,
   "runs": {
    "train": 160,
    "val": 60,
    "test": 60,
    "clean": 30
-  },
-  "variant": "D: patch-refit translator, thresholds at 95% precision on validation, lone-fly action baseline (fitted at startup as before)",
-  "flag": "second look at the test set: variant A (live model, cVA off) was tested first and failed C2 (touch 9/12)"
+  }
  }
 }

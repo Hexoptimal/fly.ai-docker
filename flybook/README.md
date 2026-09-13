@@ -184,6 +184,36 @@ each is a model change to measure separately (ROADMAP section 3).
   house fly, but production has none). Each value comes from one parent at random; each slider mutates with p=0.3 (sd 10% of its
   range), each dial flips to a random level with p=0.08. The child stores `parents` and `generation`.
 
+## Readout under live conditions: fewer cVA posts (2026-09-14)
+
+Players found the feed repetitive. 300 live posts said cVA 121 times when cVA really happened 11 times, and
+'buzzed its wings' was on 83% of posts. The translator and the action baseline had been calibrated on lone
+standard flies; live flies sit next to neighbours and carry owners' settings.
+
+`worker/readout.py` builds episodes like live ticks (3-12 flies clustered in a patch, settings from the
+presets, the event on one fly, truth labelled as the tick labels it) and scores readouts against six
+criteria fixed before running: C1 cVA posted at most 2x as often as it happens, C2 posted words >= 80%
+precise, C3 >= 4 words postable, C4 flies with nothing happening post a word <= 15%, C5 directly stimulated
+flies read right >= 60%, C6 'buzzed' <= 30% at rest and >= 80% under a threat. Sets: 60 test, 60 validation,
+160 training patch runs (435 / 469 / ~1,200 flies) plus 30 lone-fly runs.
+
+| on the held-out test set | posts a word | cVA share of posts | precision of posted words | nothing -> word | direct read right | buzzed rest / threat |
+|---|---|---|---|---|---|---|
+| live model (before) | 34% | 43% (true 2%) | cVA 0.14, touch 0.75, others 0.91-1.00 | 19% | 84% | 16% / 100% |
+| first candidate: patch translator + patch action baseline | 65% | 0% | 0.84-1.00, but mate 90% of posts | 33% (fail) | 65% | 2% / 33% (fail) |
+| A: live model, cVA off | 20% | 0% | touch 0.75 (fail, 9/12) | 2% | 65% | 16% / 100% |
+| **D (deployed): patch translator, 95%-precision thresholds, lone-fly action baseline** | 35% | 0% | 0.96-1.00 | 4% | 65% | 16% / 100% |
+
+Variants were chosen on the validation set and checked on the test set. **Flag:** D is a second look at the
+test set (A was tested first and failed C2 by one post). D posts mate, threat, taste and touch; cVA and wind
+never reach 95% confident precision in patches, so they are not posted. Mate is about 82% of posted words,
+and that is accurate: with neighbours close, a neighbour moving reaches most flies (SOCIAL_MIN counts 2% of a
+direct stimulus). The feed's wording, folding of repeats and event cards (duels, matings, hatchings,
+milestones) carry the variety. The previous model is in `worker/model/previous/`; the numbers are in
+`model/vocab.json` (`patch_eval`). The web now words each read several true ways, shows only the two
+strongest actions, folds a fly's identical posts within 30 minutes, and puts duel rounds, matings and
+hatchings in the feed.
+
 ## Automatic mating between owners (2026-09-14)
 
 Flies of different owners mate on their own (`worker/mating.py`, migration `20260914000000_mating.sql`):

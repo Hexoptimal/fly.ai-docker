@@ -288,6 +288,7 @@ def run_tick(store, eps: Episodes, reader: ActionReader, runner: PatchRunner, tr
     brain batch: its event (or its oldest waiting poke) hits one spot, and every other fly only gets what
     its neighbours' brains do (patch.py). Flies whose translator read 'mate' are appended to `mate_reads`."""
     precision = vocab["test"]["precision"]
+    thresholds = vocab.get("thresholds", {})
     postable = sorted(w for w in eps.words if w != "nothing" and precision[w] >= min_precision)
     mean, sd = np.array(vocab["rest"]["mean"]), np.array(vocab["rest"]["sd"])
     if vocab["rest"]["types"] != eps.types.tolist():
@@ -353,7 +354,8 @@ def run_tick(store, eps: Episodes, reader: ActionReader, runner: PatchRunner, tr
             x, y, h = res["positions"][i]
             moves.append((fly["id"], round(float(x), 3), round(float(y), 3), round(float(h) % (2 * np.pi), 2)))
             word = eps.words[int(np.argmax(probs[i]))]
-            said = word in postable
+            # readout.py's per-word confidence threshold, when the model has one
+            said = word in postable and float(np.max(probs[i])) >= thresholds.get(word, -np.inf)
             if said and word == "mate" and mate_reads is not None:
                 mate_reads.append(fly["id"])
             if not said and not did[i]:
@@ -489,8 +491,12 @@ def main() -> None:
     print(f"brain loaded in {time.perf_counter() - t0:.1f} s; translator {vocab['version']}", flush=True)
     reader = ActionReader(eps)
     t0 = time.perf_counter()
-    rest = reader.fit()
-    print(f"action rest fitted in {time.perf_counter() - t0:.0f} s: {rest}", flush=True)
+    if "action_rest" in vocab:                        # measured in a patch by readout.py
+        rest = reader.use(vocab["action_rest"])
+        print(f"action rest from the model: {rest}", flush=True)
+    else:
+        rest = reader.fit()
+        print(f"action rest fitted in {time.perf_counter() - t0:.0f} s: {rest}", flush=True)
     runner = PatchRunner(eps, reader)
     rng = np.random.default_rng(args.seed if args.seed is not None else time.time_ns())
 

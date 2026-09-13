@@ -1,0 +1,97 @@
+{
+ "thresholds": {
+  "threat": 0.6216,
+  "mate": 0.6751,
+  "taste": 0.5837,
+  "touch": 0.5596
+ },
+ "action_rest": {
+  "jumped": {
+   "mean": 0.62,
+   "sd": 1.0
+  },
+  "backed_up": {
+   "mean": 0.79,
+   "sd": 1.0
+  },
+  "walked": {
+   "mean": 0.48,
+   "sd": 1.0
+  },
+  "turned": {
+   "mean": 0.65,
+   "sd": 1.0
+  },
+  "groomed": {
+   "mean": 63.77,
+   "sd": 25.0
+  },
+  "buzzed": {
+   "mean": 49.19,
+   "sd": 11.49
+  }
+ },
+ "test": {
+  "flies": 435,
+  "postable": [
+   "mate",
+   "taste",
+   "threat",
+   "touch"
+  ],
+  "precision": {
+   "mate": [
+    0.96,
+    124
+   ],
+   "taste": [
+    1.0,
+    11
+   ],
+   "threat": [
+    1.0,
+    8
+   ],
+   "touch": [
+    1.0,
+    9
+   ]
+  },
+  "recall": {
+   "mate": 0.442,
+   "taste": 1.0,
+   "threat": 0.727,
+   "touch": 0.346
+  },
+  "posted_share": {
+   "mate": 0.816,
+   "taste": 0.072,
+   "threat": 0.053,
+   "touch": 0.059
+  },
+  "true_share": {
+   "nothing": 0.232,
+   "threat": 0.025,
+   "mate": 0.618,
+   "wind": 0.014,
+   "taste": 0.025,
+   "touch": 0.06,
+   "cva": 0.025
+  },
+  "cva_ratio": 0.0,
+  "hallucination_rate": 0.04,
+  "direct_right": 0.653,
+  "buzz_rest": 0.158,
+  "buzz_threat": 1.0,
+  "post_rate": 0.349
+ },
+ "checks": {
+  "C1 cVA not over-posted": true,
+  "C2 posted words >= 80% precise": true,
+  "C3 >= 4 words postable": true,
+  "C4 nothing -> word <= 15%": true,
+  "C5 direct reads right >= 60%": true,
+  "C6 buzzed rest <= 30%, threat >= 80%": true
+ },
+ "note": "second look at the test set after variant A was tested first (flagged)"
+}
