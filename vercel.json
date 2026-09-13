@@ -7,17 +7,6 @@
   "cleanUrls": true,
   "redirects": [
     {
-      "source": "/:path(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.flyaiworld.com"
-        }
-      ],
-      "destination": "https://flyaiworld.com/:path",
-      "permanent": true
-    },
-    {
       "source": "/sim",
       "destination": "/simulation",
       "permanent": false
