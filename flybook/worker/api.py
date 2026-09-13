@@ -114,6 +114,27 @@ def limit(key: str, n: int, window: float, message: str = "slow down and try aga
         _hits[key] = hits + [now]
 
 
+BALANCE_PATH = re.compile(r"^/balance/(0x[0-9a-fA-F]{40})$")
+BALANCE_TTL = 60.0
+_balances: dict[str, tuple[float, int]] = {}   # wallet -> (read at, balance)
+
+
+def public_balance(wallet: str) -> dict:
+    """A wallet's $FLYAI balance, read on chain here. For browsers whose own RPC read fails or hangs
+    (some networks and extensions can't reach the chain RPC); display only, like the browser read."""
+    wallet = wallet.lower()
+    cached = _balances.get(wallet)
+    if cached and time.monotonic() - cached[0] < BALANCE_TTL:
+        balance = cached[1]
+    else:
+        try:
+            balance = chain.balance_of(wallet)
+        except Exception as e:
+            raise ApiError(502, f"couldn't read the $FLYAI balance ({type(e).__name__}); try again") from e
+        _balances[wallet] = (time.monotonic(), balance)
+    return {"wallet": wallet, "balance": str(balance), "tokens": chain.tokens(balance), "holder": chain.is_holder(balance)}
+
+
 def me(user: dict, wallet: str) -> dict:
     try:
         balance = chain.balance_of(wallet)
@@ -121,11 +142,16 @@ def me(user: dict, wallet: str) -> dict:
         raise ApiError(502, f"couldn't read your $FLYAI balance ({type(e).__name__}); try again") from e
     _holders[wallet] = (time.monotonic(), chain.is_holder(balance))
     rest("POST", "profiles?on_conflict=id", "resolution=merge-duplicates", json={"id": user["id"], "wallet": wallet})
-    flies = rest("GET", f"flies?select=id,name,color,patch_id,active,created_at,senses,temperament,dials,elo,wins,losses,draws,generation,parents"
+    flies = rest("GET", f"flies?select=id,name,color,patch_id,active,created_at,senses,temperament,dials,elo,wins,losses,draws,generation,parents,auto_born"
                          f"&owner=eq.{user['id']}&order=created_at")
     return {"wallet": wallet, "balance": str(balance), "tokens": chain.tokens(balance),
             "holder": chain.is_holder(balance), "min_tokens": float(chain.MIN_TOKENS), "max_flies": MAX_FLIES,
             "flies": flies}
+
+
+def made_count(info: dict) -> int:
+    """Flies that count toward the cap: ones you made or bred, not ones born from automatic mating."""
+    return sum(1 for f in info["flies"] if not f.get("auto_born"))
 
 
 def create_fly(user: dict, wallet: str, body: dict) -> dict:
@@ -146,7 +172,7 @@ def create_fly(user: dict, wallet: str, body: dict) -> dict:
     info = me(user, wallet)
     if not info["holder"]:
         raise ApiError(403, f"hold at least {chain.MIN_TOKENS:f}".rstrip("0").rstrip(".") + " $FLYAI to make a fly")
-    if len(info["flies"]) >= MAX_FLIES:
+    if made_count(info) >= MAX_FLIES:
         raise ApiError(403, f"you already have {MAX_FLIES} flies, the most per wallet")
     return rest("POST", "flies", "return=representation", json={
         "owner": user["id"], "name": name, "color": color, "patch_id": patch, "seed": random.randrange(2**31),
@@ -322,7 +348,7 @@ def breed(user: dict, wallet: str, body: dict) -> dict:
     info = me(user, wallet)
     if not info["holder"]:
         raise ApiError(403, "hold $FLYAI to breed flies")
-    if len(info["flies"]) >= MAX_FLIES:
+    if made_count(info) >= MAX_FLIES:
         raise ApiError(403, f"you already have {MAX_FLIES} flies, the most per wallet")
     limit(f"breed:{user['id']}", 3, 3600, "three hatchings an hour is the limit")
     by_id = {p["id"]: p for p in parents}
@@ -397,6 +423,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, {"token": chain.TOKEN, "chain_id": chain.CHAIN_ID,
                                         "min_tokens": float(chain.MIN_TOKENS), "max_flies": MAX_FLIES,
                                         "settings": fly_settings.public_spec()})
+            balance_match = BALANCE_PATH.match(path)
+            if method == "GET" and balance_match:
+                limit(f"balance:{self.headers.get('Fly-Client-IP') or self.client_address[0]}", 20, 60)
+                return self._send(200, public_balance(balance_match.group(1)))
             if method == "GET" and path == "/me":
                 return self._send(200, me(*authed(self)))
             if method == "POST" and path == "/flies":

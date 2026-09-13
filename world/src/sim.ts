@@ -152,6 +152,8 @@ export class World {
   /** the swatter, when one is coming down */
   threat: Prop | null = null;
   threatLife = 0;
+  /** Wiz (wiz.ts), when summoned: flies see him like anything else that looms */
+  giant: Seen | null = null;
   selected = 0;
   steps = 0;
   speedScale = 1;
@@ -192,6 +194,11 @@ export class World {
     this.wiring = buildWiring(64);
     this.buildProps();
     this.setFlyCount(flyCount);
+  }
+
+  /** everything that could be seen during the last step (props, flies, the swatter, Wiz) */
+  get visible(): readonly Seen[] {
+    return this.seen;
   }
 
   population(name: string, side: "L" | "R"): Population {
@@ -391,6 +398,7 @@ export class World {
       this.threatLife -= dt;
       if (this.threatLife <= 0) this.threat = null;
     }
+    if (this.giant) this.seen.push(this.giant);
     for (const f of this.flies) {
       this.seen.push({ id: f.id, x: f.x, y: f.y, z: f.z, radius: 0.36, kind: "fly" });
       // every fly releases cVA, and a frightened one releases CO2

@@ -1,0 +1,1958 @@
+{
+ "criterion": "Does anything Wiz can sense drive a walking command? A screen of all 1,314 descending neurons.\n\nwiz/probe.py found that looming drives DNp01 and targets drive DNa02, but nothing drove DNg100 or MDN,\nso Wiz never walks. This screens every descending neuron type (by side) against the inputs Wiz actually\nhas: LPLC2 looming, LC4 threat, LPLC1 small moving objects, LC10a targets (each side, and looming on\nboth sides at once) and tarsal touch (SNta, each side), at 0.5 V per step (Vision caps at 0.8).\n\nCriterion, fixed before the run: WALK FOUND if any of these stimuli raises a forward-walking type\n(DNg100 = BDN2, oDN1, DNp09) or a backward-walking type (MDN) on either side by >= 3 Hz with t >= 4\nover 8 flies. Types from the literature (Bidaye et al. 2014, 2020; Sen et al. 2017). Every responder\n(>= 3 Hz, t >= 4) is also listed, whatever its known role.\n\nSecond run (added before running it): the same criterion over senses Wiz does not have yet: food odour,\nvinegar, geosmin, CO2 and cVA receptor neurons, wind (Johnston's organ), taste and head bristles. A\nwalking responder there would be a reason to give him that sense.\n\n    python wiz/dnscreen.py            (PYTHONPATH must include the repo root)\n",
+ "volts": 0.5,
+ "walking_types_present": {
+  "forward": [
+   "DNg100",
+   "DNp09"
+  ],
+  "backward": [
+   "MDN"
+  ]
+ },
+ "verdict": "NO WALKING COMMAND",
+ "found": [],
+ "responders": {
+  "loom L": {
+   "DNa07 R": {
+    "base_hz": 1.12,
+    "delta_hz": 3.0,
+    "t": 7.9
+   },
+   "DNae004 R": {
+    "base_hz": 0.75,
+    "delta_hz": 4.75,
+    "t": 11.5
+   },
+   "DNg40 L": {
+    "base_hz": 0.5,
+    "delta_hz": 11.88,
+    "t": 40.2
+   },
+   "DNp04 L": {
+    "base_hz": 0.75,
+    "delta_hz": 14.0,
+    "t": 42.8
+   },
+   "DNp06 L": {
+    "base_hz": 1.25,
+    "delta_hz": 4.88,
+    "t": 16.5
+   },
+   "DNp103 L": {
+    "base_hz": 0.75,
+    "delta_hz": 9.12,
+    "t": 22.9
+   },
+   "DNp34 R": {
+    "base_hz": 0.88,
+    "delta_hz": 5.25,
+    "t": 14.3
+   },
+   "DNp35 L": {
+    "base_hz": 0.5,
+    "delta_hz": 3.38,
+    "t": 12.8
+   },
+   "DNp71 L": {
+    "base_hz": 0.25,
+    "delta_hz": 12.0,
+    "t": 63.5
+   },
+   "DNpe025 L": {
+    "base_hz": 0.88,
+    "delta_hz": 6.5,
+    "t": 17.2
+   },
+   "DNpe045 L": {
+    "base_hz": 0.88,
+    "delta_hz": 3.0,
+    "t": 11.2
+   },
+   "DNpe056 L": {
+    "base_hz": 1.38,
+    "delta_hz": 11.38,
+    "t": 21.4
+   }
+  },
+  "loom R": {
+   "DNae004 L": {
+    "base_hz": 0.75,
+    "delta_hz": 3.12,
+    "t": 7.1
+   },
+   "DNg40 R": {
+    "base_hz": 0.88,
+    "delta_hz": 14.25,
+    "t": 38.9
+   },
+   "DNp01 R": {
+    "base_hz": 0.38,
+    "delta_hz": 12.5,
+    "t": 66.1
+   },
+   "DNp04 R": {
+    "base_hz": 0.88,
+    "delta_hz": 13.12,
+    "t": 33.0
+   },
+   "DNp06 R": {
+    "base_hz": 0.62,
+    "delta_hz": 6.25,
+    "t": 38.2
+   },
+   "DNp103 R": {
+    "base_hz": 1.0,
+    "delta_hz": 9.62,
+    "t": 36.6
+   },
+   "DNp34 L": {
+    "base_hz": 0.38,
+    "delta_hz": 4.75,
+    "t": 29.0
+   },
+   "DNp71 R": {
+    "base_hz": 0.12,
+    "delta_hz": 6.88,
+    "t": 30.3
+   },
+   "DNpe025 R": {
+    "base_hz": 0.88,
+    "delta_hz": 6.75,
+    "t": 16.4
+   },
+   "DNpe045 R": {
+    "base_hz": 0.62,
+    "delta_hz": 3.75,
+    "t": 10.2
+   },
+   "DNpe056 R": {
+    "base_hz": 1.0,
+    "delta_hz": 9.38,
+    "t": 28.9
+   }
+  },
+  "loom both": {
+   "DNae004 L": {
+    "base_hz": 1.0,
+    "delta_hz": 3.88,
+    "t": 9.7
+   },
+   "DNae004 R": {
+    "base_hz": 1.25,
+    "delta_hz": 4.38,
+    "t": 11.7
+   },
+   "DNg40 L": {
+    "base_hz": 0.38,
+    "delta_hz": 12.62,
+    "t": 30.1
+   },
+   "DNg40 R": {
+    "base_hz": 0.88,
+    "delta_hz": 15.25,
+    "t": 61.0
+   },
+   "DNg45 L": {
+    "base_hz": 0.38,
+    "delta_hz": 3.0,
+    "t": 7.9
+   },
+   "DNge099 R": {
+    "base_hz": 0.38,
+    "delta_hz": 3.0,
+    "t": 7.9
+   },
+   "DNge119 R": {
+    "base_hz": 0.25,
+    "delta_hz": 3.62,
+    "t": 19.8
+   },
+   "DNge131 R": {
+    "base_hz": 1.12,
+    "delta_hz": 3.62,
+    "t": 7.9
+   },
+   "DNp01 L": {
+    "base_hz": 0.0,
+    "delta_hz": 12.75,
+    "t": 77.9
+   },
+   "DNp01 R": {
+    "base_hz": 0.25,
+    "delta_hz": 13.25,
+    "t": 53.0
+   },
+   "DNp04 L": {
+    "base_hz": 0.62,
+    "delta_hz": 14.25,
+    "t": 38.9
+   },
+   "DNp04 R": {
+    "base_hz": 0.5,
+    "delta_hz": 13.88,
+    "t": 47.0
+   },
+   "DNp06 L": {
+    "base_hz": 0.62,
+    "delta_hz": 6.25,
+    "t": 19.9
+   },
+   "DNp06 R": {
+    "base_hz": 1.25,
+    "delta_hz": 6.25,
+    "t": 17.1
+   },
+   "DNp103 L": {
+    "base_hz": 0.75,
+    "delta_hz": 9.38,
+    "t": 51.2
+   },
+   "DNp103 R": {
+    "base_hz": 0.62,
+    "delta_hz": 10.25,
+    "t": 22.6
+   },
+   "DNp34 L": {
+    "base_hz": 0.75,
+    "delta_hz": 4.0,
+    "t": 10.6
+   },
+   "DNp34 R": {
+    "base_hz": 0.38,
+    "delta_hz": 5.12,
+    "t": 14.6
+   },
+   "DNp70 R": {
+    "base_hz": 0.62,
+    "delta_hz": 3.0,
+    "t": 15.9
+   },
+   "DNp71 L": {
+    "base_hz": 0.5,
+    "delta_hz": 11.38,
+    "t": 35.1
+   },
+   "DNp71 R": {
+    "base_hz": 0.38,
+    "delta_hz": 5.88,
+    "t": 19.9
+   },
+   "DNpe025 L": {
+    "base_hz": 0.62,
+    "delta_hz": 6.25,
+    "t": 25.0
+   },
+   "DNpe025 R": {
+    "base_hz": 0.5,
+    "delta_hz": 6.75,
+    "t": 41.2
+   },
+   "DNpe045 L": {
+    "base_hz": 0.5,
+    "delta_hz": 4.38,
+    "t": 13.5
+   },
+   "DNpe045 R": {
+    "base_hz": 0.38,
+    "delta_hz": 5.12,
+    "t": 22.6
+   },
+   "DNpe056 L": {
+    "base_hz": 0.88,
+    "delta_hz": 11.62,
+    "t": 35.9
+   },
+   "DNpe056 R": {
+    "base_hz": 0.75,
+    "delta_hz": 9.88,
+    "t": 24.8
+   }
+  },
+  "threat L": {
+   "DNa05 R": {
+    "base_hz": 0.5,
+    "delta_hz": 4.12,
+    "t": 14.0
+   },
+   "DNa07 R": {
+    "base_hz": 1.25,
+    "delta_hz": 4.25,
+    "t": 11.6
+   },
+   "DNae004 R": {
+    "base_hz": 1.0,
+    "delta_hz": 7.0,
+    "t": 18.5
+   },
+   "DNg01 R": {
+    "base_hz": 0.62,
+    "delta_hz": 3.84,
+    "t": 19.8
+   },
+   "DNg40 L": {
+    "base_hz": 0.88,
+    "delta_hz": 7.12,
+    "t": 16.2
+   },
+   "DNp01 L": {
+    "base_hz": 0.25,
+    "delta_hz": 14.62,
+    "t": 45.2
+   },
+   "DNp02 L": {
+    "base_hz": 0.5,
+    "delta_hz": 24.5,
+    "t": 129.6
+   },
+   "DNp03 L": {
+    "base_hz": 0.62,
+    "delta_hz": 12.5,
+    "t": 66.1
+   },
+   "DNp04 L": {
+    "base_hz": 0.38,
+    "delta_hz": 24.62,
+    "t": 134.6
+   },
+   "DNp05 L": {
+    "base_hz": 1.12,
+    "delta_hz": 9.88,
+    "t": 28.2
+   },
+   "DNp06 L": {
+    "base_hz": 1.12,
+    "delta_hz": 5.25,
+    "t": 10.0
+   },
+   "DNp11 L": {
+    "base_hz": 0.25,
+    "delta_hz": 13.62,
+    "t": 51.8
+   }
+  },
+  "threat R": {
+   "DNa05 L": {
+    "base_hz": 0.88,
+    "delta_hz": 3.75,
+    "t": 8.3
+   },
+   "DNa07 L": {
+    "base_hz": 1.0,
+    "delta_hz": 4.38,
+    "t": 8.8
+   },
+   "DNae004 L": {
+    "base_hz": 1.12,
+    "delta_hz": 7.12,
+    "t": 17.9
+   },
+   "DNg40 R": {
+    "base_hz": 0.62,
+    "delta_hz": 6.25,
+    "t": 25.0
+   },
+   "DNge119 R": {
+    "base_hz": 0.12,
+    "delta_hz": 3.0,
+    "t": 9.2
+   },
+   "DNp01 R": {
+    "base_hz": 0.38,
+    "delta_hz": 12.75,
+    "t": 77.9
+   },
+   "DNp02 R": {
+    "base_hz": 0.38,
+    "delta_hz": 22.25,
+    "t": 60.8
+   },
+   "DNp03 R": {
+    "base_hz": 1.12,
+    "delta_hz": 7.5,
+    "t": 22.9
+   },
+   "DNp04 R": {
+    "base_hz": 0.75,
+    "delta_hz": 24.25,
+    "t": 97.0
+   },
+   "DNp05 R": {
+    "base_hz": 0.88,
+    "delta_hz": 8.25,
+    "t": 26.3
+   },
+   "DNp06 R": {
+    "base_hz": 1.25,
+    "delta_hz": 4.5,
+    "t": 13.7
+   },
+   "DNp11 R": {
+    "base_hz": 0.38,
+    "delta_hz": 12.62,
+    "t": 69.0
+   }
+  },
+  "small L": {
+   "DNa04 R": {
+    "base_hz": 0.88,
+    "delta_hz": 3.0,
+    "t": 9.2
+   },
+   "DNa05 L": {
+    "base_hz": 0.38,
+    "delta_hz": 6.62,
+    "t": 25.2
+   },
+   "DNa05 R": {
+    "base_hz": 0.5,
+    "delta_hz": 8.88,
+    "t": 22.3
+   },
+   "DNa07 L": {
+    "base_hz": 0.5,
+    "delta_hz": 8.25,
+    "t": 15.7
+   },
+   "DNa07 R": {
+    "base_hz": 1.0,
+    "delta_hz": 5.0,
+    "t": 10.8
+   },
+   "DNae004 L": {
+    "base_hz": 0.75,
+    "delta_hz": 6.0,
+    "t": 15.9
+   },
+   "DNae004 R": {
+    "base_hz": 0.25,
+    "delta_hz": 13.12,
+    "t": 33.0
+   },
+   "DNb07 R": {
+    "base_hz": 0.62,
+    "delta_hz": 3.5,
+    "t": 13.1
+   },
+   "DNg02_d L": {
+    "base_hz": 0.38,
+    "delta_hz": 3.0,
+    "t": 9.2
+   },
+   "DNg02_d R": {
+    "base_hz": 0.5,
+    "delta_hz": 3.12,
+    "t": 10.6
+   },
+   "DNg02_e R": {
+    "base_hz": 0.75,
+    "delta_hz": 3.88,
+    "t": 11.1
+   },
+   "DNg02_f R": {
+    "base_hz": 0.38,
+    "delta_hz": 3.25,
+    "t": 10.4
+   },
+   "DNg42 R": {
+    "base_hz": 1.12,
+    "delta_hz": 5.25,
+    "t": 12.7
+   },
+   "DNg53 L": {
+    "base_hz": 3.25,
+    "delta_hz": 3.75,
+    "t": 10.2
+   },
+   "DNg53 R": {
+    "base_hz": 3.75,
+    "delta_hz": 3.38,
+    "t": 7.3
+   },
+   "DNg91 L": {
+    "base_hz": 1.25,
+    "delta_hz": 3.62,
+    "t": 9.7
+   },
+   "DNg91 R": {
+    "base_hz": 0.62,
+    "delta_hz": 6.5,
+    "t": 24.3
+   },
+   "DNge017 L": {
+    "base_hz": 0.25,
+    "delta_hz": 3.25,
+    "t": 7.2
+   },
+   "DNge017 R": {
+    "base_hz": 0.38,
+    "delta_hz": 4.88,
+    "t": 21.5
+   },
+   "DNp03 L": {
+    "base_hz": 0.75,
+    "delta_hz": 13.5,
+    "t": 41.2
+   },
+   "DNp06 L": {
+    "base_hz": 0.62,
+    "delta_hz": 8.5,
+    "t": 22.5
+   },
+   "DNp11 L": {
+    "base_hz": 0.5,
+    "delta_hz": 5.12,
+    "t": 22.6
+   },
+   "DNp35 L": {
+    "base_hz": 0.62,
+    "delta_hz": 9.25,
+    "t": 29.5
+   },
+   "DNpe009 R": {
+    "base_hz": 0.8,
+    "delta_hz": 3.43,
+    "t": 17.3
+   },
+   "DNpe010 L": {
+    "base_hz": 0.75,
+    "delta_hz": 4.0,
+    "t": 10.6
+   },
+   "DNpe010 R": {
+    "base_hz": 0.88,
+    "delta_hz": 4.0,
+    "t": 15.0
+   }
+  },
+  "small R": {
+   "DNa04 L": {
+    "base_hz": 0.12,
+    "delta_hz": 3.62,
+    "t": 13.8
+   },
+   "DNa05 L": {
+    "base_hz": 0.62,
+    "delta_hz": 9.62,
+    "t": 20.9
+   },
+   "DNa05 R": {
+    "base_hz": 0.62,
+    "delta_hz": 7.0,
+    "t": 18.5
+   },
+   "DNa07 L": {
+    "base_hz": 0.38,
+    "delta_hz": 4.0,
+    "t": 15.0
+   },
+   "DNa07 R": {
+    "base_hz": 0.5,
+    "delta_hz": 12.38,
+    "t": 67.6
+   },
+   "DNa15 L": {
+    "base_hz": 0.0,
+    "delta_hz": 3.0,
+    "t": 11.2
+   },
+   "DNae004 L": {
+    "base_hz": 1.12,
+    "delta_hz": 12.38,
+    "t": 33.0
+   },
+   "DNae004 R": {
+    "base_hz": 1.0,
+    "delta_hz": 7.0,
+    "t": 18.5
+   },
+   "DNg02_d R": {
+    "base_hz": 0.38,
+    "delta_hz": 3.12,
+    "t": 10.6
+   },
+   "DNg02_e L": {
+    "base_hz": 0.12,
+    "delta_hz": 3.25,
+    "t": 10.4
+   },
+   "DNg02_f L": {
+    "base_hz": 0.38,
+    "delta_hz": 3.25,
+    "t": 10.4
+   },
+   "DNg42 L": {
+    "base_hz": 0.75,
+    "delta_hz": 6.38,
+    "t": 17.0
+   },
+   "DNg53 L": {
+    "base_hz": 3.0,
+    "delta_hz": 5.5,
+    "t": 11.9
+   },
+   "DNg53 R": {
+    "base_hz": 2.75,
+    "delta_hz": 3.62,
+    "t": 13.8
+   },
+   "DNg91 L": {
+    "base_hz": 0.88,
+    "delta_hz": 6.75,
+    "t": 18.4
+   },
+   "DNg91 R": {
+    "base_hz": 1.25,
+    "delta_hz": 5.38,
+    "t": 12.8
+   },
+   "DNge017 L": {
+    "base_hz": 0.25,
+    "delta_hz": 6.25,
+    "t": 17.1
+   },
+   "DNge017 R": {
+    "base_hz": 1.0,
+    "delta_hz": 3.5,
+    "t": 10.7
+   },
+   "DNge152 M": {
+    "base_hz": 4.38,
+    "delta_hz": 3.0,
+    "t": 7.9
+   },
+   "DNp03 R": {
+    "base_hz": 0.75,
+    "delta_hz": 13.25,
+    "t": 53.0
+   },
+   "DNp06 R": {
+    "base_hz": 0.75,
+    "delta_hz": 8.0,
+    "t": 24.4
+   },
+   "DNp103 R": {
+    "base_hz": 0.75,
+    "delta_hz": 3.0,
+    "t": 11.2
+   },
+   "DNp11 R": {
+    "base_hz": 0.25,
+    "delta_hz": 5.62,
+    "t": 21.4
+   },
+   "DNp35 R": {
+    "base_hz": 0.38,
+    "delta_hz": 8.0,
+    "t": 42.3
+   },
+   "DNpe009 L": {
+    "base_hz": 0.75,
+    "delta_hz": 3.05,
+    "t": 15.3
+   },
+   "DNpe010 L": {
+    "base_hz": 1.25,
+    "delta_hz": 4.0,
+    "t": 8.0
+   },
+   "DNpe010 R": {
+    "base_hz": 1.0,
+    "delta_hz": 5.5,
+    "t": 20.6
+   }
+  },
+  "target L": {
+   "DNae002 L": {
+    "base_hz": 1.0,
+    "delta_hz": 4.25,
+    "t": 11.6
+   },
+   "DNg111 L": {
+    "base_hz": 1.0,
+    "delta_hz": 5.25,
+    "t": 12.7
+   },
+   "DNge109 R": {
+    "base_hz": 1.5,
+    "delta_hz": 3.5,
+    "t": 9.3
+   }
+  },
+  "target R": {
+   "DNae001 R": {
+    "base_hz": 1.12,
+    "delta_hz": 3.88,
+    "t": 11.1
+   },
+   "DNae002 R": {
+    "base_hz": 1.0,
+    "delta_hz": 5.25,
+    "t": 14.3
+   },
+   "DNg111 R": {
+    "base_hz": 1.75,
+    "delta_hz": 5.0,
+    "t": 18.7
+   },
+   "DNge109 L": {
+    "base_hz": 1.12,
+    "delta_hz": 3.0,
+    "t": 7.9
+   }
+  },
+  "target both": {
+   "DNae001 R": {
+    "base_hz": 1.38,
+    "delta_hz": 3.38,
+    "t": 9.0
+   },
+   "DNae002 L": {
+    "base_hz": 0.88,
+    "delta_hz": 4.38,
+    "t": 11.7
+   },
+   "DNae002 R": {
+    "base_hz": 1.38,
+    "delta_hz": 5.12,
+    "t": 10.7
+   },
+   "DNb01 L": {
+    "base_hz": 2.12,
+    "delta_hz": 4.0,
+    "t": 8.6
+   },
+   "DNb01 R": {
+    "base_hz": 1.88,
+    "delta_hz": 3.5,
+    "t": 13.1
+   },
+   "DNg111 L": {
+    "base_hz": 1.38,
+    "delta_hz": 4.88,
+    "t": 16.5
+   },
+   "DNg111 R": {
+    "base_hz": 1.5,
+    "delta_hz": 4.88,
+    "t": 13.9
+   },
+   "DNg13 R": {
+    "base_hz": 1.25,
+    "delta_hz": 3.0,
+    "t": 6.5
+   },
+   "DNge103 R": {
+    "base_hz": 0.5,
+    "delta_hz": 3.0,
+    "t": 11.2
+   },
+   "DNge109 R": {
+    "base_hz": 1.38,
+    "delta_hz": 3.0,
+    "t": 6.5
+   },
+   "DNp54 R": {
+    "base_hz": 1.38,
+    "delta_hz": 3.0,
+    "t": 9.2
+   },
+   "DNpe020 M": {
+    "base_hz": 0.75,
+    "delta_hz": 3.19,
+    "t": 19.7
+   }
+  },
+  "touch L": {
+   "DNd04 L": {
+    "base_hz": 0.88,
+    "delta_hz": 4.25,
+    "t": 9.4
+   },
+   "DNde001 L": {
+    "base_hz": 1.25,
+    "delta_hz": 5.75,
+    "t": 12.7
+   },
+   "DNde006 L": {
+    "base_hz": 0.75,
+    "delta_hz": 16.88,
+    "t": 38.3
+   },
+   "DNg102_a,DNg102_b L": {
+    "base_hz": 0.5,
+    "delta_hz": 5.31,
+    "t": 32.8
+   },
+   "DNg17 L": {
+    "base_hz": 0.88,
+    "delta_hz": 3.12,
+    "t": 7.8
+   },
+   "DNg17 R": {
+    "base_hz": 0.75,
+    "delta_hz": 3.5,
+    "t": 7.6
+   },
+   "DNg20 R": {
+    "base_hz": 1.88,
+    "delta_hz": 11.12,
+    "t": 37.7
+   },
+   "DNg30 L": {
+    "base_hz": 4.75,
+    "delta_hz": 4.5,
+    "t": 10.6
+   },
+   "DNg30 R": {
+    "base_hz": 5.12,
+    "delta_hz": 3.12,
+    "t": 7.8
+   },
+   "DNg68 R": {
+    "base_hz": 0.62,
+    "delta_hz": 7.5,
+    "t": 28.1
+   },
+   "DNg70 L": {
+    "base_hz": 2.88,
+    "delta_hz": 3.5,
+    "t": 7.6
+   },
+   "DNg70 R": {
+    "base_hz": 2.75,
+    "delta_hz": 3.25,
+    "t": 8.9
+   },
+   "DNg83 R": {
+    "base_hz": 1.12,
+    "delta_hz": 8.38,
+    "t": 25.9
+   },
+   "DNg98 L": {
+    "base_hz": 1.5,
+    "delta_hz": 4.25,
+    "t": 9.4
+   },
+   "DNg98 R": {
+    "base_hz": 1.0,
+    "delta_hz": 4.38,
+    "t": 8.8
+   },
+   "DNge032 L": {
+    "base_hz": 0.25,
+    "delta_hz": 3.38,
+    "t": 12.8
+   },
+   "DNge047 L": {
+    "base_hz": 1.12,
+    "delta_hz": 4.75,
+    "t": 9.7
+   },
+   "DNge048 L": {
+    "base_hz": 0.75,
+    "delta_hz": 4.12,
+    "t": 11.8
+   },
+   "DNge048 R": {
+    "base_hz": 0.5,
+    "delta_hz": 4.25,
+    "t": 26.0
+   },
+   "DNge083 L": {
+    "base_hz": 1.25,
+    "delta_hz": 4.38,
+    "t": 8.8
+   },
+   "DNge102 L": {
+    "base_hz": 0.25,
+    "delta_hz": 11.62,
+    "t": 93.0
+   },
+   "DNge104 R": {
+    "base_hz": 0.38,
+    "delta_hz": 24.62,
+    "t": 93.6
+   },
+   "DNge122 L": {
+    "base_hz": 0.75,
+    "delta_hz": 8.25,
+    "t": 22.5
+   },
+   "DNge122 R": {
+    "base_hz": 1.0,
+    "delta_hz": 24.0,
+    "t": 127.0
+   },
+   "DNge129 L": {
+    "base_hz": 0.38,
+    "delta_hz": 4.12,
+    "t": 14.0
+   },
+   "DNge129 R": {
+    "base_hz": 0.5,
+    "delta_hz": 3.38,
+    "t": 18.4
+   },
+   "DNge131 R": {
+    "base_hz": 1.75,
+    "delta_hz": 10.38,
+    "t": 32.0
+   },
+   "DNge142 L": {
+    "base_hz": 1.12,
+    "delta_hz": 5.12,
+    "t": 14.6
+   },
+   "DNge142 R": {
+    "base_hz": 0.88,
+    "delta_hz": 4.62,
+    "t": 11.0
+   },
+   "DNge148 L": {
+    "base_hz": 0.62,
+    "delta_hz": 4.25,
+    "t": 11.6
+   },
+   "DNge149 M": {
+    "base_hz": 2.38,
+    "delta_hz": 4.12,
+    "t": 14.0
+   },
+   "DNp30 L": {
+    "base_hz": 0.75,
+    "delta_hz": 3.12,
+    "t": 10.6
+   },
+   "DNpe007 L": {
+    "base_hz": 1.62,
+    "delta_hz": 7.88,
+    "t": 63.0
+   },
+   "DNpe030 L": {
+    "base_hz": 0.75,
+    "delta_hz": 6.0,
+    "t": 18.3
+   },
+   "DNpe030 R": {
+    "base_hz": 1.12,
+    "delta_hz": 5.62,
+    "t": 21.4
+   },
+   "DNxl114 L": {
+    "base_hz": 0.38,
+    "delta_hz": 7.25,
+    "t": 23.1
+   },
+   "DNxl114 R": {
+    "base_hz": 0.12,
+    "delta_hz": 4.62,
+    "t": 25.3
+   }
+  },
+  "touch R": {
+   "DNd04 R": {
+    "base_hz": 1.5,
+    "delta_hz": 4.88,
+    "t": 21.5
+   },
+   "DNde001 R": {
+    "base_hz": 0.5,
+    "delta_hz": 6.25,
+    "t": 25.0
+   },
+   "DNde006 R": {
+    "base_hz": 1.12,
+    "delta_hz": 11.12,
+    "t": 37.7
+   },
+   "DNde007 L": {
+    "base_hz": 1.0,
+    "delta_hz": 3.5,
+    "t": 10.7
+   },
+   "DNg102_a,DNg102_b R": {
+    "base_hz": 0.88,
+    "delta_hz": 5.12,
+    "t": 22.6
+   },
+   "DNg17 R": {
+    "base_hz": 0.75,
+    "delta_hz": 3.88,
+    "t": 13.1
+   },
+   "DNg20 L": {
+    "base_hz": 1.0,
+    "delta_hz": 11.12,
+    "t": 31.8
+   },
+   "DNg22 R": {
+    "base_hz": 1.0,
+    "delta_hz": 3.25,
+    "t": 8.9
+   },
+   "DNg30 R": {
+    "base_hz": 5.38,
+    "delta_hz": 3.12,
+    "t": 7.8
+   },
+   "DNg68 L": {
+    "base_hz": 0.88,
+    "delta_hz": 6.75,
+    "t": 14.9
+   },
+   "DNg70 L": {
+    "base_hz": 3.0,
+    "delta_hz": 3.62,
+    "t": 7.9
+   },
+   "DNg70 R": {
+    "base_hz": 2.75,
+    "delta_hz": 3.12,
+    "t": 10.6
+   },
+   "DNg83 L": {
+    "base_hz": 1.12,
+    "delta_hz": 11.75,
+    "t": 32.1
+   },
+   "DNg98 L": {
+    "base_hz": 1.38,
+    "delta_hz": 4.12,
+    "t": 8.6
+   },
+   "DNg98 R": {
+    "base_hz": 1.25,
+    "delta_hz": 3.38,
+    "t": 10.4
+   },
+   "DNge010 R": {
+    "base_hz": 0.62,
+    "delta_hz": 3.12,
+    "t": 7.8
+   },
+   "DNge032 R": {
+    "base_hz": 0.25,
+    "delta_hz": 6.0,
+    "t": 22.4
+   },
+   "DNge047 R": {
+    "base_hz": 1.75,
+    "delta_hz": 4.25,
+    "t": 11.6
+   },
+   "DNge048 L": {
+    "base_hz": 0.88,
+    "delta_hz": 3.12,
+    "t": 13.8
+   },
+   "DNge048 R": {
+    "base_hz": 0.5,
+    "delta_hz": 4.5,
+    "t": 23.8
+   },
+   "DNge083 R": {
+    "base_hz": 0.5,
+    "delta_hz": 5.0,
+    "t": 15.3
+   },
+   "DNge102 R": {
+    "base_hz": 0.81,
+    "delta_hz": 11.19,
+    "t": 69.1
+   },
+   "DNge104 L": {
+    "base_hz": 0.62,
+    "delta_hz": 24.38,
+    "t": 133.2
+   },
+   "DNge105 R": {
+    "base_hz": 0.62,
+    "delta_hz": 4.12,
+    "t": 14.0
+   },
+   "DNge122 L": {
+    "base_hz": 0.88,
+    "delta_hz": 23.62,
+    "t": 63.0
+   },
+   "DNge122 R": {
+    "base_hz": 0.75,
+    "delta_hz": 6.0,
+    "t": 22.4
+   },
+   "DNge129 L": {
+    "base_hz": 0.12,
+    "delta_hz": 3.75,
+    "t": 12.0
+   },
+   "DNge129 R": {
+    "base_hz": 0.25,
+    "delta_hz": 4.5,
+    "t": 23.8
+   },
+   "DNge131 L": {
+    "base_hz": 1.75,
+    "delta_hz": 9.12,
+    "t": 19.0
+   },
+   "DNge142 L": {
+    "base_hz": 0.75,
+    "delta_hz": 6.0,
+    "t": 18.3
+   },
+   "DNge142 R": {
+    "base_hz": 0.62,
+    "delta_hz": 5.75,
+    "t": 15.7
+   },
+   "DNp30 R": {
+    "base_hz": 0.62,
+    "delta_hz": 3.38,
+    "t": 12.8
+   },
+   "DNpe007 L": {
+    "base_hz": 0.88,
+    "delta_hz": 3.75,
+    "t": 10.2
+   },
+   "DNpe007 R": {
+    "base_hz": 0.75,
+    "delta_hz": 6.88,
+    "t": 23.3
+   },
+   "DNpe030 L": {
+    "base_hz": 0.38,
+    "delta_hz": 5.0,
+    "t": 15.3
+   },
+   "DNpe030 R": {
+    "base_hz": 0.88,
+    "delta_hz": 7.62,
+    "t": 23.5
+   },
+   "DNxl114 R": {
+    "base_hz": 0.12,
+    "delta_hz": 7.25,
+    "t": 44.3
+   }
+  },
+  "food odour": {},
+  "vinegar": {},
+  "geosmin": {},
+  "CO2": {},
+  "cVA": {
+   "DNp62 L": {
+    "base_hz": 3.0,
+    "delta_hz": 3.62,
+    "t": 8.6
+   },
+   "DNpe002 R": {
+    "base_hz": 2.0,
+    "delta_hz": 3.12,
+    "t": 10.6
+   }
+  },
+  "wind": {
+   "DNbe001 R": {
+    "base_hz": 1.0,
+    "delta_hz": 4.0,
+    "t": 10.6
+   },
+   "DNg05_a L": {
+    "base_hz": 0.38,
+    "delta_hz": 9.12,
+    "t": 40.3
+   },
+   "DNg05_a R": {
+    "base_hz": 0.25,
+    "delta_hz": 7.38,
+    "t": 28.0
+   },
+   "DNg06_a L": {
+    "base_hz": 0.5,
+    "delta_hz": 6.5,
+    "t": 19.9
+   },
+   "DNg06_a R": {
+    "base_hz": 1.0,
+    "delta_hz": 3.12,
+    "t": 10.6
+   },
+   "DNg08_a,DNg08_b L": {
+    "base_hz": 1.26,
+    "delta_hz": 8.21,
+    "t": 50.4
+   },
+   "DNg08_a,DNg08_b R": {
+    "base_hz": 1.23,
+    "delta_hz": 6.42,
+    "t": 66.1
+   },
+   "DNg106 L": {
+    "base_hz": 0.33,
+    "delta_hz": 4.94,
+    "t": 89.0
+   },
+   "DNg106 R": {
+    "base_hz": 0.21,
+    "delta_hz": 5.57,
+    "t": 44.0
+   },
+   "DNg29 L": {
+    "base_hz": 0.5,
+    "delta_hz": 8.62,
+    "t": 47.1
+   },
+   "DNg32 L": {
+    "base_hz": 0.75,
+    "delta_hz": 4.0,
+    "t": 12.2
+   },
+   "DNg50 L": {
+    "base_hz": 1.88,
+    "delta_hz": 4.38,
+    "t": 16.6
+   },
+   "DNge014 R": {
+    "base_hz": 0.38,
+    "delta_hz": 3.25,
+    "t": 8.9
+   },
+   "DNge016 L": {
+    "base_hz": 0.5,
+    "delta_hz": 8.0,
+    "t": 29.9
+   },
+   "DNge016 R": {
+    "base_hz": 0.38,
+    "delta_hz": 7.62,
+    "t": 23.5
+   },
+   "DNge029 L": {
+    "base_hz": 2.62,
+    "delta_hz": 3.25,
+    "t": 6.2
+   },
+   "DNge030 L": {
+    "base_hz": 0.25,
+    "delta_hz": 3.88,
+    "t": 13.1
+   },
+   "DNge030 R": {
+    "base_hz": 0.0,
+    "delta_hz": 3.0,
+    "t": 11.2
+   },
+   "DNge045 L": {
+    "base_hz": 1.25,
+    "delta_hz": 3.0,
+    "t": 7.9
+   },
+   "DNge045 R": {
+    "base_hz": 1.75,
+    "delta_hz": 4.12,
+    "t": 8.0
+   },
+   "DNge111 L": {
+    "base_hz": 0.71,
+    "delta_hz": 10.08,
+    "t": 36.0
+   },
+   "DNp12 L": {
+    "base_hz": 2.88,
+    "delta_hz": 3.0,
+    "t": 7.9
+   },
+   "DNp12 R": {
+    "base_hz": 2.75,
+    "delta_hz": 4.0,
+    "t": 10.6
+   },
+   "DNp18 L": {
+    "base_hz": 0.62,
+    "delta_hz": 7.5,
+    "t": 17.7
+   },
+   "DNp18 R": {
+    "base_hz": 0.88,
+    "delta_hz": 4.38,
+    "t": 16.6
+   },
+   "DNp33 L": {
+    "base_hz": 0.75,
+    "delta_hz": 5.12,
+    "t": 17.4
+   },
+   "DNp38 L": {
+    "base_hz": 0.75,
+    "delta_hz": 6.62,
+    "t": 25.2
+   },
+   "DNp73 L": {
+    "base_hz": 0.12,
+    "delta_hz": 12.62,
+    "t": 48.0
+   }
+  },
+  "taste": {
+   "DNg103 L": {
+    "base_hz": 2.38,
+    "delta_hz": 10.5,
+    "t": 39.3
+   },
+   "DNg103 R": {
+    "base_hz": 2.25,
+    "delta_hz": 9.25,
+    "t": 18.8
+   },
+   "DNg31 L": {
+    "base_hz": 1.0,
+    "delta_hz": 3.62,
+    "t": 11.2
+   },
+   "DNg31 R": {
+    "base_hz": 0.62,
+    "delta_hz": 4.38,
+    "t": 13.5
+   },
+   "DNg38 L": {
+    "base_hz": 1.38,
+    "delta_hz": 6.38,
+    "t": 13.8
+   },
+   "DNg38 R": {
+    "base_hz": 1.5,
+    "delta_hz": 6.12,
+    "t": 12.8
+   },
+   "DNg47 L": {
+    "base_hz": 1.0,
+    "delta_hz": 4.75,
+    "t": 9.7
+   },
+   "DNg47 R": {
+    "base_hz": 1.12,
+    "delta_hz": 4.88,
+    "t": 10.2
+   },
+   "DNg48 L": {
+    "base_hz": 0.62,
+    "delta_hz": 4.12,
+    "t": 14.0
+   },
+   "DNg48 R": {
+    "base_hz": 0.75,
+    "delta_hz": 5.12,
+    "t": 17.4
+   },
+   "DNg60 L": {
+    "base_hz": 1.5,
+    "delta_hz": 5.25,
+    "t": 21.0
+   },
+   "DNg60 R": {
+    "base_hz": 1.88,
+    "delta_hz": 6.38,
+    "t": 24.2
+   },
+   "DNg67 L": {
+    "base_hz": 1.12,
+    "delta_hz": 23.88,
+    "t": 80.9
+   },
+   "DNg67 R": {
+    "base_hz": 2.25,
+    "delta_hz": 22.75,
+    "t": 91.0
+   },
+   "DNg77 R": {
+    "base_hz": 0.62,
+    "delta_hz": 3.0,
+    "t": 9.2
+   },
+   "DNge023 L": {
+    "base_hz": 0.62,
+    "delta_hz": 6.25,
+    "t": 19.9
+   },
+   "DNge023 R": {
+    "base_hz": 0.62,
+    "delta_hz": 4.38,
+    "t": 13.5
+   },
+   "DNge031 L": {
+    "base_hz": 1.5,
+    "delta_hz": 4.5,
+    "t": 16.8
+   },
+   "DNge031 R": {
+    "base_hz": 1.25,
+    "delta_hz": 4.38,
+    "t": 16.6
+   },
+   "DNge034 L": {
+    "base_hz": 2.5,
+    "delta_hz": 5.12,
+    "t": 12.9
+   },
+   "DNge034 R": {
+    "base_hz": 2.38,
+    "delta_hz": 5.5,
+    "t": 11.0
+   },
+   "DNge042 L": {
+    "base_hz": 0.38,
+    "delta_hz": 4.0,
+    "t": 21.2
+   },
+   "DNge042 R": {
+    "base_hz": 0.5,
+    "delta_hz": 3.38,
+    "t": 7.3
+   },
+   "DNge051 L": {
+    "base_hz": 0.88,
+    "delta_hz": 7.12,
+    "t": 20.3
+   },
+   "DNge051 R": {
+    "base_hz": 1.0,
+    "delta_hz": 6.0,
+    "t": 31.7
+   },
+   "DNge059 L": {
+    "base_hz": 0.38,
+    "delta_hz": 5.0,
+    "t": 15.3
+   },
+   "DNge059 R": {
+    "base_hz": 0.0,
+    "delta_hz": 3.88,
+    "t": 17.1
+   },
+   "DNge062 L": {
+    "base_hz": 0.88,
+    "delta_hz": 4.25,
+    "t": 11.6
+   },
+   "DNge062 R": {
+    "base_hz": 1.5,
+    "delta_hz": 3.62,
+    "t": 9.7
+   },
+   "DNge076 L": {
+    "base_hz": 3.12,
+    "delta_hz": 4.25,
+    "t": 10.3
+   },
+   "DNge076 R": {
+    "base_hz": 3.38,
+    "delta_hz": 3.75,
+    "t": 10.2
+   },
+   "DNge077 L": {
+    "base_hz": 1.5,
+    "delta_hz": 4.12,
+    "t": 14.0
+   },
+   "DNge077 R": {
+    "base_hz": 1.12,
+    "delta_hz": 4.38,
+    "t": 10.4
+   },
+   "DNge080 L": {
+    "base_hz": 1.12,
+    "delta_hz": 6.88,
+    "t": 23.3
+   },
+   "DNge080 R": {
+    "base_hz": 1.25,
+    "delta_hz": 6.88,
+    "t": 19.6
+   },
+   "DNge098 L": {
+    "base_hz": 2.38,
+    "delta_hz": 11.38,
+    "t": 35.1
+   },
+   "DNge098 R": {
+    "base_hz": 2.75,
+    "delta_hz": 11.0,
+    "t": 18.4
+   },
+   "DNge101 L": {
+    "base_hz": 0.5,
+    "delta_hz": 4.25,
+    "t": 17.0
+   },
+   "DNge101 R": {
+    "base_hz": 0.75,
+    "delta_hz": 4.38,
+    "t": 23.9
+   },
+   "DNge106 L": {
+    "base_hz": 1.0,
+    "delta_hz": 3.88,
+    "t": 13.1
+   },
+   "DNge106 R": {
+    "base_hz": 0.5,
+    "delta_hz": 4.0,
+    "t": 12.2
+   },
+   "DNge174 L": {
+    "base_hz": 0.0,
+    "delta_hz": 3.0,
+    "t": 9.2
+   },
+   "DNpe030 L": {
+    "base_hz": 0.5,
+    "delta_hz": 9.25,
+    "t": 22.5
+   },
+   "DNpe030 R": {
+    "base_hz": 0.62,
+    "delta_hz": 8.38,
+    "t": 25.9
+   }
+  },
+  "head bristles": {
+   "DNde006 L": {
+    "base_hz": 0.75,
+    "delta_hz": 4.62,
+    "t": 11.0
+   },
+   "DNde006 R": {
+    "base_hz": 1.0,
+    "delta_hz": 4.75,
+    "t": 15.2
+   },
+   "DNg12_a L": {
+    "base_hz": 1.53,
+    "delta_hz": 4.84,
+    "t": 14.2
+   },
+   "DNg12_a R": {
+    "base_hz": 1.41,
+    "delta_hz": 5.16,
+    "t": 16.9
+   },
+   "DNg12_b L": {
+    "base_hz": 2.3,
+    "delta_hz": 5.55,
+    "t": 31.7
+   },
+   "DNg12_b R": {
+    "base_hz": 2.56,
+    "delta_hz": 5.66,
+    "t": 15.2
+   },
+   "DNg12_c L": {
+    "base_hz": 1.96,
+    "delta_hz": 7.75,
+    "t": 18.0
+   },
+   "DNg12_c R": {
+    "base_hz": 1.75,
+    "delta_hz": 6.75,
+    "t": 14.3
+   },
+   "DNg12_d L": {
+    "base_hz": 1.31,
+    "delta_hz": 5.56,
+    "t": 25.2
+   },
+   "DNg12_d R": {
+    "base_hz": 1.88,
+    "delta_hz": 6.06,
+    "t": 15.4
+   },
+   "DNg12_e L": {
+    "base_hz": 1.54,
+    "delta_hz": 8.12,
+    "t": 29.6
+   },
+   "DNg12_e R": {
+    "base_hz": 1.58,
+    "delta_hz": 7.5,
+    "t": 21.4
+   },
+   "DNg15 R": {
+    "base_hz": 0.75,
+    "delta_hz": 3.25,
+    "t": 8.9
+   },
+   "DNg20 L": {
+    "base_hz": 0.88,
+    "delta_hz": 10.12,
+    "t": 34.3
+   },
+   "DNg20 R": {
+    "base_hz": 1.75,
+    "delta_hz": 8.75,
+    "t": 23.9
+   },
+   "DNg21 L": {
+    "base_hz": 0.75,
+    "delta_hz": 3.25,
+    "t": 8.9
+   },
+   "DNg21 R": {
+    "base_hz": 0.88,
+    "delta_hz": 4.25,
+    "t": 13.6
+   },
+   "DNg35 L": {
+    "base_hz": 1.12,
+    "delta_hz": 5.5,
+    "t": 14.6
+   },
+   "DNg35 R": {
+    "base_hz": 0.75,
+    "delta_hz": 3.0,
+    "t": 7.9
+   },
+   "DNg48 L": {
+    "base_hz": 0.38,
+    "delta_hz": 8.62,
+    "t": 32.8
+   },
+   "DNg48 R": {
+    "base_hz": 0.62,
+    "delta_hz": 6.25,
+    "t": 15.2
+   },
+   "DNg53 L": {
+    "base_hz": 3.25,
+    "delta_hz": 5.12,
+    "t": 11.6
+   },
+   "DNg53 R": {
+    "base_hz": 3.0,
+    "delta_hz": 6.38,
+    "t": 19.7
+   },
+   "DNg57 L": {
+    "base_hz": 0.62,
+    "delta_hz": 6.38,
+    "t": 13.8
+   },
+   "DNg57 R": {
+    "base_hz": 1.5,
+    "delta_hz": 5.75,
+    "t": 35.1
+   },
+   "DNg58 R": {
+    "base_hz": 1.0,
+    "delta_hz": 4.38,
+    "t": 13.5
+   },
+   "DNg59 L": {
+    "base_hz": 1.88,
+    "delta_hz": 5.88,
+    "t": 13.3
+   },
+   "DNg59 R": {
+    "base_hz": 1.75,
+    "delta_hz": 6.5,
+    "t": 13.0
+   },
+   "DNg62 L": {
+    "base_hz": 1.0,
+    "delta_hz": 4.75,
+    "t": 19.0
+   },
+   "DNg62 R": {
+    "base_hz": 0.5,
+    "delta_hz": 6.12,
+    "t": 20.8
+   },
+   "DNg73 L": {
+    "base_hz": 2.88,
+    "delta_hz": 6.0,
+    "t": 15.9
+   },
+   "DNg73 R": {
+    "base_hz": 2.5,
+    "delta_hz": 7.62,
+    "t": 15.3
+   },
+   "DNg81 R": {
+    "base_hz": 0.38,
+    "delta_hz": 7.38,
+    "t": 28.0
+   },
+   "DNg83 L": {
+    "base_hz": 1.0,
+    "delta_hz": 24.0,
+    "t": 63.5
+   },
+   "DNg83 R": {
+    "base_hz": 1.0,
+    "delta_hz": 24.0,
+    "t": 89.8
+   },
+   "DNg84 L": {
+    "base_hz": 0.38,
+    "delta_hz": 12.62,
+    "t": 69.0
+   },
+   "DNg84 R": {
+    "base_hz": 0.25,
+    "delta_hz": 9.75,
+    "t": 31.1
+   },
+   "DNg85 L": {
+    "base_hz": 0.0,
+    "delta_hz": 8.12,
+    "t": 65.0
+   },
+   "DNg85 R": {
+    "base_hz": 0.25,
+    "delta_hz": 5.25,
+    "t": 32.1
+   },
+   "DNg87 L": {
+    "base_hz": 1.0,
+    "delta_hz": 9.75,
+    "t": 21.5
+   },
+   "DNg87 R": {
+    "base_hz": 0.62,
+    "delta_hz": 9.0,
+    "t": 27.5
+   },
+   "DNg89 L": {
+    "base_hz": 1.38,
+    "delta_hz": 3.38,
+    "t": 12.8
+   },
+   "DNg89 R": {
+    "base_hz": 1.25,
+    "delta_hz": 3.5,
+    "t": 9.3
+   },
+   "DNge011 L": {
+    "base_hz": 0.88,
+    "delta_hz": 9.75,
+    "t": 23.7
+   },
+   "DNge011 R": {
+    "base_hz": 1.25,
+    "delta_hz": 6.62,
+    "t": 14.4
+   },
+   "DNge012 L": {
+    "base_hz": 0.88,
+    "delta_hz": 3.0,
+    "t": 9.2
+   },
+   "DNge019 L": {
+    "base_hz": 1.82,
+    "delta_hz": 5.77,
+    "t": 15.3
+   },
+   "DNge019 R": {
+    "base_hz": 1.39,
+    "delta_hz": 6.59,
+    "t": 17.1
+   },
+   "DNge020 L": {
+    "base_hz": 1.78,
+    "delta_hz": 4.97,
+    "t": 23.3
+   },
+   "DNge020 R": {
+    "base_hz": 1.75,
+    "delta_hz": 6.0,
+    "t": 19.6
+   },
+   "DNge022 L": {
+    "base_hz": 2.75,
+    "delta_hz": 6.5,
+    "t": 11.5
+   },
+   "DNge022 R": {
+    "base_hz": 2.25,
+    "delta_hz": 6.5,
+    "t": 17.2
+   },
+   "DNge024 L": {
+    "base_hz": 1.19,
+    "delta_hz": 3.91,
+    "t": 12.6
+   },
+   "DNge024 R": {
+    "base_hz": 1.83,
+    "delta_hz": 5.38,
+    "t": 18.9
+   },
+   "DNge025 L": {
+    "base_hz": 1.31,
+    "delta_hz": 4.5,
+    "t": 16.8
+   },
+   "DNge027 L": {
+    "base_hz": 0.88,
+    "delta_hz": 4.62,
+    "t": 14.3
+   },
+   "DNge027 R": {
+    "base_hz": 1.25,
+    "delta_hz": 5.62,
+    "t": 15.0
+   },
+   "DNge029 L": {
+    "base_hz": 2.75,
+    "delta_hz": 6.5,
+    "t": 12.2
+   },
+   "DNge029 R": {
+    "base_hz": 3.12,
+    "delta_hz": 5.0,
+    "t": 10.0
+   },
+   "DNge039 L": {
+    "base_hz": 1.25,
+    "delta_hz": 7.88,
+    "t": 19.8
+   },
+   "DNge039 R": {
+    "base_hz": 2.38,
+    "delta_hz": 5.88,
+    "t": 10.7
+   },
+   "DNge044 L": {
+    "base_hz": 1.12,
+    "delta_hz": 7.88,
+    "t": 26.7
+   },
+   "DNge044 R": {
+    "base_hz": 0.88,
+    "delta_hz": 5.38,
+    "t": 16.6
+   },
+   "DNge045 R": {
+    "base_hz": 1.75,
+    "delta_hz": 3.38,
+    "t": 8.0
+   },
+   "DNge054 L": {
+    "base_hz": 2.38,
+    "delta_hz": 5.0,
+    "t": 10.8
+   },
+   "DNge060 L": {
+    "base_hz": 2.0,
+    "delta_hz": 4.5,
+    "t": 13.7
+   },
+   "DNge060 R": {
+    "base_hz": 2.0,
+    "delta_hz": 5.5,
+    "t": 14.6
+   },
+   "DNge067 L": {
+    "base_hz": 0.38,
+    "delta_hz": 3.5,
+    "t": 13.1
+   },
+   "DNge067 R": {
+    "base_hz": 1.0,
+    "delta_hz": 5.25,
+    "t": 21.0
+   },
+   "DNge068 L": {
+    "base_hz": 1.75,
+    "delta_hz": 3.25,
+    "t": 7.9
+   },
+   "DNge068 R": {
+    "base_hz": 2.12,
+    "delta_hz": 4.0,
+    "t": 10.6
+   },
+   "DNge078 L": {
+    "base_hz": 1.75,
+    "delta_hz": 4.5,
+    "t": 13.7
+   },
+   "DNge078 R": {
+    "base_hz": 1.38,
+    "delta_hz": 7.75,
+    "t": 21.2
+   },
+   "DNge104 L": {
+    "base_hz": 0.5,
+    "delta_hz": 4.38,
+    "t": 11.7
+   },
+   "DNge104 R": {
+    "base_hz": 0.75,
+    "delta_hz": 6.5,
+    "t": 17.2
+   },
+   "DNge105 L": {
+    "base_hz": 0.5,
+    "delta_hz": 3.0,
+    "t": 9.2
+   },
+   "DNge105 R": {
+    "base_hz": 0.38,
+    "delta_hz": 3.12,
+    "t": 10.6
+   },
+   "DNge121 L": {
+    "base_hz": 0.62,
+    "delta_hz": 9.25,
+    "t": 37.0
+   },
+   "DNge121 R": {
+    "base_hz": 1.0,
+    "delta_hz": 9.25,
+    "t": 22.5
+   },
+   "DNge122 L": {
+    "base_hz": 1.0,
+    "delta_hz": 4.5,
+    "t": 11.9
+   },
+   "DNge122 R": {
+    "base_hz": 0.38,
+    "delta_hz": 5.0,
+    "t": 15.3
+   },
+   "DNge132 L": {
+    "base_hz": 0.88,
+    "delta_hz": 12.25,
+    "t": 49.0
+   },
+   "DNge132 R": {
+    "base_hz": 0.38,
+    "delta_hz": 9.25,
+    "t": 37.0
+   },
+   "DNge133 L": {
+    "base_hz": 0.25,
+    "delta_hz": 4.0,
+    "t": 15.0
+   },
+   "DNge142 R": {
+    "base_hz": 1.0,
+    "delta_hz": 3.0,
+    "t": 6.5
+   },
+   "DNge143 L": {
+    "base_hz": 1.75,
+    "delta_hz": 5.62,
+    "t": 15.0
+   },
+   "DNge143 R": {
+    "base_hz": 2.12,
+    "delta_hz": 4.88,
+    "t": 13.9
+   }
+  }
+ }
+}

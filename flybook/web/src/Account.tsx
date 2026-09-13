@@ -4,7 +4,7 @@ import type { EIP1193Provider } from "viem";
 import { formatUnits, getAddress, toHex } from "viem";
 import { createSiweMessage, generateSiweNonce } from "viem/siwe";
 import { useConnect, useConnection, useConnectors, useDisconnect, useReadContract, useSwitchChain } from "wagmi";
-import { getMe, type Me } from "./api";
+import { getBalance, getMe, type Me } from "./api";
 import { BASE, db, tuning, type Fly, type Patch } from "./feed";
 import BreedDialog from "./BreedDialog";
 import FlyMaker from "./FlyMaker";
@@ -30,8 +30,26 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
   const switchChain = useSwitchChain();
   const balance = useReadContract({
     address: FLYAI, abi: erc20, functionName: "balanceOf", chainId: robinhood.id,
-    args: address ? [address] : undefined, query: { enabled: !!address },
+    args: address ? [address] : undefined, query: { enabled: !!address, retry: 1 },
   });
+  // Some networks and extensions can't reach the chain RPC from the browser, which left the balance
+  // "reading…" forever and hid the sign-in button. If the browser read fails, or hasn't answered in
+  // 5 s, ask the API to read it instead.
+  const [serverBalance, setServerBalance] = useState<bigint | null>(null);
+  const [serverFailed, setServerFailed] = useState(false);
+  const browserHasIt = balance.data !== undefined;
+  useEffect(() => {
+    setServerBalance(null);
+    setServerFailed(false);
+    if (!address || browserHasIt) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      getBalance(address)
+        .then((r) => { if (!cancelled) setServerBalance(BigInt(r.balance)); })
+        .catch(() => { if (!cancelled) setServerFailed(true); });
+    }, balance.isError ? 0 : 5_000);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [address, browserHasIt, balance.isError]);
   const [session, setSession] = useState<Session | null>(null);
   const [me, setMe] = useState<Me | null>(null);
   const [busy, setBusy] = useState(false);
@@ -133,10 +151,12 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
     );
   }
 
-  const held = balance.data ?? 0n;
-  const tokens = Number(formatUnits(held, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 });
-  const holdsSome = held > 0n;
   const wrongWallet = !!(me && address && me.wallet !== address.toLowerCase());
+  // the browser's read, else the API's read, else /me once signed in; undefined while nobody knows yet
+  const known = balance.data ?? serverBalance ?? (me && !wrongWallet ? BigInt(me.balance) : undefined);
+  const tokens = Number(formatUnits(known ?? 0n, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const unreadable = known === undefined && balance.isError && serverFailed;
+  const made = me ? me.flies.filter((f) => !f.auto_born).length : 0; // born flies don't count toward the cap
 
   return (
     <section className="card cta account" id="account">
@@ -161,17 +181,18 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
       {isConnected && address && (
         <>
           <p className="mono small">
-            {short(address)} · {balance.isLoading ? "reading balance…" : `${tokens} $FLYAI`}
+            {short(address)} · {known !== undefined ? `${tokens} $FLYAI` : unreadable ? "balance unavailable right now" : "reading balance…"}
           </p>
 
-          {!session && !balance.isLoading && !holdsSome && (
+          {!session && known === 0n && (
             <>
               <p>This wallet doesn't hold $FLYAI yet. Holders can make a fly.</p>
               <a className="btn red" href={BUY_URL} target="_blank" rel="noreferrer">Get $FLYAI</a>
             </>
           )}
 
-          {!session && holdsSome && (
+          {/* unless we know it's zero: the API checks the balance on chain again after sign-in */}
+          {!session && known !== 0n && (
             <button className="btn red" disabled={busy} onClick={signIn}>
               {busy ? "Check your wallet…" : "Sign in to make a fly"}
             </button>
@@ -188,7 +209,9 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
                       <span className="dot" style={{ background: f.color }} />
                       <div>
                         {f.name}
-                        <span className="tune">gen {f.generation ?? 1} · Elo {f.elo ?? 1000} · {tuning(f).join(", ") || "standard"}</span>
+                        <span className="tune">
+                          {f.auto_born ? "born from mating · " : ""}gen {f.generation ?? 1} · Elo {f.elo ?? 1000} · {tuning(f).join(", ") || "standard"}
+                        </span>
                       </div>
                       <span className={`state${f.active ? "" : " dormant"}`}>
                         {f.active ? patches.find((p) => p.id === f.patch_id)?.name ?? f.patch_id : "dormant"}
@@ -203,10 +226,13 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
                   until they hold again.
                 </p>
               )}
-              {me.holder && me.flies.length >= me.max_flies && (
-                <p className="fine">You have {me.max_flies} flies, the most one wallet can have.</p>
+              {me.flies.some((f) => f.auto_born) && (
+                <p className="fine">Flies born from mating with other people's flies don't count toward your limit.</p>
               )}
-              {me.holder && me.flies.length < me.max_flies && (
+              {me.holder && made >= me.max_flies && (
+                <p className="fine">You've made {me.max_flies} flies, the most one wallet can make.</p>
+              )}
+              {me.holder && made < me.max_flies && (
                 <div className="row">
                   <button className="btn red" onClick={() => setMaking("hatch")}>Hatch a fly</button>
                   {me.flies.length > 0 && <button className="btn" onClick={() => setBreeding(true)}>Breed a fly</button>}

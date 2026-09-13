@@ -24,7 +24,8 @@ export const erc20 = [
 export const wagmiConfig = createConfig({
   chains: [robinhood],
   connectors: [injected()],
-  transports: { [robinhood.id]: http() },
+  // fail fast (viem's default is 10 s x 4 attempts): Account falls back to the API's read of the balance
+  transports: { [robinhood.id]: http(undefined, { timeout: 8_000, retryCount: 1 }) },
 });
 
 declare module "wagmi" {

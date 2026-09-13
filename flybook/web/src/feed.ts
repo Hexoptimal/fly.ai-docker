@@ -12,6 +12,7 @@ export type Fly = Partial<FlySettings> & {
   x?: number | null; y?: number | null; heading?: number | null;   // position in its patch (a 1 x 1 square)
   elo?: number; duels?: number; wins?: number; losses?: number; draws?: number;
   parents?: string[]; generation?: number;
+  auto_born?: boolean;   // born from automatic mating; doesn't count toward the owner's cap
 };
 
 /** What differs from a standard fly, e.g. ["eyes 1.5x", "escape off"]. */
@@ -59,6 +60,11 @@ export type Duel = {
   status: "pending" | "done" | "cancelled"; winner: string | null; a_step: number | null; b_step: number | null;
   a_elo: number | null; b_elo: number | null; delta: number | null; replay: Replay | null; created_at: string; done_at: string | null;
 };
+/** Automatic mating between two owners' flies (worker/mating.py). */
+export type Mating = {
+  id: number; a_fly: string | null; b_fly: string | null; child: string | null; owner: string | null;
+  trigger: "brain" | "matched"; created_at: string;
+};
 export type ChallengeRow = {
   challenge: "calm" | "alarm" | "sharp" | "loved"; fly_id: string; name: string; color: string; house: boolean;
   owner_wallet: string | null; score: number; detail: string;
@@ -70,7 +76,7 @@ const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 export const db: SupabaseClient | null = url && key ? createClient(url, key) : null;
 export const BASE = import.meta.env.BASE_URL;
 
-const FLY_COLUMNS = "id,name,color,patch_id,owner,active,created_at,senses,temperament,dials,x,y,heading,elo,duels,wins,losses,draws,parents,generation";
+const FLY_COLUMNS = "id,name,color,patch_id,owner,active,created_at,senses,temperament,dials,x,y,heading,elo,duels,wins,losses,draws,parents,generation,auto_born";
 const POST_COLUMNS = "*,likes(count),comments(count),captions(body)";
 
 type RawPost = Post & { likes: { count: number }[]; comments: { count: number }[]; captions: { body: string } | { body: string }[] | null };
@@ -171,6 +177,13 @@ export async function loadDuels(limit = 40): Promise<Duel[]> {
   if (!db) return [];
   const { data } = await db.from("duels").select("*").neq("status", "cancelled").order("id", { ascending: false }).limit(limit);
   return (data ?? []) as Duel[];
+}
+
+/** The latest automatic matings, newest first. */
+export async function loadMatings(limit = 30): Promise<Mating[]> {
+  if (!db) return [];
+  const { data } = await db.from("matings").select("*").order("id", { ascending: false }).limit(limit);
+  return (data ?? []) as Mating[];
 }
 
 /** Monday 00:00 UTC of the week containing `d`, shifted by `weeks`. */

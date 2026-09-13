@@ -1,4 +1,5 @@
-"""Command line: `flybrain download`, `flybrain build`, `flybrain info` (or `python -m flybrain ...`)."""
+"""Command line: `flybrain download`, `flybrain build`, `flybrain info`, `flybrain export --web DIR`
+(or `python -m flybrain ...`)."""
 from __future__ import annotations
 
 import argparse
@@ -24,8 +25,17 @@ def main(argv: list[str] | None = None) -> None:
     info = sub.add_parser("info", help="show the data folder and whether a GPU is usable")
     info.add_argument("--data", type=Path, default=DATA)
 
+    export = sub.add_parser("export", help="write compact brain files a web page can run (see flybrain/web.py)")
+    export.add_argument("--web", type=Path, required=True, help="folder to write weights.bin and meta.bin (gzipped) to")
+    export.add_argument("--data", type=Path, default=DATA)
+    export.add_argument("--sensory-input", action="store_true",
+                        help="keep synapses onto sensory neurons (default: drop them, as FlyBrain(sensory_input=False))")
+
     args = parser.parse_args(argv)
-    if args.command == "download":
+    if args.command == "export":
+        from .web import export_web
+        print(export_web(args.web, args.data, sensory_input=args.sensory_input))
+    elif args.command == "download":
         download(args.data, args.url, force=args.force)
         print(f"brain files in {args.data}")
     elif args.command == "build":

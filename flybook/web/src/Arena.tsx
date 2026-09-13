@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import PatchView from "./PatchView";
 import { challengeFly } from "./api";
-import { loadDuels, type Duel, type Fly } from "./feed";
+import { loadDuels, loadMatings, type Duel, type Fly, type Mating } from "./feed";
 
 const KIND = {
   quickdraw: { label: "Quick draw", rule: "first to jump wins" },
@@ -23,8 +23,14 @@ export default function Arena({ flies, viewer, liveDuel }: {
   const [opponent, setOpponent] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
 
+  const [matings, setMatings] = useState<Mating[]>([]);
+
   useEffect(() => {
     loadDuels().then(setDuels);
+    const refresh = () => loadMatings().then(setMatings);
+    refresh();
+    const timer = setInterval(refresh, 30_000);
+    return () => clearInterval(timer);
   }, []);
   useEffect(() => {
     if (!liveDuel) return;
@@ -141,6 +147,40 @@ export default function Arena({ flies, viewer, liveDuel }: {
             ))}
           </ol>
           <p className="fine">{ranked.length ? "Wins-losses-draws. Everyone starts at 1000." : "No flies yet: ratings appear once holders make flies."}</p>
+
+          <h4 className="section-title">Recent matings</h4>
+          {matings.length === 0 ? (
+            <p className="fine">
+              No matings yet. Flies of different owners mate on their own: when a fly's brain reads "mate" next to another
+              owner's fly, or when the worker pairs them. The baby goes to one of the two owners at random.
+            </p>
+          ) : (
+            <ol className="duels">
+              {matings.map((m) => {
+                const a = m.a_fly ? byId.get(m.a_fly) : undefined;
+                const b = m.b_fly ? byId.get(m.b_fly) : undefined;
+                const child = m.child ? byId.get(m.child) : undefined;
+                return (
+                  <li key={m.id} className="duel">
+                    <span className="kind">{m.trigger === "brain" ? "Met in the patch" : "Matched"}</span>
+                    <span className="pair">
+                      <span className="dot" style={{ background: a?.color ?? "#888" }} /> {a?.name ?? "a fly"}
+                      <span className="vs">×</span>
+                      <span className="dot" style={{ background: b?.color ?? "#888" }} /> {b?.name ?? "a fly"}
+                    </span>
+                    <span className="result">
+                      <span className="dot" style={{ background: child?.color ?? "#888" }} /> {child?.name ?? "a new fly"}
+                      {viewer && m.owner === viewer.userId ? " (yours)" : ""}
+                    </span>
+                    <span className="sub mono">
+                      {m.trigger === "brain" ? "a parent's brain read \"mate\" next to the other" : "paired by the worker"}
+                      {child?.generation ? ` · generation ${child.generation}` : ""}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
         </section>
       </div>
     </div>

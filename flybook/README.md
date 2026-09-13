@@ -126,7 +126,9 @@ runs `flybrain download` at build time, so machines start with the brain files a
 ## Phase 2: holders make flies
 
 1. The browser connects a wallet (wagmi, Robinhood Chain 4663) and reads the $FLYAI balance, for
-   display only.
+   display only. If that read fails or hasn't answered in 5 s (some networks and extensions can't reach
+   the chain RPC), it asks the API's public `GET /balance/<address>` (read on chain server-side, cached
+   60 s). Sign in is offered unless the balance is known to be zero, since the API checks it again.
 2. The wallet signs in to Supabase with Sign in with Ethereum (`signInWithWeb3`). This needs the
    **Web3 Wallet → Ethereum** provider enabled in the Supabase dashboard, and the page's URL in
    **Authentication → URL Configuration** (Site URL / Redirect URLs); otherwise Supabase rejects
@@ -181,6 +183,23 @@ each is a model change to measure separately (ROADMAP section 3).
 - **Breeding** (`settings.breed`, `POST /breed`): parents are two of your flies (the API also accepts a
   house fly, but production has none). Each value comes from one parent at random; each slider mutates with p=0.3 (sd 10% of its
   range), each dial flips to a random level with p=0.08. The child stores `parents` and `generation`.
+
+## Automatic mating between owners (2026-09-14)
+
+Flies of different owners mate on their own (`worker/mating.py`, migration `20260914000000_mating.sql`):
+
+- **Brain**: a fly whose translator reads "mate" in a tick pairs with the nearest eligible fly of another
+  owner within `REACH` (0.2) in the same patch. **Matched**: the worker also pairs one random couple of
+  different owners each full tick, like matchmade duels.
+- The child mixes and mutates its parents' settings (`settings.breed`), goes to one of the two owners at
+  random, hatches between its parents in one of their patches, gets a name made from theirs and a blended
+  colour, and is marked `auto_born`: it does **not** count toward the 3-flies-per-wallet cap (the API counts
+  only made and bred flies). No opt-out.
+- Only active flies (owners holding $FLYAI) mate. Limits, because born flies are uncapped: each fly mates at
+  most once per 24 h, a fly born from mating waits 24 h before it can mate, and nobody mates while 150+ flies
+  are active.
+- Every mating is a row in `matings` (both parents, child, owner, trigger), public and realtime; the Arena
+  shows the latest.
 
 ## Flies affect each other, live patch view, missions and seasons (2026-09-13)
 

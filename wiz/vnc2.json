@@ -1,0 +1,342 @@
+{
+ "criteria": "Second VNC calibration: amplify only the relay, not the whole VNC.\n\nwiz/vnc.py raised tonic and synaptic gain on every VNC neuron: 0/20 settings passed, because any gain\nthat let commands through also drove resting motor neurons to 29-36 Hz. This amplifies only the two\nlinks of the command chain:\n\n  dn x   synapses from descending neurons onto VNC neurons (DN -> premotor)\n  pm x   synapses from VNC interneurons onto VNC motor neurons (premotor -> motor neuron)\n\nThese multipliers break the \"incoming weights sum to 1\" rule for the neurons they touch; that is the\npoint of the test. Pass criteria are exactly those of wiz/vnc.py (REST, COMMAND, DISTINCT, LATERAL),\nfixed before this run; the smallest passing setting (lowest dn x, then pm x) is re-run on fresh seeds\nwith 8 flies and only that confirmation counts.\n\n    python wiz/vnc2.py            (PYTHONPATH must include the repo root)\n",
+ "sweep": [
+  {
+   "dn_gain": 1.0,
+   "pm_gain": 1.0,
+   "REST": true,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 4.43,
+   "vnc_mean_hz": 0.83,
+   "vnc_saturated": 0.0006,
+   "best_motor_delta": {
+    "DNg100": 0.61,
+    "DNp01": 0.0,
+    "MDN": 0.0,
+    "DNa02 L": 0.39,
+    "DNa02 R": 0.0
+   },
+   "corr": {
+    "DNg100~DNp01": -0.11,
+    "DNg100~MDN": -0.14,
+    "DNp01~MDN": -0.41
+   },
+   "lateral": {
+    "DNa02 L": -0.01,
+    "DNa02 R": -1.04
+   }
+  },
+  {
+   "dn_gain": 1.0,
+   "pm_gain": 4.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 5.65,
+   "vnc_mean_hz": 0.89,
+   "vnc_saturated": 0.0006,
+   "best_motor_delta": {
+    "DNg100": 1.36,
+    "DNp01": 0.0,
+    "MDN": 0.0,
+    "DNa02 L": 0.0,
+    "DNa02 R": 0.57
+   },
+   "corr": {
+    "DNg100~DNp01": 0.18,
+    "DNg100~MDN": 0.02,
+    "DNp01~MDN": -0.41
+   },
+   "lateral": {
+    "DNa02 L": -0.43,
+    "DNa02 R": -1.99
+   }
+  },
+  {
+   "dn_gain": 1.0,
+   "pm_gain": 16.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 8.54,
+   "vnc_mean_hz": 0.97,
+   "vnc_saturated": 0.0,
+   "best_motor_delta": {
+    "DNg100": 3.61,
+    "DNp01": 0.96,
+    "MDN": 0.0,
+    "DNa02 L": 3.15,
+    "DNa02 R": 0.0
+   },
+   "corr": {
+    "DNg100~DNp01": -0.1,
+    "DNg100~MDN": 0.15,
+    "DNp01~MDN": -0.46
+   },
+   "lateral": {
+    "DNa02 L": 5.59,
+    "DNa02 R": -0.79
+   }
+  },
+  {
+   "dn_gain": 4.0,
+   "pm_gain": 1.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 6.75,
+   "vnc_mean_hz": 1.5,
+   "vnc_saturated": 0.0011,
+   "best_motor_delta": {
+    "DNg100": 2.36,
+    "DNp01": 0.73,
+    "MDN": 0.32,
+    "DNa02 L": 0.21,
+    "DNa02 R": 0.55
+   },
+   "corr": {
+    "DNg100~DNp01": 0.2,
+    "DNg100~MDN": -0.26,
+    "DNp01~MDN": -0.03
+   },
+   "lateral": {
+    "DNa02 L": 0.84,
+    "DNa02 R": -0.95
+   }
+  },
+  {
+   "dn_gain": 4.0,
+   "pm_gain": 4.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 9.75,
+   "vnc_mean_hz": 1.56,
+   "vnc_saturated": 0.001,
+   "best_motor_delta": {
+    "DNg100": 4.71,
+    "DNp01": 0.97,
+    "MDN": 1.3,
+    "DNa02 L": 0.0,
+    "DNa02 R": 0.36
+   },
+   "corr": {
+    "DNg100~DNp01": -0.05,
+    "DNg100~MDN": -0.48,
+    "DNp01~MDN": -0.29
+   },
+   "lateral": {
+    "DNa02 L": 0.37,
+    "DNa02 R": -1.42
+   }
+  },
+  {
+   "dn_gain": 4.0,
+   "pm_gain": 16.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 20.23,
+   "vnc_mean_hz": 1.62,
+   "vnc_saturated": 0.0005,
+   "best_motor_delta": {
+    "DNg100": 9.39,
+    "DNp01": 2.34,
+    "MDN": 2.5,
+    "DNa02 L": 0.93,
+    "DNa02 R": 2.85
+   },
+   "corr": {
+    "DNg100~DNp01": -0.16,
+    "DNg100~MDN": -0.38,
+    "DNp01~MDN": -0.41
+   },
+   "lateral": {
+    "DNa02 L": -0.34,
+    "DNa02 R": -0.11
+   }
+  },
+  {
+   "dn_gain": 16.0,
+   "pm_gain": 1.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 11.19,
+   "vnc_mean_hz": 2.89,
+   "vnc_saturated": 0.0016,
+   "best_motor_delta": {
+    "DNg100": 5.79,
+    "DNp01": 1.0,
+    "MDN": 1.23,
+    "DNa02 L": 0.45,
+    "DNa02 R": 0.4
+   },
+   "corr": {
+    "DNg100~DNp01": 0.25,
+    "DNg100~MDN": -0.3,
+    "DNp01~MDN": -0.4
+   },
+   "lateral": {
+    "DNa02 L": 1.41,
+    "DNa02 R": -1.19
+   }
+  },
+  {
+   "dn_gain": 16.0,
+   "pm_gain": 4.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": true,
+   "pass": false,
+   "rest_max_motor_hz": 18.98,
+   "vnc_mean_hz": 2.94,
+   "vnc_saturated": 0.0012,
+   "best_motor_delta": {
+    "DNg100": 10.25,
+    "DNp01": 1.92,
+    "MDN": 2.16,
+    "DNa02 L": 0.0,
+    "DNa02 R": 1.61
+   },
+   "corr": {
+    "DNg100~DNp01": 0.11,
+    "DNg100~MDN": -0.44,
+    "DNp01~MDN": -0.52
+   },
+   "lateral": {
+    "DNa02 L": 2.07,
+    "DNa02 R": -2.15
+   }
+  },
+  {
+   "dn_gain": 16.0,
+   "pm_gain": 16.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 33.23,
+   "vnc_mean_hz": 3.13,
+   "vnc_saturated": 0.0016,
+   "best_motor_delta": {
+    "DNg100": 16.25,
+    "DNp01": 5.46,
+    "MDN": 5.1,
+    "DNa02 L": 0.0,
+    "DNa02 R": 0.0
+   },
+   "corr": {
+    "DNg100~DNp01": 0.11,
+    "DNg100~MDN": -0.43,
+    "DNp01~MDN": -0.35
+   },
+   "lateral": {
+    "DNa02 L": 1.95,
+    "DNa02 R": -1.54
+   }
+  },
+  {
+   "dn_gain": 64.0,
+   "pm_gain": 1.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 17.27,
+   "vnc_mean_hz": 5.17,
+   "vnc_saturated": 0.003,
+   "best_motor_delta": {
+    "DNg100": 12.5,
+    "DNp01": 0.0,
+    "MDN": 0.0,
+    "DNa02 L": 0.0,
+    "DNa02 R": 0.93
+   },
+   "corr": {
+    "DNg100~DNp01": 0.22,
+    "DNg100~MDN": -0.4,
+    "DNp01~MDN": -0.28
+   },
+   "lateral": {
+    "DNa02 L": 3.55,
+    "DNa02 R": -1.83
+   }
+  },
+  {
+   "dn_gain": 64.0,
+   "pm_gain": 4.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 27.77,
+   "vnc_mean_hz": 5.26,
+   "vnc_saturated": 0.0028,
+   "best_motor_delta": {
+    "DNg100": 14.04,
+    "DNp01": 2.17,
+    "MDN": 3.76,
+    "DNa02 L": 0.0,
+    "DNa02 R": 1.79
+   },
+   "corr": {
+    "DNg100~DNp01": 0.19,
+    "DNg100~MDN": -0.52,
+    "DNp01~MDN": -0.18
+   },
+   "lateral": {
+    "DNa02 L": 1.42,
+    "DNa02 R": -0.07
+   }
+  },
+  {
+   "dn_gain": 64.0,
+   "pm_gain": 16.0,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 37.52,
+   "vnc_mean_hz": 5.33,
+   "vnc_saturated": 0.0037,
+   "best_motor_delta": {
+    "DNg100": 16.07,
+    "DNp01": 3.51,
+    "MDN": 7.14,
+    "DNa02 L": 6.05,
+    "DNa02 R": 1.85
+   },
+   "corr": {
+    "DNg100~DNp01": 0.07,
+    "DNg100~MDN": -0.67,
+    "DNp01~MDN": 0.0
+   },
+   "lateral": {
+    "DNa02 L": 5.09,
+    "DNa02 R": 5.48
+   }
+  }
+ ],
+ "confirm": null
+}

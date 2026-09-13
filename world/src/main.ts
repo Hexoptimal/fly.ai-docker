@@ -11,12 +11,20 @@ import { BrainView, MODALITY_COLOR, POP_COLOR } from "./brainview.ts";
 import { Renderer } from "./scene.ts";
 import { ECOLOGY, MOTOR, World, type Fly } from "./sim.ts";
 import { ORN_AVERSIVE, ORN_CVA, ORN_FOOD, POPULATIONS, type Modality } from "./wiring.ts";
+import { Wiz } from "./wiz.ts";
+import { WizView } from "./wizview.ts";
+import { PuppeteerView } from "./puppeteer.ts";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const START_FLIES = 36;
 const world = new World(START_FLIES);
 const renderer = new Renderer($<HTMLCanvasElement>("view"), world);
+const wiz = new Wiz(world);
+const wizView = new WizView(renderer.scene, `${import.meta.env.BASE_URL}models/wiz.glb`);
+const puppeteer = new PuppeteerView(renderer.scene);
+let wizCam = false;
+let wizFrame = 0;
 const brainView = new BrainView($<HTMLCanvasElement>("brain"), world.wiring, $<HTMLCanvasElement>("raster"));
 
 // ---------------------------------------------------------------- overlay ---
@@ -105,6 +113,17 @@ const motorText = document.createElement("div");
 motorText.className = "note";
 $("motor").appendChild(motorText);
 
+const wizRows = {
+  arms: makeRow($("wizbars"), "arm strings", "DNp02/03/04/11, DNg40: looming and threat yank the arms · left · right", MODALITY_COLOR.descending),
+  legs: makeRow($("wizbars"), "leg strings", "DNge104/122, DNg20, DNge102: touch kicks the legs · left · right", MODALITY_COLOR.descending),
+  head: makeRow($("wizbars"), "head string", "DNa05/07, DNg111, DNae002: jerks the head · left · right", MODALITY_COLOR.descending),
+  steer: makeRow($("wizbars"), "DNa02", "steering: turns him · left · right", MODALITY_COLOR.descending),
+  escape: makeRow($("wizbars"), "DNp01", "giant fibre: jump · left · right", MODALITY_COLOR.descending),
+};
+const wizText = document.createElement("div");
+wizText.className = "note";
+$("wizbars").appendChild(wizText);
+
 // world legend
 const LEGEND_COLOR: Record<string, string> = {
   fruit: "#c2493d", mould: "#6f7d63", carrion: "#9b7d76", dung: "#5b4630",
@@ -149,6 +168,15 @@ for (const s of sliders) {
   $("sliders").appendChild(el);
 }
 
+$("wiz").addEventListener("click", () => {
+  wiz.summon(new URL(`${import.meta.env.BASE_URL}connectome/`, document.baseURI).href);
+  $("wiz").setAttribute("disabled", "");
+});
+$("wizcam").addEventListener("click", () => {
+  wizCam = !wizCam;
+  $("wizcam").classList.toggle("on", wizCam);
+  if (wizCam) renderer.camMode = "orbit";
+});
 $("threat").addEventListener("click", () => world.dropThreat());
 $("gust").addEventListener("click", () => {
   world.wind.strength = Math.min(3, world.wind.strength + 1.2);
@@ -225,6 +253,7 @@ function tick(now: number): void {
   const t0 = performance.now();
   while (acc >= DT && steps < 6) {
     world.step();
+    wiz.step(world, DT);
     const sel = world.flies[world.selected];
     if (sel) {
       if (world.selected !== lastSelected) {
@@ -256,6 +285,9 @@ function tick(now: number): void {
   }
 
   brainView.draw();
+  wizView.update(wiz, wall, wizCam, renderer.camera, renderer.controls);
+  puppeteer.update(wiz, wizView, wall);
+  if (wizFrame++ % 4 === 0) updateWiz();
   renderer.render(wall);
   updateLabels();
   updateEvents();
@@ -341,7 +373,8 @@ const set = (b: HTMLElement, v: number) => (b.style.width = Math.max(0, Math.min
 
 function updatePanel(): void {
   const fly = world.flies[world.selected];
-  if (!fly || frame++ % 2) return;
+  const n = frame++; // read once: checking frame after the ++ only ever saw odd numbers
+  if (!fly || n % 2) return;
 
   const d = fly.vision.drive;
   set(eyeRows.loom.L, d.loomL / 0.8); set(eyeRows.loom.R, d.loomR / 0.8);
@@ -395,9 +428,28 @@ function updatePanel(): void {
     `${world.hatched} hatched · deaths: ${world.deaths.age} old, ${world.deaths.starved} starved, ` +
     `${world.deaths.eaten} eaten, ${world.deaths.swatted} swatted`;
 
-  if (frame % 30 === 0) updateBoard();
-  if (frame % 60 === 0) updatePopulation();
-  if (frame % 10 === 0) updateFeed();
+  if (n % 30 === 0) updateBoard();
+  if (n % 60 === 0) updatePopulation();
+  if (n % 10 === 0) updateFeed();
+}
+
+function updateWiz(): void {
+  $("wizstatus").textContent = wiz.status;
+  if (!wiz.ready) return;
+  const hz = (name: string) => wiz.rate(name) / 25;
+  const p = wiz.pull;
+  set(wizRows.arms.L, p.armL / 1.5); set(wizRows.arms.R, p.armR / 1.5);
+  set(wizRows.legs.L, p.legL / 1.5); set(wizRows.legs.R, p.legR / 1.5);
+  set(wizRows.head.L, Math.max(0, p.head)); set(wizRows.head.R, Math.max(0, -p.head));
+  set(wizRows.steer.L, hz("DNa02 L")); set(wizRows.steer.R, hz("DNa02 R"));
+  set(wizRows.escape.L, hz("DNp01 L")); set(wizRows.escape.R, hz("DNp01 R"));
+  const realtime = Math.min(1, 20 / Math.max(20, wiz.ms));
+  const doing: Record<string, string> = {
+    stand: "working out how legs work", walk: "trying to walk", stumble: "losing his balance", fallen: "fell over", getup: "getting up",
+  };
+  wizText.textContent =
+    `${doing[wiz.mode]} · fallen ${wiz.falls}× · ${wiz.fired.toLocaleString()} neurons fired this step · ` +
+    `${wiz.ms.toFixed(1)} ms/step (${(realtime * 100).toFixed(0)}% real time)`;
 }
 
 // --- population graph: the ecology over the last 5 minutes -------------------
@@ -503,7 +555,7 @@ function updateBoard(): void {
 }
 
 if (import.meta.env.DEV) {
-  (window as unknown as { __fly: unknown }).__fly = { world, renderer, brainView };
+  (window as unknown as { __fly: unknown }).__fly = { world, renderer, brainView, wiz, wizView };
 }
 
 requestAnimationFrame(tick);

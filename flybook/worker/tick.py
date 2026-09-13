@@ -22,6 +22,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import random
 import time
 import uuid
 from pathlib import Path
@@ -33,6 +34,7 @@ import chain
 from actions import MIN_EXTRA, Z_MIN, ActionReader
 from patch import CHANNELS, REACH, WORD_OF, PatchRunner
 import duels as duel_rules
+import mating
 from calibrate import MODEL, git_sha
 from episode import CONFIG, HERE, Episodes, features
 from flybrain.reservoir import Readout
@@ -108,6 +110,12 @@ class SupabaseStore:
     def update_fly(self, fly_id: str, fields: dict) -> None:
         self._req("PATCH", f"flies?id=eq.{fly_id}", json=fields)
 
+    def add_fly(self, row: dict) -> dict:
+        return self._req("POST", "flies", "return=representation", json=row)[0]
+
+    def add_mating(self, row: dict) -> None:
+        self._req("POST", "matings", json=row)
+
     def consume_pokes(self, ids: list[int], tick_id: int) -> None:
         if ids:
             self._req("PATCH", f"pokes?id=in.({','.join(map(str, ids))})", json={"consumed_at": now_iso(), "tick_id": tick_id})
@@ -177,6 +185,12 @@ class JsonStore:
     def update_fly(self, fly_id: str, fields: dict) -> None:
         pass
 
+    def add_fly(self, row: dict) -> dict:
+        return row
+
+    def add_mating(self, row: dict) -> None:
+        pass
+
     def consume_pokes(self, ids: list[int], tick_id: int) -> None:
         pass
 
@@ -185,17 +199,25 @@ class JsonStore:
         self.path.write_text(json.dumps(self.d, separators=(",", ":")))
 
 
+HOLDER_TTL = 300.0   # seconds; the public chain RPC rate-limits (429), and the tick, duel and mating passes all ask
+_holder_cache: dict[str, tuple[float, bool]] = {}   # owner -> (checked at, holder)
+
+
 def active_flies(store, flies: list[dict]) -> list[dict]:
     """House flies always post. An owned fly posts only while its owner holds $FLYAI; the flag
-    is written back so the app can show it as dormant. If the chain can't be read, keep the old flag."""
+    is written back so the app can show it as dormant. If the chain can't be read, keep the old flag.
+    Each owner's balance is read at most once per HOLDER_TTL."""
     owners = {f["owner"] for f in flies if f.get("owner")}
     if not owners:
         return flies
-    wallets = store.wallets(owners)
-    holder: dict[str, bool | None] = {}
-    for owner in owners:
+    now = time.monotonic()
+    holder: dict[str, bool | None] = {o: c[1] for o, c in _holder_cache.items() if o in owners and now - c[0] < HOLDER_TTL}
+    stale = owners - holder.keys()
+    wallets = store.wallets(stale) if stale else {}
+    for owner in stale:
         try:
             holder[owner] = owner in wallets and chain.is_holder(chain.balance_of(wallets[owner]))
+            _holder_cache[owner] = (now, holder[owner])
         except Exception as e:
             print(f"balance check failed for owner {owner}: {e}", flush=True)
             holder[owner] = None
@@ -260,10 +282,11 @@ def patch_batches(flies: list[dict], size: int) -> list[list[dict]]:
 
 
 def run_tick(store, eps: Episodes, reader: ActionReader, runner: PatchRunner, translator: Readout, vocab: dict, rng,
-             min_precision: float, patches_only: set[str] | None = None, pokes: list[dict] | None = None) -> dict:
+             min_precision: float, patches_only: set[str] | None = None, pokes: list[dict] | None = None,
+             mate_reads: list[str] | None = None) -> dict:
     """One pass over every active fly, or just `patches_only` for a poke. Each patch runs as one shared
     brain batch: its event (or its oldest waiting poke) hits one spot, and every other fly only gets what
-    its neighbours' brains do (patch.py)."""
+    its neighbours' brains do (patch.py). Flies whose translator read 'mate' are appended to `mate_reads`."""
     precision = vocab["test"]["precision"]
     postable = sorted(w for w in eps.words if w != "nothing" and precision[w] >= min_precision)
     mean, sd = np.array(vocab["rest"]["mean"]), np.array(vocab["rest"]["sd"])
@@ -331,6 +354,8 @@ def run_tick(store, eps: Episodes, reader: ActionReader, runner: PatchRunner, tr
             moves.append((fly["id"], round(float(x), 3), round(float(y), 3), round(float(h) % (2 * np.pi), 2)))
             word = eps.words[int(np.argmax(probs[i]))]
             said = word in postable
+            if said and word == "mate" and mate_reads is not None:
+                mate_reads.append(fly["id"])
             if not said and not did[i]:
                 continue                                   # read nothing, did nothing: no post
             hit = direct[i][0]
@@ -410,6 +435,32 @@ def duel_pass(store, runner: PatchRunner, rng, auto: int = 0) -> int:
     return settled
 
 
+def mating_pass(store, rng, mate_reads: list[str], auto: int = 0) -> int:
+    """Pair flies of different owners (brain: a 'mate' read next to one; matched: `auto` random pairs)
+    and hatch one child per pair for a random one of the two owners (mating.py)."""
+    _, flies = store.house()
+    active = active_flies(store, flies)
+    if len(active) >= mating.POPULATION_CAP:
+        return 0
+    now = dt.datetime.now(dt.timezone.utc)
+    pool = mating.eligible(active, now)
+    by_id = {f["id"]: f for f in pool}
+    pairs = [(a, b, "brain") for a, b in mating.brain_pairs(mate_reads, by_id)]
+    used = {f["id"] for a, b, _ in pairs for f in (a, b)}
+    pairs += [(a, b, "matched") for a, b in mating.matched_pairs([f for f in pool if f["id"] not in used], auto, rng)]
+    taken = {f["name"] for f in flies}
+    child_rng = random.Random(int(rng.integers(2**31)))
+    for a, b, trigger in pairs:
+        child = store.add_fly(mating.make_child(a, b, taken, child_rng))
+        taken.add(child["name"])
+        for parent in (a, b):
+            store.update_fly(parent["id"], {"last_mated_at": now_iso()})
+        store.add_mating({"a_fly": a["id"], "b_fly": b["id"], "child": child.get("id"), "owner": child["owner"],
+                          "trigger": trigger})
+        print(f"mating ({trigger}): {a['name']} x {b['name']} -> {child['name']} (gen {child['generation']})", flush=True)
+    return len(pairs)
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--json", help="write to this JSON file instead of Supabase")
@@ -447,23 +498,29 @@ def main() -> None:
         next_full = time.monotonic()
         while True:
             try:
+                reads: list[str] = []
                 if time.monotonic() >= next_full:
                     next_full = time.monotonic() + args.every
-                    run_tick(store, eps, reader, runner, translator, vocab, rng, args.min_precision)
+                    run_tick(store, eps, reader, runner, translator, vocab, rng, args.min_precision, mate_reads=reads)
                     duel_pass(store, runner, rng, auto=AUTO_DUELS)
+                    mating_pass(store, rng, reads, auto=mating.AUTO_PER_TICK)
                 else:
                     waiting = store.pending_pokes()
                     if waiting:
                         run_tick(store, eps, reader, runner, translator, vocab, rng, args.min_precision,
-                                 patches_only={p["patch_id"] for p in waiting}, pokes=waiting)
+                                 patches_only={p["patch_id"] for p in waiting}, pokes=waiting, mate_reads=reads)
                     duel_pass(store, runner, rng)
+                    if reads:
+                        mating_pass(store, rng, reads)
             except Exception as e:                    # a failed tick must not kill the loop
                 print(f"tick failed: {e}", flush=True)
             time.sleep(max(0.5, min(args.poke_poll, next_full - time.monotonic())))
     for _ in range(args.ticks):
-        run_tick(store, eps, reader, runner, translator, vocab, rng, args.min_precision)
+        reads: list[str] = []
+        run_tick(store, eps, reader, runner, translator, vocab, rng, args.min_precision, mate_reads=reads)
         if not args.json:
             duel_pass(store, runner, rng, auto=AUTO_DUELS)
+            mating_pass(store, rng, reads, auto=mating.AUTO_PER_TICK)
 
 
 if __name__ == "__main__":

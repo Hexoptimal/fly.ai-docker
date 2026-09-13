@@ -15,7 +15,7 @@
 import type { Brain } from "./brain.ts";
 import type { Population, Wiring } from "./wiring.ts";
 
-export type Kind = "fly" | "fruit" | "mould" | "carrion" | "dung" | "compost" | "plant" | "poop" | "spider" | "egg" | "larva" | "obstacle" | "threat";
+export type Kind = "fly" | "fruit" | "mould" | "carrion" | "dung" | "compost" | "plant" | "poop" | "spider" | "egg" | "larva" | "obstacle" | "threat" | "giant";
 
 export interface Seen {
   id: number;
@@ -45,7 +45,7 @@ const BACKGROUND = 0.9; // flybrain.eyes.BACKGROUND
 
 const DARKNESS: Record<Kind, number> = {
   fly: 0.55, fruit: 0.5, mould: 0.5, carrion: 0.6, dung: 0.5, compost: 0.65,
-  plant: 0.55, poop: 0.3, spider: 0.9, egg: 0.2, larva: 0.35, obstacle: 0.8, threat: 0.95,
+  plant: 0.55, poop: 0.3, spider: 0.9, egg: 0.2, larva: 0.35, obstacle: 0.8, threat: 0.95, giant: 0.85,
 };
 
 /** Things a fly might land on and feed from: these are LC10a targets at close
@@ -96,6 +96,41 @@ export class Vision {
    */
   look(brain: Brain, px: number, py: number, pz: number, yaw: number, objects: Seen[], selfId: number,
        daylight = 1): void {
+    this.measure(px, py, pz, yaw, objects, selfId, daylight);
+    const p = ENCODER;
+    const half = this.photo[0].pop.count; // photoreceptors per eye
+    const d = this.drive;
+
+    // photoreceptors: luminance plus change, exactly flybrain.eyes.Eyes.drive
+    if (!this.prevLum) this.prevLum = new Float32Array(this.lum);
+    for (let s = 0; s < 2; s++) {
+      const { pop } = this.photo[s];
+      for (let k = 0; k < pop.count; k++) {
+        const i = s * half + k;
+        const change = Math.abs(this.lum[i] - this.prevLum[i]);
+        const drive = clamp(0.45 * this.lum[i] + 1.6 * change, 0, 1) * p.eye_gain;
+        brain.stimulateAt(pop.start + k, drive);
+      }
+    }
+    this.prevLum.set(this.lum);
+
+    // feature detectors, both sides
+    const inject = (type: string, side: "L" | "R", amount: number) => {
+      if (amount > 0) brain.stimulate(this.w.index.get(type + "_" + side)!, amount);
+    };
+    inject("LPLC2", "L", d.loomL);
+    inject("LPLC2", "R", d.loomR);
+    inject("LC4", "L", d.threatL);
+    inject("LC4", "R", d.threatR);
+    inject("LPLC1", "L", d.smallL);
+    inject("LPLC1", "R", d.smallR);
+    inject("LC10a", "L", d.chaseL);
+    inject("LC10a", "R", d.chaseR);
+  }
+
+  /** The geometry half of look(): fills `drive` (feature detectors) and the luminance panorama,
+   *  without injecting anything. Wiz's connectome brain uses this with its own neuron indices. */
+  measure(px: number, py: number, pz: number, yaw: number, objects: readonly Seen[], selfId: number, daylight = 1): void {
     const d = this.drive;
     d.loomL = d.loomR = d.threatL = d.threatR = d.smallL = d.smallR = d.chaseL = d.chaseR = 0;
     this.seenNow.clear();
@@ -106,7 +141,6 @@ export class Vision {
 
     const cos = Math.cos(yaw), sin = Math.sin(yaw);
     const p = ENCODER;
-    const half = this.photo[0].pop.count; // photoreceptors per eye
 
     for (const o of objects) {
       if (o.id === selfId) continue;
@@ -166,31 +200,5 @@ export class Vision {
     const tmp = this.prevAngle;
     this.prevAngle = this.seenNow;
     this.seenNow = tmp;
-
-    // photoreceptors: luminance plus change, exactly flybrain.eyes.Eyes.drive
-    if (!this.prevLum) this.prevLum = new Float32Array(this.lum);
-    for (let s = 0; s < 2; s++) {
-      const { pop } = this.photo[s];
-      for (let k = 0; k < pop.count; k++) {
-        const i = s * half + k;
-        const change = Math.abs(this.lum[i] - this.prevLum[i]);
-        const drive = clamp(0.45 * this.lum[i] + 1.6 * change, 0, 1) * p.eye_gain;
-        brain.stimulateAt(pop.start + k, drive);
-      }
-    }
-    this.prevLum.set(this.lum);
-
-    // feature detectors, both sides
-    const inject = (type: string, side: "L" | "R", amount: number) => {
-      if (amount > 0) brain.stimulate(this.w.index.get(type + "_" + side)!, amount);
-    };
-    inject("LPLC2", "L", d.loomL);
-    inject("LPLC2", "R", d.loomR);
-    inject("LC4", "L", d.threatL);
-    inject("LC4", "R", d.threatR);
-    inject("LPLC1", "L", d.smallL);
-    inject("LPLC1", "R", d.smallR);
-    inject("LC10a", "L", d.chaseL);
-    inject("LC10a", "R", d.chaseR);
   }
 }

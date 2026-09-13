@@ -6,6 +6,7 @@ export const API = (import.meta.env.VITE_FLYBOOK_API as string | undefined) ?? "
 export type MyFly = FlySettings & {
   id: string; name: string; color: string; patch_id: string; active: boolean; created_at: string;
   elo?: number; wins?: number; losses?: number; draws?: number; generation?: number; parents?: string[];
+  auto_born?: boolean;   // born from automatic mating; doesn't count toward max_flies
 };
 export type Me = {
   wallet: string; balance: string; tokens: number; holder: boolean;
@@ -39,6 +40,9 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const getConfig = () => call<Config>("/config");
+export type PublicBalance = { wallet: string; balance: string; tokens: number; holder: boolean };
+/** A wallet's $FLYAI balance read by the API, for when the browser can't reach the chain RPC. */
+export const getBalance = (wallet: string) => call<PublicBalance>(`/balance/${wallet}`);
 export const getMe = () => call<Me>("/me");
 export const createFly = (fly: FlySettings & { name: string; color: string; patch_id: string }) =>
   call<MyFly>("/flies", { method: "POST", body: JSON.stringify(fly) });

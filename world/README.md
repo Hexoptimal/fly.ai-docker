@@ -368,10 +368,89 @@ have no brain at all.
 * **The photoreceptor route contributes little**, as `sweep.py` finds in the real
   model.
 
+## Wiz: the real connectome in the browser
+
+**Wiz is a meme with real strings: a fly brain trying to work a monkey.** Only his wish to wander (a
+random spot to head for, or a pause) is coded. His body is simulated in `src/wiz.ts`: an under-damped
+balance wobble, feet that stay planted until his hips leave them behind and then step toward where he is
+tipping, a fall when the lean passes the point of no return (then a pendulum topple and a spring back
+up), and springs for everything else; `src/wizview.ts` puts each foot and hand in place with two-bone IK.
+The strings are neurons: his eyes feed the fly's looming, threat and target cells and each real footfall
+its leg-touch cells (both soles while he lies on the ground); the descending neurons that fire for those
+senses raise his arms (DNp02/03/04/11, DNg40), kick a foot into a misstep (DNge104/122, DNg20, DNge102),
+turn his head (DNa05/07, DNg111, DNae002), steer him (DNa02) and hop him (DNp01). So his own footsteps
+make him misstep and wobble, and every few steps that tips him over. A giant cartoon fly hovers over him
+working a wooden control bar (`src/puppeteer.ts`); it is decoration, but its strings run to his hands,
+knees and head and light up green as their neurons fire. The sections below are why the wish to walk
+cannot come from the brain.
+
+**Summon Wiz** drops a 9 m wizard into the field whose brain is the **full MaleCNS connectome**
+(166,700 neurons, 25.1 M synapses after dropping synapses onto sensory neurons), the same model as
+`flybrain`'s `FlyBrain(sensory_input=False)`, running in a Web Worker. The flies keep their small brains.
+
+* **Files.** `flybrain export --web public/connectome` (see `flybrain/web.py`): CSC columns with
+  varint-coded target gaps and one byte per weight on a log scale (mean error 2.3%, max 4.7%), gzipped:
+  57.6 MB of weights, 0.34 MB of labels, 126 MB in memory. The model is `public/models/wiz.glb`, 0.85 MB
+  (FBX2glTF, then meshopt geometry and WebP textures with gltf-transform).
+* **Checked against Python** (`tools/connectome.ts` vs `wiz/probe.py`): 7,712 vs 7,731 neurons fired per
+  step at rest; looming on the left raises DNp01 L by 19.0 vs 18.6 Hz; a target on the left raises
+  DNa02 L by 3.4 vs 3.0 Hz. 13.4 ms per 20 ms step on one core in Node (13.1-13.8 ms in headless Chrome).
+* **In:** his eyes run the flies' own `Vision` geometry from his head into LPLC2, LC4, LPLC1 and LC10a;
+  each footfall touches SNta. **Out:** `WIZ` in `src/wiz.ts` reads **descending neurons**: DNg100 walk,
+  MDN back, DNa02 left minus right steers, DNp01 crouches, jumps and throws the arms up. The leg cycle is
+  a fixed rhythm whose speed those DNs set. The flies see him as a large looming shape.
+* **What he does, honestly.** He turns toward and away from what he sees (DNa02 differences of a few Hz)
+  and jumps when the swatter comes down in front of him (DNp01 24-28 Hz). **He does not walk:** no stimulus
+  we have tried (looming, targets, odours, wind, taste, touch) drives DNg100 or MDN (`wiz/probe.json`).
+
+### Why he is read off descending neurons, not motor neurons
+
+`wiz/probe.py` drove every stimulus above and DNg100, DNa02, DNp01 and MDN directly at ~25 Hz, and
+recorded the 708 VNC motor neurons by side and leg segment. **No descending command moved any motor
+group by more than 0.6 Hz**; motor neurons idle at 0.3-1.4 Hz. Only tarsal touch, which enters the VNC
+directly, raised leg extensors (+2-3 Hz). It is the depth problem described above: with inputs
+normalised to sum to 1, a DN -> premotor -> motor neuron chain fades out.
+
+`wiz/vnc.py` tried to fix it on the VNC alone, with pass criteria written before the first run (motor
+groups rest <= 5 Hz; each command raises some motor group >= 3 Hz, t >= 4; the forward, escape and
+backward responses differ; left and right steering give opposite motor asymmetries). It swept extra tonic
+(0-0.035) and synaptic gain onto VNC neurons (x1-x8): **0 of 20 settings passed.** Every setting failed
+COMMAND; any gain that let commands through (x4, x8) pushed resting motor neurons to 29-36 Hz. A uniform
+VNC knob does not make this model relay commands; `wiz/vnc.json` has every row.
+
+`wiz/vnc2.py` amplified only the relay itself: synapses from descending neurons onto the VNC (x1-x64)
+and from VNC interneurons onto motor neurons (x1-x16), same criteria. **0 of 12 passed.** Commands do get
+through once amplified (DNg100 raises a motor group by up to 16 Hz at x16-x64), but resting motor
+neurons pass 5 Hz first (up to 38 Hz), and DNp01, MDN and steering stay weak or unlateralised.
+`wiz/vnc2.json` has every row.
+
+### Why he does not walk
+
+`wiz/dnscreen.py` drove each of Wiz's inputs (looming, threat, small moving objects and targets on each
+side, tarsal touch) at 0.5 V and recorded all 1,316 descending neurons. Criterion fixed beforehand: a
+forward (DNg100, DNp09; oDN1 is not in the data) or backward (MDN) walking type up >= 3 Hz, t >= 4.
+**No walking command responded.** What does respond: looming -> DNp04, DNg40, DNp01, DNp71; threat ->
+DNp02, DNp04, DNp01, DNp11; small objects -> DNp03, DNae004, DNa05, DNa07; targets -> DNg111, DNae002
+(3-5 Hz); touch -> DNge104, DNge122 (~24 Hz). A second run added senses Wiz does not have: food odour,
+vinegar, geosmin and CO2 drive no descending neuron at all, cVA two weakly (DNp62, DNpe002), wind 28
+groups (DNp73, DNge111, DNg05/08), taste 44 (DNg67 ~23 Hz) and head bristles 87 (DNg83 24 Hz). **Still no
+walking command**, so giving him a nose or wind sense would not make him walk either.
+`wiz/dnscreen.json` has the full lists.
+
+`wiz/vnc3.py` changed the model instead of a gain: smaller time steps, dt 5 ms and 2 ms with a 4 ms
+refractory period (20 ms as control), same criteria, DNs driven to 25-36 Hz. **All three failed
+COMMAND:** no motor group rose by more than 1 Hz at any step size. The relay is not a time-step artefact.
+`wiz/vnc3.json` has the rows.
+
 ## Files
 
 | File | What it does |
 |---|---|
+| `src/connectome.ts` | the real connectome: parse the `flybrain export --web` files, the LIF step |
+| `src/connectome.worker.ts` | runs Wiz's brain in real time off the main thread |
+| `src/wiz.ts` | Wiz: eyes and soles in, descending-neuron decoder (`WIZ`) out, body and leg cycle |
+| `src/wizview.ts` | loads `wiz.glb` and poses his bones |
+| `src/puppeteer.ts` | the fly overhead with the control bar; strings glow with their neurons |
 | `src/wiring.ts` | populations, connection blocks, `flybrain/build.py` normalisation |
 | `src/brain.ts` | the LIF step, one shared matrix, per-fly state |
 | `src/eyes.ts` | panorama, feature detectors, the `flybrain/eyes.py` encoder |

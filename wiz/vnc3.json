@@ -1,0 +1,111 @@
+{
+ "criteria": "Third VNC test, the first change to the model rather than a gain knob: a smaller time step.\n\nwiz/vnc.py (uniform VNC tonic and gain, 0/20) and wiz/vnc2.py (gain on DN -> VNC and premotor -> MN,\n0/12) could not make descending commands reach motor neurons without also driving them at rest. At\ndt = 20 ms a spike needs a big share of a neuron's normalised input inside one step, so deep chains\nfade. In flytalk.py, dt = 2 ms with a 4 ms refractory period let signal cross chains that were silent\nat 20 ms. This tests the unmodified connectome at:\n\n  dt 20 ms, no refractory   (control: should fail as in vnc.py's first row)\n  dt 5 ms,  refractory 4 ms\n  dt 2 ms,  refractory 4 ms\n\nFlyBrain rescales tonic so resting voltage matches the 20 ms model. DN drive is scaled by dt / 20 ms so\nthe voltage injected per second is the same; the DN rates reached are printed. Pass criteria are exactly\nthose of wiz/vnc.py (REST, COMMAND, DISTINCT, LATERAL), fixed before this run, over 1 s windows. A\npassing setting (smallest change first: 5 ms before 2 ms) is re-run on fresh seeds with 8 flies and only\nthat confirmation counts.\n\n    python wiz/vnc3.py            (PYTHONPATH must include the repo root)\n",
+ "sweep": [
+  {
+   "dt": 0.02,
+   "refractory": 0.0,
+   "REST": true,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 4.49,
+   "vnc_mean_hz": 0.84,
+   "vnc_saturated": 0.0006,
+   "best_motor_delta": {
+    "DNg100": 0.0,
+    "DNp01": 0.4,
+    "MDN": 0.0,
+    "DNa02 L": 0.0,
+    "DNa02 R": 0.32
+   },
+   "corr": {
+    "DNg100~DNp01": 0.0,
+    "DNg100~MDN": 0.27,
+    "DNp01~MDN": -0.01
+   },
+   "lateral": {
+    "DNa02 L": -0.57,
+    "DNa02 R": -0.14
+   },
+   "dn_delta_hz": {
+    "DNg100": 26.0,
+    "DNp01": 25.2,
+    "MDN": 25.9,
+    "DNa02 L": 26.0,
+    "DNa02 R": 25.8
+   }
+  },
+  {
+   "dt": 0.005,
+   "refractory": 0.004,
+   "REST": false,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 6.55,
+   "vnc_mean_hz": 0.91,
+   "vnc_saturated": 0.0011,
+   "best_motor_delta": {
+    "DNg100": 0.96,
+    "DNp01": 0.35,
+    "MDN": 0.0,
+    "DNa02 L": 0.0,
+    "DNa02 R": 0.0
+   },
+   "corr": {
+    "DNg100~DNp01": 0.13,
+    "DNg100~MDN": -0.13,
+    "DNp01~MDN": 0.03
+   },
+   "lateral": {
+    "DNa02 L": 0.12,
+    "DNa02 R": -0.62
+   },
+   "dn_delta_hz": {
+    "DNg100": 32.8,
+    "DNp01": 33.8,
+    "MDN": 33.1,
+    "DNa02 L": 34.0,
+    "DNa02 R": 33.5
+   }
+  },
+  {
+   "dt": 0.002,
+   "refractory": 0.004,
+   "REST": true,
+   "COMMAND": false,
+   "DISTINCT": true,
+   "LATERAL": false,
+   "pass": false,
+   "rest_max_motor_hz": 1.55,
+   "vnc_mean_hz": 0.75,
+   "vnc_saturated": 0.0,
+   "best_motor_delta": {
+    "DNg100": 0.75,
+    "DNp01": 0.0,
+    "MDN": 0.0,
+    "DNa02 L": 0.0,
+    "DNa02 R": 0.75
+   },
+   "corr": {
+    "DNg100~DNp01": 0.21,
+    "DNg100~MDN": -0.04,
+    "DNp01~MDN": -0.24
+   },
+   "lateral": {
+    "DNa02 L": 0.76,
+    "DNa02 R": 0.43
+   },
+   "dn_delta_hz": {
+    "DNg100": 35.2,
+    "DNp01": 35.5,
+    "MDN": 35.6,
+    "DNa02 L": 35.8,
+    "DNa02 R": 35.2
+   }
+  }
+ ],
+ "confirm": null
+}
