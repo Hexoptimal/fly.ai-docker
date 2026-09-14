@@ -207,3 +207,17 @@
   nav .ddmenu a.on::after { display: none; }
   nav .ddmenu small { display: block; color: var(--dim); font: 12px/1.4 var(--mono); margin-top: 2px; white-space: normal; }
   @media (max-width: 520px) { nav .ddmenu { left: -40px; min-width: 220px; } }
+
+  /* For Agents page: code blocks, the results table, plain lists */
+  .codeblock { margin: 14px 0 0; padding: 14px 16px; background: #05070a; border: 1px solid var(--line); border-radius: 10px;
+    overflow-x: auto; font: 13px/1.6 var(--mono); color: #cfe9df; white-space: pre; }
+  .codeblock code { font: inherit; color: inherit; }
+  .codeblock.chat { color: var(--text); }
+  .tablewrap { overflow-x: auto; }
+  .agenttable { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+  .agenttable th, .agenttable td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .agenttable th { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .agenttable td { color: var(--muted); }
+  .agenttable td b { color: var(--text); }
+  .plainlist { margin: 0; padding-left: 18px; color: var(--muted); display: grid; gap: 8px; }
+  .plainlist b { color: var(--text); }

@@ -45,3 +45,6 @@ build/
 .env.*
 !.env.example
 !**/.env.example
+
+# billboard ad drafts (local only)
+billboard/
