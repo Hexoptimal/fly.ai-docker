@@ -151,13 +151,22 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
 .badge.meme { color: #ff7eb6; border-color: rgba(255,126,182,.4); }
 .up { color: #3ddc84; }
 .down { color: #ff5b4f; }
-.market-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-top: 12px; }
+.market-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; margin-top: 12px; }
 .market-grid h4 { margin: 0 0 8px; }
 .trades { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .trades li { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
 .trades .fine { margin: 4px 0 0; }
 @media (max-width: 860px) { .market-grid { grid-template-columns: minmax(0, 1fr); } }
-.traders li { flex-wrap: wrap; }
+/* trader rows open a wallet and a mind inside the row: a wrapping flex row, not the leaderboard's fixed grid */
+.ranking.traders li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
+.ranking.traders li .stat { margin-left: auto; }
+.ranking.traders li .sub { flex-basis: 100%; min-width: 0; overflow-wrap: anywhere; }
+.ranking.traders li .wallet, .ranking.traders li .mind { flex-basis: 100%; min-width: 0; }
+/* lists inside a trader row (mind traits, wallet trades) are plain lines, not leaderboard cards */
+.ranking li li { display: block; grid-template-columns: none; grid-template-areas: none; padding: 0; background: none;
+                 border: 0; border-radius: 0; font-size: inherit; }
+.ranking li .wallet-trades li { display: flex; }
+@media (max-width: 700px) { .mind { grid-template-columns: minmax(0, 1fr); } }
 .mind-toggle { margin-left: auto; }
 .mind { flex-basis: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 10px;
   padding: 12px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; }

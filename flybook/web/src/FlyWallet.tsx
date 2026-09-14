@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { loadWallet, type FlyTrade, type Wallet as WalletData } from "./feed";
 
 export const pct = (x: number) => `${x >= 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
-export const eth = (x: number) => (x >= 100 ? x.toFixed(0) : x >= 1 ? x.toFixed(3) : x >= 0.001 ? x.toFixed(4) : x.toPrecision(3));
+export const eth = (x: number) =>
+  (Math.abs(x) < 1e-12 ? "0" : x >= 100 ? x.toFixed(0) : x >= 1 ? x.toFixed(3) : x >= 0.001 ? x.toFixed(4) : x.toPrecision(3));
 const signedEth = (x: number) => `${x >= 0 ? "+" : "−"}${eth(Math.abs(x))} ETH`;
 const amount = (x: number) => (x >= 1000 ? x.toFixed(0) : x >= 1 ? x.toFixed(2) : x.toPrecision(3));
 export const ago = (iso: string) => {
