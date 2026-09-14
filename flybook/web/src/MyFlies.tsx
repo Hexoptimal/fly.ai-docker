@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Viewer } from "./Account";
 import { getMemeQuota, type MemeQuota } from "./api";
 import { loadFlyPosts, loadMemes, memeImage, type Fly, type Meme, type Patch, type Post } from "./feed";
+import { useNextMemeCountdown } from "./Memes";
 import { WORDS, actionText, causeText, line, strongest } from "./words";
 
 type Filter = "all" | Post["kind"];
@@ -49,6 +50,12 @@ export default function MyFlies({ allFlies, patches, viewer, now, memeTick, onMe
   const [error, setError] = useState<string | null>(null);
   const [quota, setQuota] = useState<MemeQuota | null>(null);
   const [memes, setMemes] = useState<Meme[]>([]);
+  const countdown = useNextMemeCountdown();
+  // the allowance resets at 00:00 UTC: ask again when the UTC date changes (the countdown re-renders every second)
+  const utcDay = new Date().toISOString().slice(0, 10);
+  useEffect(() => {
+    if (viewer?.ready) getMemeQuota().then(setQuota).catch(() => {});
+  }, [utcDay]);
 
   useEffect(() => {
     if (!viewer || !ids) return;
@@ -79,9 +86,9 @@ export default function MyFlies({ allFlies, patches, viewer, now, memeTick, onMe
   const canMake = !!quota?.holder && quota.left_today > 0 && quota.global_left > 0;
   const status = !quota ? "Checking today's meme…"
     : !quota.holder ? "Hold $FLYAI to make memes: 1 a day from any of these posts."
-    : quota.global_left < 1 ? "Flybook's meme machine is out of paint for today. Back at 00:00 UTC."
+    : quota.global_left < 1 ? `Flybook's meme machine is out of paint for today. Back in ${countdown}.`
     : quota.left_today > 0 ? "You have 1 meme to make today. Pick a post: hallucinations make the funniest ones."
-    : "Today's meme is made. The next one unlocks at 00:00 UTC.";
+    : `Today's meme is made. Next one in ${countdown}.`;
 
   return (
     <div className="mine-tab">

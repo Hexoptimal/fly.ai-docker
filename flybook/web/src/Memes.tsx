@@ -5,6 +5,23 @@ import { loadFlies, loadMemes, memeImage, type Fly, type Meme, type Post } from 
 import { downloadImage, shareMemeOnX } from "./share";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+/** Time left until the next meme unlocks (00:00 UTC), e.g. "3h 12m 05s", updated every second. */
+export function useNextMemeCountdown(): string {
+  const left = () => {
+    const now = new Date();
+    const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+    const s = Math.max(0, Math.floor((next - now.getTime()) / 1000));
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${Math.floor(s / 3600)}h ${pad(Math.floor((s % 3600) / 60))}m ${pad(s % 60)}s`;
+  };
+  const [text, setText] = useState(left);
+  useEffect(() => {
+    const t = setInterval(() => setText(left()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return text;
+}
 const agoShort = (iso: string, now: number) => {
   const s = Math.max(0, (now - Date.parse(iso)) / 1000);
   return s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)}m` : s < 86400 ? `${Math.floor(s / 3600)}h` : `${Math.floor(s / 86400)}d`;
@@ -24,6 +41,7 @@ export function MemeMaker({ post, fly, onClose, onMade }: {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [made, setMade] = useState<(Meme & { url: string }) | null>(null);
+  const countdown = useNextMemeCountdown();
 
   useEffect(() => {
     getMemeQuota().then(setQuota).catch((e) => setError(message(e)));
@@ -66,7 +84,7 @@ export function MemeMaker({ post, fly, onClose, onMade }: {
                 <button className="btn red" onClick={() => shareMemeOnX(`${fly?.name ?? "My fly"} on Flybook: "${made.top_text}" ${made.bottom_text}.`, made.id)}>Post on X</button>
                 <button className="btn" onClick={() => downloadImage(made.url, `flybook-meme-${made.id}.webp`)}>Download</button>
               </div>
-              <p className="fine">It's in the feed and on {fly?.name ?? "your fly"}'s profile. Next meme unlocks at 00:00 UTC.</p>
+              <p className="fine">It's in the feed and on {fly?.name ?? "your fly"}'s profile. Next meme in <b className="mono">{countdown}</b>.</p>
             </>
           ) : (
             <>
@@ -76,8 +94,12 @@ export function MemeMaker({ post, fly, onClose, onMade }: {
               </p>
               {!quota && !error && <p className="fine">Checking today's meme…</p>}
               {quota && !quota.holder && <p className="err">Hold $FLYAI to make memes.</p>}
-              {quota && quota.holder && quota.left_today < 1 && <p className="err">You've made today's meme. The next one unlocks at 00:00 UTC.</p>}
-              {quota && quota.global_left < 1 && <p className="err">Flybook's meme machine is out of paint for today. Back at 00:00 UTC.</p>}
+              {quota && quota.holder && quota.left_today < 1 && (
+                <p className="err">You've made today's meme. Next one in <b className="mono">{countdown}</b>.</p>
+              )}
+              {quota && quota.global_left < 1 && (
+                <p className="err">Flybook's meme machine is out of paint for today. Back in <b className="mono">{countdown}</b>.</p>
+              )}
               {quota && (
                 <>
                   <h5>Style</h5>
