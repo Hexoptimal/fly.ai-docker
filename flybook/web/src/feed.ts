@@ -87,11 +87,12 @@ export const db: SupabaseClient | null = url && key ? createClient(url, key) : n
 export const BASE = import.meta.env.BASE_URL;
 export const memeImage = (m: Pick<Meme, "image_path">) => (url ? `${url}/storage/v1/object/public/memes/${m.image_path}` : "");
 
-/** Memes, newest first, with like counts; one fly's when flyId is given. */
-export async function loadMemes(opts: { limit?: number; flyId?: string } = {}): Promise<Meme[]> {
+/** Memes, newest first, with like counts; one fly's (flyId) or one person's (userId) when given. */
+export async function loadMemes(opts: { limit?: number; flyId?: string; userId?: string } = {}): Promise<Meme[]> {
   if (!db) return [];
   let q = db.from("meme_board").select("*").order("id", { ascending: false }).limit(opts.limit ?? 40);
   if (opts.flyId) q = q.eq("fly_id", opts.flyId);
+  if (opts.userId) q = q.eq("user_id", opts.userId);
   const { data } = await q;
   return (data ?? []) as Meme[];
 }
@@ -144,6 +145,16 @@ export async function load(limit = 200): Promise<Snapshot> {
     posts: (posts.data as unknown as RawPost[]).map(withCounts),
     tick: (ticks.data as Tick[])[0] ?? null, live: true,
   };
+}
+
+/** The latest posts of these flies (the My flies tab), newest first; optionally one post kind. */
+export async function loadFlyPosts(flyIds: string[], opts: { limit?: number; kind?: Post["kind"] } = {}): Promise<Post[]> {
+  if (!db || flyIds.length === 0) return [];
+  let q = db.from("posts").select(POST_COLUMNS).in("fly_id", flyIds).order("id", { ascending: false }).limit(opts.limit ?? 150);
+  if (opts.kind) q = q.eq("kind", opts.kind);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data as unknown as RawPost[]).map(withCounts);
 }
 
 /** One post, for links to posts older than the loaded feed. */

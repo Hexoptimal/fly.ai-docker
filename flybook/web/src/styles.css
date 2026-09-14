@@ -126,6 +126,26 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
   border-radius: 10px; padding: 10px; position: relative; }
 .meme-board img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 8px; display: block; }
 .meme-board .rank { position: absolute; top: 14px; left: 14px; }
+.meme-status { margin: 0 0 14px; padding: 12px 14px; color: var(--muted); }
+.meme-status.ready { color: var(--text); border-color: rgba(242,181,68,.45); }
+.mine-tab .board-controls { flex-wrap: wrap; gap: 8px; }
+.mine-tab .seg .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; }
+.mine-posts { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 10px; }
+.mine-post { display: flex; gap: 12px; align-items: center; justify-content: space-between; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.mine-post.kind-hallucination { border-left: 3px solid #c77dff; }
+.mine-post.kind-misread { border-left: 3px solid #f2b544; }
+.mine-post.kind-sense { border-left: 3px solid #3ddc84; }
+.mine-main { min-width: 0; flex: 1; }
+.mine-top { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.mine-post .says { margin: 6px 0 2px; }
+.mine-post .fine { margin: 0; }
+.meme-make { flex: none; white-space: nowrap; }
+.mine-memes { margin-top: 18px; }
+@media (max-width: 560px) {
+  .mine-post { flex-direction: column; align-items: stretch; }
+  .meme-make { width: 100%; }
+}
 .mine { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
 .mine li { display: flex; align-items: center; gap: 8px; }
 .mine .state { margin-left: auto; color: var(--dim); font: 12px var(--mono); }
