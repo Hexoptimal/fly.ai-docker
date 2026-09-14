@@ -1,0 +1,5 @@
+1-mogrfly-mate: Mogrfly said 'mate' (sense); really: mate; did: turned; settings: {"temperament": {"wiring": 1.3, "excitability": 1.11, "restlessness": 2.73}, "dials": {"arousal": "boost"}}
+2-cobfly-mate: cobfly said 'mate' (hallucination); really: nothing; did: nothing; settings: {"temperament": {"excitability": 0.9, "restlessness": 0.5}, "dials": {"backward": "off", "steering": "off"}}
+3-murarfly-mate: murarfly said 'mate' (misread); really: touch; did: nothing; settings: {"temperament": {"wiring": 1.3, "excitability": 1.1, "restlessness": 3.0}}
+4-cobglotus-mate: cobgLotus said 'mate' (hallucination); really: nothing; did: nothing; settings: {"temperament": {"excitability": 0.9}, "dials": {"backward": "off", "grooming": "boost"}}
+5-mog-jr-threat: Mog JR said 'threat' (sense); really: threat; did: nothing; settings: {"temperament": {"wiring": 1.3, "excitability": 1.1, "restlessness": 3.0}, "dials": {"arousal": "boost", "steering": "boost"}}

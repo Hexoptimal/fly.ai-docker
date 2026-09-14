@@ -16,6 +16,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT))
 
+from fastbrain import FastBrain  # noqa: E402
 from flybrain import FlyBrain  # noqa: E402
 from flytalk import WING_MN  # noqa: E402
 from settings import DIAL_LEVELS, DIALS, SENSE_OF, clean  # noqa: E402
@@ -42,8 +43,11 @@ def features(counts: np.ndarray) -> np.ndarray:
 
 
 class Episodes:
-    def __init__(self, batch: int, seed: int = 0, device: str = "cpu"):
-        self.brain = b = FlyBrain(device=device, batch=batch, seed=seed, dt=DT, sensory_input=False)
+    def __init__(self, batch: int, seed: int = 0, device: str = "cpu", fast: bool = True):
+        """batch: the most flies in one brain run; each run uses exactly as many columns as it has flies.
+        fast: fastbrain.FastBrain (same model, cheaper CPU step) instead of flybrain.FlyBrain."""
+        self.brain = b = (FastBrain if fast else FlyBrain)(device=device, batch=batch, seed=seed, dt=DT, sensory_input=False)
+        self.max_batch = int(batch)
         self.words = list(SENSES)
         self.cells = {w: b.cells(t) for w, t in SENSES.items()}
         self.dn = b.cells(["descending_neuron"])
@@ -66,8 +70,9 @@ class Episodes:
         """One word per fly, and optionally one settings dict per fly (see settings.py). Returns DN
         spike counts (batch, n_dn) over the stimulus window and wing motor neuron spikes/s (batch,)."""
         b = self.brain
-        if len(stimuli) != b.batch:
-            raise ValueError(f"{len(stimuli)} stimuli for a batch of {b.batch}")
+        if not 1 <= len(stimuli) <= self.max_batch:
+            raise ValueError(f"{len(stimuli)} stimuli for a brain of at most {self.max_batch}")
+        b.batch = len(stimuli)
         tuned = [clean(s) for s in (settings or [{}] * b.batch)]
         if len(tuned) != b.batch:
             raise ValueError(f"{len(tuned)} settings for a batch of {b.batch}")

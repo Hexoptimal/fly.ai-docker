@@ -67,7 +67,7 @@ def matchmake(flies: list[dict], count: int, rng: np.random.Generator) -> list[t
 def run_duels(runner: PatchRunner, duels: list[dict], flies: dict[str, dict], seed: int) -> list[dict]:
     """Fight pending duels (rows from the duels table) in brain batches. Returns update rows:
     {id, status, winner, a_step, b_step, a_elo, b_elo, delta, replay} (ms for steps)."""
-    B = runner.eps.brain.batch
+    B = runner.eps.max_batch
     out = []
     ready = []
     for d in duels:
@@ -78,7 +78,7 @@ def run_duels(runner: PatchRunner, duels: list[dict], flies: dict[str, dict], se
             ready.append((d, a, b))
     for start in range(0, len(ready), B // 2):
         chunk = ready[start:start + B // 2]
-        pad = B - 2 * len(chunk)
+        pad = 0                                            # a brain run has exactly these duelling flies
         pos, settings, patch_of, direct = [], [], [], []
         for k, (d, a, b) in enumerate(chunk):
             pos += [[0.45, 0.5, 0.0], [0.55, 0.5, np.pi]]

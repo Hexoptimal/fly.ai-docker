@@ -48,6 +48,8 @@ WORD_OF = {"loom": "threat", "target": "mate", "bump": "touch"}
 
 # per-neuron group ids for per-step counting
 ESCAPE, FORWARD, BACKWARD, STEER_L, STEER_R, WING, GROOM = range(7)
+# names of those groups, in that order, as stored in a post's `trace` (the app plays it as the fly's voice)
+TRACE_GROUPS = ["escape", "forward", "backward", "steer_left", "steer_right", "wing", "groom"]
 
 
 class PatchRunner:
@@ -72,7 +74,10 @@ class PatchRunner:
         x, y, heading; patch_of: patch id per fly (None for padding: never coupled); ramp: the direct stimulus
         grows linearly from nothing to full strength over the window (duels)."""
         eps, brain = self.eps, self.eps.brain
-        B = brain.batch
+        B = len(direct)
+        if not 1 <= B <= eps.max_batch:
+            raise ValueError(f"{B} flies for a brain of at most {eps.max_batch}")
+        brain.batch = B                                   # exactly these flies, no padding columns
         tuned = [clean(s) for s in settings]
         brain.reset(seed)
         stimulus, dials = eps.configure(tuned, direct)
@@ -92,6 +97,7 @@ class PatchRunner:
         move_recent = np.zeros((B, LOOK))
         last_hop = np.full(B, -10**6)
         first_hop = np.full(B, -1)
+        trace = np.zeros((B, eps.stim, len(TRACE_GROUPS)), np.int32)   # spikes per group per stimulus step
 
         for s in range(eps.warm + eps.stim):
             live = s >= eps.warm
@@ -120,6 +126,7 @@ class PatchRunner:
             move_recent[:, s % LOOK] = G[:, FORWARD] + G[:, BACKWARD] + G[:, STEER_L] + G[:, STEER_R]
             if not live:
                 continue
+            trace[:, s - eps.warm] = G
 
             dist = np.hypot(pos[:, None, 0] - pos[None, :, 0], pos[:, None, 1] - pos[None, :, 1])
             near = np.exp(-dist / REACH) * same
@@ -148,14 +155,18 @@ class PatchRunner:
             "counts": acc[:, :-1], "wing": acc[:, -1] / (eps.stim * DT),
             "social": social, "peak": peak, "source": source, "positions": pos, "frames": frames,
             "first_hop": [None if h < 0 else int(h) for h in first_hop],
+            "trace": trace,
             "links": [{"from": j, "to": i, "channel": ch, "step": st}
                       for (j, i, ch), st in sorted(links.items(), key=lambda kv: kv[1])],
         }
 
-    @staticmethod
-    def cause(result: dict, i: int) -> dict | None:
-        """The strongest thing neighbours did to fly i, if it reached SOCIAL_MIN: {channel, from, strength}."""
-        reached = [c for c in range(len(CHANNELS)) if result["peak"][i, c] >= SOCIAL_MIN]
+    def cause(self, result: dict, i: int, rule: dict | None = None) -> dict | None:
+        """The strongest thing neighbours did to fly i, if it reached the label rule: {channel, from, strength}.
+        rule: {"kind": "peak" | "total", "threshold"} from the model's vocab.json (labels.py); default is a peak of
+        SOCIAL_MIN on one step. "total" is the input summed over the window as a share of a full direct stimulus."""
+        kind, threshold = (rule["kind"], float(rule["threshold"])) if rule else ("peak", SOCIAL_MIN)
+        value = result["peak"] if kind == "peak" else result["social"] / (AMOUNT * self.eps.stim)
+        reached = [c for c in range(len(CHANNELS)) if value[i, c] >= threshold]
         if not reached:
             return None
         c = max(reached, key=lambda c: result["social"][i, c])

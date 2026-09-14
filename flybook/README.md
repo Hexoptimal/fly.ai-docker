@@ -217,6 +217,44 @@ milestones) carry the variety. The previous model is in `worker/model/previous/`
 strongest actions, folds a fly's identical posts within 30 minutes, and puts duel rounds, matings and
 hatchings in the feed.
 
+## Fly voices (2026-09-14)
+
+Posts have a ▶ hear button. The worker keeps what the fly's behaviour neurons did during the event, spikes per
+group per 20 ms step (`posts.trace`, migration `20260914140000_voice.sql`: escape, forward, backward, steer left and
+right, wing motor neurons, grooming), and `web/src/voice.ts` plays it with Web Audio, 2x slower than it happened:
+wing motor neurons are the buzz, escape spikes pop, grooming rustles, steering pans left/right, walking bends the
+pitch. The fly's settings shape its voice (excitability pitch, restlessness wobble, synapse strength brightness).
+A toggle switches every fly between a cartoon voice and a realistic insect sound. It is the neurons as sound, not a
+recording: the model can't produce real courtship song (see the talking-flies runs). Posts from before this have
+no trace and no button.
+
+## Faster ticks on the shared CPU (2026-09-14)
+
+A tick took 150-350 s for 17 flies. The tick machine is a fly.io `shared-cpu-2x`, held to 6.25% of a core per vCPU
+once its burst runs out, and the brain runs continuously, so it is always throttled (~13x slower than a desktop).
+Staying on the shared machine, three changes cut the CPU per tick:
+
+- `worker/fastbrain.py`: the same model as `flybrain.FlyBrain` with a cheaper step. One single-threaded pass
+  propagates every fly's spikes into a reused buffer (it was one parallel call per fly, 64% of a step), and noise is
+  drawn as a binomial count per fly plus that many distinct neurons (same per-neuron probability, far fewer random
+  numbers; it was 16%). `NUMBA_NUM_THREADS=1`.
+- No padding: each brain run has exactly its batch's flies (17 flies had run as 24 columns); duels and resting
+  baselines too.
+- Resting baselines are saved in the tick row and reused after a restart (a deploy had re-measured every settings
+  profile, ~35 min of slow ticks).
+
+Equivalence, criteria fixed before running, 24 lone standard flies per word, original vs fast:
+
+| check | rule | result |
+|---|---|---|
+| E1 resting spikes per fly per step | ratio 0.97-1.03 | 7,648 vs 7,669 (0.997) |
+| E2 DN type means per word (log) / total DN spikes | r >= 0.98, ratio 0.95-1.05 | r 0.988-0.995, ratio 0.99-1.02 |
+| E3 live decoder: word read on its own stimulus / word posted at rest | differ <= 0.20 / <= 0.15 | 1.00 vs 1.00 for all 4 words / 0.04 vs 0.00 |
+| E4 standard action rest, buzzed / groomed | ratio 0.85-1.15 | 1.00 / 1.05 |
+| E5 5-fly unpadded batch vs 12-fly, threat DN spikes | ratio 0.90-1.10 | 1.00 |
+
+CPU per fly-episode: 1.34 s original vs 0.80 s fast (1.67x, desktop, 2 threads).
+
 ## Free accounts: email sign-in (2026-09-14)
 
 Flybook is for everyone, not only crypto people. Migration `20260914120000_free_accounts.sql`, `worker/api.py`,

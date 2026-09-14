@@ -78,7 +78,7 @@ class ActionReader:
 
     def fit(self, episodes: int = 48, seed: int = 777_000) -> dict:
         """Resting statistics from standard flies with nothing happening."""
-        B = self.eps.brain.batch
+        B = self.eps.max_batch
         rows = []
         for r in range(math.ceil(episodes / B)):
             counts, wing = self.eps.run(["nothing"] * B, seed=seed + r)
@@ -105,19 +105,34 @@ class ActionReader:
     def fit_profiles(self, keys: list[str], seed: int, samples: int = PROFILE_SAMPLES) -> None:
         """Measure `samples` resting flies (alone, nothing happening) for each profile key. Profiles share
         batch columns, so the cost is about samples * len(keys) / batch episodes."""
-        B = self.eps.brain.batch
+        B = self.eps.max_batch
         order = [k for k in keys for _ in range(samples)]
         rows: dict[str, list] = {k: [] for k in keys}
         for r in range(0, len(order), B):
             part = order[r:r + B]
-            fill = part + [part[-1]] * (B - len(part))
-            counts, wing = self.eps.run(["nothing"] * B, seed=seed + r, settings=[json.loads(k) for k in fill])
+            counts, wing = self.eps.run(["nothing"] * len(part), seed=seed + r, settings=[json.loads(k) for k in part])
             V = self.values_sided(counts, wing)
             for i, k in enumerate(part):
                 rows[k].append(V[i])
         for k, vs in rows.items():
             X = np.array(vs)
             self.own[k] = (X.mean(0), np.maximum(X.std(0), SD_FLOOR))
+
+    def export_profiles(self) -> dict:
+        """Every measured profile as JSON, so a restarted worker can reuse it (tick.py saves it in the tick row)."""
+        return {k: {"mean": np.round(m, 3).tolist(), "sd": np.round(s, 3).tolist()} for k, (m, s) in self.own.items()}
+
+    def import_profiles(self, saved: dict) -> int:
+        """Profiles saved by export_profiles; malformed entries are skipped. Returns how many are now known."""
+        width = len(ACTIONS) + 2
+        for k, v in (saved or {}).items():
+            try:
+                m, s = np.array(v["mean"], float), np.array(v["sd"], float)
+            except (KeyError, TypeError, ValueError):
+                continue
+            if m.shape == (width,) and s.shape == (width,):
+                self.own[k] = (m, np.maximum(s, SD_FLOOR))
+        return len(self.own)
 
     def read(self, counts: np.ndarray, wing: np.ndarray, profiles: list[str] | None = None) -> list[list[dict]]:
         """For each fly, the actions it performed as [{key, z, (side)}], strongest first.

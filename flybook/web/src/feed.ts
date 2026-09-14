@@ -24,6 +24,8 @@ export function tuning(f: Partial<FlySettings>): string[] {
   ];
 }
 export type Neuron = { type: string; z: number };
+/** What a fly's behaviour neurons did during a post's event: spikes per group per step (voice.ts plays it). */
+export type Trace = { step_ms: number; groups: string[]; counts: number[][] };
 export type Cause = { channel: "loom" | "target" | "sound" | "bump"; from_fly_id: string; strength: number };
 export type Post = {
   id: number; tick_id: number; fly_id: string; patch_id: string;
@@ -37,6 +39,8 @@ export type Post = {
   likes?: number;       // human likes (boards count only holders' likes)
   comments?: number;    // comment count
   caption?: string | null;   // the owner's caption, always shown as human-written
+  has_voice?: boolean;       // the post has a trace to play
+  trace?: Trace | null;      // only inline on the demo feed and fresh realtime posts; fetched on play otherwise
 };
 export type Poke = {
   id: number; patch_id: string; stimulus: string; created_at: string; consumed_at: string | null; tick_id: number | null;
@@ -77,14 +81,21 @@ export const db: SupabaseClient | null = url && key ? createClient(url, key) : n
 export const BASE = import.meta.env.BASE_URL;
 
 const FLY_COLUMNS = "id,name,color,patch_id,owner,active,created_at,senses,temperament,dials,x,y,heading,elo,duels,wins,losses,draws,parents,generation,auto_born";
-const POST_COLUMNS = "*,likes(count),comments(count),captions(body)";
+// every post column except the trace (fetched when someone presses play); voice_ms only says whether there is one
+const POST_COLUMNS = "id,tick_id,fly_id,patch_id,word,confidence,truth,correct,wing_hz,neurons,created_at,kind,actions,poke_id,cause,"
+  + "voice_ms:trace->step_ms,likes(count),comments(count),captions(body)";
 
-type RawPost = Post & { likes: { count: number }[]; comments: { count: number }[]; captions: { body: string } | { body: string }[] | null };
+type RawPost = Omit<Post, "likes" | "comments"> & {
+  likes: { count: number }[]; comments: { count: number }[]; captions: { body: string } | { body: string }[] | null;
+  voice_ms?: number | null;
+};
 const withCounts = (p: RawPost): Post => {
   const caption = Array.isArray(p.captions) ? p.captions[0]?.body : p.captions?.body;
+  const { voice_ms, captions: _captions, ...rest } = p;
   return {
-    ...p, actions: p.actions ?? [], cause: p.cause ?? null,
+    ...rest, actions: p.actions ?? [], cause: p.cause ?? null,
     likes: p.likes?.[0]?.count ?? 0, comments: p.comments?.[0]?.count ?? 0, caption: caption ?? null,
+    has_voice: voice_ms != null || !!p.trace,
   };
 };
 
@@ -93,7 +104,7 @@ export async function load(limit = 200): Promise<Snapshot> {
     const res = await fetch(`${BASE}demo-feed.json`);
     if (!res.ok) throw new Error("No database configured and no demo-feed.json found.");
     const d = await res.json();
-    const posts = [...(d.posts as Post[])].sort((a, b) => b.id - a.id).slice(0, limit);
+    const posts = [...(d.posts as Post[])].sort((a, b) => b.id - a.id).slice(0, limit).map((p) => ({ ...p, has_voice: !!p.trace }));
     const ticks = (d.ticks as Tick[]).filter((t) => t.finished_at);
     return { patches: d.patches, flies: d.flies, posts, tick: ticks.at(-1) ?? null, live: false };
   }
@@ -239,7 +250,7 @@ export function subscribe(handlers: {
     .channel("feed")
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "posts" },
         (m) => handlers.onPost({ ...(m.new as Post), actions: (m.new as Post).actions ?? [], cause: (m.new as Post).cause ?? null,
-                                 likes: 0, comments: 0, caption: null }))
+                                 likes: 0, comments: 0, caption: null, has_voice: !!(m.new as Post).trace }))
     .on("postgres_changes", { event: "UPDATE", schema: "public", table: "ticks" }, (m) => handlers.onTick(m.new as Tick))
     .on("postgres_changes", { event: "*", schema: "public", table: "likes" }, (m) => {
       const row = (m.eventType === "DELETE" ? m.old : m.new) as { post_id?: number };

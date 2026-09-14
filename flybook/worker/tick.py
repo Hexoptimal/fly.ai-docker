@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import os
 import random
@@ -35,12 +36,13 @@ import requests
 
 import chain
 from settings import FREE_FLIES
-from actions import MIN_EXTRA, PROFILE_SAMPLES, Z_MIN, ActionReader, profile_key
-from patch import CHANNELS, REACH, WORD_OF, PatchRunner
+from actions import ACTIONS, MIN_EXTRA, PROFILE_SAMPLES, Z_MIN, ActionReader, profile_key
+from patch import CHANNELS, REACH, SOCIAL_MIN, TRACE_GROUPS, WORD_OF, PatchRunner
 import duels as duel_rules
 import mating
 from calibrate import MODEL, git_sha
 from episode import CONFIG, HERE, Episodes, features
+from flybrain import __version__ as FLYBRAIN_VERSION
 from flybrain.reservoir import Readout
 
 
@@ -95,6 +97,12 @@ class SupabaseStore:
     def wallets(self, owners: set[str]) -> dict[str, str]:
         rows = self._req("GET", f"profiles?select=id,wallet&id=in.({','.join(sorted(owners))})")
         return {r["id"]: r["wallet"] for r in rows if r.get("wallet")}
+
+    def saved_profiles(self, version: str) -> dict:
+        rows = self._req("GET", f"ticks?select=profiles:config->actions->profiles_rest"
+                                f"&config->actions->>profile_version=eq.{version}"
+                                f"&config->actions->profiles_rest=not.is.null&order=id.desc&limit=1")
+        return (rows[0].get("profiles") or {}) if rows else {}
 
     def set_active(self, fly_id: str, active: bool) -> None:
         self._req("PATCH", f"flies?id=eq.{fly_id}", json={"active": active})
@@ -169,6 +177,13 @@ class JsonStore:
         self._save()
 
     def wallets(self, owners: set[str]) -> dict[str, str]:
+        return {}
+
+    def saved_profiles(self, version: str) -> dict:
+        for t in reversed(self.d["ticks"]):
+            actions = (t.get("config") or {}).get("actions") or {}
+            if actions.get("profile_version") == version and actions.get("profiles_rest"):
+                return actions["profiles_rest"]
         return {}
 
     def set_active(self, fly_id: str, active: bool) -> None:
@@ -268,6 +283,11 @@ def draw(mix: dict[str, float], words: list[str], rng) -> str:
 
 POKE_FULL, POKE_REACH = 0.12, 0.35   # a poke hits fully within POKE_FULL of its spot, fading to nothing at POKE_REACH
 PROFILE_FITS_PER_TICK = 2            # new settings profiles whose resting baseline is measured per tick (about one brain batch each)
+# Resting baselines are saved in the tick row whenever new ones are measured, and reused after a restart while
+# this still matches: same brain package, episode, sample count and actions (a deploy used to re-measure every
+# profile, ~35 min of slow ticks).
+PROFILE_VERSION = hashlib.sha1(json.dumps([FLYBRAIN_VERSION, CONFIG, PROFILE_SAMPLES, [a["key"] for a in ACTIONS]],
+                                          sort_keys=True).encode()).hexdigest()[:12]
 
 
 def settings_of(fly: dict) -> dict:
@@ -338,17 +358,19 @@ def run_tick(store, eps: Episodes, reader: ActionReader, runner: PatchRunner, tr
                    "pokes": sorted(p["id"] for p in poke_for.values()),
                    "actions": {"z_min": Z_MIN, "min_extra": MIN_EXTRA, "baseline": "own settings",
                                "profile_samples": PROFILE_SAMPLES, "profiles": len(reader.own),
+                               "profile_version": PROFILE_VERSION,
+                               **({"profiles_rest": reader.export_profiles()} if new else {}),
                                "waiting": len(reader.missing([settings_of(f) for f in flies])), "standard_rest": reader.rest},
-                   "social": {"reach": REACH, "channels": CHANNELS, "poke_full": POKE_FULL, "poke_reach": POKE_REACH}},
+                   "social": {"reach": REACH, "channels": CHANNELS, "poke_full": POKE_FULL, "poke_reach": POKE_REACH,
+                              "label_rule": vocab.get("label_rule") or {"kind": "peak", "threshold": SOCIAL_MIN}}},
         "translator": {"version": vocab["version"], "precision": precision, "recall": vocab["test"]["recall"],
                        "postable": postable},
     })
-    B = eps.brain.batch
     rows, moves, replay = [], [], {}
-    for n, batch in enumerate(patch_batches(flies, B)):
-        pad = B - len(batch)
+    for n, batch in enumerate(patch_batches(flies, eps.max_batch)):
+        pad = 0                                            # a brain run has exactly this batch's flies
         pos = np.array([start_position(f) for f in batch] + [[0.5, 0.5, 0.0]] * pad)
-        direct: list[tuple[str | None, float]] = [(None, 0.0)] * B
+        direct: list[tuple[str | None, float]] = [(None, 0.0)] * len(batch)
         events = {}
         for pid in dict.fromkeys(f["patch_id"] for f in batch):
             idx = [i for i, f in enumerate(batch) if f["patch_id"] == pid]
@@ -389,7 +411,7 @@ def run_tick(store, eps: Episodes, reader: ActionReader, runner: PatchRunner, tr
             if not said and not did[i]:
                 continue                                   # read nothing, did nothing: no post
             hit = direct[i][0]
-            cause = None if hit else runner.cause(res, i)
+            cause = None if hit else runner.cause(res, i, vocab.get("label_rule"))
             truth = hit or (WORD_OF.get(cause["channel"], "nothing") if cause else "nothing")
             if said:
                 kind = "sense" if word == truth else ("hallucination" if truth == "nothing" and not cause else "misread")
@@ -401,7 +423,10 @@ def run_tick(store, eps: Episodes, reader: ActionReader, runner: PatchRunner, tr
                          "actions": did[i], "poke_id": poke["id"] if poke else None,
                          "cause": {"channel": cause["channel"], "from_fly_id": batch[cause["from"]]["id"],
                                    "strength": cause["strength"]} if cause else None,
-                         "wing_hz": round(float(wing[i]), 1), "neurons": eps.cite(counts[i], mean, sd)})
+                         "wing_hz": round(float(wing[i]), 1), "neurons": eps.cite(counts[i], mean, sd),
+                         # what its behaviour neurons did step by step; the app plays it as the fly's voice
+                         "trace": {"step_ms": int(round(eps.brain.dt * 1000)), "groups": TRACE_GROUPS,
+                                   "counts": res["trace"][i].tolist()}})
         for pid, event in events.items():
             idx = [i for i, f in enumerate(batch) if f["patch_id"] == pid]
             local = set(idx)
@@ -525,6 +550,12 @@ def main() -> None:
     else:
         rest = reader.fit()
         print(f"action rest fitted in {time.perf_counter() - t0:.0f} s: {rest}", flush=True)
+    try:
+        saved = store.saved_profiles(PROFILE_VERSION)
+        if saved:
+            print(f"resting baselines reused for {reader.import_profiles(saved)} settings profiles ({PROFILE_VERSION})", flush=True)
+    except Exception as e:                            # a missing saved set only means re-measuring
+        print(f"couldn't load saved resting baselines: {e}", flush=True)
     runner = PatchRunner(eps, reader)
     rng = np.random.default_rng(args.seed if args.seed is not None else time.time_ns())
 

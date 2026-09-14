@@ -9,7 +9,7 @@ primary_region = "cdg"
   dockerfile = "Dockerfile"
 
 [env]
-  NUMBA_NUM_THREADS = "2"
+  NUMBA_NUM_THREADS = "1"   # fastbrain's step is single-threaded; extra threads only spend the shared-CPU quota
   FLYBOOK_ORIGINS = "https://flyaiworld.com,https://www.flyaiworld.com,http://localhost:5173"
   FLYBOOK_MIN_TOKENS = "1"
   FLYBOOK_MAX_FLIES = "3"

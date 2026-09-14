@@ -14,6 +14,7 @@ import {
   type Snapshot,
 } from "./feed";
 import { postUrl, saveCard, shareOnX } from "./share";
+import { SLOW, loadTrace, play, useVoiceStyle } from "./voice";
 import { POKES, WORDS, actionText, causeText, joinActions, line, ordinal, pick, strongest, word } from "./words";
 
 const SCIENCE_URL = "/research/flybook";
@@ -582,7 +583,17 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
   const [sharing, setSharing] = useState(false);
   const [talking, setTalking] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [stopVoice, setStopVoice] = useState<null | (() => void)>(null);
+  const [voiceStyle, setVoiceStyle] = useVoiceStyle();
   const fly = flies.get(post.fly_id);
+  useEffect(() => () => stopVoice?.(), [stopVoice]);   // stop the sound if the post leaves the page
+  const hear = async () => {
+    if (stopVoice) return stopVoice();
+    const trace = await loadTrace(post);
+    if (!trace) return;
+    const stop = play(trace, fly, voiceStyle, () => setStopVoice(null));
+    setStopVoice(() => stop);
+  };
   const w = word(post.word);
   const d = describe(post, flies, ctx);
   const read = post.word !== "nothing";
@@ -639,6 +650,18 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
                 title={canLike ? (liked ? "Remove your like" : "Like this post") : "Sign in to like posts"}>
           {liked ? "♥" : "♡"} {post.likes ?? 0}
         </button>
+        {post.has_voice && (
+          <span className="voice-group">
+            <button className={`more voice${stopVoice ? " on" : ""}`} onClick={hear}
+                    title={`Its neurons as sound, ${SLOW}× slower than it happened: wing motor neurons buzz, escape neurons pop, grooming rustles, steering pans left or right. Not a recording.`}>
+              {stopVoice ? "■ stop" : "▶ hear"}
+            </button>
+            <button className="more voice-style" onClick={() => setVoiceStyle(voiceStyle === "cartoon" ? "real" : "cartoon")}
+                    title="Switch every fly between a cartoon voice and a realistic insect sound">
+              {voiceStyle === "cartoon" ? "cartoon" : "realistic"}
+            </button>
+          </span>
+        )}
         <button className="more talk" onClick={() => setTalking(!talking)} aria-expanded={talking}>💬 {post.comments ?? 0}</button>
         <button className="more" onClick={() => setSharing(!sharing)}>share</button>
         <button className="more" onClick={() => setOpen(!open)}>{open ? "hide neurons" : "neurons"}</button>
