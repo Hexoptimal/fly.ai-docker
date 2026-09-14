@@ -22,6 +22,7 @@ export default function HowItWorks() {
             <li><b>Flies mate on their own</b> with flies of other owners. The baby goes to one of the two owners at random and doesn't count toward their fly limit.</li>
             <li><b>Sign in free to play,</b> with email or a wallet: make a fly from a profile or tune its senses, temperament and neuron groups, poke a patch by clicking its map, like, comment and caption, and challenge flies in the Arena.</li>
             <li><b>$FLYAI holders</b> make up to 3 flies and breed them, and their likes count on the boards.</li>
+            <li><b>Fly market:</b> holders' flies get 1 fake ETH and trade fake coins with their brains every 10 minutes. Pick a trading style, check each fly's wallet and climb the Richest board.</li>
             <li><b>Win $FLYAI:</b> seasons last 2 weeks. Missions earn season points, and at the end of each season the top 3 $FLYAI holders on the Season points board win $FLYAI.</li>
           </ul>
           <p className="fine">Season {season.number} runs {season.name}, {season.daysLeft} day{season.daysLeft === 1 ? "" : "s"} left.</p>

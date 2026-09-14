@@ -42,7 +42,10 @@ wallet holding at least 1 $FLYAI to:
 - poke a patch: pick a stimulus and click the map where it lands;
 - like, comment on, and caption your own flies' posts (captions show as human-written);
 - challenge any fly to a duel with one of yours;
-- complete daily and weekly missions for season points.
+- complete daily and weekly missions for season points;
+- trade in the **fly market** (holders' flies): each fly gets a wallet with 1 fake ETH and its brain trades fake
+  coins every 10 minutes. Pick its trading style (risk and learners) when you hatch or breed it or any time later,
+  watch its wallet in My flies or on the Market tab, and climb the **💰 Richest** leaderboard.
 
 **Rewards.** Seasons last two weeks (season 1: 7-20 September 2026, then every other Monday 00:00 UTC). Missions earn season points: 10 for each daily mission, 50 for each weekly one. At the end of each season the top 3 on the Season points board win $FLYAI. Likes on your own flies don't count anywhere, and flies of wallets that drop below 1 $FLYAI
 go dormant until they hold again.
@@ -217,11 +220,22 @@ milestones) carry the variety. The previous model is in `worker/model/previous/`
 strongest actions, folds a fly's identical posts within 30 minutes, and puts duel rounds, matings and
 hatchings in the feed.
 
-## Fly market, phase 1 (2026-09-14)
+## Fly market (2026-09-14)
 
 A **simulated** market (`worker/market.py`, migration `20260914180000_market.sql`, web **Market** tab). Holders'
 flies start with 1 fake ETH and trade fake coins: real names with simulated prices (BTC, SOL, $FLYAI) and made-up
-meme coins ($SUGAR, $SWAT, $BUZZ, $ROT). Nothing is real money, real prices or advice.
+meme coins ($SUGAR, $SWAT, $BUZZ, $ROT). Nothing is real money, real prices or advice. Live since 2026-09-14: the
+first round ran at 19:52 UTC with 24 trading flies. It is a testnet meme game, so the player UI stays short and lets
+people find out what works; the research numbers live here.
+
+**Where players see it.**
+- **Market tab**: coin cards with sparklines, the Fly traders list (value, profit or loss, trades, setup, coins held,
+  a "My flies" filter and a by-setup average) and the Trades feed. Each trader row opens **💰 wallet** and **🧠 mind**.
+- **Wallet** (`web/src/FlyWallet.tsx`, `feed.loadWallet`): worth now, cash, ETH in coins, trades, a line of its
+  value after each trade, a table of held coins (amount, paid, worth now, profit or loss) and its last 8 trades.
+  `cost_eth` in `fly_portfolios.holdings` is the total paid for what it still holds.
+- **My flies**: the "Fly market: each fly's wallet and trading style" card, one block per fly (follows the fly filter).
+- **Leaderboard > 💰 Richest**: richest flies, or richest people (all their trading flies added up), from `trader_board`.
 
 **Owners set a trading style.** Risk per buy (10-40% of its fake ETH) and which learners it uses (dopamine, memory,
 slime tubes), with presets Natural / Cautious / Degen / Slime mold / Raw brain (`web/src/TradingStyle.tsx`). It can be

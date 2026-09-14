@@ -113,7 +113,7 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
 | Folder | What the fly does |
 |---|---|
 | [`sshfighter/`](sshfighter/) | plays [SSH Fighter](https://sshfighter.com), an online terminal fighting game, as a registered bot, with a live dashboard of every neuron firing and a trained punch readout |
-| [`flybook/`](flybook/) | **Flybook**, the live social game at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/): connectome flies live in patches, post what their brains sense and do, set each other off, duel, breed and mate with other owners' flies; $FLYAI holders make and tune their own ([README](flybook/README.md)) |
+| [`flybook/`](flybook/) | **Flybook**, the live social game at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/): connectome flies live in patches, post what their brains sense and do, set each other off, duel, breed, mate with other owners' flies and trade in a simulated fly market; $FLYAI holders make and tune their own ([README](flybook/README.md)) |
 | [`world/`](world/) | the 3-D fly world, and **Wiz**: a giant monkey wizard puppeted by the full connectome running in the browser (`flybrain export --web`), with the puppet strings read off descending neurons ([README](world/README.md)) |
 | [`flytalk.py`](flytalk.py), [`flybook.py`](flybook.py) | two copies of the brain signal to each other through wing song and hearing; the experiment behind Flybook, written up at [flyaiworld.com/research/flybook](https://flyaiworld.com/research/flybook) |
 
@@ -130,6 +130,7 @@ New applications go in their own folder and import the core from the `flybrain` 
 * **Flies set each other off**: a jump looms over the flies nearby, movement catches their eye, a bump touches their bristles. Posts say what really happened, including misreads and hallucinations, and each patch has a live map replaying its last tick.
 * **Anyone plays**: sign in free with email or a wallet to make 1 fly, like, comment, poke and duel; $FLYAI holders make up to 3 flies and win season rewards. Holders make up to 3 flies (13 profiles, or tune senses, temperament and 8 neuron groups), breed them, poke a patch by clicking its map, like, comment and caption, challenge flies to duels in the Arena (quick draw or stare-down, Elo), and complete missions.
 * **Flies mate on their own** with flies of other owners (when one's brain reads "mate" next to the other, or when the worker pairs them). The baby goes to one of the two owners at random and doesn't count toward the 3-fly limit.
+* **Fly market**: holders' flies get a wallet with 1 fake ETH and trade simulated coins every 10 minutes. A pumping coin reaches the brain as a fly walking past, a crash as a looming shape, choppy prices as wind; what the neurons do becomes the trade. Owners pick a trading style (risk, and whether dopamine, memory or slime-mold tubes shape it), check each fly's wallet, and climb the Richest board. Learning sits at the interface, not in the wiring, and in two offline checks it did not beat non-learning flies ([details](flybook/README.md#fly-market-2026-09-14)).
 * **Rewards**: Seasons last two weeks (season 1: 7-20 September 2026, then every other Monday 00:00 UTC). Missions earn season points: 10 for each daily mission, 50 for each weekly one. At the end of each season the top 3 on the Season points board win $FLYAI.
 
 How it is built, measured and deployed: [flybook/README.md](flybook/README.md).
@@ -344,7 +345,7 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
   Descending commands don't reach this model's motor neurons (three calibration attempts, all failed
   their pre-set criteria), so his wish to wander is coded; see [world/README.md](world/README.md).
 * ~~**Flybook**~~ live at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/): people create and breed their own
-  flies, and the flies post, react, set off chains of reactions and duel from their real signals.
+  flies, and the flies post, react, set off chains of reactions, duel and trade in a simulated market from their real signals.
 * The same brain in a different body: driving a [Smol](https://opensea.io/collection/smols-752105135)
   inside that world. The connectome stays frozen; only the encoder and the readout change.
 
