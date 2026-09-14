@@ -35,6 +35,8 @@ import numpy as np
 import requests
 
 import chain
+import market
+import minds
 from settings import FREE_FLIES
 from actions import ACTIONS, MIN_EXTRA, PROFILE_SAMPLES, Z_MIN, ActionReader, profile_key
 from patch import CHANNELS, REACH, SOCIAL_MIN, TRACE_GROUPS, WORD_OF, PatchRunner
@@ -103,6 +105,55 @@ class SupabaseStore:
                                 f"&config->actions->>profile_version=eq.{version}"
                                 f"&config->actions->profiles_rest=not.is.null&order=id.desc&limit=1")
         return (rows[0].get("profiles") or {}) if rows else {}
+
+    # fly market (market.py)
+    def market_paused(self) -> bool:
+        rows = self._req("GET", "market_control?select=paused&id=eq.1")
+        return bool(rows and rows[0].get("paused"))
+
+    def market_coins(self) -> list[dict]:
+        return self._req("GET", "market_coins?select=symbol,name,kind,price,regime")
+
+    def market_history(self, n: int) -> list[dict]:
+        return self._req("GET", f"market_rounds?select=id,prices&order=id.desc&limit={n}")
+
+    def portfolios(self, ids: list[str]) -> list[dict]:
+        if not ids:
+            return []
+        return self._req("GET", f"fly_portfolios?select=fly_id,eth,holdings,start_eth,value_eth,trades&fly_id=in.({','.join(ids)})")
+
+    def minds(self, ids: list[str]) -> list[dict]:
+        if not ids:
+            return []
+        return self._req("GET", f"fly_minds?select=fly_id,traits,learned,memory,tubes,inherit,stats,parents,learning&fly_id=in.({','.join(ids)})")
+
+    def save_market(self, round_row: dict, coins: list[dict], portfolios: list[dict], trades: list[dict], minds: list[dict]) -> None:
+        rnd = self._req("POST", "market_rounds", "return=representation", json=round_row)[0]
+        stamp = now_iso()
+        self._req("POST", "market_coins?on_conflict=symbol", "resolution=merge-duplicates",
+                  json=[{**c, "updated_at": stamp} for c in coins])
+        if portfolios:
+            self._req("POST", "fly_portfolios?on_conflict=fly_id", "resolution=merge-duplicates",
+                      json=[{**p, "updated_at": stamp} for p in portfolios])
+        if minds:
+            # an owner may have changed a style while the round ran: keep their latest learners and risk
+            latest = {m["fly_id"]: m for m in self._req(
+                "GET", f"fly_minds?select=fly_id,traits,learning&fly_id=in.({','.join(m['fly_id'] for m in minds)})")}
+            for m in minds:
+                now = latest.get(m["fly_id"]) or {}
+                if now.get("learning"):
+                    m["learning"] = now["learning"]
+                if (now.get("traits") or {}).get("risk") is not None:
+                    m.setdefault("traits", {})["risk"] = now["traits"]["risk"]
+            self._req("POST", "fly_minds?on_conflict=fly_id", "resolution=merge-duplicates",
+                      json=[{**m, "updated_at": stamp} for m in minds])
+        if trades:
+            self._req("POST", "fly_trades", json=[{**t, "round_id": rnd["id"]} for t in trades])
+
+    def save_minds(self, rows: list[dict]) -> None:
+        if rows:
+            self._req("POST", "fly_minds?on_conflict=fly_id", "resolution=merge-duplicates",
+                      json=[{**m, "updated_at": now_iso()} for m in rows])
 
     def set_active(self, fly_id: str, active: bool) -> None:
         self._req("PATCH", f"flies?id=eq.{fly_id}", json={"active": active})
@@ -185,6 +236,39 @@ class JsonStore:
             if actions.get("profile_version") == version and actions.get("profiles_rest"):
                 return actions["profiles_rest"]
         return {}
+
+    # fly market (market.py), kept in the same file
+    def _market(self) -> dict:
+        return self.d.setdefault("market", {"coins": [], "rounds": [], "portfolios": {}, "minds": {}, "trades": []})
+
+    def market_paused(self) -> bool:
+        return bool(self._market().get("paused"))
+
+    def market_coins(self) -> list[dict]:
+        return self._market()["coins"]
+
+    def market_history(self, n: int) -> list[dict]:
+        return list(reversed(self._market()["rounds"][-n:]))
+
+    def portfolios(self, ids: list[str]) -> list[dict]:
+        return [self._market()["portfolios"][i] for i in ids if i in self._market()["portfolios"]]
+
+    def minds(self, ids: list[str]) -> list[dict]:
+        return [self._market()["minds"][i] for i in ids if i in self._market()["minds"]]
+
+    def save_market(self, round_row: dict, coins: list[dict], portfolios: list[dict], trades: list[dict], minds: list[dict]) -> None:
+        m = self._market()
+        rid = (m["rounds"][-1]["id"] + 1) if m["rounds"] else 1
+        m["rounds"] = (m["rounds"] + [{**round_row, "id": rid, "started_at": now_iso()}])[-200:]
+        m["coins"] = coins
+        m["portfolios"].update({p["fly_id"]: p for p in portfolios})
+        m["minds"].update({x["fly_id"]: x for x in minds})
+        m["trades"] = (m["trades"] + [{**t, "round_id": rid, "created_at": now_iso()} for t in trades])[-500:]
+        self._save()
+
+    def save_minds(self, rows: list[dict]) -> None:
+        self._market()["minds"].update({x["fly_id"]: x for x in rows})
+        self._save()
 
     def set_active(self, fly_id: str, active: bool) -> None:
         pass
@@ -453,6 +537,16 @@ def run_tick(store, eps: Episodes, reader: ActionReader, runner: PatchRunner, tr
     return stats
 
 
+def trading_flies(store, include_all: bool = False) -> list[dict]:
+    """Flies in the fly market: active flies whose owner holds $FLYAI (holder checks cached for HOLDER_TTL).
+    include_all: every active fly (local tests on house flies)."""
+    _, flies = store.house()
+    active = active_flies(store, flies)
+    if include_all:
+        return active
+    return [f for f in active if f.get("owner") and _holder_cache.get(f["owner"], (0.0, False))[1]]
+
+
 AUTO_DUELS = 2     # matchmade duels per full tick
 
 
@@ -508,6 +602,12 @@ def mating_pass(store, rng, mate_reads: list[str], auto: int = 0) -> int:
     for a, b, trigger in pairs:
         child = store.add_fly(mating.make_child(a, b, taken, child_rng))
         taken.add(child["name"])
+        if child.get("id"):                                # the child's market mind, inherited by its lineage's style
+            try:                                           # a market failure must not leave a half-done mating
+                parent_minds = {m["fly_id"]: m for m in store.minds([a["id"], b["id"]])}
+                store.save_minds([minds.child(child["id"], parent_minds.get(a["id"]), parent_minds.get(b["id"]), child_rng)])
+            except Exception as e:
+                print(f"child mind not saved for {child['name']}: {e}", flush=True)
         for parent in (a, b):
             store.update_fly(parent["id"], {"last_mated_at": now_iso()})
         store.add_mating({"a_fly": a["id"], "b_fly": b["id"], "child": child.get("id"), "owner": child["owner"],
@@ -526,7 +626,13 @@ def main() -> None:
     p.add_argument("--min-precision", type=float, default=0.6)
     p.add_argument("--seed-house", action="store_true", help="upsert the house flies and patches first (off at launch)")
     p.add_argument("--seed", type=int, help="tick RNG seed (default: clock)")
+    p.add_argument("--market-every", type=float, default=0.0, help="with --every: a fly market round this often (seconds, 0 = off)")
+    p.add_argument("--market-rounds", type=int, default=0, help="without --every: market rounds to run after the ticks")
+    p.add_argument("--market-all", action="store_true", help="every active fly trades, not only holders' (local tests)")
+    p.add_argument("--market-learning", help="force these learners on every fly: all, none, or a comma list of "
+                                             "dopamine,memory,tubes (default: each owner's choice)")
     args = p.parse_args()
+    learning = market.learning_of(args.market_learning) if args.market_learning else None
 
     if args.json:
         store = JsonStore(Path(args.json))
@@ -561,6 +667,7 @@ def main() -> None:
 
     if args.every:
         next_full = time.monotonic()
+        next_market = time.monotonic() + (args.market_every or 0)
         while True:
             try:
                 reads: list[str] = []
@@ -569,6 +676,12 @@ def main() -> None:
                     run_tick(store, eps, reader, runner, translator, vocab, rng, args.min_precision, mate_reads=reads)
                     duel_pass(store, runner, rng, auto=AUTO_DUELS)
                     mating_pass(store, rng, reads, auto=mating.AUTO_PER_TICK)
+                    if args.market_every and time.monotonic() >= next_market:
+                        next_market = time.monotonic() + args.market_every
+                        if store.market_paused():
+                            print("market paused (market_control); training resumes when it's switched back on", flush=True)
+                        elif traders := trading_flies(store, args.market_all):
+                            market.market_round(store, eps, reader, rng, traders, learning)
                 else:
                     waiting = store.pending_pokes()
                     if waiting:
@@ -586,6 +699,10 @@ def main() -> None:
         if not args.json:
             duel_pass(store, runner, rng, auto=AUTO_DUELS)
             mating_pass(store, rng, reads, auto=mating.AUTO_PER_TICK)
+    for _ in range(args.market_rounds):
+        traders = trading_flies(store, args.market_all)
+        if traders:
+            market.market_round(store, eps, reader, rng, traders, learning)
 
 
 if __name__ == "__main__":

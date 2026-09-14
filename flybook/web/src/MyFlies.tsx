@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import type { Viewer } from "./Account";
 import { getMemeQuota, type MemeQuota } from "./api";
-import { loadFlyPosts, loadMemes, memeImage, type Fly, type Meme, type Patch, type Post } from "./feed";
+import { loadFlyPosts, loadMemes, loadStyles, memeImage, type Fly, type Meme, type Patch, type Post } from "./feed";
 import { useNextMemeCountdown } from "./Memes";
+import { ALL_ON, StyleEditor } from "./TradingStyle";
 import { WORDS, actionText, causeText, line, strongest } from "./words";
 
 type Filter = "all" | Post["kind"];
@@ -71,6 +72,11 @@ export default function MyFlies({ allFlies, patches, viewer, now, memeTick, onMe
     getMemeQuota().then(setQuota).catch(() => setQuota(null));
     loadMemes({ userId: viewer.userId, limit: 30 }).then(setMemes);
   }, [viewer?.userId, viewer?.ready, memeTick]);
+  const [styles, setStyles] = useState<Awaited<ReturnType<typeof loadStyles>> | null>(null);
+  useEffect(() => {
+    if (!ids) return;
+    loadStyles(ids.split(",")).then(setStyles).catch(() => setStyles(new Map()));
+  }, [ids]);
 
   if (!viewer) {
     return <div className="mine-tab"><div className="empty">Sign in to see all your flies' posts here and make memes from them.</div></div>;
@@ -97,6 +103,21 @@ export default function MyFlies({ allFlies, patches, viewer, now, memeTick, onMe
         <p>Every post from your {mine.length === 1 ? "fly" : `${mine.length} flies`}, newest first.</p>
       </div>
       <div className={`card meme-status${canMake ? " ready" : ""}`}>🎨 {status}</div>
+
+      <details className="card trading-styles">
+        <summary>📈 Trading styles for the fly market</summary>
+        <p className="fine">Holders' flies trade fake coins with their real brains (<a href="#market">Market</a>). Set how much each
+          one risks and what it learns with; it applies from the next market round.</p>
+        {styles === null ? <p className="fine">Loading…</p> : mine.map((f) => {
+          const s = styles.get(f.id);
+          return (
+            <div key={f.id} className="trading-style">
+              <h5><span className="dot" style={{ background: f.color }} /> {f.name}</h5>
+              <StyleEditor flyId={f.id} learning={{ ...ALL_ON, ...(s?.learning ?? {}) }} risk={s?.risk ?? null} />
+            </div>
+          );
+        })}
+      </details>
 
       <div className="board-controls">
         <div className="seg">

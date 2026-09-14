@@ -217,6 +217,113 @@ milestones) carry the variety. The previous model is in `worker/model/previous/`
 strongest actions, folds a fly's identical posts within 30 minutes, and puts duel rounds, matings and
 hatchings in the feed.
 
+## Fly market, phase 1 (2026-09-14)
+
+A **simulated** market (`worker/market.py`, migration `20260914180000_market.sql`, web **Market** tab). Holders'
+flies start with 1 fake ETH and trade fake coins: real names with simulated prices (BTC, SOL, $FLYAI) and made-up
+meme coins ($SUGAR, $SWAT, $BUZZ, $ROT). Nothing is real money, real prices or advice.
+
+**Owners set a trading style.** Risk per buy (10-40% of its fake ETH) and which learners it uses (dopamine, memory,
+slime tubes), with presets Natural / Cautious / Degen / Slime mold / Raw brain (`web/src/TradingStyle.tsx`). It can be
+set when hatching (`POST /flies` `style`), when breeding (`POST /breed` `style`; Natural = inherited), and changed any
+time in My flies or the fly's 🧠 mind on the Market tab (`POST /market/style`). Stored in `fly_minds.learning` and
+`traits.risk`; flies without a choice get all learners on and a random or inherited risk. A switched-off learner is not
+used (learned gains, tubes, memory vetoes and urges are ignored) but what it learned is kept. The worker uses each fly's
+own style from the next round; a change made while a round runs is kept over the round's save. The tab shows each fly's
+setup plus the average result per setup. How brain actions become trades stays the same for every fly, so every trade
+is still what the brain did. `--market-learning` on the tick process (`all`, `none`, or a comma list)
+forces one setup on every fly, for tests or emergencies; leave it unset in production.
+
+Every 45 minutes (`--market-every 2700`, after a tick) prices move (a random walk with calm/pump/dump regimes, rare
+meme pumps and rugs), then each trading fly's brain runs one episode with the market as senses and its own settings:
+
+| market (hand-written encoder) | fly sense | what the neurons usually do | trade (hand-written mapping) |
+|---|---|---|---|
+| the coin pumping hardest (3-round rise) | a moving fly-sized target, LC10a | turned | buy it with `risk` of its ETH (x1.5 if it also buzzed) |
+| its worst held coin falling | a looming shape, LC4 + LPLC2 | jumped | panic-sell that coin |
+| a choppy market (mean 1-round move) | wind, Johnston's organ | groomed | take profit: sell a quarter of its best coin |
+| | | backed up | sell half of its worst coin |
+
+Actions are read against rest measured with the fly's own settings (`actions.py`). The walking and backing-up
+neurons almost never fire in this model, so buying rests on steering. `risk` (10-40%) is each fly's own trait in
+`fly_minds`, with an `inherit` style (traits / partial / all) for phase 3. Fee 0.3% a trade.
+
+Local test, 17 live flies' settings, 4 rounds: 0, 3, 4, 9 trades as baselines filled in (2 new settings profiles a
+round); 12 buys (flies turned toward $ROT and $SUGAR pumps) and 4 panic sells (the same flies jumped when $ROT fell
+6.5%); the three most active flies bought the pump, sold the dip and were down 4-8%. That is what an untrained brain
+does, and what phase 2 is for.
+
+### Phase 2: learning, and phase 3: inheritance (`worker/minds.py`)
+
+Each trading fly has a mind (`fly_minds`): traits it is born with (risk, dopamine learning rate, memory size and k,
+tube growth and decay, caution) and what it learns. Learning sits at the interface between the market and the brain;
+the connectome itself is not rewired, because the mushroom body, where flies really learn with dopamine, fires at its
+ceiling in this model (see Train your fly, above).
+
+- **Dopamine**: the fly's round-over-round log return is its reward; dopamine = clip(20 x reward, -1, 1). Positive
+  dopamine drives its PAM reward neurons (0.3 x dopamine) in the next brain run, and a three-factor update changes
+  what led to last round's trade: the gain on each sense (how hard pumps, crashes and chop hit it, 0.2-2.5) by
+  lr x dopamine x how strongly it was driven, and the urge for that action (0-2, blocked below 0.15), which also
+  scales trade size.
+- **kNN memory**: (market situation, action, reward) for its last `memory_size` trades. Before a trade it looks at the
+  k most similar situations with the same action; it skips the trade if they lost more than `caution` on average
+  (logged as a `skipped` trade) and trades 1.3x if they gained.
+- **Slime mold**: a tube per coin thickens with the profit that coin brought and every tube decays; the coin it
+  notices as pumping is weighted by its tube.
+- **Children** (automatic mating in `tick.mating_pass`, breeding in the API) get traits from either parent with
+  mutation, and the lineage's `inherit` style decides the rest: `traits` (nothing learned), `partial` (learned gains,
+  urges and tubes pulled halfway back to a newborn's, a quarter of each parent's memories), `all` (parents' learned
+  state averaged, all memories up to its size). The style itself is inherited, with a 10% chance of switching.
+
+Local run, 17 live flies' settings, 8 rounds: dopamine moved gains and urges both ways (a fly whose buys lost dropped
+its urge to buy to 0.70), memory skipped 11 trades once flies had a few memories (e.g. a buy of $SUGAR where 2
+similar buys had lost 2.8%), and tubes grew toward the coins that paid. Rounds took 23-32 s locally.
+
+**Does learning help? No, not as built.** `worker/market_eval.py` runs the same flies on the same price paths and
+brain seeds as five cohorts (frozen, dopamine only, memory only, tubes only, all), 3 paths x 40 rounds x 12 flies.
+Pass rule, fixed before running: `all` beats `frozen` in paired final log value with a bootstrap 95% CI above zero.
+Result (2026-09-14): **NOT PASSED**, learning made flies worse.
+
+| cohort | mean final value (from 1 fake ETH) | vs frozen: paired log diff [95% CI] | trades / skipped |
+|---|---|---|---|
+| frozen | 1.19 | | 1,250 / 0 |
+| dopamine only | 1.06 | -0.10 [-0.20, -0.002] | 1,134 / 0 |
+| memory only | 0.77 | -0.32 [-0.48, -0.16] | 377 / 825 |
+| tubes only | 1.18 | +0.02 [-0.01, +0.06] | 1,239 / 0 |
+| **all (live)** | **0.76** | **-0.33 [-0.49, -0.17]** | 360 / 727 |
+
+Memory does most of the damage: it skipped two thirds of all trades, and on the rising price path frozen flies ended at
+2.08 ETH while memory flies sat out at 0.85. The reward it learns from is the whole round's portfolio change, which is
+mostly market noise, so a couple of unlucky trades teach a fly to stop trading. Dopamine is hurt by the same noisy
+reward; slime-mold tubes were the only harmless learner.
+
+**v2 learning** (chosen from that failure, before re-testing): each trade is judged 3 rounds later by its own coin (a
+buy is good if the coin rose, a sell if it fell, minus the fee; dopamine = clip(10 x that)); a memory veto needs all k
+similar memories to have lost more than `caution` (now 1-5%) and still trades 20% of the time; the dopamine learning
+rate is 0.02-0.10 (was 0.05-0.30); urges drift back toward 1 by 0.02 a round. The re-test uses the same pass rule on
+new price paths and brain seeds (`--path-seed 1777`), once.
+
+v2 result (2026-09-14): **NOT PASSED** again. Learning still made flies worse, just by less.
+
+| cohort | mean final value (from 1 fake ETH) | vs frozen: paired log diff [95% CI] | better than its frozen twin | trades / skipped |
+|---|---|---|---|---|
+| frozen | 1.37 | | | 1,242 / 0 |
+| dopamine only | 1.21 | -0.13 [-0.20, -0.06] | 10 / 36 | 1,085 / 0 |
+| memory only | 1.19 | -0.12 [-0.20, -0.05] | 10 / 36 | 789 / 446 |
+| tubes only | 1.43 | -0.01 [-0.07, +0.05] | 19 / 36 | 1,240 / 0 |
+| **all** | **1.11** | **-0.22 [-0.32, -0.12]** | 10 / 36 | 707 / 422 |
+
+Memory now skips a third of trades instead of two thirds, but still costs money; dopamine still loses. Tubes are
+neutral in both checks (no harm, no measurable gain). On this evidence, learning is not an edge.
+
+**Pause and resume training.**
+- Offline check: `market_eval.py` checkpoints to `OUT.checkpoint.json` every `--save-every` rounds and after each
+  cohort; Ctrl+C saves and stops; rerun the same command with `--resume`. Checked: a run paused mid-cohort and resumed
+  gives identical results to an uninterrupted one (same prices, brain seeds and random state).
+- Live market: `python flybook/worker/market_control.py pause "why"` / `resume` / `status` flips `market_control.paused`;
+  the worker skips rounds while paused and every fly keeps its portfolio, mind, memories and tubes. The Market tab shows
+  when training is paused.
+
 ## Memes (2026-09-14)
 
 $FLYAI holders turn one of their fly's posts into an AI image meme, **1 per day**, with a global daily cap

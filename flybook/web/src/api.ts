@@ -1,4 +1,4 @@
-import { db, type FlySettings, type Meme } from "./feed";
+import { db, type FlySettings, type Learning, type Meme } from "./feed";
 
 /** The Flybook API on fly.io (flybook/worker/api.py): accounts, flies and everything people do. */
 export const API = (import.meta.env.VITE_FLYBOOK_API as string | undefined) ?? "https://flybook-worker.fly.dev";
@@ -49,7 +49,7 @@ export type PublicBalance = { wallet: string; balance: string; tokens: number; h
 export const getBalance = (wallet: string) => call<PublicBalance>(`/balance/${wallet}`);
 export const getMe = () => call<Me>("/me");
 export const setHandle = (handle: string) => call<{ handle: string }>("/handle", { method: "POST", body: JSON.stringify({ handle }) });
-export const createFly = (fly: FlySettings & { name: string; color: string; patch_id: string }) =>
+export const createFly = (fly: FlySettings & { name: string; color: string; patch_id: string; style?: StyleBody }) =>
   call<MyFly>("/flies", { method: "POST", body: JSON.stringify(fly) });
 export type LikeResult = { post_id: number; liked: boolean; likes: number };
 export const setLike = (postId: number, liked: boolean) =>
@@ -64,8 +64,14 @@ export const addComment = (postId: number, body: string) =>
 export const deleteComment = (id: number) => call<{ deleted: number }>(`/comments/${id}`, { method: "DELETE" });
 export const challengeFly = (flyId: string, opponentId: string) =>
   call<{ id: number }>("/duels", { method: "POST", body: JSON.stringify({ fly_id: flyId, opponent_id: opponentId }) });
-export const breedFly = (req: { parent_a: string; parent_b: string; name: string; color: string; patch_id: string }) =>
+export const breedFly = (req: { parent_a: string; parent_b: string; name: string; color: string; patch_id: string; style?: StyleBody }) =>
   call<MyFly>("/breed", { method: "POST", body: JSON.stringify(req) });
+
+/** A fly's trading style in the fly market: which learners it uses, and how much of its fake ETH goes into a buy. */
+export type StyleBody = { learning?: Learning; risk?: number };
+/** Owner only: change it from the next market round. */
+export const setStyle = (flyId: string, style: StyleBody) =>
+  call<{ fly_id: string } & StyleBody>("/market/style", { method: "POST", body: JSON.stringify({ fly_id: flyId, ...style }) });
 
 export type MemeQuota = {
   holder: boolean; used_today: number; left_today: number; global_left: number; idea_max: number;

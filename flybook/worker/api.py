@@ -14,6 +14,8 @@
     DELETE /posts/<id>/like   remove your like
     POST   /pokes             {patch_id, stimulus, x?, y?}: drop a real stimulus at a spot in a patch
     POST   /posts/<id>/caption  {body}: the fly's owner captions its post (shown as human)
+    POST   /market/style        {fly_id, learning?: {dopamine, memory, tubes}, risk?}: the owner sets its trading style
+                                (POST /flies and /breed also take an optional style)
     DELETE /posts/<id>/caption
     POST   /posts/<id>/comments {body}: comment on a post
     DELETE /comments/<id>       your own comment
@@ -48,6 +50,7 @@ import requests
 
 import chain
 import memes
+import minds
 import settings as fly_settings
 from duels import KINDS as DUEL_KINDS
 
@@ -223,7 +226,8 @@ def create_fly(user: dict, wallet: str | None, body: dict, ip: str) -> dict:
     if not rest("GET", f"patches?select=id&id=eq.{quote(patch)}"):
         raise ApiError(400, "that patch doesn't exist")
     try:
-        tuned = fly_settings.clean(body, strict=True)
+        tuned = fly_settings.clean({k: v for k, v in body.items() if k != "style"}, strict=True)
+        style = minds.clean_style(body.get("style"))
     except ValueError as e:
         raise ApiError(400, str(e))
     info = me(user, wallet)
@@ -232,11 +236,14 @@ def create_fly(user: dict, wallet: str | None, body: dict, ip: str) -> dict:
         raise ApiError(403, cap_message(info))
     if not info["holder"]:
         limit(f"free-fly-ip:{ip}", FREE_FLIES_PER_IP_DAY, 86400, "too many new free flies from this network today")
-    return rest("POST", "flies", "return=representation", json={
+    row = rest("POST", "flies", "return=representation", json={
         "owner": user["id"], "name": name, "color": color, "patch_id": patch, "seed": random.randrange(2**31),
         "x": round(random.uniform(0.3, 0.7), 3), "y": round(random.uniform(0.3, 0.7), 3),
         "heading": round(random.uniform(0, 6.283), 2),
         **tuned})[0]
+    if style:   # the owner picked a trading style: its market mind is born with it
+        save_mind(minds.apply_style(minds.born(row["id"], random.Random()), style))
+    return row
 
 
 def is_holder(wallet: str | None) -> bool:
@@ -404,14 +411,55 @@ def breed(user: dict, wallet: str | None, body: dict) -> dict:
     player(user, wallet)
     if made_count(info) >= info["max_flies"]:
         raise ApiError(403, cap_message(info))
+    try:
+        style = minds.clean_style(body.get("style"))
+    except ValueError as e:
+        raise ApiError(400, str(e))
     limit(f"breed:{user['id']}", 3, 3600, "three hatchings an hour is the limit")
     by_id = {p["id"]: p for p in parents}
     child = fly_settings.breed(by_id[a_id], by_id[b_id], random.Random())
-    return rest("POST", "flies", "return=representation", json={
+    row = rest("POST", "flies", "return=representation", json={
         "owner": user["id"], "name": name, "color": color, "patch_id": patch, "seed": random.randrange(2**31),
         "x": round(random.uniform(0.3, 0.7), 3), "y": round(random.uniform(0.3, 0.7), 3),
         "heading": round(random.uniform(0, 6.283), 2), "parents": [a_id, b_id],
         "generation": max(p.get("generation") or 1 for p in parents) + 1, **child})[0]
+    # the child's fly-market mind: traits from its parents, plus what they learned by the lineage's inherit style
+    try:   # the fly is already made; a market failure must not turn a successful hatch into an error
+        parent_minds = {m["fly_id"]: m for m in rest("GET", f"fly_minds?select=*&fly_id=in.({quote(a_id)},{quote(b_id)})")}
+        mind = minds.child(row["id"], parent_minds.get(a_id), parent_minds.get(b_id), random.Random())
+        save_mind(minds.apply_style(mind, style))
+    except Exception as e:
+        print(f"child mind not saved for {row['id']}: {e}", flush=True)
+    return row
+
+
+def save_mind(mind: dict) -> None:
+    """Write a fly's market mind. The fly already exists, so a failure is logged rather than failing the request."""
+    try:
+        rest("POST", "fly_minds?on_conflict=fly_id", "resolution=merge-duplicates", json=mind)
+    except Exception as e:
+        print(f"market mind not saved for {mind.get('fly_id')}: {e}", flush=True)
+
+
+def set_style(user: dict, body: dict) -> dict:
+    """The fly's owner changes its fly-market trading style: learners and/or risk (worker/minds.py). Used next round."""
+    fly_id = str(body.get("fly_id", ""))
+    try:
+        style = minds.clean_style({k: body.get(k) for k in ("learning", "risk")})
+    except ValueError as e:
+        raise ApiError(400, str(e))
+    if not style:
+        raise ApiError(400, "send learning and/or risk")
+    rows = rest("GET", f"flies?select=id,owner&id=eq.{quote(fly_id)}")
+    if not rows:
+        raise ApiError(404, "that fly doesn't exist")
+    if rows[0]["owner"] != user["id"]:
+        raise ApiError(403, "only the fly's owner can change its trading style")
+    limit(f"style:{user['id']}", 20, 60, "that's a lot of changes, try again in a minute")
+    found = rest("GET", f"fly_minds?select=fly_id,traits,learning&fly_id=eq.{quote(fly_id)}")
+    mind = minds.apply_style(found[0] if found else {"fly_id": fly_id}, style)
+    rest("POST", "fly_minds?on_conflict=fly_id", "resolution=merge-duplicates", json=mind)
+    return {"fly_id": fly_id, **style}
 
 
 def count(path: str) -> int:
@@ -617,6 +665,9 @@ class Handler(BaseHTTPRequestHandler):
             if method == "POST" and path == "/breed":
                 user, wallet = authed(self)
                 return self._send(201, breed(user, wallet, self._body()))
+            if method == "POST" and path == "/market/style":
+                user, _ = authed(self)
+                return self._send(200, set_style(user, self._body()))
             if method == "GET" and path == "/memes/quota":
                 return self._send(200, meme_quota(*authed(self)))
             if method == "POST" and path == "/memes":

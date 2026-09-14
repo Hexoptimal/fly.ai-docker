@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { breedFly } from "./api";
 import { tuning, type Fly, type Patch } from "./feed";
+import { NATURAL, StylePicker, styleBody, type Style } from "./TradingStyle";
 
 const COLORS = ["#e0342c", "#3ddc84", "#6cc4d8", "#f2b544", "#c77dff", "#ff7eb6", "#8bd450", "#ff9f5a"];
 
@@ -17,6 +18,7 @@ export default function BreedDialog({ mine, house, patches, onClose, onCreated }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [child, setChild] = useState<Fly | null>(null);
+  const [trade, setTrade] = useState<Style>(NATURAL);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -32,7 +34,7 @@ export default function BreedDialog({ mine, house, patches, onClose, onCreated }
     setBusy(true);
     setError(null);
     try {
-      const made = await breedFly({ parent_a: a, parent_b: b, name: name.trim(), color, patch_id: patch });
+      const made = await breedFly({ parent_a: a, parent_b: b, name: name.trim(), color, patch_id: patch, style: styleBody(trade) });
       setChild(made as Fly);
       onCreated();
     } catch (e) {
@@ -103,6 +105,11 @@ export default function BreedDialog({ mine, house, patches, onClose, onCreated }
                   </div>
                 </div>
               </div>
+              <details className="breed-style">
+                <summary>Trading style <small>{styleBody(trade) ? "custom" : "inherited"}</small></summary>
+                <StylePicker value={trade} onChange={setTrade}
+                             naturalHelp="Risk and what they learned from its parents, all learners on." />
+              </details>
               {error && <p className="err">{error}</p>}
             </>
           )}

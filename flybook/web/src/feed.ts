@@ -147,6 +147,55 @@ export async function load(limit = 200): Promise<Snapshot> {
   };
 }
 
+/** The simulated fly market (worker/market.py): fake coins, fake ETH. */
+export type Coin = { symbol: string; name: string; kind: "real" | "meme"; price: number; regime: string };
+export type MarketRound = { id: number; started_at: string; prices: Record<string, number>; events: { symbol: string; kind: string; move: number }[]; traders: number; trades: number };
+export type MindTraits = { risk?: number; lr?: number; k?: number; memory_size?: number; tube_growth?: number; tube_decay?: number; caution?: number };
+export type MindStats = { rounds?: number; rewards?: number; good_trades?: number; bad_trades?: number; vetoes?: number; dopamine?: number };
+export type Learning = { dopamine: boolean; memory: boolean; tubes: boolean };
+export type Trader = {
+  learning: Partial<Learning> | null;
+  fly_id: string; name: string; color: string; owner: string | null; generation: number | null; fly_parents: string[] | null; eth: number;
+  holdings: Record<string, { qty: number; cost_eth: number }>; start_eth: number; value_eth: number; pnl: number; trades: number;
+  updated_at: string; traits: MindTraits | null; inherit: "traits" | "partial" | "all" | null; stats: MindStats | null;
+  tubes: Record<string, number> | null; gains: Record<string, number> | null; bias: Record<string, number> | null; memories: number | null;
+};
+export type FlyTrade = {
+  id: number; round_id: number; fly_id: string; symbol: string; side: "buy" | "panic_sell" | "take_profit" | "sell" | "skipped";
+  qty: number; price: number; eth: number; value_after: number; created_at: string;
+  reason: {
+    did?: string[]; dopamine?: number; wanted?: string; skipped?: string; bias?: number;
+    memory?: { mean_reward: number; similar: number };
+    felt?: { target?: { symbol: string | null; move: number; tube?: number }; threat?: { symbol: string | null; move: number }; wind?: { chop: number } };
+  };
+};
+export type MarketControl = { paused: boolean; note: string | null; updated_at: string | null };
+export async function loadMarket(rounds = 48): Promise<{ coins: Coin[]; rounds: MarketRound[]; traders: Trader[]; trades: FlyTrade[]; control: MarketControl }> {
+  const idle: MarketControl = { paused: false, note: null, updated_at: null };
+  if (!db) return { coins: [], rounds: [], traders: [], trades: [], control: idle };
+  const [coins, rs, traders, trades, control] = await Promise.all([
+    db.from("market_coins").select("*").order("kind").order("symbol"),
+    db.from("market_rounds").select("id,started_at,prices,events,traders,trades").order("id", { ascending: false }).limit(rounds),
+    db.from("trader_board").select("*").order("value_eth", { ascending: false }).limit(100),
+    db.from("fly_trades").select("*").order("id", { ascending: false }).limit(60),
+    db.from("market_control").select("paused,note,updated_at").eq("id", 1).maybeSingle(),
+  ]);
+  return {
+    coins: (coins.data ?? []) as Coin[], rounds: ((rs.data ?? []) as MarketRound[]).reverse(),
+    traders: (traders.data ?? []) as Trader[], trades: (trades.data ?? []) as FlyTrade[],
+    control: (control.data as MarketControl | null) ?? idle,
+  };
+}
+
+/** These flies' market styles (fly_minds): learners and risk. Flies without a row yet are born with one at their first round. */
+export async function loadStyles(flyIds: string[]): Promise<Map<string, { learning: Partial<Learning> | null; risk: number | null }>> {
+  if (!db || flyIds.length === 0) return new Map();
+  const { data, error } = await db.from("fly_minds").select("fly_id,traits,learning").in("fly_id", flyIds);
+  if (error) throw error;
+  return new Map(((data ?? []) as { fly_id: string; traits: MindTraits | null; learning: Partial<Learning> | null }[])
+    .map((m) => [m.fly_id, { learning: m.learning, risk: m.traits?.risk ?? null }]));
+}
+
 /** The latest posts of these flies (the My flies tab), newest first; optionally one post kind. */
 export async function loadFlyPosts(flyIds: string[], opts: { limit?: number; kind?: Post["kind"] } = {}): Promise<Post[]> {
   if (!db || flyIds.length === 0) return [];
