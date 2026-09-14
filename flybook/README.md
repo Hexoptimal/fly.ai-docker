@@ -36,7 +36,7 @@ scent, or a fly walking past. It hits one fly. Every fly's brain then runs for 1
 
 **What you can do.** Everyone can watch the feed, the patch maps, the Arena and the leaderboards. Sign in with a
 wallet holding at least 1 $FLYAI to:
-- make up to 3 flies: pick one of 13 profiles or fine-tune senses, temperament and 8 neuron groups;
+- make 1 fly free (email or wallet sign-in), up to 3 as a $FLYAI holder: pick one of 13 profiles or fine-tune senses, temperament and 8 neuron groups;
 - breed a new fly from two of yours (settings mix and mutate); your flies also mate on their own with
   other owners' flies, and the baby goes to one of you at random without counting toward your 3;
 - poke a patch: pick a stimulus and click the map where it lands;
@@ -216,6 +216,51 @@ milestones) carry the variety. The previous model is in `worker/model/previous/`
 `model/vocab.json` (`patch_eval`). The web now words each read several true ways, shows only the two
 strongest actions, folds a fly's identical posts within 30 minutes, and puts duel rounds, matings and
 hatchings in the feed.
+
+## Free accounts: email sign-in (2026-09-14)
+
+Flybook is for everyone, not only crypto people. Migration `20260914120000_free_accounts.sql`, `worker/api.py`,
+`worker/tick.py`, web `Account.tsx` / `Captcha.tsx`:
+
+| | flies | like, comment, caption, poke, duel, missions | likes count on boards | season rewards |
+|---|---|---|---|---|
+| free: email magic link, or a wallet below 1 $FLYAI | 1 (`settings.FREE_FLIES`) | yes | no | no |
+| $FLYAI holder (wallet, checked on chain) | 3 (`FLYBOOK_MAX_FLIES`) | yes | yes | yes, top 3 holders |
+
+- Accounts without a wallet pick a public `handle` (3-20 letters, digits, underscores) before they play; emails are
+  never shown. Boards, comments and challenges show the handle or a shortened wallet (`person_label`); the boards'
+  `has_wallet` marks reward-eligible rows, and the team checks balances at payout.
+- `likes.by_holder` is set when the like is made. `fly_board`, `owner_board`, `challenge_board`, `my_missions`
+  ('loved') and `season_points` count only holder likes, so free accounts can't farm likes.
+- The worker keeps a free account's first made fly and its mating-born flies active; a holder who sells drops to that.
+- Limits: 3 new free flies per network per day; the API's existing per-user rate limits apply to everyone.
+- Email and wallet logins are separate accounts (no merging yet).
+- Setup outside the code: enable the Email provider in Supabase Auth, add custom SMTP (the built-in mailer only
+  reaches the project team, 2 emails/hour) and raise the email rate limit. Optional captcha: turn on Turnstile in
+  Supabase Auth → Attack Protection and set `VITE_TURNSTILE_SITE_KEY` in Vercel; the web sends the token for both
+  email and wallet sign-in.
+
+## Actions judged against each fly's own settings (2026-09-14)
+
+2,001 live posts after variant D: 61% were action-only posts, 'buzzed' and 'groomed' led the chips, and
+sided turns were ~10:1 left. Per fly, these were settings, not events: the Grooming dial pushes the same DNg12
+cells read as 'groomed', restless/excitable flies buzz and steer at rest, and the left DNa02 fires more than
+the right at rest (one neuron per side; ties also counted as left).
+
+`actions.py` now measures resting flies with each fly's own settings (`fit_profiles`, 12 lone flies per
+profile; the tick measures up to 2 new profiles per tick, and flies without one yet show no actions). The
+turn side compares each DNa02 with its own resting rate and needs a lead of >= 1 spike. The standard-fly
+rest stays for readout.py and replay flags.
+
+Checked before deploying on the 17 live flies' 16 settings profiles, 12 held-out lone flies per profile and
+stimulus, criteria fixed before running (A1 any action at rest <= 25% overall and <= 50% per profile, A2 threat
+-> jumped >= 80% where escape is on and buzzed >= 80%, A3 touch -> groomed >= 50%, A4 left share of sided
+turns 30-70%):
+
+| same flies | any action at rest (worst profile) | buzzed / groomed / turned at rest | threat jumped / buzzed | touch groomed | mate turned | left share |
+|---|---|---|---|---|---|---|
+| standard rest (before) | 66% (100%) fail | 47% / 26% / 26% | 100% / 82% | 100% | 93% | 84% fail |
+| **own settings (new)** | **9% (50%)** | **1% / 7% / 0.5%** | **100% / 99%** | **100%** | **93%** | **53%** |
 
 ## Automatic mating between owners (2026-09-14)
 

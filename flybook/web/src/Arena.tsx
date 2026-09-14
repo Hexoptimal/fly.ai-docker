@@ -15,7 +15,7 @@ const timing = (ms: number | null) => (ms === null ? "held" : `${ms} ms`);
  * jumps but their brains. Elo moves 32 points at most per duel.
  */
 export default function Arena({ flies, viewer, liveDuel }: {
-  flies: Fly[]; viewer: { userId: string; holder: boolean } | null; liveDuel: Duel | null;
+  flies: Fly[]; viewer: { userId: string; ready: boolean } | null; liveDuel: Duel | null;
 }) {
   const [duels, setDuels] = useState<Duel[] | null>(null);
   const [open, setOpen] = useState<number | null>(null);
@@ -69,7 +69,7 @@ export default function Arena({ flies, viewer, liveDuel }: {
         </p>
       </div>
 
-      {viewer?.holder && myFlies.length > 0 ? (
+      {viewer?.ready && myFlies.length > 0 ? (
         <div className="challenge card">
           <h4>Challenge a fly</h4>
           <div className="row">
@@ -146,7 +146,7 @@ export default function Arena({ flies, viewer, liveDuel }: {
               </li>
             ))}
           </ol>
-          <p className="fine">{ranked.length ? "Wins-losses-draws. Everyone starts at 1000." : "No flies yet: ratings appear once holders make flies."}</p>
+          <p className="fine">{ranked.length ? "Wins-losses-draws. Everyone starts at 1000." : "No flies yet: ratings appear once people make flies."}</p>
 
           <h4 className="section-title">Recent matings</h4>
           {matings.length === 0 ? (

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Account from "./Account";
+import Account, { type Viewer } from "./Account";
 import Arena from "./Arena";
 import HowItWorks from "./HowItWorks";
 import Leaderboard from "./Leaderboard";
@@ -19,7 +19,6 @@ import { POKES, WORDS, actionText, causeText, joinActions, line, ordinal, pick, 
 const SCIENCE_URL = "/research/flybook";
 const SITE_URL = "/";
 type View = "feed" | "board" | "arena";
-type Viewer = { userId: string; holder: boolean } | null;
 
 function ago(iso: string, now: number): string {
   const s = Math.max(0, (now - Date.parse(iso)) / 1000);
@@ -277,7 +276,7 @@ export default function App() {
   if (!snap) return <Shell><div className="empty">Waking the flies…</div></Shell>;
 
   const toggleLike = async (post: Post) => {
-    if (!viewer?.holder) return;
+    if (!viewer?.ready) return;
     const want = !liked.has(post.id);
     const show = (likes: number, on: boolean) => {
       setLiked((l) => {
@@ -429,9 +428,9 @@ export default function App() {
                     <div className="pokebar">
                       <span className="pokebar-label">Poke {activePatch.name}</span>
                       {POKES.map((pk) => (
-                        <button key={pk.stimulus} className={`poke${armed === pk.stimulus ? " on" : ""}`} disabled={!viewer?.holder}
+                        <button key={pk.stimulus} className={`poke${armed === pk.stimulus ? " on" : ""}`} disabled={!viewer?.ready}
                                 onClick={() => setArmed(armed === pk.stimulus ? null : pk.stimulus)}
-                                title={viewer?.holder ? pk.hint : "Sign in with a wallet that holds $FLYAI to poke a patch"}>
+                                title={viewer?.ready ? pk.hint : "Sign in to poke a patch"}>
                           {pk.label}
                         </button>
                       ))}
@@ -450,7 +449,7 @@ export default function App() {
                 <div className="empty">
                   {snap.flies.some((f) => f.active !== false)
                     ? "No posts here yet. The next tick is on its way."
-                    : "No flies yet. Flybook comes alive when holders make flies: hold $FLYAI, sign in, and hatch the first one."}
+                    : "No flies yet. Flybook comes alive when people make flies: sign in and hatch the first one."}
                 </div>
               )}
               {items.map((item) => {
@@ -538,7 +537,7 @@ function EventCard({ item, flies, patches, now, onFly }: {
     icon = "⚔";
     body = result(d);
     detail = `${flies.get(d.a_fly)?.name ?? "a fly"} ${ms(d.a_step)} · ${flies.get(d.b_fly)?.name ?? "a fly"} ${ms(d.b_step)}` +
-      (d.delta ? ` · Elo ±${Math.abs(d.delta)}` : "") + (d.requested_by ? " · a holder's challenge" : "");
+      (d.delta ? ` · Elo ±${Math.abs(d.delta)}` : "") + (d.requested_by ? " · a player's challenge" : "");
   } else if (item.type === "duels") {
     icon = "⚔";
     body = <>Arena: {item.duels.length} duels</>;
@@ -564,7 +563,7 @@ function EventCard({ item, flies, patches, now, onFly }: {
     const f = item.fly;
     icon = "🐣";
     body = <>{who(f.id)} hatched in {patches.get(f.patch_id)?.name ?? f.patch_id}</>;
-    detail = f.parents?.length ? `Bred from ${f.parents.map((id) => flies.get(id)?.name ?? "a fly").join(" × ")}` : "A new fly, made by a holder";
+    detail = f.parents?.length ? `Bred from ${f.parents.map((id) => flies.get(id)?.name ?? "a fly").join(" × ")}` : "A new fly, made by a player";
   }
   return (
     <article className={`post event event-${item.type}`}>
@@ -594,7 +593,7 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
   const hidden = (post.actions?.length ?? 0) - top.length;
   const chips = [...(read ? [w.tag] : []), ...top.map(actionText)];
   const since = folded.length ? ago(folded[folded.length - 1].created_at, now) : "";
-  const canLike = !!viewer?.holder;
+  const canLike = !!viewer?.ready;
 
   return (
     <article id={`post-${post.id}`} className={`post kind-${post.kind ?? "sense"}${post.cause ? " caused" : ""}${fresh ? " fresh" : ""}`}>
@@ -615,7 +614,7 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
         )}
       </header>
       {ctx?.number && <p className="milestone">🎉 {name}'s {ordinal(ctx.number)} post</p>}
-      {poke && <p className="poked">After a holder's poke: {poke.done}</p>}
+      {poke && <p className="poked">After a player's poke: {poke.done}</p>}
       {post.cause && (
         <p className="chain">
           ↳ set off by{" "}
@@ -637,7 +636,7 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
           </span>
         )}
         <button className={`like${liked ? " on" : ""}`} onClick={onLike} disabled={!canLike} aria-pressed={liked}
-                title={canLike ? (liked ? "Remove your like" : "Like this post") : "Sign in with a wallet that holds $FLYAI to like posts"}>
+                title={canLike ? (liked ? "Remove your like" : "Like this post") : "Sign in to like posts"}>
           {liked ? "♥" : "♡"} {post.likes ?? 0}
         </button>
         <button className="more talk" onClick={() => setTalking(!talking)} aria-expanded={talking}>💬 {post.comments ?? 0}</button>

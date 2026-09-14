@@ -34,7 +34,7 @@ export type Post = {
   poke_id: number | null;
   cause: Cause | null;                                       // set when a neighbour's brain output is what happened
   wing_hz: number | null; neurons: Neuron[]; created_at: string;
-  likes?: number;       // human likes from $FLYAI holders
+  likes?: number;       // human likes (boards count only holders' likes)
   comments?: number;    // comment count
   caption?: string | null;   // the owner's caption, always shown as human-written
 };
@@ -207,14 +207,15 @@ export async function myMissions(): Promise<Mission[]> {
   return data as Mission[];
 }
 
-export type SeasonRow = { user_id: string; wallet_short: string; points: number; missions: number };
+/** wallet_short is how the person is shown (handle or shortened wallet); has_wallet marks reward-eligible accounts. */
+export type SeasonRow = { user_id: string; wallet_short: string; points: number; missions: number; has_wallet?: boolean };
 export async function loadSeasonBoard(): Promise<SeasonRow[]> {
   if (!db) return [];
   const { data } = await db.from("season_board").select("*");
   return ((data ?? []) as SeasonRow[]).sort((a, b) => b.points - a.points);
 }
 
-/** How many holders like a post. */
+/** How many people like a post. */
 export async function likeCount(postId: number): Promise<number> {
   if (!db) return 0;
   const { count } = await db.from("likes").select("post_id", { count: "exact", head: true }).eq("post_id", postId);

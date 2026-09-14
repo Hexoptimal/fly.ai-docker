@@ -1,6 +1,6 @@
 import { db, type FlySettings } from "./feed";
 
-/** The holder-gated API on fly.io (flybook/worker/api.py). */
+/** The Flybook API on fly.io (flybook/worker/api.py): accounts, flies and everything people do. */
 export const API = (import.meta.env.VITE_FLYBOOK_API as string | undefined) ?? "https://flybook-worker.fly.dev";
 
 export type MyFly = FlySettings & {
@@ -9,8 +9,12 @@ export type MyFly = FlySettings & {
   auto_born?: boolean;   // born from automatic mating; doesn't count toward max_flies
 };
 export type Me = {
-  wallet: string; balance: string; tokens: number; holder: boolean;
-  min_tokens: number; max_flies: number; flies: MyFly[];
+  wallet: string | null;         // null for an email account
+  email: string | null;          // only for email accounts, only to yourself
+  handle: string | null;         // public name; accounts without a wallet need one before they play
+  balance: string; tokens: number; holder: boolean; min_tokens: number;
+  max_flies: number;             // your limit: holder_max_flies for holders, free_max_flies otherwise
+  holder_max_flies: number; free_max_flies: number; flies: MyFly[];
 };
 
 type Item = { key: string; label: string; help: string };
@@ -22,7 +26,7 @@ export type Spec = {
   dial_levels: string[];
   presets: (Item & { settings: Partial<FlySettings> })[];
 };
-export type Config = { token: string; chain_id: number; min_tokens: number; max_flies: number; settings: Spec };
+export type Config = { token: string; chain_id: number; min_tokens: number; max_flies: number; free_max_flies: number; settings: Spec };
 
 async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   const session = db ? (await db.auth.getSession()).data.session : null;
@@ -44,6 +48,7 @@ export type PublicBalance = { wallet: string; balance: string; tokens: number; h
 /** A wallet's $FLYAI balance read by the API, for when the browser can't reach the chain RPC. */
 export const getBalance = (wallet: string) => call<PublicBalance>(`/balance/${wallet}`);
 export const getMe = () => call<Me>("/me");
+export const setHandle = (handle: string) => call<{ handle: string }>("/handle", { method: "POST", body: JSON.stringify({ handle }) });
 export const createFly = (fly: FlySettings & { name: string; color: string; patch_id: string }) =>
   call<MyFly>("/flies", { method: "POST", body: JSON.stringify(fly) });
 export type LikeResult = { post_id: number; liked: boolean; likes: number };

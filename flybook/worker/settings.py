@@ -13,6 +13,11 @@ from __future__ import annotations
 import math
 import random
 
+# Account tiers (2026-09-14): holders make up to FLYBOOK_MAX_FLIES (3) flies; free accounts (email, or a wallet
+# below the minimum) make FREE_FLIES. The API enforces the cap; the worker keeps only that many of a free
+# account's made flies active.
+FREE_FLIES = 1
+
 # stimulus word -> the sense that carries it into the brain
 SENSE_OF = {"threat": "eyes", "mate": "eyes", "wind": "antennae", "taste": "taste", "touch": "touch", "cva": "smell"}
 

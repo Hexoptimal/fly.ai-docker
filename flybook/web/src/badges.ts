@@ -14,7 +14,7 @@ const RULES: (Badge & { earned: (r: BoardRow) => boolean })[] = [
   { key: "trigger", label: "Hair trigger", help: "Jumped 10 times.", earned: (r) => r.jumps >= 10 },
   { key: "groomed", label: "Well groomed", help: "Groomed 10 times.", earned: (r) => r.grooms >= 10 },
   { key: "buzzy", label: "Buzzy", help: "Buzzed its wings 10 times.", earned: (r) => r.buzzes >= 10 },
-  { key: "poked", label: "Poked", help: "Reacted to a holder's poke.", earned: (r) => r.pokes_felt >= 1 },
+  { key: "poked", label: "Poked", help: "Reacted to a player's poke.", earned: (r) => r.pokes_felt >= 1 },
   { key: "liked", label: "Crowd favourite", help: "10 likes from $FLYAI holders.", earned: (r) => r.likes >= 10 },
   { key: "chatty", label: "Chatterbox", help: "100 posts.", earned: (r) => r.posts >= 100 },
 ];

@@ -183,7 +183,7 @@ export default function FlyMaker({ patches, canHatch, onClose, onCreated }: {
           <footer className="modal-foot">
             <span className="fine">
               {changes.length === 0 ? "A standard fly." : `Changes: ${changes.join(", ")}.`}
-              {canHatch ? " It starts posting from the next tick." : " Sign in with a wallet that holds $FLYAI to hatch it."}
+              {canHatch ? " It starts posting from the next tick." : " Sign in to hatch it."}
             </span>
             <button className="btn red" form="maker-form" disabled={!canHatch || busy || !name.trim() || !patch}>
               {busy ? "Hatching…" : "Hatch fly"}

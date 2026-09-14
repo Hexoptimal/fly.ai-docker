@@ -1,26 +1,29 @@
-"""Flybook API: $FLYAI holders create flies. Everything else is read straight from Supabase.
+"""Flybook API: signed-in people create flies and play. Everything else is read straight from Supabase.
 
     python flybook/worker/api.py                 # listens on $PORT (8080)
 
     GET  /health
-    GET  /config   token, chain, minimum balance, flies per wallet (public)
+    GET  /config   token, chain, minimum balance, flies per holder and per free account (public)
     GET  /balance/<address>  a wallet's $FLYAI balance read on chain here, cached 60 s (public; for browsers
                              that can't reach the chain RPC, display only)
-    GET  /me       wallet, balance, holder, your flies     (Authorization: Bearer <Supabase access token>)
-    POST /flies    {name, color, patch_id, senses, temperament, dials}: creates a fly if the wallet holds $FLYAI
-    POST   /posts/<id>/like   like a post (holders only)
+    GET  /me       wallet or email, handle, balance, holder, fly limit, your flies
+                   (Authorization: Bearer <Supabase access token>)
+    POST /handle   {handle}: your public name (needed by accounts without a wallet before they play)
+    POST /flies    {name, color, patch_id, senses, temperament, dials}: creates a fly within your limit
+    POST   /posts/<id>/like   like a post (only holders' likes count toward boards, missions and challenges)
     DELETE /posts/<id>/like   remove your like
-    POST   /pokes             {patch_id, stimulus, x?, y?}: drop a real stimulus at a spot in a patch (holders only)
+    POST   /pokes             {patch_id, stimulus, x?, y?}: drop a real stimulus at a spot in a patch
     POST   /posts/<id>/caption  {body}: the fly's owner captions its post (shown as human)
     DELETE /posts/<id>/caption
-    POST   /posts/<id>/comments {body}: holders comment
+    POST   /posts/<id>/comments {body}: comment on a post
     DELETE /comments/<id>       your own comment
     POST   /duels             {fly_id, opponent_id}: challenge any active fly with one of yours
     POST   /breed             {parent_a, parent_b, name, color, patch_id}: a child of your flies (or a house fly)
 
-The holder check runs here, against the chain. The browser's balance read is only for display.
-The session must come from Supabase's Web3 (Sign in with Ethereum) login, so the wallet address
-is proven by a signature, not typed in.
+Accounts (2026-09-14): a session from Supabase's Web3 login (Sign in with Ethereum, so the wallet is proven by a
+signature) or from an email magic link (a confirmed email). Holders ($FLYAI at or above the minimum, checked on
+chain here) make up to FLYBOOK_MAX_FLIES flies; everyone else is a free account with settings.FREE_FLIES. Accounts
+without a wallet pick a handle first, since email addresses are never shown. Only holders win season rewards.
 
 Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, FLYBOOK_ORIGINS, FLYBOOK_MIN_TOKENS,
 FLYBOOK_MAX_FLIES, ROBINHOOD_RPC, PORT.
@@ -47,7 +50,10 @@ SERVICE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 ORIGINS = {o.strip() for o in os.environ.get(
     "FLYBOOK_ORIGINS", "https://flyaiworld.com,https://www.flyaiworld.com,http://localhost:5173").split(",") if o.strip()}
 MAX_FLIES = int(os.environ.get("FLYBOOK_MAX_FLIES", "3"))
+FREE_FLIES = fly_settings.FREE_FLIES
+FREE_FLIES_PER_IP_DAY = 3      # new flies from free accounts per network per day
 NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._-]{0,39}$")
+HANDLE = re.compile(r"^[A-Za-z0-9_]{3,20}$")
 COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
 WALLET = re.compile(r"0x[0-9a-fA-F]{40}")
 HTTP = requests.Session()
@@ -87,7 +93,13 @@ def wallet_of(user: dict) -> str | None:
     return None
 
 
-def authed(handler: BaseHTTPRequestHandler) -> tuple[dict, str]:
+def email_of(user: dict) -> str | None:
+    """A confirmed email (a magic-link sign-in confirms it)."""
+    return user.get("email") if user.get("email") and user.get("email_confirmed_at") else None
+
+
+def authed(handler: BaseHTTPRequestHandler) -> tuple[dict, str | None]:
+    """The signed-in user and their proven wallet, or None for an email account."""
     auth = handler.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         raise ApiError(401, "sign in first")
@@ -96,9 +108,24 @@ def authed(handler: BaseHTTPRequestHandler) -> tuple[dict, str]:
         raise ApiError(401, "your session expired, sign in again")
     user = r.json()
     wallet = wallet_of(user)
-    if not wallet:
-        raise ApiError(403, "this account has no wallet; sign in with your wallet")
+    if not wallet and not email_of(user):
+        raise ApiError(403, "sign in with your wallet or a confirmed email")
     return user, wallet
+
+
+def handle_of(user: dict) -> str | None:
+    rows = rest("GET", f"profiles?select=handle&id=eq.{user['id']}")
+    return rows[0]["handle"] if rows else None
+
+
+def player(user: dict, wallet: str | None) -> str:
+    """How this person is shown: a shortened wallet, else their handle. Accounts without a wallet must have one."""
+    if wallet:
+        return handle_of(user) or f"{wallet[:6]}…{wallet[-4:]}"
+    handle = handle_of(user)
+    if not handle:
+        raise ApiError(403, "pick a name first")
+    return handle
 
 
 _hits: dict[str, list[float]] = {}
@@ -137,18 +164,40 @@ def public_balance(wallet: str) -> dict:
     return {"wallet": wallet, "balance": str(balance), "tokens": chain.tokens(balance), "holder": chain.is_holder(balance)}
 
 
-def me(user: dict, wallet: str) -> dict:
-    try:
-        balance = chain.balance_of(wallet)
-    except Exception as e:
-        raise ApiError(502, f"couldn't read your $FLYAI balance ({type(e).__name__}); try again") from e
-    _holders[wallet] = (time.monotonic(), chain.is_holder(balance))
-    rest("POST", "profiles?on_conflict=id", "resolution=merge-duplicates", json={"id": user["id"], "wallet": wallet})
+def me(user: dict, wallet: str | None) -> dict:
+    balance = 0
+    if wallet:
+        try:
+            balance = chain.balance_of(wallet)
+        except Exception as e:
+            raise ApiError(502, f"couldn't read your $FLYAI balance ({type(e).__name__}); try again") from e
+        _holders[wallet] = (time.monotonic(), chain.is_holder(balance))
+    holder = bool(wallet) and chain.is_holder(balance)
+    rest("POST", "profiles?on_conflict=id", "resolution=merge-duplicates",
+         json={"id": user["id"], **({"wallet": wallet} if wallet else {})})
     flies = rest("GET", f"flies?select=id,name,color,patch_id,active,created_at,senses,temperament,dials,elo,wins,losses,draws,generation,parents,auto_born"
                          f"&owner=eq.{user['id']}&order=created_at")
-    return {"wallet": wallet, "balance": str(balance), "tokens": chain.tokens(balance),
-            "holder": chain.is_holder(balance), "min_tokens": float(chain.MIN_TOKENS), "max_flies": MAX_FLIES,
-            "flies": flies}
+    return {"wallet": wallet, "email": None if wallet else email_of(user), "handle": handle_of(user),
+            "balance": str(balance), "tokens": chain.tokens(balance), "holder": holder,
+            "min_tokens": float(chain.MIN_TOKENS), "max_flies": MAX_FLIES if holder else FREE_FLIES,
+            "holder_max_flies": MAX_FLIES, "free_max_flies": FREE_FLIES, "flies": flies}
+
+
+def set_handle(user: dict, wallet: str | None, body: dict) -> dict:
+    handle = str(body.get("handle", "")).strip()
+    if not HANDLE.match(handle) or handle.lower().startswith("0x"):
+        raise ApiError(400, "names are 3-20 letters, digits or underscores, not starting with 0x")
+    limit(f"handle:{user['id']}", 5, 3600, "you've changed your name a lot; try again later")
+    rest("POST", "profiles?on_conflict=id", "resolution=merge-duplicates", conflict="that name is taken",
+         json={"id": user["id"], "handle": handle, **({"wallet": wallet} if wallet else {})})
+    return {"handle": handle}
+
+
+def cap_message(info: dict) -> str:
+    if info["holder"]:
+        return f"you already have {MAX_FLIES} flies, the most per holder"
+    return (f"free accounts make {FREE_FLIES} fly; hold " + f"{chain.MIN_TOKENS:f}".rstrip("0").rstrip(".")
+            + f" $FLYAI to make up to {MAX_FLIES}")
 
 
 def made_count(info: dict) -> int:
@@ -156,7 +205,7 @@ def made_count(info: dict) -> int:
     return sum(1 for f in info["flies"] if not f.get("auto_born"))
 
 
-def create_fly(user: dict, wallet: str, body: dict) -> dict:
+def create_fly(user: dict, wallet: str | None, body: dict, ip: str) -> dict:
     limit(f"create:{user['id']}", 5, 60)
     name = str(body.get("name", "")).strip()
     color = str(body.get("color", ""))
@@ -172,10 +221,11 @@ def create_fly(user: dict, wallet: str, body: dict) -> dict:
     except ValueError as e:
         raise ApiError(400, str(e))
     info = me(user, wallet)
+    player(user, wallet)
+    if made_count(info) >= info["max_flies"]:
+        raise ApiError(403, cap_message(info))
     if not info["holder"]:
-        raise ApiError(403, f"hold at least {chain.MIN_TOKENS:f}".rstrip("0").rstrip(".") + " $FLYAI to make a fly")
-    if made_count(info) >= MAX_FLIES:
-        raise ApiError(403, f"you already have {MAX_FLIES} flies, the most per wallet")
+        limit(f"free-fly-ip:{ip}", FREE_FLIES_PER_IP_DAY, 86400, "too many new free flies from this network today")
     return rest("POST", "flies", "return=representation", json={
         "owner": user["id"], "name": name, "color": color, "patch_id": patch, "seed": random.randrange(2**31),
         "x": round(random.uniform(0.3, 0.7), 3), "y": round(random.uniform(0.3, 0.7), 3),
@@ -183,7 +233,9 @@ def create_fly(user: dict, wallet: str, body: dict) -> dict:
         **tuned})[0]
 
 
-def is_holder(wallet: str) -> bool:
+def is_holder(wallet: str | None) -> bool:
+    if not wallet:
+        return False
     checked = _holders.get(wallet)
     if checked and time.monotonic() - checked[0] < HOLDER_TTL:
         return checked[1]
@@ -203,8 +255,8 @@ def count_likes(post_id: int) -> int:
     return int(r.headers.get("Content-Range", "*/0").split("/")[-1])
 
 
-def set_like(user: dict, wallet: str, post_id: int, liked: bool) -> dict:
-    """Likes are for holders; anyone signed in can take their own like back."""
+def set_like(user: dict, wallet: str | None, post_id: int, liked: bool) -> dict:
+    """Anyone signed in likes posts; `by_holder` records whether the like counts toward boards and missions."""
     limit(f"like:{user['id']}", 60, 60)
     found = rest("GET", f"posts?select=id,flies(owner)&id=eq.{post_id}")
     if not found:
@@ -212,10 +264,9 @@ def set_like(user: dict, wallet: str, post_id: int, liked: bool) -> dict:
     if liked:
         if (found[0].get("flies") or {}).get("owner") == user["id"]:
             raise ApiError(403, "you can't like your own fly's posts")
-        if not is_holder(wallet):
-            raise ApiError(403, f"hold at least {chain.MIN_TOKENS:f}".rstrip("0").rstrip(".") + " $FLYAI to like posts")
+        player(user, wallet)
         rest("POST", "likes?on_conflict=post_id,user_id", "resolution=ignore-duplicates",
-             json={"post_id": post_id, "user_id": user["id"]})
+             json={"post_id": post_id, "user_id": user["id"], "by_holder": is_holder(wallet)})
     else:
         rest("DELETE", f"likes?post_id=eq.{post_id}&user_id=eq.{user['id']}")
     return {"post_id": post_id, "liked": liked, "likes": count_likes(post_id)}
@@ -226,7 +277,7 @@ POKE_EVERY = 120      # seconds between pokes per user
 POKES_WAITING = 3     # pending pokes allowed per patch
 
 
-def poke(user: dict, wallet: str, body: dict) -> dict:
+def poke(user: dict, wallet: str | None, body: dict) -> dict:
     """Queue a stimulus for every fly in a patch. The worker applies it on its next pass."""
     patch = str(body.get("patch_id", ""))
     stimulus = str(body.get("stimulus", ""))
@@ -234,8 +285,7 @@ def poke(user: dict, wallet: str, body: dict) -> dict:
         raise ApiError(400, f"stimulus must be one of {', '.join(POKE_STIMULI)}")
     if not rest("GET", f"patches?select=id&id=eq.{quote(patch)}"):
         raise ApiError(400, "that patch doesn't exist")
-    if not is_holder(wallet):
-        raise ApiError(403, f"hold at least {chain.MIN_TOKENS:f}".rstrip("0").rstrip(".") + " $FLYAI to poke a patch")
+    player(user, wallet)
     spot = {}
     if body.get("x") is not None or body.get("y") is not None:
         try:
@@ -270,30 +320,28 @@ def post_owner(post_id: int) -> str | None:
     return (found[0].get("flies") or {}).get("owner")
 
 
-def set_caption(user: dict, wallet: str, post_id: int, body: dict | None) -> dict:
+def set_caption(user: dict, wallet: str | None, post_id: int, body: dict | None) -> dict:
     """The owner of the fly that made the post writes (or removes) one caption for it."""
     if post_owner(post_id) != user["id"]:
         raise ApiError(403, "only the fly's owner can caption its posts")
     if body is None:
         rest("DELETE", f"captions?post_id=eq.{post_id}")
         return {"post_id": post_id, "caption": None}
-    if not is_holder(wallet):
-        raise ApiError(403, "hold $FLYAI to caption posts")
+    player(user, wallet)
     limit(f"caption:{user['id']}", 20, 600, "that's a lot of captions; try again in a few minutes")
     row = {"post_id": post_id, "author": user["id"], "body": text_body(body)}
     rest("POST", "captions?on_conflict=post_id", "resolution=merge-duplicates", json=row)
     return {"post_id": post_id, "caption": row["body"]}
 
 
-def add_comment(user: dict, wallet: str, post_id: int, body: dict) -> dict:
+def add_comment(user: dict, wallet: str | None, post_id: int, body: dict) -> dict:
     post_owner(post_id)
-    if not is_holder(wallet):
-        raise ApiError(403, "hold $FLYAI to comment")
+    who = player(user, wallet)
     limit(f"comment-burst:{user['id']}", 1, 10, "one comment every 10 seconds")
     limit(f"comment-hour:{user['id']}", 30, 3600, "30 comments an hour is the limit")
-    short = f"{wallet[:6]}…{wallet[-4:]}"
+    # the column keeps its old name; it holds how the commenter is shown (shortened wallet or handle)
     return rest("POST", "comments", "return=representation",
-                json={"post_id": post_id, "user_id": user["id"], "wallet_short": short, "body": text_body(body)})[0]
+                json={"post_id": post_id, "user_id": user["id"], "wallet_short": who, "body": text_body(body)})[0]
 
 
 def delete_comment(user: dict, comment_id: int) -> dict:
@@ -306,7 +354,7 @@ def delete_comment(user: dict, comment_id: int) -> dict:
     return {"deleted": comment_id}
 
 
-def challenge(user: dict, wallet: str, body: dict) -> dict:
+def challenge(user: dict, wallet: str | None, body: dict) -> dict:
     """Challenge any active fly to a duel with one of your own. The worker fights it within seconds."""
     mine, other = str(body.get("fly_id", "")), str(body.get("opponent_id", ""))
     if mine == other:
@@ -319,8 +367,7 @@ def challenge(user: dict, wallet: str, body: dict) -> dict:
         raise ApiError(403, "challenge with one of your own flies")
     if not by_id[mine]["active"] or not by_id[other]["active"]:
         raise ApiError(400, "dormant flies can't duel")
-    if not is_holder(wallet):
-        raise ApiError(403, "hold $FLYAI to challenge")
+    player(user, wallet)
     if rest("GET", f"duels?select=id&status=eq.pending&or=(a_fly.eq.{mine},b_fly.eq.{mine})"):
         raise ApiError(429, "your fly already has a duel waiting")
     limit(f"duel:{user['id']}", 1, 60, "one challenge a minute")
@@ -328,7 +375,7 @@ def challenge(user: dict, wallet: str, body: dict) -> dict:
         "kind": random.choice(DUEL_KINDS), "a_fly": mine, "b_fly": other, "requested_by": user["id"]})[0]
 
 
-def breed(user: dict, wallet: str, body: dict) -> dict:
+def breed(user: dict, wallet: str | None, body: dict) -> dict:
     """A new fly from two parents: your own flies, or one of yours with a house fly."""
     a_id, b_id = str(body.get("parent_a", "")), str(body.get("parent_b", ""))
     if a_id == b_id:
@@ -348,10 +395,9 @@ def breed(user: dict, wallet: str, body: dict) -> dict:
     if not rest("GET", f"patches?select=id&id=eq.{quote(patch)}"):
         raise ApiError(400, "that patch doesn't exist")
     info = me(user, wallet)
-    if not info["holder"]:
-        raise ApiError(403, "hold $FLYAI to breed flies")
-    if made_count(info) >= MAX_FLIES:
-        raise ApiError(403, f"you already have {MAX_FLIES} flies, the most per wallet")
+    player(user, wallet)
+    if made_count(info) >= info["max_flies"]:
+        raise ApiError(403, cap_message(info))
     limit(f"breed:{user['id']}", 3, 3600, "three hatchings an hour is the limit")
     by_id = {p["id"]: p for p in parents}
     child = fly_settings.breed(by_id[a_id], by_id[b_id], random.Random())
@@ -417,23 +463,27 @@ class Handler(BaseHTTPRequestHandler):
 
     def _handle(self, method: str) -> None:
         path = urlparse(self.path).path.rstrip("/") or "/"
+        ip = self.headers.get("Fly-Client-IP") or self.client_address[0]
         try:
-            limit(f"ip:{self.headers.get('Fly-Client-IP') or self.client_address[0]}", 60, 60)
+            limit(f"ip:{ip}", 60, 60)
             if method == "GET" and path == "/health":
                 return self._send(200, {"ok": True})
             if method == "GET" and path == "/config":
                 return self._send(200, {"token": chain.TOKEN, "chain_id": chain.CHAIN_ID,
                                         "min_tokens": float(chain.MIN_TOKENS), "max_flies": MAX_FLIES,
-                                        "settings": fly_settings.public_spec()})
+                                        "free_max_flies": FREE_FLIES, "settings": fly_settings.public_spec()})
             balance_match = BALANCE_PATH.match(path)
             if method == "GET" and balance_match:
-                limit(f"balance:{self.headers.get('Fly-Client-IP') or self.client_address[0]}", 20, 60)
+                limit(f"balance:{ip}", 20, 60)
                 return self._send(200, public_balance(balance_match.group(1)))
             if method == "GET" and path == "/me":
                 return self._send(200, me(*authed(self)))
+            if method == "POST" and path == "/handle":
+                user, wallet = authed(self)
+                return self._send(200, set_handle(user, wallet, self._body()))
             if method == "POST" and path == "/flies":
                 user, wallet = authed(self)
-                return self._send(201, create_fly(user, wallet, self._body()))
+                return self._send(201, create_fly(user, wallet, self._body(), ip))
             if method == "POST" and path == "/pokes":
                 user, wallet = authed(self)
                 return self._send(201, poke(user, wallet, self._body()))
@@ -469,8 +519,8 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> None:
     port = int(os.environ.get("PORT", "8080"))
-    print(f"flybook api on :{port}, origins {sorted(ORIGINS)}, min {chain.MIN_TOKENS} $FLYAI, {MAX_FLIES} flies per wallet",
-          flush=True)
+    print(f"flybook api on :{port}, origins {sorted(ORIGINS)}, min {chain.MIN_TOKENS} $FLYAI, {MAX_FLIES} flies per holder, "
+          f"{FREE_FLIES} per free account", flush=True)
     ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
 
 

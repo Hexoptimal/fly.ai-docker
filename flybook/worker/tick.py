@@ -34,7 +34,8 @@ import numpy as np
 import requests
 
 import chain
-from actions import MIN_EXTRA, Z_MIN, ActionReader
+from settings import FREE_FLIES
+from actions import MIN_EXTRA, PROFILE_SAMPLES, Z_MIN, ActionReader, profile_key
 from patch import CHANNELS, REACH, WORD_OF, PatchRunner
 import duels as duel_rules
 import mating
@@ -207,9 +208,10 @@ _holder_cache: dict[str, tuple[float, bool]] = {}   # owner -> (checked at, hold
 
 
 def active_flies(store, flies: list[dict]) -> list[dict]:
-    """House flies always post. An owned fly posts only while its owner holds $FLYAI; the flag
-    is written back so the app can show it as dormant. If the chain can't be read, keep the old flag.
-    Each owner's balance is read at most once per HOLDER_TTL."""
+    """House flies always post. A holder's flies all post; a free account's (no wallet, or a wallet below the
+    minimum) first FREE_FLIES made flies and its mating-born flies post. The flag is written back so the app can
+    show the rest as dormant. If the chain can't be read, keep the old flag.
+    Each owner's balance is read at most once per HOLDER_TTL; owners without a wallet need no read."""
     owners = {f["owner"] for f in flies if f.get("owner")}
     if not owners:
         return flies
@@ -224,16 +226,26 @@ def active_flies(store, flies: list[dict]) -> list[dict]:
         except Exception as e:
             print(f"balance check failed for owner {owner}: {e}", flush=True)
             holder[owner] = None
+    # free accounts (email, or a wallet below the minimum): their first FREE_FLIES made flies and every fly born
+    # from mating stay active; the rest wait dormant until the owner holds. `flies` come oldest first.
+    made: dict[str, list[str]] = {}
+    for f in flies:
+        if f.get("owner") and not f.get("auto_born"):
+            made.setdefault(f["owner"], []).append(f["id"])
     out = []
     for f in flies:
         if not f.get("owner"):
             out.append(f)
             continue
         was = f.get("active", True)
-        now = was if holder[f["owner"]] is None else holder[f["owner"]]
-        if now != was:
-            store.set_active(f["id"], now)
-        if now:
+        is_holder = holder[f["owner"]]
+        if is_holder is None:
+            active = was
+        else:
+            active = is_holder or bool(f.get("auto_born")) or f["id"] in made[f["owner"]][:FREE_FLIES]
+        if active != was:
+            store.set_active(f["id"], active)
+        if active:
             out.append(f)
     return out
 
@@ -255,6 +267,11 @@ def draw(mix: dict[str, float], words: list[str], rng) -> str:
 
 
 POKE_FULL, POKE_REACH = 0.12, 0.35   # a poke hits fully within POKE_FULL of its spot, fading to nothing at POKE_REACH
+PROFILE_FITS_PER_TICK = 2            # new settings profiles whose resting baseline is measured per tick (about one brain batch each)
+
+
+def settings_of(fly: dict) -> dict:
+    return {k: fly.get(k) or {} for k in ("senses", "temperament", "dials")}
 
 
 def start_position(fly: dict) -> list[float]:
@@ -308,12 +325,20 @@ def run_tick(store, eps: Episodes, reader: ActionReader, runner: PatchRunner, tr
     mixes = {p["id"]: p["event_mix"] for p in patches}
     seed = int(rng.integers(2**31))
     t0 = time.perf_counter()
+    # actions are judged against rest with each fly's own settings; until a profile is measured its flies show none
+    new = reader.missing([settings_of(f) for f in flies])
+    if new:
+        reader.fit_profiles(new[:PROFILE_FITS_PER_TICK], seed=seed ^ 0x5EED)
+        print(f"resting baseline for {len(new[:PROFILE_FITS_PER_TICK])} settings profile(s) in {time.perf_counter() - t0:.0f} s, "
+              f"{max(0, len(new) - PROFILE_FITS_PER_TICK)} still waiting", flush=True)
     tick = store.begin_tick({
         "git_sha": os.environ.get("GIT_SHA") or git_sha(),
         "config": {**vocab["config"], "min_precision": min_precision, "seed": seed,
                    "patches": sorted(patches_only) if patches_only is not None else "all",
                    "pokes": sorted(p["id"] for p in poke_for.values()),
-                   "actions": {"z_min": Z_MIN, "min_extra": MIN_EXTRA, "rest": reader.rest},
+                   "actions": {"z_min": Z_MIN, "min_extra": MIN_EXTRA, "baseline": "own settings",
+                               "profile_samples": PROFILE_SAMPLES, "profiles": len(reader.own),
+                               "waiting": len(reader.missing([settings_of(f) for f in flies])), "standard_rest": reader.rest},
                    "social": {"reach": REACH, "channels": CHANNELS, "poke_full": POKE_FULL, "poke_reach": POKE_REACH}},
         "translator": {"version": vocab["version"], "precision": precision, "recall": vocab["test"]["recall"],
                        "postable": postable},
@@ -347,12 +372,12 @@ def run_tick(store, eps: Episodes, reader: ActionReader, runner: PatchRunner, tr
                                    "poke_id": None, "fly_id": batch[focal]["id"]}
                 else:
                     events[pid] = {"stimulus": "nothing", "poke_id": None, "fly_id": None}
-        settings = [{k: f.get(k) or {} for k in ("senses", "temperament", "dials")} for f in batch] + [{}] * pad
+        settings = [settings_of(f) for f in batch] + [{}] * pad
         patch_of = [f["patch_id"] for f in batch] + [None] * pad
         res = runner.run(direct, pos, patch_of, settings, seed=seed + n)
         counts, wing = res["counts"][:len(batch)], res["wing"][:len(batch)]
         probs = translator.predict(features(counts))
-        did = reader.read(counts, wing)
+        did = reader.read(counts, wing, [profile_key(s) for s in settings[:len(batch)]])
         for i, fly in enumerate(batch):
             x, y, h = res["positions"][i]
             moves.append((fly["id"], round(float(x), 3), round(float(y), 3), round(float(h) % (2 * np.pi), 2)))

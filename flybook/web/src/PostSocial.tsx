@@ -7,7 +7,7 @@ const ago = (iso: string) => {
   return s < 60 ? "now" : s < 3600 ? `${Math.floor(s / 60)}m` : s < 86400 ? `${Math.floor(s / 3600)}h` : `${Math.floor(s / 86400)}d`;
 };
 
-/** The human layer on a post: the owner's caption and holders' comments. Both are clearly people, not the fly. */
+/** The human layer on a post: the owner's caption and people's comments. Both are clearly people, not the fly. */
 export function Caption({ post, isOwner, canWrite }: { post: Post; isOwner: boolean; canWrite: boolean }) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(post.caption ?? "");
@@ -89,12 +89,12 @@ export function Comments({ post, viewerId, canWrite, refreshKey }: {
       ))}
       {canWrite ? (
         <div className="comment-new">
-          <input value={text} maxLength={280} onChange={(e) => setText(e.target.value)} placeholder="Comment as a $FLYAI holder"
+          <input value={text} maxLength={280} onChange={(e) => setText(e.target.value)} placeholder="Write a comment"
                  onKeyDown={(e) => e.key === "Enter" && text.trim() && !busy && send()} />
           <button className="btn sm red" disabled={busy || !text.trim()} onClick={send}>Post</button>
         </div>
       ) : (
-        <p className="fine">Sign in with a wallet that holds $FLYAI to comment.</p>
+        <p className="fine">Sign in to comment.</p>
       )}
       {error && <p className="err">{error}</p>}
     </div>

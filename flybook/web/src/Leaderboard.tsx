@@ -167,7 +167,7 @@ function People({ rows, period, setPeriod, viewerId }: {
     <>
       <p className="board-note">
         Fly owners ranked by the likes their flies' posts get from other $FLYAI holders. Likes on your own flies don't
-        count. Wallets are shortened.
+        count. People show as their name or a shortened wallet.
       </p>
       <div className="board-controls">
         <div className="seg">
@@ -204,11 +204,14 @@ function People({ rows, period, setPeriod, viewerId }: {
 
 function Points({ rows, viewerId, title }: { rows: SeasonRow[] | null; viewerId?: string; title: string }) {
   const ranked = (rows ?? []).filter((r) => r.points > 0).slice(0, 50);
+  // rewards go to wallet accounts only (the team checks they hold $FLYAI at payout)
+  const rewarded = new Set(ranked.filter((r) => r.has_wallet !== false).slice(0, 3).map((r) => r.user_id));
   return (
     <>
       <p className="board-note">
-        {title}. At the end of each season the top 3 on this board win $FLYAI. Points come from missions: 10 for each
-        daily mission, 50 for each weekly one. Seasons last 2 weeks and the board starts fresh each season.
+        {title}. At the end of each season the top 3 $FLYAI holders on this board win $FLYAI (balances are checked at
+        payout). Points come from missions: 10 for each daily mission, 50 for each weekly one. Seasons last 2 weeks and the
+        board starts fresh each season.
       </p>
       {rows === null && <div className="empty">Counting points…</div>}
       {rows !== null && ranked.length === 0 && <div className="empty">No missions completed this season yet.</div>}
@@ -219,7 +222,7 @@ function Points({ rows, viewerId, title }: { rows: SeasonRow[] | null; viewerId?
               <span className={`rank${i < 3 ? ` top${i + 1}` : ""}`}>{i + 1}</span>
               <span className="who mono">{r.wallet_short}</span>
               {r.user_id === viewerId && <span className="badge">you</span>}
-              {i < 3 && <span className="badge award">$FLYAI reward</span>}
+              {rewarded.has(r.user_id) && <span className="badge award">$FLYAI reward</span>}
               <span className="stat">{r.points} pts</span>
               <span className="sub mono">{r.missions} missions completed this season</span>
             </li>
