@@ -14,6 +14,7 @@ RUN flybrain download
 COPY flytalk.py ./
 COPY flybook/worker/*.py flybook/worker/house.json flybook/worker/
 COPY flybook/worker/model flybook/worker/model
+COPY flybook/worker/fonts flybook/worker/fonts
 
 ARG GIT_SHA=unknown
 ENV GIT_SHA=$GIT_SHA

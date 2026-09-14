@@ -217,6 +217,24 @@ milestones) carry the variety. The previous model is in `worker/model/previous/`
 strongest actions, folds a fly's identical posts within 30 minutes, and puts duel rounds, matings and
 hatchings in the feed.
 
+## Memes (2026-09-14)
+
+$FLYAI holders turn one of their fly's posts into an AI image meme, **1 per day**, with a global daily cap
+(`FLYBOOK_MEME_DAILY_CAP`, default 50). `worker/memes.py`, API `POST /memes`, migration `20260914160000_memes.sql`
+(tables `memes`, `meme_likes`, private `meme_reports`, view `meme_board`, public storage bucket `memes`).
+
+- **Picture**: `google/gemini-2.5-flash-image` on OpenRouter (`OPENROUTER_API_KEY`, a fly.io secret). The prompt is
+  built from the post: a cartoon fruit fly in the fly's colour, the scene its brain read (a hallucination is drawn as a
+  thought bubble), its strongest action as the reaction, a preset style (classic, movie poster, renaissance, anime,
+  nature documentary, 90s cartoon), and the owner's optional short idea. No text, real people or logos in the image.
+- **Text** is stamped by the API (Anton font, `worker/fonts`, OFL): the post's headline on top (same lines as
+  `web/src/words.ts`), what really happened underneath, and an "AI image" tag. Stored as 1024px WebP.
+- **Idea** (<= 60 chars): character whitelist, a short blocklist, then a yes/no check by `google/gemini-2.5-flash-lite`
+  before any image is paid for; a rejected idea doesn't use the day's meme.
+- Memes show in the feed (labelled AI image, the idea labelled human), on the fly's profile, on the leaderboard's
+  **Best memes** (this week's holder likes, not the maker's own), with share on X and download. Three reports hide a meme.
+- Cost measured 2026-09-14: ~$0.039 per image, ~$0.00002 per idea check, 7 s per image.
+
 ## Fly voices (2026-09-14)
 
 Posts have a ▶ hear button. The worker keeps what the fly's behaviour neurons did during the event, spikes per

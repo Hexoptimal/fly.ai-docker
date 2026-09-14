@@ -19,6 +19,11 @@
     DELETE /comments/<id>       your own comment
     POST   /duels             {fly_id, opponent_id}: challenge any active fly with one of yours
     POST   /breed             {parent_a, parent_b, name, color, patch_id}: a child of your flies (or a house fly)
+    GET    /memes/quota       whether you can make a meme today, styles, limits
+    POST   /memes             {post_id, style, idea?}: an AI image meme from one of your fly's posts (holders, 1/day)
+    DELETE /memes/<id>        your own meme
+    POST   /memes/<id>/like   like a meme (only holders' likes count on the board); DELETE removes it
+    POST   /memes/<id>/report {reason?}: report a meme; enough reports hide it
 
 Accounts (2026-09-14): a session from Supabase's Web3 login (Sign in with Ethereum, so the wallet is proven by a
 signature) or from an email magic link (a confirmed email). Holders ($FLYAI at or above the minimum, checked on
@@ -42,6 +47,7 @@ from urllib.parse import quote, urlparse
 import requests
 
 import chain
+import memes
 import settings as fly_settings
 from duels import KINDS as DUEL_KINDS
 
@@ -408,6 +414,124 @@ def breed(user: dict, wallet: str | None, body: dict) -> dict:
         "generation": max(p.get("generation") or 1 for p in parents) + 1, **child})[0]
 
 
+def count(path: str) -> int:
+    r = HTTP.head(f"{SUPABASE_URL}/rest/v1/{path}", headers={**ADMIN, "Prefer": "count=exact"}, timeout=20)
+    if not r.ok:
+        raise ApiError(502, f"database error {r.status_code}")
+    return int(r.headers.get("Content-Range", "*/0").split("/")[-1])
+
+
+def utc_midnight() -> str:
+    now = time.gmtime()
+    return f"{now.tm_year:04d}-{now.tm_mon:02d}-{now.tm_mday:02d}T00:00:00Z"
+
+
+MEME_REPORTS_TO_HIDE = 3
+MEMES_PER_IP_DAY = 3
+_meme_locks: dict[str, threading.Lock] = {}
+
+
+def meme_quota(user: dict, wallet: str | None) -> dict:
+    holder = is_holder(wallet)
+    since = quote(utc_midnight())
+    used = count(f"memes?select=id&user_id=eq.{user['id']}&created_at=gte.{since}")
+    everyone = count(f"memes?select=id&created_at=gte.{since}")
+    return {"holder": holder, "used_today": used, "left_today": max(0, 1 - used) if holder else 0,
+            "global_left": max(0, memes.DAILY_CAP - everyone), "idea_max": memes.IDEA_MAX,
+            "styles": [{"key": k, "label": v[0]} for k, v in memes.STYLES.items()]}
+
+
+def create_meme(user: dict, wallet: str | None, body: dict, ip: str) -> dict:
+    limit(f"meme-burst:{user['id']}", 3, 60)
+    try:
+        post_id = int(body.get("post_id"))
+    except (TypeError, ValueError):
+        raise ApiError(400, "pick one of your fly's posts")
+    style = str(body.get("style", ""))
+    if style not in memes.STYLES:
+        raise ApiError(400, f"style must be one of {', '.join(memes.STYLES)}")
+    if not is_holder(wallet):
+        raise ApiError(403, "hold $FLYAI to make memes")
+    player(user, wallet)
+    found = rest("GET", f"posts?select=id,fly_id,word,truth,kind,actions,cause,flies(id,name,color,owner)&id=eq.{post_id}")
+    if not found or (found[0].get("flies") or {}).get("owner") != user["id"]:
+        raise ApiError(403, "make memes from your own fly's posts")
+    post, fly = found[0], found[0]["flies"]
+    lock = _meme_locks.setdefault(user["id"], threading.Lock())
+    if not lock.acquire(blocking=False):
+        raise ApiError(429, "your meme is already being made")
+    try:
+        quota = meme_quota(user, wallet)
+        if quota["left_today"] < 1:
+            raise ApiError(429, "one meme a day; your next one unlocks at 00:00 UTC")
+        if quota["global_left"] < 1:
+            raise ApiError(429, "Flybook's meme machine is out of paint for today; back at 00:00 UTC")
+        idea = memes.clean_idea(body.get("idea"))
+        if idea:
+            memes.check_idea(idea)
+        limit(f"meme-ip:{ip}", MEMES_PER_IP_DAY, 86400, "too many memes from this network today")
+        neighbour = None
+        if post.get("cause"):
+            rows = rest("GET", f"flies?select=name&id=eq.{post['cause'].get('from_fly_id')}")
+            neighbour = rows[0]["name"] if rows else None
+        top, bottom = memes.texts(post, neighbour)
+        png, cost = memes.generate(memes.prompt(post, fly, style, idea))
+        image = memes.compose(png, top, bottom)
+        path = f"{fly['id']}/{user['id'][:8]}-{int(time.time())}-{random.randrange(16**6):06x}.webp"
+        memes.upload(SUPABASE_URL, SERVICE_KEY, path, image)
+        row = rest("POST", "memes", "return=representation", json={
+            "user_id": user["id"], "fly_id": fly["id"], "post_id": post["id"], "style": style, "idea": idea,
+            "top_text": top, "bottom_text": bottom, "image_path": path, "model": memes.IMAGE_MODEL, "cost": cost})[0]
+        return {**row, "url": f"{SUPABASE_URL}/storage/v1/object/public/memes/{path}"}
+    except memes.MemeError as e:
+        raise ApiError(e.status, str(e))
+    finally:
+        lock.release()
+
+
+def delete_meme(user: dict, meme_id: int) -> dict:
+    rows = rest("GET", f"memes?select=id,user_id,image_path&id=eq.{meme_id}")
+    if not rows:
+        raise ApiError(404, "that meme doesn't exist")
+    if rows[0]["user_id"] != user["id"]:
+        raise ApiError(403, "you can only delete your own memes")
+    rest("DELETE", f"memes?id=eq.{meme_id}")
+    memes.remove(SUPABASE_URL, SERVICE_KEY, rows[0]["image_path"])
+    return {"deleted": meme_id}
+
+
+def set_meme_like(user: dict, wallet: str | None, meme_id: int, liked: bool) -> dict:
+    limit(f"like:{user['id']}", 60, 60)
+    rows = rest("GET", f"memes?select=id,user_id&id=eq.{meme_id}&hidden=is.false")
+    if not rows:
+        raise ApiError(404, "that meme doesn't exist")
+    if liked:
+        if rows[0]["user_id"] == user["id"]:
+            raise ApiError(403, "you can't like your own meme")
+        player(user, wallet)
+        rest("POST", "meme_likes?on_conflict=meme_id,user_id", "resolution=ignore-duplicates",
+             json={"meme_id": meme_id, "user_id": user["id"], "by_holder": is_holder(wallet)})
+    else:
+        rest("DELETE", f"meme_likes?meme_id=eq.{meme_id}&user_id=eq.{user['id']}")
+    return {"meme_id": meme_id, "liked": liked, "likes": count(f"meme_likes?select=meme_id&meme_id=eq.{meme_id}")}
+
+
+def report_meme(user: dict, wallet: str | None, meme_id: int, body: dict) -> dict:
+    limit(f"report:{user['id']}", 10, 3600, "that's a lot of reports; try again later")
+    player(user, wallet)
+    if not rest("GET", f"memes?select=id&id=eq.{meme_id}"):
+        raise ApiError(404, "that meme doesn't exist")
+    reason = " ".join(str(body.get("reason") or "").split())[:200] or None
+    rest("POST", "meme_reports?on_conflict=meme_id,user_id", "resolution=ignore-duplicates",
+         json={"meme_id": meme_id, "user_id": user["id"], "reason": reason})
+    if count(f"meme_reports?select=meme_id&meme_id=eq.{meme_id}") >= MEME_REPORTS_TO_HIDE:
+        rest("PATCH", f"memes?id=eq.{meme_id}", json={"hidden": True})
+    return {"reported": True}
+
+
+MEME_PATH = re.compile(r"^/memes/(\d+)$")
+MEME_LIKE_PATH = re.compile(r"^/memes/(\d+)/like$")
+MEME_REPORT_PATH = re.compile(r"^/memes/(\d+)/report$")
 CAPTION_PATH = re.compile(r"^/posts/(\d+)/caption$")
 COMMENTS_PATH = re.compile(r"^/posts/(\d+)/comments$")
 COMMENT_PATH = re.compile(r"^/comments/(\d+)$")
@@ -493,6 +617,23 @@ class Handler(BaseHTTPRequestHandler):
             if method == "POST" and path == "/breed":
                 user, wallet = authed(self)
                 return self._send(201, breed(user, wallet, self._body()))
+            if method == "GET" and path == "/memes/quota":
+                return self._send(200, meme_quota(*authed(self)))
+            if method == "POST" and path == "/memes":
+                user, wallet = authed(self)
+                return self._send(201, create_meme(user, wallet, self._body(), ip))
+            meme = MEME_PATH.match(path)
+            if meme and method == "DELETE":
+                user, _ = authed(self)
+                return self._send(200, delete_meme(user, int(meme.group(1))))
+            meme_like = MEME_LIKE_PATH.match(path)
+            if meme_like and method in ("POST", "DELETE"):
+                user, wallet = authed(self)
+                return self._send(200, set_meme_like(user, wallet, int(meme_like.group(1)), method == "POST"))
+            meme_report = MEME_REPORT_PATH.match(path)
+            if meme_report and method == "POST":
+                user, wallet = authed(self)
+                return self._send(200, report_meme(user, wallet, int(meme_report.group(1)), self._body()))
             caption = CAPTION_PATH.match(path)
             if caption and method in ("POST", "DELETE"):
                 user, wallet = authed(self)

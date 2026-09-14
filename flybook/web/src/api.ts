@@ -1,4 +1,4 @@
-import { db, type FlySettings } from "./feed";
+import { db, type FlySettings, type Meme } from "./feed";
 
 /** The Flybook API on fly.io (flybook/worker/api.py): accounts, flies and everything people do. */
 export const API = (import.meta.env.VITE_FLYBOOK_API as string | undefined) ?? "https://flybook-worker.fly.dev";
@@ -66,3 +66,16 @@ export const challengeFly = (flyId: string, opponentId: string) =>
   call<{ id: number }>("/duels", { method: "POST", body: JSON.stringify({ fly_id: flyId, opponent_id: opponentId }) });
 export const breedFly = (req: { parent_a: string; parent_b: string; name: string; color: string; patch_id: string }) =>
   call<MyFly>("/breed", { method: "POST", body: JSON.stringify(req) });
+
+export type MemeQuota = {
+  holder: boolean; used_today: number; left_today: number; global_left: number; idea_max: number;
+  styles: { key: string; label: string }[];
+};
+export const getMemeQuota = () => call<MemeQuota>("/memes/quota");
+export const makeMeme = (req: { post_id: number; style: string; idea?: string }) =>
+  call<Meme & { url: string }>("/memes", { method: "POST", body: JSON.stringify(req) });
+export const deleteMeme = (id: number) => call<{ deleted: number }>(`/memes/${id}`, { method: "DELETE" });
+export const setMemeLike = (id: number, liked: boolean) =>
+  call<{ meme_id: number; liked: boolean; likes: number }>(`/memes/${id}/like`, { method: liked ? "POST" : "DELETE" });
+export const reportMeme = (id: number, reason: string) =>
+  call<{ reported: boolean }>(`/memes/${id}/report`, { method: "POST", body: JSON.stringify({ reason }) });

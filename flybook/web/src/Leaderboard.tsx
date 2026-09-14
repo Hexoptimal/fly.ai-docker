@@ -3,6 +3,7 @@ import {
   challengeBoard, db, loadSeasonBoard, tuning, weekStart,
   type ChallengeRow, type FlySettings, type Patch, type SeasonRow,
 } from "./feed";
+import { MemeBoard } from "./Memes";
 import { currentSeason } from "./seasons";
 
 type FlyRow = FlySettings & {
@@ -14,7 +15,7 @@ type PersonRow = {
   posts: number; likes: number; likes_week: number; likes_season: number;
 };
 type Period = "week" | "season" | "all";
-type Mode = "people" | "challenge" | "points" | "flies";
+type Mode = "people" | "challenge" | "points" | "memes" | "flies";
 
 type Board = { key: string; label: string; help: string; min: number; score: (r: FlyRow) => number; show: (r: FlyRow) => string };
 
@@ -82,6 +83,7 @@ export default function Leaderboard({ patches, patch, viewerId, onFly }: {
         <button className={mode === "people" ? "on" : ""} onClick={() => setMode("people")}>Most popular people</button>
         <button className={mode === "challenge" ? "on" : ""} onClick={() => setMode("challenge")}>Weekly challenge</button>
         <button className={mode === "points" ? "on" : ""} onClick={() => setMode("points")}>Season points</button>
+        <button className={mode === "memes" ? "on" : ""} onClick={() => setMode("memes")}>Best memes</button>
         <button className={mode === "flies" ? "on" : ""} onClick={() => setMode("flies")}>Flies</button>
       </div>
       {error && <p className="err">{error}</p>}
@@ -90,6 +92,7 @@ export default function Leaderboard({ patches, patch, viewerId, onFly }: {
       {mode === "points" && (
         <Points rows={points} viewerId={viewerId} title={`Season ${season.number} · ${season.name} · ${season.daysLeft} days left`} />
       )}
+      {mode === "memes" && <MemeBoard onFly={onFly} />}
       {mode === "flies" && (
         <Flies rows={flyRows} names={names} patch={patch} board={BOARDS.find((b) => b.key === boardKey)!}
                setBoardKey={setBoardKey} boardKey={boardKey} who={who} setWho={setWho} onFly={onFly} />

@@ -74,11 +74,34 @@ export type ChallengeRow = {
   owner_wallet: string | null; score: number; detail: string;
 };
 export type Snapshot = { patches: Patch[]; flies: Fly[]; posts: Post[]; tick: Tick | null; live: boolean };
+/** An AI image meme made from one of a fly's posts (worker/memes.py). likes and likes_week count holders' likes. */
+export type Meme = {
+  id: number; user_id: string; fly_id: string; post_id: number | null; style: string; idea: string | null;
+  top_text: string; bottom_text: string; image_path: string; created_at: string;
+  likes?: number; likes_week?: number; likes_all?: number;
+};
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 export const db: SupabaseClient | null = url && key ? createClient(url, key) : null;
 export const BASE = import.meta.env.BASE_URL;
+export const memeImage = (m: Pick<Meme, "image_path">) => (url ? `${url}/storage/v1/object/public/memes/${m.image_path}` : "");
+
+/** Memes, newest first, with like counts; one fly's when flyId is given. */
+export async function loadMemes(opts: { limit?: number; flyId?: string } = {}): Promise<Meme[]> {
+  if (!db) return [];
+  let q = db.from("meme_board").select("*").order("id", { ascending: false }).limit(opts.limit ?? 40);
+  if (opts.flyId) q = q.eq("fly_id", opts.flyId);
+  const { data } = await q;
+  return (data ?? []) as Meme[];
+}
+
+/** The memes this user has liked. */
+export async function myMemeLikes(userId: string): Promise<Set<number>> {
+  if (!db) return new Set();
+  const { data } = await db.from("meme_likes").select("meme_id").eq("user_id", userId).limit(1000);
+  return new Set((data ?? []).map((r) => r.meme_id as number));
+}
 
 const FLY_COLUMNS = "id,name,color,patch_id,owner,active,created_at,senses,temperament,dials,x,y,heading,elo,duels,wins,losses,draws,parents,generation,auto_born";
 // every post column except the trace (fetched when someone presses play); voice_ms only says whether there is one
@@ -244,6 +267,7 @@ export async function myLikes(userId: string): Promise<Set<number>> {
 export function subscribe(handlers: {
   onPost: (p: Post) => void; onTick: (t: Tick) => void; onLike: (postId: number) => void; onPoke: (p: Poke) => void;
   onComment: (postId: number) => void; onCaption: (postId: number, body: string | null) => void; onDuel: (d: Duel) => void;
+  onMeme?: () => void;
 }): () => void {
   if (!db) return () => {};
   const channel = db
@@ -270,6 +294,8 @@ export function subscribe(handlers: {
     .on("postgres_changes", { event: "*", schema: "public", table: "duels" }, (m) => {
       if (m.eventType !== "DELETE") handlers.onDuel(m.new as Duel);
     })
+    .on("postgres_changes", { event: "*", schema: "public", table: "memes" }, () => handlers.onMeme?.())
+    .on("postgres_changes", { event: "*", schema: "public", table: "meme_likes" }, () => handlers.onMeme?.())
     .subscribe();
   return () => void db.removeChannel(channel);
 }

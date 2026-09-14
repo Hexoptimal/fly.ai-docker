@@ -8,6 +8,26 @@ export function shareOnX(text: string, id: number) {
   window.open(intent.toString(), "_blank", "noopener,noreferrer");
 }
 
+export const memeUrl = (id: number) => `https://flyaiworld.com/flybook/#meme-${id}`;
+
+export function shareMemeOnX(text: string, id: number) {
+  const intent = new URL("https://twitter.com/intent/tweet");
+  intent.searchParams.set("text", text);
+  intent.searchParams.set("url", memeUrl(id));
+  window.open(intent.toString(), "_blank", "noopener,noreferrer");
+}
+
+/** Download an image URL as a file (the meme bucket allows cross-origin reads). */
+export async function downloadImage(src: string, filename: string) {
+  const res = await fetch(src);
+  const blob = await res.blob();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
 type Card = { id: number; name: string; color: string; patch: string; headline: string; detail: string; chips: string[] };
 
 function wrap(g: CanvasRenderingContext2D, text: string, width: number, maxLines: number): string[] {

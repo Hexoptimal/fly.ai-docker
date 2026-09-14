@@ -16,6 +16,7 @@ cp "$ROOT"/flytalk.py "$STAGE/"
 cp "$ROOT"/flybook/worker/*.py "$ROOT"/flybook/worker/house.json "$ROOT"/flybook/worker/requirements.txt \
    "$ROOT"/flybook/worker/Dockerfile "$ROOT"/flybook/worker/fly.toml "$STAGE/flybook/worker/"
 cp "$ROOT"/flybook/worker/model/translator.npz "$ROOT"/flybook/worker/model/vocab.json "$STAGE/flybook/worker/model/"
+cp -r "$ROOT"/flybook/worker/fonts "$STAGE/flybook/worker/"
 
 SHA="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
 git -C "$ROOT" diff --quiet HEAD -- flybook flytalk.py 2>/dev/null || SHA="$SHA-dirty"

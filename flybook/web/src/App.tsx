@@ -3,15 +3,16 @@ import Account, { type Viewer } from "./Account";
 import Arena from "./Arena";
 import HowItWorks from "./HowItWorks";
 import Leaderboard from "./Leaderboard";
+import { MemeCard, MemeGallery, MemeMaker } from "./Memes";
 import Missions from "./Missions";
 import PatchView from "./PatchView";
 import { Caption, Comments } from "./PostSocial";
-import { pokePatch, setLike } from "./api";
+import { pokePatch, setLike, setMemeLike } from "./api";
 import { badgesFor, type Badge, type BoardRow } from "./badges";
 import {
-  BASE, fetchPost, likeCount, load, loadBoard, loadComments, loadDuels, loadFlies, loadMatings, loadPokes, loadPositions,
-  loadReplays, myLikes, subscribe, tuning, type Duel, type Fly, type Mating, type Patch, type Poke, type Post, type Replay,
-  type Snapshot,
+  BASE, fetchPost, likeCount, load, loadBoard, loadComments, loadDuels, loadFlies, loadMatings, loadMemes, loadPokes, loadPositions,
+  loadReplays, myLikes, myMemeLikes, subscribe, tuning, type Duel, type Fly, type Mating, type Meme, type Patch, type Poke, type Post,
+  type Replay, type Snapshot,
 } from "./feed";
 import { postUrl, saveCard, shareOnX } from "./share";
 import { SLOW, loadTrace, play, useVoiceStyle } from "./voice";
@@ -87,7 +88,8 @@ type FeedItem =
   | { type: "post"; at: string; post: Post; folded: Post[] }
   | { type: "duels"; at: string; duels: Duel[] }        // duels that finished within DUEL_ROUND_MS of each other
   | { type: "mating"; at: string; mating: Mating }
-  | { type: "hatch"; at: string; fly: Fly };
+  | { type: "hatch"; at: string; fly: Fly }
+  | { type: "meme"; at: string; meme: Meme };
 
 const FOLD_MS = 30 * 60_000;
 const DUEL_ROUND_MS = 2 * 60_000;
@@ -112,6 +114,10 @@ export default function App() {
   const [liveDuel, setLiveDuel] = useState<Duel | null>(null);
   const [duels, setDuels] = useState<Duel[]>([]);
   const [matings, setMatings] = useState<Mating[]>([]);
+  const [memes, setMemes] = useState<Meme[]>([]);
+  const [memeLiked, setMemeLiked] = useState<Set<number>>(new Set());
+  const [memeFor, setMemeFor] = useState<Post | null>(null);
+  const [memeTick, setMemeTick] = useState(0);
   const [boardAt, setBoardAt] = useState(0);            // newest post id when the board totals were read
   const [unfolded, setUnfolded] = useState<Set<number>>(new Set());
   const [view, setView] = useState<View>(() => viewOf(location.hash));
@@ -121,8 +127,12 @@ export default function App() {
   });
 
   useEffect(() => {
-    if (!viewer) return setLiked(new Set());
+    if (!viewer) {
+      setMemeLiked(new Set());
+      return setLiked(new Set());
+    }
     myLikes(viewer.userId).then(setLiked);
+    myMemeLikes(viewer.userId).then(setMemeLiked);
   }, [viewer?.userId]);
 
   useEffect(() => {
@@ -151,6 +161,11 @@ export default function App() {
     loadDuels(40).then(setDuels);
     loadMatings(30).then(setMatings);
   }, []);
+  const refreshMemes = useCallback(() => {
+    loadMemes({ limit: 40 }).then(setMemes);
+    setMemeTick((n) => n + 1);
+  }, []);
+  useEffect(refreshMemes, [refreshMemes]);
   useEffect(() => {
     loadPokes().then(setPokes);
     loadReplays().then(setReplays);
@@ -213,6 +228,7 @@ export default function App() {
           setLiveDuel(duel);
           if (duel.status === "done") loadFlies().then((fs) => setSnap((s) => s && { ...s, flies: fs }));
         },
+        onMeme: refreshMemes,
       }),
     [],
   );
@@ -300,6 +316,27 @@ export default function App() {
     }
   };
 
+  const toggleMemeLike = async (meme: Meme) => {
+    if (!viewer?.ready) return;
+    const want = !memeLiked.has(meme.id);
+    const mark = (on: boolean) => setMemeLiked((l) => {
+      const next = new Set(l);
+      if (on) next.add(meme.id);
+      else next.delete(meme.id);
+      return next;
+    });
+    mark(want);
+    setLikeError(null);
+    try {
+      const res = await setMemeLike(meme.id, want);
+      mark(res.liked);
+      setMemes((ms) => ms.map((m) => (m.id === meme.id ? { ...m, likes_all: res.likes } : m)));
+    } catch (e) {
+      mark(!want);
+      setLikeError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
   const dropPoke = async (x: number, y: number) => {
     if (patch === "all" || !armed) return;
     setPokeMsg(null);
@@ -355,6 +392,9 @@ export default function App() {
     if (f.owner && !f.auto_born && f.created_at && f.created_at >= oldestShown && inView([f.id], f.patch_id)) {
       items.push({ type: "hatch", at: f.created_at, fly: f });
     }
+  }
+  for (const m of memes) {
+    if (m.created_at >= oldestShown && inView([m.fly_id], flies.get(m.fly_id)?.patch_id)) items.push({ type: "meme", at: m.created_at, meme: m });
   }
   items.sort((a, b) => b.at.localeCompare(a.at));
   const activePatch = patches.get(patch);
@@ -422,6 +462,7 @@ export default function App() {
                       "Every post is read from a fruit-fly connectome's descending neurons: what it sensed, what it did, and what really happened. Flies in a patch set each other off."}
                 </p>
                 {activeFly && <button className="chip clear" onClick={() => setFlyId(null)}>show all flies ✕</button>}
+                {activeFly && snap.live && <MemeGallery flyId={activeFly.id} refreshKey={memeTick} />}
                 {snap.live && activePatch && !activeFly && (
                   <>
                     <PatchView flies={patchFlies} replay={shownReplay?.replay} tickId={shownReplay?.tickId}
@@ -454,6 +495,12 @@ export default function App() {
                 </div>
               )}
               {items.map((item) => {
+                if (item.type === "meme") {
+                  const m = item.meme;
+                  return <MemeCard key={`meme-${m.id}`} meme={m} fly={flies.get(m.fly_id)} now={now} viewerId={viewer?.userId}
+                                   canLike={!!viewer?.ready} liked={memeLiked.has(m.id)} onLike={() => toggleMemeLike(m)}
+                                   onFly={setFlyId} onChanged={refreshMemes} />;
+                }
                 if (item.type !== "post") {
                   return <EventCard key={`${item.type}-${item.type === "duels" ? item.duels[0].id : item.type === "mating" ? item.mating.id : item.fly.id}`}
                                     item={item} flies={flies} patches={patches} now={now} onFly={setFlyId} />;
@@ -465,6 +512,7 @@ export default function App() {
                             onLike={() => toggleLike(p)} badges={badgesFor(board.get(p.fly_id))} commentTick={commentTicks.get(p.id) ?? 0}
                             ctx={context.get(p.id)} folded={item.folded}
                             onUnfold={() => setUnfolded((u) => new Set(u).add(p.id))}
+                            onMeme={viewer?.holder && flies.get(p.fly_id)?.owner === viewer.userId ? () => setMemeFor(p) : undefined}
                             parent={p.cause ? snap.posts.find((q) => q.tick_id === p.tick_id && q.fly_id === p.cause!.from_fly_id) : undefined} />
                 );
               })}
@@ -472,6 +520,9 @@ export default function App() {
           )}
         </main>
 
+        {memeFor && (
+          <MemeMaker post={memeFor} fly={flies.get(memeFor.fly_id)} onClose={() => setMemeFor(null)} onMade={refreshMemes} />
+        )}
         <aside className="side">
           <Account patches={snap.patches} live={snap.live} onCreated={reload} onViewer={setViewer} house={house} />
           <HowItWorks />
@@ -518,7 +569,7 @@ export default function App() {
 
 /** Something that happened to flies, not a read: a duel settled, two flies had a baby, a holder hatched a fly. */
 function EventCard({ item, flies, patches, now, onFly }: {
-  item: Exclude<FeedItem, { type: "post" }>; flies: Map<string, Fly>; patches: Map<string, Patch>; now: number;
+  item: Exclude<FeedItem, { type: "post" } | { type: "meme" }>; flies: Map<string, Fly>; patches: Map<string, Patch>; now: number;
   onFly: (id: string) => void;
 }) {
   const who = (id: string | null) => {
@@ -574,10 +625,10 @@ function EventCard({ item, flies, patches, now, onFly }: {
   );
 }
 
-function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike, badges, parent, commentTick, ctx, folded, onUnfold }: {
+function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike, badges, parent, commentTick, ctx, folded, onUnfold, onMeme }: {
   post: Post; flies: Map<string, Fly>; patch?: Patch; now: number; fresh: boolean; onFly: (id: string) => void;
   liked: boolean; viewer: Viewer; onLike: () => void; badges: Badge[]; parent?: Post; commentTick: number;
-  ctx?: PostContext; folded: Post[]; onUnfold: () => void;
+  ctx?: PostContext; folded: Post[]; onUnfold: () => void; onMeme?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -663,6 +714,7 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
           </span>
         )}
         <button className="more talk" onClick={() => setTalking(!talking)} aria-expanded={talking}>💬 {post.comments ?? 0}</button>
+        {onMeme && <button className="more meme-btn" onClick={onMeme} title="Turn this post into an AI image meme (1 a day)">🎨 meme</button>}
         <button className="more" onClick={() => setSharing(!sharing)}>share</button>
         <button className="more" onClick={() => setOpen(!open)}>{open ? "hide neurons" : "neurons"}</button>
       </div>
