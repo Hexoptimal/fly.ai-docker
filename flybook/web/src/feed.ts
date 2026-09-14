@@ -187,6 +187,31 @@ export async function loadMarket(rounds = 48): Promise<{ coins: Coin[]; rounds: 
   };
 }
 
+export type Portfolio = {
+  fly_id: string; eth: number; holdings: Record<string, { qty: number; cost_eth: number }>;   // cost_eth: total paid for what it still holds
+  start_eth: number; value_eth: number; trades: number; updated_at: string;
+};
+export type Wallet = { portfolio: Portfolio | null; prices: Record<string, number>; trades: FlyTrade[]; complete: boolean };
+const WALLET_TRADES = 60;
+/** One fly's fake-ETH wallet (fly_portfolios), the latest prices and its own latest trades, newest first.
+ * complete: every trade it ever made is in the list (so a value history can start from its first ETH). */
+export async function loadWallet(flyId: string): Promise<Wallet> {
+  if (!db) return { portfolio: null, prices: {}, trades: [], complete: true };
+  const [p, coins, trades] = await Promise.all([
+    db.from("fly_portfolios").select("*").eq("fly_id", flyId).maybeSingle(),
+    db.from("market_coins").select("symbol,price"),
+    db.from("fly_trades").select("*").eq("fly_id", flyId).order("id", { ascending: false }).limit(WALLET_TRADES),
+  ]);
+  for (const r of [p, coins, trades]) if (r.error) throw r.error;
+  const rows = (trades.data ?? []) as FlyTrade[];
+  return {
+    portfolio: (p.data as Portfolio | null) ?? null,
+    prices: Object.fromEntries(((coins.data ?? []) as { symbol: string; price: number }[]).map((c) => [c.symbol, c.price])),
+    trades: rows,
+    complete: rows.length < WALLET_TRADES,
+  };
+}
+
 /** These flies' market styles (fly_minds): learners and risk. Flies without a row yet are born with one at their first round. */
 export async function loadStyles(flyIds: string[]): Promise<Map<string, { learning: Partial<Learning> | null; risk: number | null }>> {
   if (!db || flyIds.length === 0) return new Map();

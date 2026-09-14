@@ -4,6 +4,7 @@ import { getMemeQuota, type MemeQuota } from "./api";
 import { loadFlyPosts, loadMemes, loadStyles, memeImage, type Fly, type Meme, type Patch, type Post } from "./feed";
 import { useNextMemeCountdown } from "./Memes";
 import { ALL_ON, StyleEditor } from "./TradingStyle";
+import Wallet from "./FlyWallet";
 import { WORDS, actionText, causeText, line, strongest } from "./words";
 
 type Filter = "all" | Post["kind"];
@@ -104,16 +105,20 @@ export default function MyFlies({ allFlies, patches, viewer, now, memeTick, onMe
       </div>
       <div className={`card meme-status${canMake ? " ready" : ""}`}>🎨 {status}</div>
 
-      <details className="card trading-styles">
-        <summary>📈 Trading styles for the fly market</summary>
-        <p className="fine">Holders' flies trade fake coins with their real brains (<a href="#market">Market</a>). Set how much each
-          one risks and what it learns with; it applies from the next market round.</p>
-        {styles === null ? <p className="fine">Loading…</p> : mine.map((f) => {
+      <details className="card trading-styles" open>
+        <summary>📈 Fly market: each fly's wallet and trading style</summary>
+        <p className="fine">Holders' flies trade fake coins with their real brains (<a href="#market">Market</a>). Each fly has its own
+          wallet. Set how much it risks and what it learns with; changes apply from the next market round.</p>
+        {styles === null ? <p className="fine">Loading…</p> : mine.filter((f) => flyFilter === "all" || f.id === flyFilter).map((f) => {
           const s = styles.get(f.id);
           return (
             <div key={f.id} className="trading-style">
               <h5><span className="dot" style={{ background: f.color }} /> {f.name}</h5>
-              <StyleEditor flyId={f.id} learning={{ ...ALL_ON, ...(s?.learning ?? {}) }} risk={s?.risk ?? null} />
+              <Wallet flyId={f.id} />
+              <details className="style-box">
+                <summary>Trading style</summary>
+                <StyleEditor flyId={f.id} learning={{ ...ALL_ON, ...(s?.learning ?? {}) }} risk={s?.risk ?? null} />
+              </details>
             </div>
           );
         })}

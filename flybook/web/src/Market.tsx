@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Viewer } from "./Account";
 import { LEARNERS, StyleEditor, type Style } from "./TradingStyle";
+import Wallet, { Spark, ago, eth, pct } from "./FlyWallet";
 import { db, loadMarket, type Coin, type FlyTrade, type Learning, type MarketControl, type MarketRound, type Trader } from "./feed";
 
 const SIDE: Record<FlyTrade["side"], string> = {
@@ -25,25 +26,6 @@ const setupName = (l: Learning) => {
   const on = LEARNERS.filter((x) => l[x.key]).map((x) => x.label.toLowerCase());
   return on.length === 0 ? "no learning" : on.length === LEARNERS.length ? "all learners" : on.join(" + ");
 };
-const pct = (x: number) => `${x >= 0 ? "+" : ""}${(x * 100).toFixed(1)}%`;
-const eth = (x: number) => (x >= 100 ? x.toFixed(0) : x >= 1 ? x.toFixed(3) : x >= 0.001 ? x.toFixed(4) : x.toPrecision(3));
-const ago = (iso: string) => {
-  const s = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
-  return s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)}m` : s < 86400 ? `${Math.floor(s / 3600)}h` : `${Math.floor(s / 86400)}d`;
-};
-
-function Spark({ values }: { values: number[] }) {
-  if (values.length < 2) return <svg className="spark" viewBox="0 0 100 28" />;
-  const lo = Math.min(...values), hi = Math.max(...values);
-  const pts = values.map((v, i) => `${(i / (values.length - 1)) * 100},${hi > lo ? 26 - ((v - lo) / (hi - lo)) * 24 : 14}`).join(" ");
-  const up = values[values.length - 1] >= values[0];
-  return (
-    <svg className="spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">
-      <polyline points={pts} fill="none" stroke={up ? "#3ddc84" : "#ff5b4f"} strokeWidth="2" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
-
 /** A 0..max bar with the neutral value (1.0) marked. */
 function Bar({ value, max, label }: { value: number; max: number; label: string }) {
   return (
@@ -135,6 +117,7 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
   const [trades, setTrades] = useState<FlyTrade[]>([]);
   const [mine, setMine] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
+  const [wallet, setWallet] = useState<string | null>(null);
   const [control, setControl] = useState<MarketControl | null>(null);
 
   useEffect(() => {
@@ -250,9 +233,13 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
                     <span className={`sub mono ${t.pnl >= 0 ? "up" : "down"}`}>
                       {pct(t.pnl)} · {t.trades} trades · {setupName(learningOf(t))} · holds {Object.keys(t.holdings ?? {}).map((s) => `$${s}`).join(" ") || "only ETH"}
                     </span>
-                    <button className="more mind-toggle" onClick={() => setOpen(open === t.fly_id ? null : t.fly_id)} aria-expanded={open === t.fly_id}>
+                    <button className="more mind-toggle" onClick={() => setWallet(wallet === t.fly_id ? null : t.fly_id)} aria-expanded={wallet === t.fly_id}>
+                      {wallet === t.fly_id ? "hide wallet" : "💰 wallet"}
+                    </button>
+                    <button className="more" onClick={() => setOpen(open === t.fly_id ? null : t.fly_id)} aria-expanded={open === t.fly_id}>
                       {open === t.fly_id ? "hide mind" : "🧠 mind"}
                     </button>
+                    {wallet === t.fly_id && <Wallet flyId={t.fly_id} refresh={last?.id} />}
                     {open === t.fly_id && <Mind t={t} names={names} onFly={onFly} mine={!!viewer && t.owner === viewer.userId} onSaved={saved} />}
                   </li>
                 ))}

@@ -191,6 +191,20 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
 .trading-style h5 { margin: 0 0 8px; display: flex; gap: 6px; align-items: center; }
 .maker-style, .breed-style { margin: 8px 0 12px; }
 .breed-style summary small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.wallet { flex-basis: 100%; min-width: 0; margin-top: 10px; display: grid; gap: 8px; }
+.wallet h5 { margin: 6px 0 0; }
+.wallet-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.wallet-top > div { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-2); min-width: 0; }
+.wallet-total { font-size: 18px; }
+.wallet-chart { display: grid; gap: 2px; }
+.wallet-chart .spark { width: 100%; height: 40px; }
+.wallet-table-wrap { overflow-x: auto; }
+.wallet-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.wallet-table th, .wallet-table td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.wallet-table th { color: var(--muted); font-weight: 500; }
+.wallet-trades { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+.wallet-trades li { display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.style-box summary { cursor: pointer; font-weight: 600; margin-top: 8px; }
 .chip.up { color: #3ddc84; }
 .chip.down { color: #ff5b4f; }
 @media (max-width: 700px) { .mind { grid-template-columns: minmax(0, 1fr); } }
