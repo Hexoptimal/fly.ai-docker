@@ -107,6 +107,11 @@ class SupabaseStore:
         return (rows[0].get("profiles") or {}) if rows else {}
 
     # fly market (market.py)
+    def open_wallets(self, ids: list[str]) -> None:
+        if ids:
+            self._req("POST", "fly_portfolios?on_conflict=fly_id", "resolution=ignore-duplicates",
+                      json=[market.new_portfolio(i) for i in ids])
+
     def market_paused(self) -> bool:
         rows = self._req("GET", "market_control?select=paused&id=eq.1")
         return bool(rows and rows[0].get("paused"))
@@ -240,6 +245,11 @@ class JsonStore:
     # fly market (market.py), kept in the same file
     def _market(self) -> dict:
         return self.d.setdefault("market", {"coins": [], "rounds": [], "portfolios": {}, "minds": {}, "trades": []})
+
+    def open_wallets(self, ids: list[str]) -> None:
+        for i in ids:
+            self._market()["portfolios"].setdefault(i, market.new_portfolio(i))
+        self._save()
 
     def market_paused(self) -> bool:
         return bool(self._market().get("paused"))
@@ -667,7 +677,7 @@ def main() -> None:
 
     if args.every:
         next_full = time.monotonic()
-        next_market = time.monotonic() + (args.market_every or 0)
+        next_market = time.monotonic()          # first market round right after the first tick
         while True:
             try:
                 reads: list[str] = []
@@ -676,6 +686,8 @@ def main() -> None:
                     run_tick(store, eps, reader, runner, translator, vocab, rng, args.min_precision, mate_reads=reads)
                     duel_pass(store, runner, rng, auto=AUTO_DUELS)
                     mating_pass(store, rng, reads, auto=mating.AUTO_PER_TICK)
+                    if args.market_every and (wallets := trading_flies(store, args.market_all)):
+                        store.open_wallets([f["id"] for f in wallets])   # every holder's fly has 1 fake ETH from its first tick
                     if args.market_every and time.monotonic() >= next_market:
                         next_market = time.monotonic() + args.market_every
                         if store.market_paused():

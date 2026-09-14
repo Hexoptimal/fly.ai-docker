@@ -15,7 +15,7 @@ primary_region = "cdg"
   FLYBOOK_MAX_FLIES = "3"
 
 [processes]
-  tick = "python flybook/worker/tick.py --every 120 --poke-poll 10 --market-every 2700"
+  tick = "python flybook/worker/tick.py --every 120 --poke-poll 10 --market-every 600"
   api = "python flybook/worker/api.py"
 
 [http_service]

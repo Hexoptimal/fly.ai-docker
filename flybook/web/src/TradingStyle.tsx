@@ -2,11 +2,10 @@ import { useState } from "react";
 import { setStyle, type StyleBody } from "./api";
 import type { Learning } from "./feed";
 
-// what each learner does, with what the offline checks found (README "Does learning help?")
 export const LEARNERS: { key: keyof Learning; label: string; note: string }[] = [
-  { key: "dopamine", label: "Dopamine", note: "profit tunes what it notices and wants. Cost money in both tests." },
-  { key: "memory", label: "Memory", note: "stops trades that lost before. Cost money in both tests." },
-  { key: "tubes", label: "Slime tubes", note: "pulls it back to coins that paid. Neutral in both tests." },
+  { key: "dopamine", label: "Dopamine", note: "profit tunes what it notices and wants." },
+  { key: "memory", label: "Memory", note: "stops trades that lost before." },
+  { key: "tubes", label: "Slime tubes", note: "pulls it back to coins that paid." },
 ];
 export const ALL_ON: Learning = { dopamine: true, memory: true, tubes: true };
 const RISK: [number, number] = [0.1, 0.4];   // minds.TRAITS["risk"]
@@ -53,7 +52,6 @@ export function StylePicker({ value, onChange, naturalHelp }: { value: Style; on
             <span><b>{x.label}</b>: {x.note}</span>
           </label>
         ))}
-        <small className="fine">A learner that's off isn't used; what it already learned is kept.</small>
       </div>
       <div className="slider">
         <span className="slider-top">

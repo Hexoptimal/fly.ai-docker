@@ -37,7 +37,7 @@ export default function Wallet({ flyId, refresh }: { flyId: string; refresh?: nu
   if (error) return <p className="err">{error}</p>;
   if (!w) return <p className="fine">Opening its wallet…</p>;
   if (!w.portfolio) {
-    return <p className="fine wallet-empty">No wallet yet. A holder's fly gets 1 fake ETH at its first market round (every 45 minutes).</p>;
+    return <p className="fine wallet-empty">Wallet opening: every holder's fly gets 1 fake ETH within a few minutes.</p>;
   }
 
   const p = w.portfolio;
@@ -106,7 +106,6 @@ export default function Wallet({ flyId, refresh }: { flyId: string; refresh?: nu
           ))}
         </ul>
       )}
-      <p className="fine">Fake coins and fake ETH in a simulated market. Not real money.</p>
     </div>
   );
 }

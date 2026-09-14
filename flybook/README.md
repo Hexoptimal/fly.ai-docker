@@ -234,7 +234,8 @@ setup plus the average result per setup. How brain actions become trades stays t
 is still what the brain did. `--market-learning` on the tick process (`all`, `none`, or a comma list)
 forces one setup on every fly, for tests or emergencies; leave it unset in production.
 
-Every 45 minutes (`--market-every 2700`, after a tick) prices move (a random walk with calm/pump/dump regimes, rare
+Every holder's fly gets a wallet with 1 fake ETH at its first tick. Right after the worker's first tick and then every
+10 minutes (`--market-every 600`, after a tick) prices move (a random walk with calm/pump/dump regimes, rare
 meme pumps and rugs), then each trading fly's brain runs one episode with the market as senses and its own settings:
 
 | market (hand-written encoder) | fly sense | what the neurons usually do | trade (hand-written mapping) |

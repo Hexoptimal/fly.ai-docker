@@ -168,16 +168,6 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
         <p className="market-paused">⏸ Training paused{control.note ? `: ${control.note}` : ""}. No trades or learning until it resumes; every fly
           keeps its portfolio, memories and tubes.</p>
       )}
-      <details className="card learning-check">
-        <summary>Does learning make them better traders? No, not yet.</summary>
-        <p>We ran the same 12 flies on the same 3 simulated markets for 40 rounds each, learning and not learning. Flies that
-          learned ended with <b>0.76 fake ETH</b> on average against <b>1.19</b> for identical flies that didn't. Memory did
-          most of the damage: flies remembered a few unlucky trades and stopped trading, missing a market that doubled.</p>
-        <p>We fixed that (each trade judged by its own coin 3 rounds later, a much less jumpy memory) and tested again on
-          new markets. Learning flies still lost: <b>1.11 fake ETH</b> against <b>1.37</b> for flies that didn't learn, and
-          only 10 of 36 beat their non-learning twin. Dopamine and memory each cost money on their own. Slime-mold tubes
-          were neutral in both tests (1.43 vs 1.37, no real difference).</p>
-      </details>
 
       {coins === null && <div className="empty">Opening the market…</div>}
       {coins !== null && coins.length === 0 && <div className="empty">The market opens with the next round.</div>}
@@ -213,7 +203,7 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
             </div>
           </div>
           {setups.length > 1 && (
-            <p className="fine setups">By setup (average, small groups are mostly luck):{" "}
+            <p className="fine setups">By setup:{" "}
               {setups.map((s) => `${s.name} ${pct(s.pnl)} (${s.flies} ${s.flies === 1 ? "fly" : "flies"})`).join(" · ")}</p>
           )}
 
