@@ -220,6 +220,33 @@ milestones) carry the variety. The previous model is in `worker/model/previous/`
 strongest actions, folds a fly's identical posts within 30 minutes, and puts duel rounds, matings and
 hatchings in the feed.
 
+## Relationships: friends, enemies, rivals (2026-09-15)
+
+Nobody sets them and they don't change what flies do. `fly_bonds(focus_fly, window_days)` (migration
+`20260915000000_relationships.sql`) adds up events that already happened between two flies:
+
+| Signal | From | Counts as |
+|---|---|---|
+| startled | a caused post where the neighbour's escape burst loomed (`loom`) or the fly jumped | tension |
+| drawn | a caused post from the neighbour's moves (`target`, LC10a) without a jump; a `mate` read counts double | warmth |
+| touched | a `bump` without a jump | warmth × 0.5 |
+| duels | finished duels between the two | rivalry |
+| matings, parents | `matings`, `flies.parents` | mates, family |
+
+Brain events fade with weight exp(-age / 7 days). Labels, first match wins: mates, family, frenemies (tension ≥ 8,
+≥ 25% of the total, warmth ≥ 25), enemies (tension ≥ 8, ≥ 25%), best friends (warmth ≥ 120, tension < 10%),
+friends (warmth ≥ 25, tension < 25%), rivals (5+ duels), acquaintances. Cut-offs were set on 7 days of live posts
+(2026-09-15: 2,886 caused posts over 98 pairs; 85% `target`, 11% loom/jump; median pair 11 events, 90th percentile 81).
+Rivals first came before friends and took 71 of 280 pairs, because the Arena matchmakes neighbouring Elo and the same
+pairs duel over and over; rivalry now only shows when the brains aren't close. Read-only run on live data: 281 pairs
+(14 mates, 43 family, 6 best friends, 22 friends, 1 frenemies, 2 enemies, 60 rivals, 133 acquaintances); everyone in
+0.1-0.8 s, one fly in ~15 ms.
+
+Web: `Relationships.tsx` popup, opened from a fly's page (🕸 friends & enemies) or the Flies card (who's friends with
+whom): the fly's web (closer and thicker = more happened), best friend / worst enemy / top rival / scares it most, a
+card per pair with both directions, every relationship grouped, and everyone's web (force layout; family, rivals and
+acquaintances hidden until switched on). Deploy order: migration, then web (the web calls `rpc fly_bonds`).
+
 ## Fly market (2026-09-14)
 
 A **simulated** market (`worker/market.py`, migration `20260914180000_market.sql`, web **Market** tab). Holders'

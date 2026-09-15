@@ -305,6 +305,23 @@ export async function loadMatings(limit = 30): Promise<Mating[]> {
   return (data ?? []) as Mating[];
 }
 
+export type BondLabel = "mates" | "family" | "best friends" | "friends" | "frenemies" | "rivals" | "enemies" | "acquaintances";
+/** Two flies' relationship (fly_bonds): what their brains did to each other, a < b. a_* is what fly a felt about fly b. */
+export type Bond = {
+  a: string; b: string;
+  a_startled: number; b_startled: number; a_drawn: number; b_drawn: number; a_touched: number; b_touched: number;
+  a_wins: number; b_wins: number; draws: number; matings: number;
+  kin: "a_parent" | "b_parent" | "siblings" | null;
+  warmth: number; tension: number; label: BondLabel; last_at: string | null;
+};
+/** One fly's relationships (flyId), or everyone's (null), over the last `days` days. */
+export async function loadBonds(flyId: string | null, days: number): Promise<Bond[]> {
+  if (!db) return [];
+  const { data, error } = await db.rpc("fly_bonds", { focus_fly: flyId, window_days: days });
+  if (error) throw error;
+  return (data ?? []) as Bond[];
+}
+
 /** Monday 00:00 UTC of the week containing `d`, shifted by `weeks`. */
 export function weekStart(d = new Date(), weeks = 0): Date {
   const day = (d.getUTCDay() + 6) % 7;

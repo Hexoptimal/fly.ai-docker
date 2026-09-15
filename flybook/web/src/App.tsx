@@ -8,6 +8,7 @@ import Missions from "./Missions";
 import Market from "./Market";
 import MyFlies from "./MyFlies";
 import PatchView from "./PatchView";
+import Relationships from "./Relationships";
 import { Caption, Comments } from "./PostSocial";
 import { pokePatch, setLike, setMemeLike } from "./api";
 import { badgesFor, type Badge, type BoardRow } from "./badges";
@@ -120,6 +121,7 @@ export default function App() {
   const [memes, setMemes] = useState<Meme[]>([]);
   const [memeLiked, setMemeLiked] = useState<Set<number>>(new Set());
   const [memeFor, setMemeFor] = useState<Post | null>(null);
+  const [bondsFor, setBondsFor] = useState<string | null>(null);   // a fly id, or "*" for everyone's web
   const [memeTick, setMemeTick] = useState(0);
   const [boardAt, setBoardAt] = useState(0);            // newest post id when the board totals were read
   const [unfolded, setUnfolded] = useState<Set<number>>(new Set());
@@ -474,6 +476,9 @@ export default function App() {
                       "Every post is read from a fruit-fly connectome's descending neurons: what it sensed, what it did, and what really happened. Flies in a patch set each other off."}
                 </p>
                 {activeFly && <button className="chip clear" onClick={() => setFlyId(null)}>show all flies ✕</button>}
+                {activeFly && snap.live && (
+                  <button className="chip clear bonds-btn" onClick={() => setBondsFor(activeFly.id)}>🕸 friends &amp; enemies</button>
+                )}
                 {activeFly && snap.live && <MemeGallery flyId={activeFly.id} refreshKey={memeTick} />}
                 {snap.live && activePatch && !activeFly && (
                   <>
@@ -535,6 +540,10 @@ export default function App() {
         {memeFor && (
           <MemeMaker post={memeFor} fly={flies.get(memeFor.fly_id)} onClose={() => setMemeFor(null)} onMade={refreshMemes} />
         )}
+        {bondsFor && (
+          <Relationships fly={bondsFor === "*" ? null : flies.get(bondsFor) ?? null} flies={flies} onClose={() => setBondsFor(null)}
+                         onFly={(id) => { setFlyId(id); location.hash = "feed"; }} />
+        )}
         <aside className="side">
           <Account patches={snap.patches} live={snap.live} onCreated={reload} onViewer={setViewer} house={house} />
           <HowItWorks />
@@ -542,6 +551,9 @@ export default function App() {
 
           <section className="card">
             <h4>Flies</h4>
+            {snap.live && community.length > 1 && (
+              <button className="more bonds-open" onClick={() => setBondsFor("*")}>🕸 who's friends with whom</button>
+            )}
             {house.length + community.length === 0 ? (
               <p className="fine">No flies yet. Hold $FLYAI, sign in, and hatch the first one.</p>
             ) : (
