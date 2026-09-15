@@ -277,6 +277,26 @@ export interface Wiring {
   viewY: Float32Array;
   tonicScale: Float32Array;
   nnz: number;
+  /** per synapse, in the same CSC order as rowIdx: the signed synapse count before normalisation */
+  raw: Float32Array;
+  /** per synapse: which EDGES block made it (what an edge gene scales) */
+  edgeOf: Int16Array;
+}
+
+/**
+ * One fly's weights: every synapse's count times its block's gene, then the same per-neuron normalisation as
+ * buildWiring. Without genes this equals wiring.weight.
+ */
+export function weightsFor(w: Wiring, edgeGenes?: ArrayLike<number>): Float32Array {
+  if (!edgeGenes) return w.weight.slice();
+  const scaled = new Float32Array(w.nnz);
+  const incoming = new Float32Array(w.n);
+  for (let e = 0; e < w.nnz; e++) {
+    scaled[e] = w.raw[e] * (edgeGenes[w.edgeOf[e]] ?? 1);
+    incoming[w.rowIdx[e]] += Math.abs(scaled[e]);
+  }
+  for (let e = 0; e < w.nnz; e++) scaled[e] /= Math.max(incoming[w.rowIdx[e]], 1e-6);
+  return scaled;
 }
 
 const SIDES: ("L" | "R")[] = ["L", "R"];
@@ -354,7 +374,8 @@ export function buildWiring(seed = 64): Wiring {
   const pre: number[] = [];
   const post: number[] = [];
   const raw: number[] = [];
-  const add = (a: Population, b: Population, p: number, w: number) => {
+  const edgeIdx: number[] = [];
+  const add = (a: Population, b: Population, p: number, w: number, ei: number) => {
     for (let i = a.start; i < a.start + a.count; i++) {
       for (let j = b.start; j < b.start + b.count; j++) {
         if (i === j || rand() >= p) continue;
@@ -362,17 +383,18 @@ export function buildWiring(seed = 64): Wiring {
         pre.push(i);
         post.push(j);
         raw.push(a.inhibitory ? -syn : syn);
+        edgeIdx.push(ei);
       }
     }
   };
-  for (const e of EDGES) {
+  EDGES.forEach((e, ei) => {
     for (const side of SIDES) {
       const other: "L" | "R" = side === "L" ? "R" : "L";
       const a = index.get(e.from + "_" + side)!;
-      if (e.mode === "ipsi" || e.mode === "both") add(a, index.get(e.to + "_" + side)!, e.p, e.w);
-      if (e.mode === "contra" || e.mode === "both") add(a, index.get(e.to + "_" + other)!, e.p, e.w);
+      if (e.mode === "ipsi" || e.mode === "both") add(a, index.get(e.to + "_" + side)!, e.p, e.w, ei);
+      if (e.mode === "contra" || e.mode === "both") add(a, index.get(e.to + "_" + other)!, e.p, e.w, ei);
     }
-  }
+  });
 
   // per-neuron input normalisation: the absolute incoming weights sum to 1
   const incoming = new Float32Array(n);
@@ -387,10 +409,14 @@ export function buildWiring(seed = 64): Wiring {
   const cursor = colPtr.slice(0, n);
   const rowIdx = new Int32Array(raw.length);
   const weight = new Float32Array(raw.length);
+  const rawCsc = new Float32Array(raw.length);
+  const edgeOf = new Int16Array(raw.length);
   for (let k = 0; k < raw.length; k++) {
     const at = cursor[pre[k]]++;
     rowIdx[at] = post[k];
     weight[at] = norm[k];
+    rawCsc[at] = raw[k];
+    edgeOf[at] = edgeIdx[k];
   }
 
   const popOf = new Int32Array(n);
@@ -406,5 +432,5 @@ export function buildWiring(seed = 64): Wiring {
   const viewY = new Float32Array(n);
   layout(pops, viewX, viewY);
 
-  return { n, pops, index, colPtr, rowIdx, weight, popOf, viewX, viewY, tonicScale, nnz: raw.length };
+  return { n, pops, index, colPtr, rowIdx, weight, popOf, viewX, viewY, tonicScale, nnz: raw.length, raw: rawCsc, edgeOf };
 }

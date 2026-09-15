@@ -8,12 +8,20 @@
  * from the leg flexors. There is no rule that says "go to the fruit", "avoid the
  * mould" or "land now": those come out of which sensory type the situation
  * drives, and which way that type is wired.
+ *
+ * Life (2026-09-15): every fly has a genome (genome.ts). Founders draw theirs; a mated female carries the male's
+ * genome, and each egg gets a child genome from both parents. Eggs and larvae can die (BROOD). Who is near whom is
+ * recorded (social.ts) and everything is logged for export (datalog.ts). Learning during life is off unless
+ * `world.learning` switches it on (brain.ts).
  */
-import { Brain, DEFAULT_PARAMS, type BrainParams } from "./brain.ts";
+import { Brain, DEFAULT_PARAMS, type BrainParams, type Learning } from "./brain.ts";
 import { Vision, type Kind, type Seen } from "./eyes.ts";
 import { CH, Mechanosensors, OdourField, Olfaction, type Contact, type Emitter } from "./senses.ts";
 import { mulberry32 } from "./rng.ts";
-import { buildWiring, type Population, type Wiring } from "./wiring.ts";
+import { buildWiring, weightsFor, EDGES, type Population, type Wiring } from "./wiring.ts";
+import { child, founder, summary, type Genome } from "./genome.ts";
+import { aggregation, findGroups, NEAR_M, Social, STARTLE_CLOSING, STARTLE_M, type Kin } from "./social.ts";
+import { DataLog, FLY_EVERY_S, round, type Row } from "./datalog.ts";
 
 export const WORLD_RADIUS = 32;
 export const MAX_FLIES = 80;
@@ -34,6 +42,28 @@ export const MOTOR = {
   windCouple: 0.9, // a flying insect is carried by the air almost completely
 };
 
+/**
+ * How eggs and larvae die (per second unless noted). World rules, like the timings; set 2026-09-15.
+ *   background     any egg or larva, any time
+ *   mould          on a mouldy substrate
+ *   bare           the substrate is eaten down below bareBelow (or gone): nothing to eat, dries out
+ *   crowd          per brood item beyond crowdFree within crowdM
+ *   trample        chance per adult landing within trampleM
+ *   spider         every egg and larva within spiderM of a spider when it strikes
+ */
+export const BROOD = {
+  eggS: 25, larvaS: 45,
+  background: { egg: 0.004, larva: 0.003 },
+  mould: 0.03,
+  bare: 0.02, bareBelow: 0.15,
+  crowd: 0.004, crowdFree: 6, crowdM: 1.2,
+  trample: 0.1, trampleM: 0.3,
+  spiderM: 1.3,
+};
+
+/** Reward signals for the reward-gated learning rule (brain.ts). */
+export const REWARD = { meal: 1, knock: -0.3, spiderNear: -1, spiderNearM: 2.2 };
+
 /** What each kind of thing in the world smells of, and whether a fly can feed
  *  on it. Strength is multiplied by `open` (how much of it is left). */
 export const ECOLOGY: Record<string, { odour: [number, number][]; food: boolean; label: string }> = {
@@ -52,6 +82,17 @@ export const ECOLOGY: Record<string, { odour: [number, number][]; food: boolean;
   fly: { odour: [], food: false, label: "fly" },
 };
 
+export interface Brood {
+  id: number;
+  mother: number;
+  father: number;
+  motherName: string;
+  fatherName: string;
+  genome: Genome;
+  generation: number;
+  substrateId: number;
+}
+
 export interface Prop {
   id: number;
   kind: Kind;
@@ -64,6 +105,8 @@ export interface Prop {
   shape: number;
   species: number; // which visual variant
   life: number; // for droppings
+  /** eggs and larvae: who they came from and what they will become */
+  brood?: Brood;
 }
 
 const NAMES = [
@@ -78,6 +121,13 @@ const NAMES = [
 ];
 
 export type FlyState = "PANIC" | "SURGING" | "CASTING" | "FEEDING" | "LANDED" | "TAKE-OFF" | "FLYING";
+
+/** tonic scale per neuron: the wiring's resting drive times this fly's gene for that population */
+function tonicFor(wiring: Wiring, genes: Float32Array): Float32Array {
+  const out = new Float32Array(wiring.n);
+  for (let i = 0; i < wiring.n; i++) out[i] = wiring.tonicScale[i] * (genes[wiring.popOf[i] >> 1] ?? 1);
+  return out;
+}
 
 export class Fly {
   brain: Brain;
@@ -111,12 +161,27 @@ export class Fly {
   dead: "" | "age" | "starved" | "swatted" | "eaten" = "";
   readonly id: number;
   readonly name: string;
+  readonly genome: Genome;
+  generation = 0;
+  mother: number | null = null;
+  father: number | null = null;
+  born = 0;
+  meals = 0;
+  matings = 0;
+  /** the genome a mated female carries for her eggs */
+  sperm: { id: number; name: string; genome: Genome; generation: number } | null = null;
+  escaping = false;
+  knocked = false;
 
-  constructor(id: number, wiring: Wiring, seed: number, index: number) {
+  constructor(id: number, wiring: Wiring, seed: number, index: number, genome: Genome, sex?: "M" | "F") {
     this.id = id;
-    this.sex = index % 2 === 0 ? "M" : "F";
+    this.sex = sex ?? (index % 2 === 0 ? "M" : "F");
     this.name = NAMES[index % NAMES.length];
-    this.brain = new Brain(wiring, seed);
+    this.genome = genome;
+    this.lifespan = genome.lifespan;
+    this.brain = new Brain(wiring, seed, weightsFor(wiring, genome.edge), tonicFor(wiring, genome.tonic));
+    Object.assign(this.brain.modalityGain, genome.sense);
+    this.brain.learnScale = { hebb: genome.learn.hebb, reward: genome.learn.reward };
     this.vision = new Vision(wiring);
     this.smell = new Olfaction(wiring);
     this.mech = new Mechanosensors(wiring);
@@ -143,6 +208,12 @@ export interface WorldEvent {
   age: number;
 }
 
+export interface WorldOptions {
+  /** "vary": founders draw their genes; "fixed": every founder gets the mean genome (old behaviour, tools) */
+  genes?: "vary" | "fixed";
+  learning?: Learning;
+}
+
 export class World {
   readonly wiring: Wiring;
   readonly params: BrainParams = { ...DEFAULT_PARAMS };
@@ -166,7 +237,10 @@ export class World {
   matings = 0;
   eggsLaid = 0;
   hatched = 0;
+  emerged = 0;
   deaths = { age: 0, starved: 0, swatted: 0, eaten: 0 };
+  /** eggs and larvae that died, by cause */
+  broodDeaths: Record<string, number> = {};
   /** population history for the graph: [adults, larvae] every second */
   history: [number, number][] = [];
   /** one in-world day, in seconds */
@@ -175,10 +249,19 @@ export class World {
   timeOfDay = 0.32; // start mid-morning
   /** what just happened and where, for the markers on the map */
   events: WorldEvent[] = [];
+  /** which learning rules every brain runs (shared object: flip a field and every fly follows) */
+  readonly learning: Learning;
+  readonly social = new Social();
+  readonly log = new DataLog();
+  readonly kin = new Map<number, Kin>();
+  /** latest groups / aggregation sample, for the panel */
+  latest = { groups: 0, inGroups: 0, largest: 0, aggregation: NaN, groupOf: new Map<number, number>() };
   /** world seed: props, fly placement and brain noise all derive from it, so
    *  tools/ can run the same experiment on several independent worlds. */
   readonly seed: number;
   private rand: () => number;
+  private geneRand: () => number;
+  private readonly genes: "vary" | "fixed";
   private seen: Seen[] = [];
   private emitters: Emitter[] = [];
   private points: Emitter[] = [];
@@ -187,13 +270,21 @@ export class World {
   private madeFlies = 0;
   private lastStrike = new Map<number, number>();
 
-  constructor(flyCount: number, seed = 1234) {
+  constructor(flyCount: number, seed = 1234, opts: WorldOptions = {}) {
     this.seed = seed;
     this.rand = mulberry32(seed);
+    this.geneRand = mulberry32(seed ^ 0x5eed5);
+    this.genes = opts.genes ?? "vary";
+    this.learning = opts.learning ?? { hebbian: false, reward: false };
     this.field = new OdourField(seed + 99);
     this.wiring = buildWiring(64);
     this.buildProps();
     this.setFlyCount(flyCount);
+  }
+
+  /** seconds since the world started */
+  get time(): number {
+    return this.steps * this.params.dt;
   }
 
   /** everything that could be seen during the last step (props, flies, the swatter, Wiz) */
@@ -278,12 +369,44 @@ export class World {
     }
   }
 
+  private fixedGenome(): Genome {
+    const g = founder(() => 0.5);
+    g.edge.fill(1); g.tonic.fill(1);
+    for (const k of Object.keys(g.sense)) g.sense[k] = 1;
+    g.learn = { hebb: 1, reward: 1 };
+    g.lifespan = 650; g.flight = 1; g.clutch = 10;
+    return g;
+  }
+
+  /** a new fly: founders have no parents; a brood item brings its genome and parents */
+  private makeFly(genome: Genome, brood?: Brood): Fly {
+    const sex = brood ? (this.geneRand() < 0.5 ? "M" : "F") : undefined;
+    const fly = new Fly(this.nextId++, this.wiring, this.seed * 31 + this.madeFlies * 7919, this.madeFlies, genome, sex);
+    this.madeFlies++;
+    fly.born = this.time;
+    fly.brain.learning = this.learning;
+    if (brood) {
+      fly.generation = brood.generation;
+      fly.mother = brood.mother;
+      fly.father = brood.father;
+    }
+    this.kin.set(fly.id, { id: fly.id, mother: fly.mother, father: fly.father });
+    this.log.lineage.set(fly.id, {
+      id: fly.id, name: fly.name, sex: fly.sex, generation: fly.generation, born_t: round(fly.born, 1),
+      mother: fly.mother, mother_name: brood?.motherName ?? null, father: fly.father, father_name: brood?.fatherName ?? null,
+      brood_id: brood?.id ?? null, ...Object.fromEntries(Object.entries(summary(genome)).map(([k, v]) => [k, round(v, 4)])),
+      offspring: 0, matings: 0, died_t: null, cause: null, age_at_death: null, meals: null, fed_s: null, distance_m: null,
+      final_drift: null, pairings: null, rewards: null,
+    });
+    return fly;
+  }
+
   setFlyCount(n: number): void {
     n = Math.max(1, Math.min(MAX_FLIES, Math.round(n)));
-    while (this.flies.length > n) this.flies.pop();
+    while (this.flies.length > n) this.recordDeath(this.flies.pop()!, "removed");
     while (this.flies.length < n) {
-      const fly = new Fly(this.nextId++, this.wiring, this.seed * 31 + this.madeFlies * 7919, this.madeFlies);
-      this.madeFlies++;
+      const genome = this.genes === "fixed" ? this.fixedGenome() : founder(this.geneRand);
+      const fly = this.makeFly(genome);
       const a = this.rand() * Math.PI * 2;
       const d = this.rand() * (WORLD_RADIUS * 0.5);
       fly.x = Math.cos(a) * d;
@@ -291,7 +414,8 @@ export class World {
       fly.y = 1.5 + this.rand() * 2;
       fly.yaw = this.rand() * Math.PI * 2;
       fly.age = this.rand() * 180;
-      fly.lifespan = 520 + this.rand() * 260;
+      if (this.genes === "fixed") fly.lifespan = 520 + this.rand() * 260;
+      else this.rand();                                   // keep the placement stream as it was
       this.flies.push(fly);
     }
     if (this.selected >= this.flies.length) this.selected = 0;
@@ -342,7 +466,6 @@ export class World {
     return { support, prop };
   }
 
-  /** One 20 ms brain step for every fly, plus the physics that follows. */
   /** Daylight, 0 at night and 1 at midday: a smooth sun elevation curve.
    *  This is not decoration - it scales the luminance the photoreceptors see,
    *  so a fly at night is genuinely working with a darker panorama. */
@@ -357,9 +480,31 @@ export class World {
     return `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
   }
 
-  private mark(kind: EventKind, text: string, x: number, y: number, z: number): void {
+  private mark(kind: EventKind, text: string, x: number, y: number, z: number, ids: Row = {}): void {
     this.events.push({ kind, text, x, y, z, age: 0 });
     if (this.events.length > 40) this.events.shift();
+    this.log.events.push({ t: round(this.time, 2), clock: this.clock, kind, text, x: round(x, 2), z: round(z, 2), ...ids });
+  }
+
+  private recordDeath(f: Fly, cause: string): void {
+    const row = this.log.lineage.get(f.id);
+    if (!row) return;
+    Object.assign(row, {
+      died_t: round(this.time, 1), cause, age_at_death: round(f.age, 1), meals: f.meals, fed_s: round(f.stats.fed * this.params.dt, 1),
+      distance_m: round(f.stats.distance, 1), final_drift: round(f.brain.drift(), 5), pairings: f.brain.pairings,
+      rewards: round(f.brain.rewards, 2), matings: f.matings,
+    });
+  }
+
+  private broodDies(p: Prop, cause: string): void {
+    const key = `${p.kind}:${cause}`;
+    this.broodDeaths[key] = (this.broodDeaths[key] ?? 0) + 1;
+    if (p.brood) {
+      const row = this.log.brood.get(p.brood.id);
+      if (row) Object.assign(row, { fate: "died", cause, stage: p.kind, fate_t: round(this.time, 1) });
+    }
+    const i = this.props.indexOf(p);
+    if (i >= 0) this.props.splice(i, 1);
   }
 
   step(): void {
@@ -381,7 +526,7 @@ export class World {
     for (const p of this.props) {
       if (p.life !== Infinity) {
         p.life -= dt;
-        if (p.life <= 0) p.open = 0;
+        if (p.life <= 0 && !p.brood) p.open = 0;
       }
       const eco = ECOLOGY[p.kind];
       for (const [channel, strength] of eco.odour) {
@@ -409,6 +554,9 @@ export class World {
     this.field.points = this.points;
     this.field.step(dt, windX, windZ, this.emitters);
 
+    // a spider rearing up nearby or the swatter makes an escape a scare, not a startle by another fly
+    const rearing = this.props.filter((p) => p.kind === "spider" && p.life !== Infinity);
+
     // ---- every fly ---------------------------------------------------------
     for (const fly of this.flies) {
       const cos = Math.cos(fly.yaw), sin = Math.sin(fly.yaw);
@@ -432,6 +580,7 @@ export class World {
         const dx = o.x - fly.x, dz = o.z - fly.z, dy = o.y - fly.y;
         const d2 = dx * dx + dz * dz + dy * dy;
         if (d2 > 16) continue;
+        if (d2 < NEAR_M * NEAR_M) this.social.get(fly.id, o.id).near += dt / 2; // each pair is visited twice
         const beat = o.motor.thrust / (1 + d2);
         if (dx * cos - dz * sin < 0) nbL += beat; else nbR += beat;
         // mid-air bump: both tumble
@@ -440,6 +589,9 @@ export class World {
           fly.spin += (dx * cos - dz * sin < 0 ? 1 : -1) * 2.2;
           fly.vy += 0.9;
           if (dx * cos - dz * sin < 0) contact.knockL = 1; else contact.knockR = 1;
+          const pair = this.social.get(fly.id, o.id);
+          if (pair.lastBump < this.steps - 1) pair.bumps++;       // a new collision, not the same one continuing
+          pair.lastBump = this.steps;
         }
       }
 
@@ -478,6 +630,27 @@ export class World {
         escape: this.pair("DNp01", fly),
       };
 
+      // a startle: the giant fibre fires while one fly is closing in within STARTLE_M (no spider rearing close, no
+      // swatter). Only the nearest such fly is blamed; an escape near flies that are not approaching blames nobody.
+      const escaping = fly.dn.escape > 0.12;
+      if (escaping && !fly.escaping && !this.threat &&
+          !rearing.some((s) => Math.hypot(s.x - fly.x, s.z - fly.z) < 4)) {
+        let culprit: Fly | null = null, best = STARTLE_M;
+        for (const o of this.flies) {
+          if (o === fly) continue;
+          const dx = o.x - fly.x, dy = o.y - fly.y, dz = o.z - fly.z;
+          const d = Math.hypot(dx, dy, dz);
+          if (d >= best || d < 1e-6) continue;
+          // closing speed: the other fly's velocity toward this one, minus this one's own motion toward it
+          const ovx = Math.sin(o.yaw) * o.speed, ovz = Math.cos(o.yaw) * o.speed;
+          const fvx = Math.sin(fly.yaw) * fly.speed, fvz = Math.cos(fly.yaw) * fly.speed;
+          const closing = -((ovx - fvx) * dx + (o.vy - fly.vy) * dy + (ovz - fvz) * dz) / d;
+          if (closing > STARTLE_CLOSING) { culprit = o; best = d; }
+        }
+        if (culprit) this.social.get(fly.id, culprit.id).startles++;
+      }
+      fly.escaping = escaping;
+
       // ---- read the MOTOR NEURONS: this is flight -------------------------
       const thrust = this.pair("DLM MN", fly);
       const steerL = this.rate("b1 MN", "L", fly) + this.rate("b2 MN", "L", fly);
@@ -489,9 +662,10 @@ export class World {
       fly.motor = { turn: (steerR - steerL) * 0.5, thrust, back, jump };
 
       // ---- body -------------------------------------------------------------
+      const power = fly.genome.flight;
       fly.spin *= Math.exp(-dt / 0.45);
       fly.yaw += (MOTOR.turn * fly.motor.turn - 5.0 * (jumpR - jumpL) + fly.spin) * dt;
-      const target = MOTOR.cruise * thrust - MOTOR.back * back + MOTOR.jump * jump;
+      const target = MOTOR.cruise * thrust * power - MOTOR.back * back + MOTOR.jump * jump;
       fly.speed += (target - fly.speed) * Math.min(1, 6 * dt);
 
       const step = fly.speed * dt;
@@ -499,7 +673,7 @@ export class World {
       fly.z += Math.cos(fly.yaw) * step + windZ * MOTOR.windCouple * dt;
       fly.stats.distance += Math.abs(step);
 
-      fly.vy += (MOTOR.lift * thrust - MOTOR.gravity - MOTOR.drag * fly.vy + MOTOR.jumpUp * jump) * dt;
+      fly.vy += (MOTOR.lift * thrust * power - MOTOR.gravity - MOTOR.drag * fly.vy + MOTOR.jumpUp * jump) * dt;
       fly.y += fly.vy * dt;
 
       const wasLanded = fly.landed;
@@ -511,11 +685,22 @@ export class World {
         if (fly.vy < 0) fly.vy = 0;
         fly.speed *= 0.55;
         fly.landed = true;
-        if (!wasLanded) this.landings++;
+        if (!wasLanded) {
+          this.landings++;
+          // landing on eggs or larvae can crush them
+          for (const b of this.props) {
+            if ((b.kind === "egg" || b.kind === "larva") && Math.hypot(b.x - fly.x, b.z - fly.z) < BROOD.trampleM &&
+                this.rand() < BROOD.trample) b.life = -1e9;       // marked; removed with its cause below
+          }
+        }
         if (prop && ECOLOGY[prop.kind].food && prop.open > 0.2) {
           // one marker per meal, not one per bounce off the fruit
           if (!fly.wasFeeding && fly.sinceFed > 4) {
-            this.mark("feed", `${fly.name} eats ${prop.kind}`, fly.x, fly.y, fly.z);
+            this.mark("feed", `${fly.name} eats ${prop.kind}`, fly.x, fly.y, fly.z, { fly: fly.id });
+          }
+          if (!fly.wasFeeding) {
+            fly.meals++;
+            fly.brain.reward(REWARD.meal);
           }
           fly.feeding = true;
           fly.stats.fed++;
@@ -541,6 +726,9 @@ export class World {
           if ((-dx * cos + dz * sin) < 0) contact.knockL = 1; else contact.knockR = 1;
         }
       }
+      const knocked = contact.knockL > 0 || contact.knockR > 0;
+      if (knocked && !fly.knocked) fly.brain.reward(REWARD.knock);
+      fly.knocked = knocked;
       const rad = Math.hypot(fly.x, fly.z);
       if (rad > WORLD_RADIUS) { fly.x *= WORLD_RADIUS / rad; fly.z *= WORLD_RADIUS / rad; }
 
@@ -555,28 +743,44 @@ export class World {
       fly.courting = this.pair("P1", fly) * MOTOR.maxRate;
       if (fly.sex === "M" && fly.courting > 6) {
         for (const o of this.flies) {
-          if (o.sex !== "F" || o.mated) continue;
+          if (o.sex !== "F") continue;
           if (Math.hypot(fly.x - o.x, fly.y - o.y, fly.z - o.z) > 0.8) continue;
+          this.social.get(fly.id, o.id).courtships += dt;
+          if (o.mated) continue;
           // she is receptive if she is mature; once mated she carries his cVA,
           // which reaches AL-LN and shuts P1 down in every male that meets her
           if (o.age < 40) continue;
           o.mated = true;
-          o.eggLoad += 10;
+          o.eggLoad += Math.round(o.genome.clutch);
+          o.sperm = { id: fly.id, name: fly.name, genome: fly.genome, generation: fly.generation };
+          fly.matings++;
+          o.matings++;
+          this.social.get(fly.id, o.id).matings++;
           this.matings++;
-          this.mark("mate", `${fly.name} + ${o.name}`, fly.x, fly.y, fly.z);
+          this.mark("mate", `${fly.name} + ${o.name}`, fly.x, fly.y, fly.z, { fly: fly.id, other: o.id });
           break;
         }
       }
-      if (fly.sex === "F" && fly.mated && fly.eggLoad > 0 && fly.landed && prop && ECOLOGY[prop.kind].food) {
+      if (fly.sex === "F" && fly.mated && fly.sperm && fly.eggLoad > 0 && fly.landed && prop && ECOLOGY[prop.kind].food) {
         // egg-laying drive: taste says "substrate", the lateral horn says
         // "geosmin". Mouldy fruit therefore gets no eggs without any rule.
         const lay = this.pair("LB3", fly) - this.pair("LH", fly);
         if (lay > 0 && this.rand() < lay * 12 * dt && this.props.length < 420) {
           fly.eggLoad--;
           this.eggsLaid++;
-          this.mark("egg", `${fly.name} lays`, fly.x, fly.y, fly.z);
+          const brood: Brood = {
+            id: this.eggsLaid, mother: fly.id, father: fly.sperm.id, motherName: fly.name, fatherName: fly.sperm.name,
+            genome: child(fly.genome, fly.sperm.genome, this.geneRand),
+            generation: Math.max(fly.generation, fly.sperm.generation) + 1, substrateId: prop.id,
+          };
+          this.mark("egg", `${fly.name} lays`, fly.x, fly.y, fly.z, { fly: fly.id, other: fly.sperm.id, brood: brood.id });
           this.place("egg", fly.x + (this.rand() - 0.5) * 0.4, fly.z + (this.rand() - 0.5) * 0.4,
-            { radius: 0.12, height: prop.height + 0.02, y: prop.height, life: 25 });
+            { radius: 0.12, height: prop.height + 0.02, y: prop.height, life: BROOD.eggS, brood });
+          this.log.brood.set(brood.id, {
+            id: brood.id, laid_t: round(this.time, 1), mother: fly.id, mother_name: fly.name, father: brood.father,
+            father_name: brood.fatherName, generation: brood.generation, substrate: prop.kind,
+            fate: "egg", stage: "egg", cause: null, hatched_t: null, fate_t: null, child: null,
+          });
         }
       }
 
@@ -593,7 +797,7 @@ export class World {
         }
         this.place("poop", fly.x + (this.rand() - 0.5) * 0.3, fly.z + (this.rand() - 0.5) * 0.3,
           { radius: 0.3, height: 0.46, y: 0.44, life: 150 });
-        this.mark("poop", `${fly.name} leaves a dropping`, fly.x, fly.y, fly.z);
+        this.mark("poop", `${fly.name} leaves a dropping`, fly.x, fly.y, fly.z, { fly: fly.id });
       }
 
       // ---- the label above its head, read straight off the populations -----
@@ -625,7 +829,12 @@ export class World {
         if (sp.life <= 0) {
           for (const f of this.flies) {
             if (f.dead) continue;
-            if (Math.hypot(f.x - sp.x, f.z - sp.z) < 1.3 && f.y < 0.85) f.dead = "eaten";
+            const d = Math.hypot(f.x - sp.x, f.z - sp.z);
+            if (d < 1.3 && f.y < 0.85) f.dead = "eaten";
+            else if (d < REWARD.spiderNearM) f.brain.reward(REWARD.spiderNear);
+          }
+          for (const b of this.props) {
+            if ((b.kind === "egg" || b.kind === "larva") && Math.hypot(b.x - sp.x, b.z - sp.z) < BROOD.spiderM) b.life = -2e9;
           }
           // a kill is always worth a marker; a miss at most once every 8 s per
           // spider, or the feed is nothing but spiders
@@ -651,42 +860,75 @@ export class World {
       const f = this.flies[i];
       if (!f.dead) continue;
       this.deaths[f.dead]++;
-      this.mark("death", `${f.name} ${DEATH_WORD[f.dead]}`, f.x, f.y, f.z);
+      this.recordDeath(f, f.dead);
+      this.mark("death", `${f.name} ${DEATH_WORD[f.dead]}`, f.x, f.y, f.z, { fly: f.id, cause: f.dead });
       this.flies.splice(i, 1);
       if (this.selected >= this.flies.length) this.selected = Math.max(0, this.flies.length - 1);
       // a dead fly is carrion, which the amine channel already makes attractive
       this.place("carrion", f.x, f.z, { radius: 0.5, height: 0.45, y: 0.4, life: 220, open: 0.6 });
     }
 
-    // ---- eggs hatch, larvae eat and pupate -------------------------------
+    // ---- eggs and larvae: die, hatch, eat, pupate ------------------------
+    const byId = new Map<number, Prop>();
+    const brood: Prop[] = [];
+    for (const p of this.props) {
+      byId.set(p.id, p);
+      if (p.kind === "egg" || p.kind === "larva") brood.push(p);
+    }
+    for (const p of brood) {
+      if (p.life < -1.5e9) { this.broodDies(p, "spider"); continue; }       // marked -2e9 at the strike
+      if (p.life < -5e8) { this.broodDies(p, "trampled"); continue; }       // marked -1e9 at the landing
+      const stage = p.kind as "egg" | "larva";
+      const substrate = p.brood ? byId.get(p.brood.substrateId) : undefined;
+      let crowd = 0;
+      for (const q of brood) if (q !== p && Math.hypot(q.x - p.x, q.z - p.z) < BROOD.crowdM) crowd++;
+      const hazards: [string, number][] = [
+        ["background", BROOD.background[stage]],
+        ["mould", substrate?.kind === "mould" ? BROOD.mould : 0],
+        ["bare substrate", !substrate || substrate.open < BROOD.bareBelow ? BROOD.bare : 0],
+        ["crowding", BROOD.crowd * Math.max(0, crowd - BROOD.crowdFree)],
+      ];
+      const total = hazards.reduce((a, [, h]) => a + h, 0);
+      if (this.rand() < total * dt) {
+        let pickAt = this.rand() * total;
+        const cause = hazards.find(([, h]) => (pickAt -= h) <= 0)?.[0] ?? "background";
+        this.broodDies(p, cause);
+        continue;
+      }
+      if (stage === "egg") {
+        if (p.life <= 0) {
+          p.kind = "larva"; p.life = BROOD.larvaS; p.radius = 0.18; this.hatched++;
+          this.mark("hatch", "egg hatches", p.x, p.y + 0.2, p.z, { brood: p.brood?.id });
+          const row = p.brood ? this.log.brood.get(p.brood.id) : undefined;
+          if (row) Object.assign(row, { fate: "larva", stage: "larva", hatched_t: round(this.time, 1) });
+        }
+        continue;
+      }
+      // a larva eats whatever it is sitting on
+      for (const q of this.props) {
+        if (!ECOLOGY[q.kind].food) continue;
+        if (Math.hypot(p.x - q.x, p.z - q.z) < 1.6) { q.open = Math.max(0, q.open - 0.02 * dt); break; }
+      }
+      if (p.life <= 0) {
+        if (this.flies.length >= MAX_FLIES || !p.brood) { this.broodDies(p, "no room"); continue; }
+        this.props.splice(this.props.indexOf(p), 1);
+        const fly = this.makeFly(p.brood.genome, p.brood);
+        fly.x = p.x; fly.z = p.z; fly.y = 0.6;
+        fly.yaw = this.rand() * Math.PI * 2;
+        this.flies.push(fly);
+        this.emerged++;
+        for (const parent of [p.brood.mother, p.brood.father]) {
+          const row = this.log.lineage.get(parent);
+          if (row) row.offspring = Number(row.offspring ?? 0) + 1;
+        }
+        const row = this.log.brood.get(p.brood.id);
+        if (row) Object.assign(row, { fate: "emerged", stage: "adult", fate_t: round(this.time, 1), child: fly.id });
+        this.mark("hatch", `${fly.name} emerges`, fly.x, fly.y, fly.z, { fly: fly.id, brood: p.brood.id });
+      }
+    }
     for (let i = this.props.length - 1; i >= 0; i--) {
       const p = this.props[i];
-      if (p.kind === "egg") {
-        if (p.life <= 0) {
-          p.kind = "larva"; p.life = 45; p.radius = 0.18; this.hatched++;
-          this.mark("hatch", "egg hatches", p.x, p.y + 0.2, p.z);
-        }
-      } else if (p.kind === "larva") {
-        // it eats whatever it is sitting on
-        for (const q of this.props) {
-          if (!ECOLOGY[q.kind].food) continue;
-          if (Math.hypot(p.x - q.x, p.z - q.z) < 1.6) { q.open = Math.max(0, q.open - 0.02 * dt); break; }
-        }
-        if (p.life <= 0) {
-          this.props.splice(i, 1);
-          if (this.flies.length < MAX_FLIES) {
-            const fly = new Fly(this.nextId++, this.wiring, this.seed * 31 + this.madeFlies * 7919, this.madeFlies);
-            this.madeFlies++;
-            fly.x = p.x; fly.z = p.z; fly.y = 0.6;
-            fly.yaw = this.rand() * Math.PI * 2;
-            fly.lifespan = 520 + this.rand() * 260;
-            this.flies.push(fly);
-            this.mark("hatch", `${fly.name} emerges`, fly.x, fly.y, fly.z);
-          }
-        }
-      } else if (p.kind === "carrion" && p.life !== Infinity && p.life <= 0) {
-        this.props.splice(i, 1);
-      }
+      if (p.kind === "carrion" && p.life !== Infinity && p.life <= 0) this.props.splice(i, 1);
     }
 
     // things regrow, slowly
@@ -697,7 +939,98 @@ export class World {
     if (this.steps % 50 === 0) {
       this.history.push([this.flies.length, this.props.filter((p) => p.kind === "larva" || p.kind === "egg").length]);
       if (this.history.length > 300) this.history.shift();
+      this.sample();
     }
     this.steps++;
+  }
+
+  /** Once a second: groups, aggregation, relationships and brains into the log. */
+  private sample(): void {
+    const flies = this.flies;
+    const xs = flies.map((f) => f.x), ys = flies.map((f) => f.y), zs = flies.map((f) => f.z);
+    const g = findGroups(xs, ys, zs);
+    const agg = aggregation(xs, zs, WORLD_RADIUS - 2, this.geneRand);
+    const food = this.props.filter((p) => ECOLOGY[p.kind].food && p.open > 0.2);
+    let groupedAtFood = 0;
+    flies.forEach((f, i) => {
+      if (g.groupOf[i] >= 0 && food.some((p) => Math.hypot(p.x - f.x, p.z - f.z) < Math.max(2.5, p.radius * 1.5))) groupedAtFood++;
+    });
+    const drifts = flies.map((f) => f.brain.drift());
+    const gens = flies.map((f) => f.generation);
+    this.latest = {
+      groups: g.sizes.length, inGroups: g.inGroups, largest: g.largest, aggregation: agg,
+      groupOf: new Map(flies.map((f, i) => [f.id, g.groupOf[i]])),
+    };
+    const labels = this.relationshipCounts();
+    const brood = this.props.filter((p) => p.kind === "egg" || p.kind === "larva");
+    const broodDeaths = Object.values(this.broodDeaths).reduce((a, b) => a + b, 0);
+    const mean = (a: number[]) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN);
+    this.log.world.push({
+      t: round(this.time, 1), clock: this.clock, adults: flies.length, males: flies.filter((f) => f.sex === "M").length,
+      eggs: brood.filter((p) => p.kind === "egg").length, larvae: brood.filter((p) => p.kind === "larva").length,
+      groups: g.sizes.length, largest_group: g.largest, share_in_groups: round(flies.length ? g.inGroups / flies.length : 0),
+      grouped_at_food: round(g.inGroups ? groupedAtFood / g.inGroups : 0), aggregation: round(agg),
+      mean_drift: round(mean(drifts), 5), max_drift: round(drifts.length ? Math.max(...drifts) : 0, 5),
+      mean_generation: round(mean(gens), 2), max_generation: gens.length ? Math.max(...gens) : 0,
+      ...labels, matings: this.matings, eggs_laid: this.eggsLaid, hatched: this.hatched, emerged: this.emerged,
+      brood_deaths: broodDeaths, deaths: Object.values(this.deaths).reduce((a, b) => a + b, 0),
+      learning: `${this.learning.hebbian ? "hebbian" : ""}${this.learning.hebbian && this.learning.reward ? "+" : ""}${this.learning.reward ? "reward" : ""}` || "off",
+    });
+
+    if (Math.round(this.time) % FLY_EVERY_S !== 0) return;
+    flies.forEach((f, i) => {
+      let near = 0;
+      for (const o of flies) if (o !== f && Math.hypot(o.x - f.x, o.y - f.y, o.z - f.z) < 2) near++;
+      this.log.flies.push({
+        t: round(this.time, 1), id: f.id, name: f.name, sex: f.sex, generation: f.generation, age: round(f.age, 1),
+        x: round(f.x, 2), y: round(f.y, 2), z: round(f.z, 2), state: f.state, meals: f.meals,
+        fed_s: round(f.stats.fed * this.params.dt, 1), since_fed: round(f.sinceFed, 1), drift: round(drifts[i], 5),
+        pairings: f.brain.pairings, dnp01_hz: round(this.pair("DNp01", f) * MOTOR.maxRate, 2),
+        p1_hz: round(this.pair("P1", f) * MOTOR.maxRate, 2), dlm_hz: round(this.pair("DLM MN", f) * MOTOR.maxRate, 2),
+        lh_hz: round(this.pair("LH", f) * MOTOR.maxRate, 2), lb3_hz: round(this.pair("LB3", f) * MOTOR.maxRate, 2),
+        flies_within_2m: near, group: g.groupOf[i],
+      });
+    });
+  }
+
+  /** Relationship labels between flies alive now (social.ts). */
+  relationshipCounts(): Record<string, number> {
+    const alive = new Set(this.flies.map((f) => f.id));
+    const out: Record<string, number> = { mates: 0, family: 0, enemies: 0, friends: 0, acquaintances: 0 };
+    for (const p of this.social.pairs.values()) {
+      if (!alive.has(p.a) || !alive.has(p.b)) continue;
+      const label = Social.label(p, Social.isFamily(this.kin.get(p.a), this.kin.get(p.b)));
+      if (label) out[label]++;
+    }
+    return out;
+  }
+
+  /** Every pair with any history, labelled, for export. */
+  relationshipRows(): Row[] {
+    const name = (id: number) => (this.log.lineage.get(id)?.name as string) ?? String(id);
+    const alive = new Set(this.flies.map((f) => f.id));
+    const rows: Row[] = [];
+    for (const p of this.social.pairs.values()) {
+      const family = Social.isFamily(this.kin.get(p.a), this.kin.get(p.b));
+      rows.push({
+        a: p.a, a_name: name(p.a), b: p.b, b_name: name(p.b), both_alive: alive.has(p.a) && alive.has(p.b),
+        near_s: round(p.near, 1), bumps: round(p.bumps, 1), startles: p.startles, courtship_s: round(p.courtships, 1),
+        matings: p.matings, family, tension: round(Social.tension(p), 1), label: Social.label(p, family) || "none",
+      });
+    }
+    return rows;
+  }
+
+  /** How far each connection block has moved on average across living flies (for export). */
+  driftByBlock(): Row[] {
+    const n = EDGES.length;
+    const sum = new Float32Array(n);
+    for (const f of this.flies) {
+      const d = f.brain.driftByEdge(n);
+      for (let i = 0; i < n; i++) sum[i] += d[i];
+    }
+    return EDGES.map((e, i) => ({
+      block: i, from: e.from, to: e.to, mode: e.mode, mean_change: round(this.flies.length ? sum[i] / this.flies.length : 0, 5),
+    }));
   }
 }

@@ -126,6 +126,37 @@
         <div id="popstats"></div>
       </section>
 
+      <section class="card datacard">
+        <h2><span>Data &amp; findings</span><span id="datanow">—</span></h2>
+        <div class="learn">
+          <label title="synapses active just before a meal grow; before a knock or a spider strike they shrink"><input type="checkbox" id="learnReward"> reward learning</label>
+          <label title="a synapse grows when its input fires just before its output"><input type="checkbox" id="learnHebb"> hebbian learning</label>
+        </div>
+        <h3>do they gather?</h3>
+        <canvas id="chartGroups"></canvas>
+        <div class="kv" id="groupNote"></div>
+        <h3>friends and enemies</h3>
+        <div id="socialNow"></div>
+        <h3>do brains change?</h3>
+        <canvas id="chartDrift"></canvas>
+        <h3>do babies take after their parents?</h3>
+        <select id="traitPick"></select>
+        <canvas id="chartHerit"></canvas>
+        <div class="note" id="heritNote"></div>
+        <h3>eggs and larvae: what became of them</h3>
+        <div class="fates" id="broodBars"></div>
+        <div class="buttons">
+          <button id="report">report (PDF)</button>
+          <button id="csvWorld">world.csv</button>
+          <button id="csvFlies">flies.csv</button>
+          <button id="csvLineage">lineage.csv</button>
+          <button id="csvBrood">eggs.csv</button>
+          <button id="csvPairs">relationships.csv</button>
+          <button id="csvBlocks">brain blocks.csv</button>
+          <button id="csvEvents">events.csv</button>
+        </div>
+      </section>
+
       <section class="card">
         <h2><span>Leaderboard</span><span>live</span></h2>
         <div id="board"></div>

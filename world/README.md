@@ -338,6 +338,148 @@ and within 0.8 m) rather than a courtship sequence; female receptivity is a
 minimum age; egg, larval and adult timings are seconds rather than days; larvae
 have no brain at all.
 
+## Data, genes, eggs and rewiring (2026-09-15)
+
+Four questions — do flies gather, do they make friends and enemies, can their brains rewire, do children take after
+their parents — needed things the world did not have. Before this round every fly shared one wiring that never
+changed, a hatched fly had no parents, and every egg hatched.
+
+**Recorded, visualised, exported.** The **Data & findings** card shows it live. Charts cover groups and the
+aggregation ratio, brain change, and parent-vs-child for any gene or outcome. Panels cover relationships and what
+became of every egg. CSV buttons download seven tables (`src/datalog.ts`):
+
+| table | one row per |
+|---|---|
+| `world.csv` | second: adults, eggs, larvae, groups, share in groups, aggregation ratio, share of grouped flies at food, brain change, relationship counts, generations, running totals |
+| `flies.csv` | fly every 5 s: position, state, meals, time since fed, brain change, DNp01 / P1 / DLM / LH / LB3 rates, flies within 2 m, group |
+| `lineage.csv` | fly ever: sex, generation, mother and father, every gene, and on death the cause, age, meals, distance, brain change, offspring |
+| `eggs.csv` | egg: parents, generation, substrate, fate (hatched, became an adult, or died and why, at which stage) |
+| `relationships.csv` | pair of flies: seconds near, bumps, startles, courtship, matings, family, label |
+| `brain blocks.csv` | connection block: mean change of that block across living flies |
+| `events.csv` | mating, egg, hatch, meal, spider strike, death, dropping: time, place, who |
+
+**report (PDF)** opens the run's findings as a printable page (`src/report.ts`); the browser's Save as PDF writes the file.
+
+**Genes and inheritance** (`src/genome.ts`). Each fly carries:
+* one strength multiplier per connection block (applied before normalisation)
+* a resting-drive multiplier per population
+* a receptor gain per sense
+* two learning-rate genes
+* body genes for lifespan, flight power and clutch size
+
+Founders draw their genes around the old fixed values. A mated female carries the male's genome. Each egg takes every
+gene from its mother or father at random, then mutates it a little. Nothing selects: who lives and breeds is whatever
+happens in the field. Because inputs are normalised per neuron, an edge gene only changes a neuron that also has inputs
+from other blocks.
+
+**Eggs and larvae can die** (`BROOD` in `src/sim.ts`, world rules like the timings). The causes are:
+* a background rate
+* a mouldy substrate
+* a substrate eaten down to nothing
+* crowding (more than 6 others within 1.2 m)
+* an adult landing on them
+* a spider strike within 1.3 m
+* no room left for another adult
+
+**Rewiring during life** (`src/brain.ts`, off by default, two switches in the Data card):
+* **Hebbian:** a synapse grows when its input fired on the step before its output.
+* **Reward-gated:** those pairings leave a 1 s trace, and a meal (+1), a knock (−0.3) or a spider strike nearby (−1)
+  turns the trace into change.
+
+Synapses keep their sign, stay within 0.2–3× their birth size and drift back over 400 s. Every neuron's total input is
+rescaled to its birth total once a second. Only synapses onto central-brain and descending neurons change; sensory
+inputs, the premotor pool and motor neurons stay hardwired. Three versions were run on 36 flies, 900 s:
+
+| version | mean brain change | outcome |
+|---|---|---|
+| every synapse, no rescaling | 70% (forward-flight inputs pinned at the cap) | 40 of 46 flies starved |
+| every synapse, rescaled | 12–25% | population died out |
+| central + descending only, rescaled (kept) | 10–17% | still died out; 3.8 meals per starved fly |
+| frozen brains, same world | 0% | 10 adults and 3 generations at the end |
+
+**Groups and relationships** (`src/social.ts`, measurement only). A group is 3 or more flies within 2 m of each
+other. The aggregation ratio is the mean nearest-neighbour distance divided by the same number of flies placed at
+random in the arena (Monte Carlo); below 1 means gathered. Relationship labels, first match wins, with thresholds fixed
+before any run:
+
+| label | rule |
+|---|---|
+| mates | mated |
+| family | parent and child, or same mother |
+| enemies | at least 6 clashes (bumps + 2 × startles) and at least one per 20 s together |
+| friends | at least 90 s together and at most one clash per 60 s |
+| acquaintances | at least 20 s together |
+
+A startle is a giant-fibre escape while another fly is the nearest one closing in (not during a spider or swatter
+scare). A bump counts once per collision. Read "enemies" carefully: enemy pairs average about 4 startles and half a
+bump after only ~1.5 s near each other, so the label mostly means two flies that keep flying straight at each other
+and setting off each other's escape — a real looming response in the model, not aggression.
+
+Measured with pre-set criteria in `tools/lifedata.ts` (learning, inheritance, groups); results below.
+
+### Does rewiring help? (`tools/lifedata.ts learning`)
+
+24 flies, 60 s settle then 300 s measured, 4 seeds, the same founders in every cohort. The criteria were set before the
+run. Feeding is seconds spent feeding per fly-second. HELPS or HURTS needs a change of at least ±10% against frozen
+brains, in the same direction on 3 of 4 seeds.
+
+| brains | synapse change | feeding | vs frozen | deaths / 1000 fly-s | verdict |
+|---|---|---|---|---|---|
+| frozen | 0.00% | 0.0102 ± 0.0024 | — | 1.61 ± 0.24 | — |
+| hebbian | 12.6 ± 0.3% | 0.0008 ± 0.0007 | −89% (0/4 seeds higher) | 5.23 ± 0.27 | **HURTS** |
+| reward | 10.7 ± 1.5% | 0.0061 ± 0.0003 | −35% (0/4 seeds higher) | 1.77 ± 0.09 | **HURTS** |
+| both | 13.8 ± 1.7% | 0.0016 ± 0.0010 | −84% (0/4 seeds higher) | 4.12 ± 1.06 | **HURTS** |
+
+**The brains do rewire, and it makes the flies worse at finding food.** Hebbian learning is the most damaging: every
+causal pairing strengthens a synapse, and in a network this small the most active loops take over. The reward rule
+does less harm, because it only acts around meals, knocks and spider strikes, but it still costs a third of feeding.
+Neither rule learns anything useful here: a meal comes long after the steering that led to it, so a 1 s trace rewards
+whatever the fly happened to be doing while it ate. That is why learning is off by default in the page.
+
+### Do children take after their parents? (`tools/lifedata.ts inheritance`)
+
+36 flies, 1500 s, 3 seeds, pooled; each child against the mean of its two parents, bootstrap 95% CI. The criteria were
+set before the run with **learning on**, the page default at the time, and that shaped the result: all three
+populations died out (seed 11: 5 children, seed 23: 20, seed 37: none), leaving 25 families, just over the minimum of 20.
+
+| trait | children | slope [95% CI] | verdict |
+|---|---|---|---|
+| gene: lifespan | 25 | 1.16 [0.62, 1.69] | passes on |
+| gene: flight power | 25 | 0.86 [0.09, 1.83] | passes on |
+| gene: clutch size | 25 | 0.80 [0.12, 1.34] | passes on |
+| gene: looming → escape | 25 | 1.06 [−0.00, 2.21] | passes on |
+| gene: smell gain | 25 | 0.94 [0.24, 1.58] | passes on |
+| gene: odour → steering | 25 | 0.42 [−0.28, 1.23] | **sanity check failed** (slope outside 0.7–1.3) |
+| lived: meals per minute | 25 | −0.02 [−0.43, 0.33] | no resemblance shown |
+| lived: age at death | 25 | 0.37 [−0.14, 1.16] | no resemblance shown |
+| lived: brain change at death | 25 | 0.16 [−0.20, 0.52] | no resemblance shown |
+
+**Genes pass on; what a fly does with them does not show up yet.** Five of six genes land near a slope of 1, as they
+must by construction. The odour → steering gene misses the sanity band. Its interval still contains 1, so with 25
+families this is most likely sampling noise, but it is reported as a fail because that is the rule. No lived outcome
+resembles the parents: meals, age at death and brain change look like luck and location. With learning on and every
+population dying out, 25 families cannot rule out a small inherited effect. A run with frozen brains, which keep the
+population alive, is the obvious next measurement. It would be new, not a replacement for this one.
+
+Egg and larva fates in these runs (38 eggs): 25 became adults; died as eggs: 6 background; died as larvae: 4 background,
+2 eaten-away substrate, 1 mould. Relationship labels over all pairs ever: 387 enemies, 61 mates, 30 family,
+13 acquaintances, 1 friends pair, 539 none.
+
+### Do flies gather, and is it the pheromone? (`tools/lifedata.ts groups`)
+
+24 flies, 60 s settle then 300 s measured, 4 seeds, frozen brains, cVA at 0.75 (normal) against 0 (off).
+
+| cVA | nearest-neighbour ratio (1 = random) | share in groups | grouped flies at food |
+|---|---|---|---|
+| on | 0.838 ± 0.022 | 7 ± 9% | 5 ± 21% |
+| off | 0.810 ± 0.020 | — | — |
+
+**They gather, and the pheromone is not why.** With cVA on, flies sit about 16% closer to their nearest neighbour than
+random placement would put them, on every seed (GATHER). Turning cVA off does not spread them out: the ratio is
+slightly lower without it (difference +0.03 ± 0.04; cVA EFFECT NOT SHOWN). Real groups of 3+ flies within 2 m are
+rare (7% of flies), and few of those are at food. The loose clustering most likely comes from shared flight paths and
+the arena's layout, not from flies seeking each other.
+
 ## What isn't real
 
 * **This is not the connectome.** 612 neurons and 4,718 synapses from a seeded
@@ -455,13 +597,18 @@ COMMAND:** no motor group rose by more than 1 Hz at any step size. The relay is 
 | `src/wizview.ts` | loads `wiz.glb` and poses his bones |
 | `src/puppeteer.ts` | the fly overhead with the control bar; strings glow with their neurons |
 | `src/wiring.ts` | populations, connection blocks, `flybrain/build.py` normalisation |
-| `src/brain.ts` | the LIF step, one shared matrix, per-fly state |
+| `src/brain.ts` | the LIF step, per-fly synapse strengths, the Hebbian and reward-gated learning rules, brain change |
+| `src/genome.ts` | genes: connection blocks, resting drive, receptor gains, learning rates, lifespan, flight, clutch; founders and children |
+| `src/social.ts` | who is near whom, bumps, startles, relationship labels, groups, the aggregation ratio |
+| `src/datalog.ts` | the recorded tables and CSV |
+| `src/datapanel.ts` | the Data & findings card: charts, learning switches, CSV buttons |
+| `src/report.ts` | the printable report, and the parent–child regression |
 | `src/eyes.ts` | panorama, feature detectors, the `flybrain/eyes.py` encoder |
 | `src/senses.ts` | the puff field, receptor tuning and adaptation, JO, legs |
-| `src/sim.ts` | world, ecology, fixed-timestep loop, motor decoder, physics |
+| `src/sim.ts` | world, ecology, fixed-timestep loop, motor decoder, physics, genomes and lineage, egg and larva deaths, rewards, sampling |
 | `src/scene.ts` | low-poly Three.js: instanced flies, props, swatter, wind motes |
 | `src/brainview.ts` | live neuron view and spike raster, grouped by modality |
 | `src/main.ts` | overlay, labels, leaderboard, cameras, loop |
-| `tools/` | `ablate.ts` (the table), `lifeab.ts` (predation, courtship, egg substrate), `surge.ts` (cast-and-surge), `choice.ts` (geosmin two-choice), `assay.ts`, `flight.ts`, `probe.ts`, `tune.ts`, `sweep.ts`, `smell.ts`, `range.ts`, `motor.ts` — run with `node --experimental-strip-types tools/<file>.ts` |
+| `tools/` | `lifedata.ts` (does rewiring help, do children take after parents, do flies gather), `ablate.ts` (the table), `lifeab.ts` (predation, courtship, egg substrate), `surge.ts` (cast-and-surge), `choice.ts` (geosmin two-choice), `assay.ts`, `flight.ts`, `probe.ts`, `tune.ts`, `sweep.ts`, `smell.ts`, `range.ts`, `motor.ts` — run with `node --experimental-strip-types tools/<file>.ts` |
 
 MIT, like the rest of the repository.

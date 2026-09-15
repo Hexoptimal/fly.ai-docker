@@ -14,11 +14,15 @@ import { ORN_AVERSIVE, ORN_CVA, ORN_FOOD, POPULATIONS, type Modality } from "./w
 import { Wiz } from "./wiz.ts";
 import { WizView } from "./wizview.ts";
 import { PuppeteerView } from "./puppeteer.ts";
+import { DataPanel } from "./datapanel.ts";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const START_FLIES = 36;
-const world = new World(START_FLIES);
+// brains start frozen: with learning on the flies forage worse and the population dies out (world/README, tools/lifedata.ts).
+// Switch either rule on in the Data card to watch them rewire.
+const world = new World(START_FLIES, 1234, { learning: { hebbian: false, reward: false } });
+const dataPanel = new DataPanel(world);
 const renderer = new Renderer($<HTMLCanvasElement>("view"), world);
 const wiz = new Wiz(world);
 const wizView = new WizView(renderer.scene, `${import.meta.env.BASE_URL}models/wiz.glb`);
@@ -418,8 +422,12 @@ function updatePanel(): void {
     `(gravity ${MOTOR.gravity}) · turn ${(m.turn * MOTOR.turn).toFixed(2)} rad/s · ` +
     `speed ${fly.speed.toFixed(1)} m/s · height ${fly.y.toFixed(1)} m · ${fly.state}`;
 
+  const parents = fly.mother !== null
+    ? ` · child of ${world.log.lineage.get(fly.mother)?.name ?? "?"} & ${world.log.lineage.get(fly.father ?? -1)?.name ?? "?"}`
+    : " · founder";
   $("flyid").textContent =
-    `${fly.name} ${fly.sex} · ${fly.age.toFixed(0)}s old${fly.mated ? " · mated" : ""}` +
+    `${fly.name} ${fly.sex} · gen ${fly.generation}${parents} · ${fly.age.toFixed(0)}s old${fly.mated ? " · mated" : ""}` +
+    ` · brain changed ${(fly.brain.drift() * 100).toFixed(1)}%` +
     `${fly.courting > 4 ? " · P1 " + fly.courting.toFixed(0) + " Hz" : ""}`;
   $("stats").textContent =
     `${world.clock} ${PHASE(world.timeOfDay)} · ${world.flies.length} flies × ${world.wiring.n} neurons (${world.wiring.nnz} synapses each) · ` +
@@ -430,6 +438,7 @@ function updatePanel(): void {
 
   if (n % 30 === 0) updateBoard();
   if (n % 60 === 0) updatePopulation();
+  if (n % 60 === 30) dataPanel.update();
   if (n % 10 === 0) updateFeed();
 }
 
