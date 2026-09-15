@@ -164,6 +164,11 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
 .fly-coin-stats { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 12px; color: var(--muted); margin-top: 4px; }
 .badge.dead { color: var(--red-hi); border-color: rgba(224,52,44,.5); }
 .drama li { display: block; }
+/* fly market events in the main feed (App.tsx EventCard) */
+.post.event-launch { display: flex; gap: 12px; align-items: center; border-color: rgba(242,181,68,.45); }
+.feed-coin { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex: none; background: var(--bg-2); }
+.post.event-drama .round li { overflow-wrap: anywhere; }
+.inline-link { margin-left: 0; display: inline; }
 .drama li .when { margin-left: 8px; }
 .drama li.drama-launch { border-color: rgba(242,181,68,.45); }
 .drama li.drama-fud, .drama li.drama-dump { border-color: rgba(224,52,44,.35); }

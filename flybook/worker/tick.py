@@ -131,14 +131,32 @@ class SupabaseStore:
         return {launches.pair(r["a"], r["b"]): r["label"] for r in rows}
 
     def recent_social(self) -> list[dict]:
-        """The latest round's launches, shills, FUD, buybacks and dumps."""
-        rows = self._req("GET", "market_social?select=fly_id,kind,symbol,reach,round_id&order=id.desc&limit=300") or []
-        latest = max((r["round_id"] for r in rows if r.get("round_id") is not None), default=None)
-        return [r for r in rows if r.get("round_id") == latest]
+        """The last market round's launches, shills, FUD, buybacks and dumps (none if that round had none: older events
+        must not repeat every round)."""
+        last = self._req("GET", "market_rounds?select=id&order=id.desc&limit=1") or []
+        if not last:
+            return []
+        return self._req("GET", f"market_social?select=fly_id,kind,symbol,reach,round_id&round_id=eq.{last[0]['id']}&limit=300") or []
 
     def launches_today(self) -> int:
         midnight = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT00:00:00+00:00")
         return len(self._req("GET", f"market_social?select=id&kind=eq.launch&created_at=gte.{requests.utils.quote(midnight)}") or [])
+
+    def recent_feed(self) -> dict:
+        """Posts, and people's likes and comments per fly, since the last market round (feedflow.py)."""
+        last = self._req("GET", "market_rounds?select=started_at&order=id.desc&limit=1") or []
+        since = last[0]["started_at"] if last else (dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=15)).isoformat()
+        q = requests.utils.quote(since)
+        posts = self._req("GET", f"posts?select=fly_id,word,kind,actions,cause&created_at=gte.{q}&order=id&limit=2000") or []
+        counts = {}
+        for table in ("likes", "comments"):
+            per: dict[str, int] = {}
+            for row in self._req("GET", f"{table}?select=post:posts(fly_id)&created_at=gte.{q}&limit=5000") or []:
+                fly = (row.get("post") or {}).get("fly_id")
+                if fly:
+                    per[fly] = per.get(fly, 0) + 1
+            counts[table] = per
+        return {"posts": posts, "likes": counts["likes"], "comments": counts["comments"], "since": since}
 
     def save_coin_image(self, path: str, data: bytes) -> None:
         r = self.http.post(f"{self.url}/storage/v1/object/coins/{path}", data=data, timeout=60, headers={
@@ -285,13 +303,18 @@ class JsonStore:
         return {launches.pair(b["a"], b["b"]): b["label"] for b in self._market().get("bonds", [])}
 
     def recent_social(self) -> list[dict]:
-        social = self._market()["social"]
-        latest = social[-1]["round_id"] if social else None
-        return [e for e in social if e["round_id"] == latest]
+        rounds = self._market()["rounds"]
+        latest = rounds[-1]["id"] if rounds else None
+        return [e for e in self._market()["social"] if e["round_id"] == latest]
 
     def launches_today(self) -> int:
         today = now_iso()[:10]
         return sum(e["kind"] == "launch" and e.get("created_at", "")[:10] == today for e in self._market()["social"])
+
+    def recent_feed(self) -> dict:
+        rounds = self._market()["rounds"]
+        since = rounds[-1].get("started_at", "") if rounds else ""
+        return {"posts": [p for p in self.d["posts"] if p.get("created_at", "") >= since], "likes": {}, "comments": {}, "since": since}
 
     def save_coin_image(self, path: str, data: bytes) -> None:
         out = self.path.parent / "coins" / path

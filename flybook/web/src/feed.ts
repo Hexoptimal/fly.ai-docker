@@ -163,7 +163,24 @@ export type MarketSocial = {
   detail: { tagline?: string; persona?: string; number?: number; creator?: string | null; bond?: string | null; own?: boolean; eth?: number };
 };
 export const coinImage = (path: string | null) => (url && path ? `${url}/storage/v1/object/public/coins/${path}` : "");
-export type MarketRound = { id: number; started_at: string; prices: Record<string, number>; events: { symbol: string; kind: string; move: number }[]; traders: number; trades: number };
+
+/** The latest launches, shills, FUD, buybacks and dumps, newest first (the main feed shows them too). */
+export async function loadSocial(limit = 60): Promise<MarketSocial[]> {
+  if (!db) return [];
+  const { data } = await db.from("market_social").select("*").order("id", { ascending: false }).limit(limit);
+  return (data ?? []) as MarketSocial[];
+}
+
+/** Every fly-made coin by symbol (logo, name, tagline). */
+export async function loadCoinLogos(): Promise<Map<string, FlyCoin>> {
+  if (!db) return new Map();
+  const { data } = await db.from("fly_coin_board").select("*").limit(200);
+  return new Map(((data ?? []) as FlyCoin[]).map((c) => [c.symbol, c]));
+}
+export type MarketRound = {
+  id: number; started_at: string; prices: Record<string, number>;
+  events: { symbol: string; kind: string; move: number; likes?: number; comments?: number }[]; traders: number; trades: number;
+};
 export type MindTraits = { risk?: number; lr?: number; k?: number; memory_size?: number; tube_growth?: number; tube_decay?: number; caution?: number };
 export type MindStats = { rounds?: number; rewards?: number; good_trades?: number; bad_trades?: number; vetoes?: number; dopamine?: number };
 export type Learning = { dopamine: boolean; memory: boolean; tubes: boolean };
@@ -182,8 +199,8 @@ export type FlyTrade = {
     did?: string[]; dopamine?: number; wanted?: string; skipped?: string; bias?: number; persona?: string; tagline?: string;
     memory?: { mean_reward: number; similar: number };
     felt?: {
-      target?: { symbol: string | null; move: number; tube?: number; social?: SocialHit[] };
-      threat?: { symbol: string | null; move: number; social?: SocialHit[] }; wind?: { chop: number };
+      target?: { symbol: string | null; move: number; tube?: number; social?: SocialHit[]; mood?: number };
+      threat?: { symbol: string | null; move: number; social?: SocialHit[]; mood?: number }; wind?: { chop: number; mood?: number };
     };
   };
 };
@@ -394,7 +411,7 @@ export async function myLikes(userId: string): Promise<Set<number>> {
 export function subscribe(handlers: {
   onPost: (p: Post) => void; onTick: (t: Tick) => void; onLike: (postId: number) => void; onPoke: (p: Poke) => void;
   onComment: (postId: number) => void; onCaption: (postId: number, body: string | null) => void; onDuel: (d: Duel) => void;
-  onMeme?: () => void;
+  onMeme?: () => void; onMarket?: () => void;
 }): () => void {
   if (!db) return () => {};
   const channel = db
@@ -423,6 +440,7 @@ export function subscribe(handlers: {
     })
     .on("postgres_changes", { event: "*", schema: "public", table: "memes" }, () => handlers.onMeme?.())
     .on("postgres_changes", { event: "*", schema: "public", table: "meme_likes" }, () => handlers.onMeme?.())
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "market_social" }, () => handlers.onMarket?.())
     .subscribe();
   return () => void db.removeChannel(channel);
 }

@@ -153,7 +153,19 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
   }, []);
 
   const names = new Map(traders.map((t) => [t.fly_id, t]));
-  const hyped = (hits?: SocialHit[]) => [...new Set((hits ?? []).map((h) => names.get(h.from ?? "")?.name).filter(Boolean))].join(" and ");
+  const hyped = (hits?: SocialHit[], fromPosts = false) => [...new Set((hits ?? []).filter((h) => (h.kind === "post") === fromPosts)
+    .map((h) => names.get(h.from ?? "")?.name).filter(Boolean))].join(" and ");
+  // why the feed moved a trade: other flies setting it off in the patch, and its own posts since last round
+  const fromFeed = (t: FlyTrade) => {
+    const f = t.reason.felt;
+    const bits: string[] = [];
+    if (t.side === "buy" && hyped(f?.target?.social, true)) bits.push(`${hyped(f?.target?.social, true)} caught its eye in the patch.`);
+    if (t.side === "panic_sell" && hyped(f?.threat?.social, true)) bits.push(`${hyped(f?.threat?.social, true)} startled it in the patch.`);
+    if (t.side === "panic_sell" && f?.threat?.mood) bits.push("Still jumpy from the feed.");
+    if (t.side === "buy" && f?.target?.mood) bits.push("Curious from the feed.");
+    if (t.side === "take_profit" && f?.wind?.mood) bits.push("Twitchy from the feed.");
+    return bits.length ? ` ${bits.join(" ")}` : "";
+  };
   const mineSocial = social.filter((e) => !mine || names.get(e.fly_id ?? "")?.owner === viewer?.userId);
   const last = rounds[rounds.length - 1];
   const prev = rounds[rounds.length - 2];
@@ -209,7 +221,9 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
           </div>
           {last?.events?.length ? (
             <p className="fine">Last round: {last.events.map((e) => `$${e.symbol} ${
-              e.kind === "launch" ? "launched" : e.kind === "died" ? "died, its pool is empty" : `${e.kind === "rug" ? "got rugged" : "pumped"} ${pct(e.move)}`}`).join(", ")}</p>
+              e.kind === "launch" ? "launched" : e.kind === "died" ? "died, its pool is empty"
+                : e.kind === "likes" ? `${pct(e.move)} from people loving its creator's posts (${e.likes ?? 0} likes, ${e.comments ?? 0} comments)`
+                : `${e.kind === "rug" ? "got rugged" : "pumped"} ${pct(e.move)}`}`).join(", ")}</p>
           ) : null}
           <FlyCoins coins={flyCoins} onFly={onFly} />
 
@@ -274,6 +288,7 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
                         {t.side === "launch" && t.reason.tagline ? ` “${t.reason.tagline}”` : ""}
                         {t.side === "buy" && hyped(t.reason.felt?.target?.social) ? ` Shilled by ${hyped(t.reason.felt?.target?.social)}.` : ""}
                         {t.side === "panic_sell" && hyped(t.reason.felt?.threat?.social) ? ` FUD from ${hyped(t.reason.felt?.threat?.social)}.` : ""}
+                        {fromFeed(t)}
                         {" "}Neurons: {(t.reason.did ?? []).join(", ") || "none"}.
                         {t.reason.memory ? ` Memory: ${t.reason.memory.similar} similar trades, ${pct(t.reason.memory.mean_reward)} on average.` : ""}
                         {t.side !== "skipped" ? ` Worth ${eth(t.value_after)} ETH after.` : ""}

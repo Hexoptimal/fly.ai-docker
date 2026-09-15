@@ -28,11 +28,13 @@ Each round (every --market-every seconds, after a tick):
 from __future__ import annotations
 
 import math
+import os
 import random
 import time
 
 import numpy as np
 
+import feedflow
 import launches
 import minds
 from episode import AMOUNT, DT
@@ -70,6 +72,42 @@ KIND = {c[0]: c for c in COINS}
 REGIME_SWITCH = {"real": 0.05, "meme": 0.15}   # chance per round of leaving the calm regime
 REGIME_DRIFT = {"calm": 0.0, "pump": 0.06, "dump": -0.06}
 SENSE_GAIN = {"target": "eyes", "threat": "eyes", "wind": "antennae"}
+
+# Encoder v2 (2026-09-15, market_encoder_eval.py). The v1 audit: fed alone, each sense drives only its own action, but
+# live inputs were far past saturation (target strength clipped 69% of rounds, threat 60%) and the threat sense is a step
+# (0.05 of stimulus -> 100% jumps), so nearly every run fired jump, turn and groom together and a fixed priority chose
+# the trade. v2 measures each move against that coin's usual move (a z-score, so BTC and meme coins compare) and maps
+# strength into the range where that sense's action is graded; v2's decoder picks the action with the strongest
+# response relative to that action's typical response to its own sense (market_encoder_eval.py measures pick_ref).
+Z_FLOOR, Z_SPAN = 0.5, 2.5            # |z| under 0.5 is noise; z 3 is full strength
+CHOP_FLOOR, CHOP_SPAN = 0.8, 1.2      # mean |z| of an ordinary round is ~0.8
+# stimulus at strength 0+ .. 1, from dose sweeps (24 flies per level, standard / sentinel / jumpy profiles):
+#   threat -> jumped   0.005: 0/4/8%   0.01: 12/0/46%   0.015: 33/4/79%   0.02: 100/75/100%   0.03: 100% all
+#   target -> turned   0.2: 4/8/8%   0.4: 21/50/46%   0.8: 100% all
+#   wind   -> groomed  0.05: 4/8/4%   0.1: 17/17/12%   0.2: 42/54/29%   0.4: 62/75/96%
+RANGE_V2 = {"target": (0.25, 0.8), "threat": (0.006, 0.025), "wind": (0.05, 0.4)}
+MAX_DRIVE_V2 = 0.8
+# the live market's encoder (v2 shipped 2026-09-15 after market_encoder_eval.py: 4 of 5 criteria, failed only C4 because
+# sell stayed at 0.9%; mean final 1.33 vs 0.94 fake ETH). FLYBOOK_MARKET_ENCODER=v1 rolls back without a code change.
+MARKET_ENCODER = os.environ.get("FLYBOOK_MARKET_ENCODER", "v2")
+# each action's typical z under its own sense at v2's full strength, median over the 12 live flies in that check
+PICK_REF_V2 = {"turned": 4.85, "jumped": 5.2, "groomed": 5.25, "backed_up": 3.0}
+VOL_FLY = 0.15                        # a fly coin's usual move per round (its pool's outside flow)
+
+
+def vol_of(symbol: str) -> float:
+    spec = KIND.get(symbol)
+    return spec[4] if spec else VOL_FLY
+
+
+def zscores(prices: dict, history: list[dict]) -> dict:
+    """Moves over the history window and last round's chop, each in units of that coin's usual move."""
+    old = history[-1] if history else {}
+    span = math.sqrt(max(1, len(history)))
+    moves = {s: math.log(prices[s] / old[s]) / (vol_of(s) * span) for s in prices if old.get(s) and prices[s] > 0}
+    last = history[0] if history else {}
+    chop = [abs(math.log(prices[s] / last[s])) / vol_of(s) for s in prices if last.get(s) and prices[s] > 0]
+    return {"move": moves, "chop": float(np.mean(chop)) if chop else 0.0}
 
 
 def seed_coins() -> list[dict]:
@@ -112,7 +150,7 @@ def new_portfolio(fly_id: str) -> dict:
 
 
 def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, mind: dict, learning: dict | None = None,
-         social: dict | None = None) -> dict:
+         social: dict | None = None, mood: dict | None = None, encoder: str = "v1") -> dict:
     """What the market does to this fly's senses: amounts in stimulus units, after its settings and learned gains.
     A learner switched off is not used: dopamine off ignores learned gains, tubes off ignores tube thickness.
     social (launches.social_drive): shills and FUD from flies it has a relationship with; when that hits harder than the
@@ -126,37 +164,68 @@ def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, min
     gains = mind["learned"]["gains"] if learning.get("dopamine") else {}
     tube = (lambda s: minds.tube(mind, s)) if learning.get("tubes") else (lambda s: 1.0)
 
-    def amount(sense: str, strength: float) -> float:
-        return round(min(MAX_DRIVE, AMOUNT * senses.get(SENSE_GAIN[sense], 1.0) * gains.get(sense, 1.0) * float(np.clip(strength, 0, 1))), 4)
+    v2 = encoder == "v2"
 
-    mean_tube = float(np.mean([tube(s) for s in moves])) if moves else 1.0
-    noticed = {s: m * tube(s) / mean_tube for s, m in moves.items() if m > 0}
+    def amount(sense: str, strength: float) -> float:
+        s = float(np.clip(strength, 0, 1))
+        if v2:                                               # into the range where this sense's action is graded
+            lo, hi = RANGE_V2[sense]
+            base, cap = (0.0 if s <= 0 else lo + (hi - lo) * s), MAX_DRIVE_V2
+        else:
+            base, cap = AMOUNT * s, MAX_DRIVE
+        return round(min(cap, base * senses.get(SENSE_GAIN[sense], 1.0) * gains.get(sense, 1.0)), 4)
+
+    z = zscores(prices, history)
+    if v2:
+        push = {s: v for s, v in z["move"].items() if v > 0}
+        mean_tube = float(np.mean([tube(s) for s in push])) if push else 1.0
+        noticed = {s: v * tube(s) / mean_tube for s, v in push.items()}
+    else:
+        mean_tube = float(np.mean([tube(s) for s in moves])) if moves else 1.0
+        noticed = {s: m * tube(s) / mean_tube for s, m in moves.items() if m > 0}
     target = max(noticed, key=noticed.get) if noticed else None
     held = [s for s, h in portfolio["holdings"].items() if h["qty"] > 0 and s in moves]
-    worst = min(held, key=lambda s: moves[s]) if held else None
+    if not held:
+        worst = None
+    else:
+        worst = min(held, key=lambda s: z["move"].get(s, 0.0)) if v2 else min(held, key=lambda s: moves[s])
+    if v2:
+        t_strength = (noticed[target] - Z_FLOOR) / Z_SPAN if target else 0.0
+        th_strength = (-z["move"].get(worst, 0.0) - Z_FLOOR) / Z_SPAN if worst else 0.0
+        w_strength = (z["chop"] - CHOP_FLOOR) / CHOP_SPAN
+    else:
+        t_strength = moves[target] * 4 if target else 0.0
+        th_strength = -moves[worst] * 3 if worst else 0.0
+        w_strength = chop * 8
     out = {
         "target": {"symbol": target, "move": round(moves[target], 4) if target else 0.0,
-                   "tube": round(tube(target), 3) if target else 1.0,
-                   "amount": amount("target", moves[target] * 4) if target else 0.0},
+                   "tube": round(tube(target), 3) if target else 1.0, "z": round(z["move"].get(target, 0.0), 3) if target else 0.0,
+                   "amount": amount("target", t_strength) if target else 0.0},
         "threat": {"symbol": worst, "move": round(moves[worst], 4) if worst else 0.0,
-                   "amount": amount("threat", -moves[worst] * 3) if worst else 0.0},
-        "wind": {"chop": round(chop, 4), "amount": amount("wind", chop * 8)},
+                   "z": round(z["move"].get(worst, 0.0), 3) if worst else 0.0,
+                   "amount": amount("threat", th_strength) if worst else 0.0},
+        "wind": {"chop": round(chop, 4), "z": round(z["chop"], 3), "amount": amount("wind", w_strength)},
     }
     if social and social["target"]:
         sym, trust = max(social["target"].items(), key=lambda kv: kv[1])
         hit = amount("target", min(1.0, launches.SOCIAL_TARGET * trust))
-        if sym in prices and hit > out["target"]["amount"]:
+        if sym in prices and hit >= out["target"]["amount"]:              # a tie goes to the friend
             out["target"] = {"symbol": sym, "move": round(moves.get(sym, 0.0), 4), "tube": round(tube(sym), 3),
-                             "amount": hit, "social": social["why"].get(sym, [])[:3]}
+                             "z": round(z["move"].get(sym, 0.0), 3), "amount": hit, "social": social["why"].get(sym, [])[:3]}
     held_now = {s for s, h in portfolio["holdings"].items() if h["qty"] > 0 and s in prices}
     if social and social["threat"]:
         scary = {s: v for s, v in social["threat"].items() if s in held_now}
         if scary:
             sym, trust = max(scary.items(), key=lambda kv: kv[1])
             hit = amount("threat", min(1.0, launches.SOCIAL_THREAT * trust))
-            if hit > out["threat"]["amount"]:
-                out["threat"] = {"symbol": sym, "move": round(moves.get(sym, 0.0), 4), "amount": hit,
-                                 "social": social["why"].get(sym, [])[:3]}
+            if hit >= out["threat"]["amount"]:
+                out["threat"] = {"symbol": sym, "move": round(moves.get(sym, 0.0), 4), "z": round(z["move"].get(sym, 0.0), 3),
+                                 "amount": hit, "social": social["why"].get(sym, [])[:3]}
+    for sense, strength in (mood or {}).items():            # feedflow.mood: its own posts since last round linger
+        if sense in out and (sense == "wind" or out[sense]["symbol"]):
+            top = RANGE_V2[sense][1] if v2 else MAX_DRIVE    # v2: never past the top of the sense's graded range
+            out[sense]["amount"] = round(min(top, out[sense]["amount"] + amount(sense, strength)), 4)
+            out[sense]["mood"] = strength
     return out
 
 
@@ -189,7 +258,7 @@ def run_brains(eps, reader, settings: list[dict], drives: list[dict], rewards: l
 
 
 def decide(portfolio: dict, did: list[dict], drive: dict, prices: dict, mind: dict, learning: dict,
-           rng: random.Random | None = None, pools: dict | None = None) -> tuple[dict | None, str, dict]:
+           rng: random.Random | None = None, pools: dict | None = None, pick: dict | None = None) -> tuple[dict | None, str, dict]:
     """The fly's actions as a trade, after its learning has had a say. Mutates the portfolio.
     pools: fly-made coins by symbol; trades in them go through the coin's pool and move its price (launches.py).
     Returns (trade or None, action name or 'hold', a note for the trade's reason)."""
@@ -199,16 +268,24 @@ def decide(portfolio: dict, did: list[dict], drive: dict, prices: dict, mind: di
     if drive["target"]["symbol"] in pools and not launches.live(pools[drive["target"]["symbol"]]):
         drive = {**drive, "target": {**drive["target"], "symbol": None}}        # nobody can buy a dead coin
     pnl = lambda s: held[s]["qty"] * prices[s] - held[s]["cost_eth"]
+    # every action it did that can become a trade, in the v1 priority order; pick (v2): {action key: typical z} and the
+    # action with the strongest response relative to its typical one wins instead of the first in that order
+    zs = {a["key"]: float(a.get("z", 0.0)) for a in did}
+    options = []
     if "jumped" in keys and held:
-        action, symbol = "panic_sell", drive["threat"]["symbol"] or min(held, key=pnl)
-    elif "turned" in keys and drive["target"]["symbol"]:
-        action, symbol = "buy", drive["target"]["symbol"]
-    elif "groomed" in keys and held:
-        action, symbol = "take_profit", max(held, key=pnl)
-    elif "backed_up" in keys and held:
-        action, symbol = "sell", min(held, key=pnl)
-    else:
+        options.append(("jumped", "panic_sell", drive["threat"]["symbol"] if drive["threat"]["symbol"] in held else min(held, key=pnl)))
+    if "turned" in keys and drive["target"]["symbol"]:
+        options.append(("turned", "buy", drive["target"]["symbol"]))
+    if "groomed" in keys and held:
+        options.append(("groomed", "take_profit", max(held, key=pnl)))
+    if "backed_up" in keys and held:
+        options.append(("backed_up", "sell", min(held, key=pnl)))
+    if not options:
         return None, "hold", {}
+    if pick:
+        _, action, symbol = max(options, key=lambda o: zs[o[0]] / max(1e-6, pick.get(o[0], 3.0)))
+    else:
+        _, action, symbol = options[0]
 
     bias = mind["learned"]["bias"].get(action, 1.0)
     total = value(portfolio, prices)
@@ -277,8 +354,10 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
     old_prices = {c["symbol"]: c["price"] for c in coins}
     coins, events = moved if moved else move_prices(coins, rng)
     fly_market = bool(state.get("launches"))              # fly-made coins, shills and FUD (off in the offline check)
+    feed = (state.get("feed") or {}) if fly_market else {}   # posts, likes and comments since last round (feedflow.py)
     if fly_market:
         events = events + launches.drift(coins, rng)
+        events = events + feedflow.crowd(coins, feed.get("likes") or {}, feed.get("comments") or {})
     state["coins"] = coins
     prices = {c["symbol"]: c["price"] for c in coins}
     history = state.get("history", [])
@@ -287,6 +366,21 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
     pools = {c["symbol"]: c for c in coins if c.get("kind") == "fly"}
     live_symbols = {s for s, c in pools.items() if launches.live(c)}
     bonds, social_in = state.get("bonds") or {}, state.get("social") or []
+    feed_posts = feedflow.by_fly(feed.get("posts") or [])
+    coins_of: dict[str, list[str]] = {}
+    for s in live_symbols:
+        if pools[s].get("creator"):
+            coins_of.setdefault(pools[s]["creator"], []).append(s)
+
+    def senses(f: dict) -> dict:
+        """What this fly feels: the market, plus (live market only) shills, FUD and the feed since last round."""
+        social = mood = None
+        if fly_market:
+            mine = feed_posts.get(f["id"], [])
+            social = feedflow.merge(launches.social_drive(f["id"], social_in, bonds, live_symbols), feedflow.set_off(f["id"], mine, coins_of))
+            mood = feedflow.mood(mine)
+        return felt(state["portfolios"][f["id"]], prices, history, settings_of(f), state["minds"][f["id"]], own[f["id"]], social, mood,
+                    encoder=state.get("encoder", "v1"))
     settings_of = lambda f: {k: f.get(k) or {} for k in ("senses", "temperament", "dials")}
 
     dopamine, own = {}, {}
@@ -310,8 +404,7 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
     seed = int(rng.integers(2**31)) if seed is None else seed
     for start in range(0, len(flies), eps.max_batch):
         batch = flies[start:start + eps.max_batch]
-        drives = [felt(state["portfolios"][f["id"]], prices, history, settings_of(f), state["minds"][f["id"]], own[f["id"]],
-                       launches.social_drive(f["id"], social_in, bonds, live_symbols) if fly_market else None) for f in batch]
+        drives = [senses(f) for f in batch]
         rewards = [dopamine[f["id"]] if own[f["id"]].get("dopamine") else 0.0 for f in batch]
         did = run_brains(eps, reader, [settings_of(f) for f in batch], drives, rewards, seed + start)
         for f, acts, drive in zip(batch, did, drives):
@@ -319,9 +412,14 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
             keys = {a["key"] for a in acts}
             did_by_fly[f["id"]] = keys
             made = launches.creator_trade(p, keys, pools, recent, mind, prices) if fly_market else None
-            trade, action, note = made if made else decide(p, acts, drive, prices, mind, own[f["id"]], py_rng, pools)
+            trade, action, note = made if made else decide(p, acts, drive, prices, mind, own[f["id"]], py_rng, pools, state.get("pick_ref"))
             if trade and trade["side"] != "skipped":
                 traded.setdefault(f["id"], []).append(trade)
+            if "log" in state:                                # market_encoder_eval.py: every fly-round, holds included
+                state["log"].append({"fly": f["id"], "did": sorted(keys),
+                                     "target_z": drive["target"]["z"] if drive["target"]["symbol"] else None,
+                                     "threat_z": drive["threat"]["z"] if drive["threat"]["symbol"] else None,
+                                     "chop_z": drive["wind"]["z"], "side": trade["side"] if trade else "hold"})
             p["value_eth"] = value(p, prices)
             if trade and action in minds.ACTIONS:
                 minds.open_trade(mind, trade["symbol"], trade["price"], action,
@@ -359,13 +457,18 @@ def market_round(store, eps, reader, rng: np.random.Generator, flies: list[dict]
     ids = [f["id"] for f in flies]
     state = {"coins": store.market_coins(), "history": [r["prices"] for r in store.market_history(HISTORY)],
              "portfolios": {p["fly_id"]: p for p in store.portfolios(ids)}, "minds": {m["fly_id"]: m for m in store.minds(ids)},
-             "launches": True, "social": [], "bonds": {}, "launch_budget": 0}
+             "launches": True, "social": [], "bonds": {}, "launch_budget": 0,
+             "encoder": MARKET_ENCODER, "pick_ref": PICK_REF_V2 if MARKET_ENCODER == "v2" else None}
     try:                                   # relationships and last round's drama; the round still runs without them
         state["bonds"] = store.bonds()
         state["social"] = store.recent_social()
         state["launch_budget"] = max(0, launches.DAILY_CAP - store.launches_today())
     except Exception as e:
         print(f"fly coins: couldn't load bonds or social events: {e}", flush=True)
+    try:
+        state["feed"] = store.recent_feed()
+    except Exception as e:
+        print(f"fly market: couldn't load the feed since last round: {e}", flush=True)
     state["image"] = lambda fly, symbol, key: launches.make_image(store.save_coin_image, fly, symbol, key)
     out = simulate_round(state, eps, reader, rng, flies, learning)
     rnd = out["round"]

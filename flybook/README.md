@@ -236,10 +236,25 @@ Fake coins, fake ETH. The brain still makes every move; relationships only chang
 | Buyback / dump | a creator's coin fell 8%+ since last round: turned or groomed buys back, jumped dumps half its bag |
 | Next round | launches, shills and buybacks are a moving target (LC10a) for flies that trust the poster (best friends and mates 1.3, friends and family 1.0, acquaintances 0.35, strangers 0.15) and a looming shape on held coins for its enemies; FUD looms on that coin for flies that trust the FUDer; a dump looms for every holder |
 
-Image cost measured 2026-09-15 with the same coin prompt: `openai/gpt-image-1-mini` low $0.0023 (10 s),
-`krea/krea-2-medium-turbo` $0.015, `sourceful/riverflow-v2.5-fast` $0.022, memes' `google/gemini-2.5-flash-image` $0.039;
-`meta/muse-image` needs an 18+ attestation on the OpenRouter account. At the daily cap that is under $0.03 a day.
 The app shows the coins (FlyCoins.tsx: logo, creator, price, market cap, holders, pool) and a Fly drama feed in the Market tab.
+
+### The feed moves the market (2026-09-15)
+
+`worker/feedflow.py`: what happened in the patches since the last market round reaches the trading flies' senses; the
+brain still makes every trade. Only in the live market (the offline learning check is unchanged).
+
+| Link | From | Into the next market round |
+|---|---|---|
+| mood | the fly's own posts: a threat read or a jump (+0.25 each, cap 1), a mate read / turn / walk (+0.15, cap 1), a wind read or grooming (+0.15, cap 0.6) | added to the looming shape of its falling held coin, the pull of the coin it notices, the wind of a choppy market |
+| set off | posts where a neighbour caused its reaction: the neighbour's moves (+0.5 per post, cap 2) or its jump | the neighbour's live coins pull like a shill, or loom if held |
+| crowd | people's likes (0.003 fake ETH each) and comments (0.005) on a creator's posts, cap 0.05 a coin a round | outside buyers in that creator's coin pools; a `likes` round event |
+
+### Market encoder v2 (2026-09-15)
+
+The live market uses encoder v2 (`market.MARKET_ENCODER`; set `FLYBOOK_MARKET_ENCODER=v1` on the worker to roll back).
+Each move is measured against that coin's usual move, then mapped into the range where the fly's brain responds
+gradually (`RANGE_V2`). When a fly does several things at once, the action with the strongest response relative to its
+typical response becomes the trade. `market_encoder_eval.py` compares v1 and v2 offline on the same flies and prices.
 
 ## Relationships: friends, enemies, rivals (2026-09-15)
 
@@ -256,12 +271,8 @@ Nobody sets them and they don't change what flies do. `fly_bonds(focus_fly, wind
 
 Brain events fade with weight exp(-age / 7 days). Labels, first match wins: mates, family, frenemies (tension ≥ 8,
 ≥ 25% of the total, warmth ≥ 25), enemies (tension ≥ 8, ≥ 25%), best friends (warmth ≥ 120, tension < 10%),
-friends (warmth ≥ 25, tension < 25%), rivals (5+ duels), acquaintances. Cut-offs were set on 7 days of live posts
-(2026-09-15: 2,886 caused posts over 98 pairs; 85% `target`, 11% loom/jump; median pair 11 events, 90th percentile 81).
-Rivals first came before friends and took 71 of 280 pairs, because the Arena matchmakes neighbouring Elo and the same
-pairs duel over and over; rivalry now only shows when the brains aren't close. Read-only run on live data: 281 pairs
-(14 mates, 43 family, 6 best friends, 22 friends, 1 frenemies, 2 enemies, 60 rivals, 133 acquaintances); everyone in
-0.1-0.8 s, one fly in ~15 ms.
+friends (warmth ≥ 25, tension < 25%), rivals (5+ duels), acquaintances. Friendship comes before rivalry because the
+Arena keeps matching the same pairs.
 
 Web: `Relationships.tsx` popup, opened from a fly's page (🕸 friends & enemies) or the Flies card (who's friends with
 whom): the fly's web (closer and thicker = more happened), best friend / worst enemy / top rival / scares it most, a

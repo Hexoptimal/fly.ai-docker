@@ -13,9 +13,9 @@ import { Caption, Comments } from "./PostSocial";
 import { pokePatch, setLike, setMemeLike } from "./api";
 import { badgesFor, type Badge, type BoardRow } from "./badges";
 import {
-  BASE, fetchPost, likeCount, load, loadBoard, loadComments, loadDuels, loadFlies, loadMatings, loadMemes, loadPokes, loadPositions,
-  loadReplays, myLikes, myMemeLikes, subscribe, tuning, type Duel, type Fly, type Mating, type Meme, type Patch, type Poke, type Post,
-  type Replay, type Snapshot,
+  BASE, coinImage, fetchPost, likeCount, load, loadBoard, loadCoinLogos, loadComments, loadDuels, loadFlies, loadMatings, loadMemes, loadPokes,
+  loadPositions, loadReplays, loadSocial, myLikes, myMemeLikes, subscribe, tuning, type Duel, type Fly, type FlyCoin, type MarketSocial,
+  type Mating, type Meme, type Patch, type Poke, type Post, type Replay, type Snapshot,
 } from "./feed";
 import { postUrl, saveCard, shareOnX } from "./share";
 import { SLOW, loadTrace, play, useVoiceStyle } from "./voice";
@@ -93,7 +93,9 @@ type FeedItem =
   | { type: "duels"; at: string; duels: Duel[] }        // duels that finished within DUEL_ROUND_MS of each other
   | { type: "mating"; at: string; mating: Mating }
   | { type: "hatch"; at: string; fly: Fly }
-  | { type: "meme"; at: string; meme: Meme };
+  | { type: "meme"; at: string; meme: Meme }
+  | { type: "launch"; at: string; event: MarketSocial }      // a fly launched its own coin
+  | { type: "drama"; at: string; events: MarketSocial[] };   // one market round's shills, FUD, buybacks and dumps
 
 const FOLD_MS = 30 * 60_000;
 const DUEL_ROUND_MS = 2 * 60_000;
@@ -122,6 +124,8 @@ export default function App() {
   const [memeLiked, setMemeLiked] = useState<Set<number>>(new Set());
   const [memeFor, setMemeFor] = useState<Post | null>(null);
   const [bondsFor, setBondsFor] = useState<string | null>(null);   // a fly id, or "*" for everyone's web
+  const [social, setSocial] = useState<MarketSocial[]>([]);
+  const [coinInfo, setCoinInfo] = useState<Map<string, FlyCoin>>(new Map());
   const [memeTick, setMemeTick] = useState(0);
   const [boardAt, setBoardAt] = useState(0);            // newest post id when the board totals were read
   const [unfolded, setUnfolded] = useState<Set<number>>(new Set());
@@ -165,6 +169,8 @@ export default function App() {
   const refreshEvents = useCallback(() => {
     loadDuels(40).then(setDuels);
     loadMatings(30).then(setMatings);
+    loadSocial(80).then(setSocial);
+    loadCoinLogos().then(setCoinInfo);
   }, []);
   const refreshMemes = useCallback(() => {
     loadMemes({ limit: 40 }).then(setMemes);
@@ -234,6 +240,7 @@ export default function App() {
           if (duel.status === "done") loadFlies().then((fs) => setSnap((s) => s && { ...s, flies: fs }));
         },
         onMeme: refreshMemes,
+        onMarket: refreshEvents,
       }),
     [],
   );
@@ -401,6 +408,17 @@ export default function App() {
   for (const m of memes) {
     if (m.created_at >= oldestShown && inView([m.fly_id], flies.get(m.fly_id)?.patch_id)) items.push({ type: "meme", at: m.created_at, meme: m });
   }
+  // the fly market's drama: each launch is its own card, a round's shills/FUD/buybacks/dumps share one card
+  const rounds = new Map<string, MarketSocial[]>();
+  for (const e of social) {
+    if (e.created_at < oldestShown || !inView([e.fly_id], e.fly_id ? flies.get(e.fly_id)?.patch_id : undefined)) continue;
+    if (e.kind === "launch") items.push({ type: "launch", at: e.created_at, event: e });
+    else rounds.set(String(e.round_id ?? e.id), [...(rounds.get(String(e.round_id ?? e.id)) ?? []), e]);
+  }
+  for (const events of rounds.values()) {
+    const newest = events.reduce((a, b) => (a.created_at > b.created_at ? a : b));
+    items.push({ type: "drama", at: newest.created_at, events });
+  }
   items.sort((a, b) => b.at.localeCompare(a.at));
   const activePatch = patches.get(patch);
   const activeFly = flyId ? flies.get(flyId) : undefined;
@@ -526,8 +544,10 @@ export default function App() {
                                    onFly={setFlyId} onChanged={refreshMemes} />;
                 }
                 if (item.type !== "post") {
-                  return <EventCard key={`${item.type}-${item.type === "duels" ? item.duels[0].id : item.type === "mating" ? item.mating.id : item.fly.id}`}
-                                    item={item} flies={flies} patches={patches} now={now} onFly={setFlyId} />;
+                  const id = item.type === "duels" ? item.duels[0].id : item.type === "mating" ? item.mating.id
+                    : item.type === "launch" ? item.event.id : item.type === "drama" ? item.events[0].id : item.fly.id;
+                  return <EventCard key={`${item.type}-${id}`} item={item} flies={flies} patches={patches} now={now} onFly={setFlyId}
+                                    coins={coinInfo} />;
                 }
                 const p = item.post;
                 return (
@@ -600,9 +620,9 @@ export default function App() {
 }
 
 /** Something that happened to flies, not a read: a duel settled, two flies had a baby, a holder hatched a fly. */
-function EventCard({ item, flies, patches, now, onFly }: {
+function EventCard({ item, flies, patches, now, onFly, coins }: {
   item: Exclude<FeedItem, { type: "post" } | { type: "meme" }>; flies: Map<string, Fly>; patches: Map<string, Patch>; now: number;
-  onFly: (id: string) => void;
+  onFly: (id: string) => void; coins: Map<string, FlyCoin>;
 }) {
   const who = (id: string | null) => {
     const f = id ? flies.get(id) : undefined;
@@ -616,6 +636,52 @@ function EventCard({ item, flies, patches, now, onFly }: {
     const kind = d.kind === "quickdraw" ? "a quick draw" : "a stare-down";
     return d.winner ? <>{who(d.winner)} beat {who(loser)} in {kind}</> : <>{who(d.a_fly)} and {who(d.b_fly)} drew {kind}</>;
   };
+  const market = <a className="more inline-link" href="#market">see the market →</a>;
+  if (item.type === "launch") {
+    const e = item.event;
+    const coin = coins.get(e.symbol);
+    return (
+      <article className="post event event-launch">
+        {coin?.image_path && <img className="feed-coin" src={coinImage(coin.image_path)} alt={`$${e.symbol} logo`} loading="lazy" />}
+        <div>
+          <p className="event-line">
+            <span className="event-icon">🚀</span> {who(e.fly_id)} launched <b>${e.symbol}</b>
+            {coin?.name ? <> · {coin.name}</> : null}{(e.detail.number ?? 1) > 1 ? ", its second coin" : ""}
+            <span className="when">{ago(item.at, now)}</span>
+          </p>
+          <p className="fine">
+            {e.detail.tagline ? `“${e.detail.tagline}” ` : ""}
+            {e.reach > 0 ? `${e.reach} ${e.reach === 1 ? "friend" : "friends"} will feel the hype. ` : ""}{market}
+          </p>
+        </div>
+      </article>
+    );
+  }
+  if (item.type === "drama") {
+    const ONE: Record<string, string> = { enemies: "enemy", frenemies: "frenemy", rivals: "rival" };
+    const order = ["dump", "buyback", "fud", "shill"];
+    const events = [...item.events].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
+    return (
+      <article className="post event event-drama">
+        <p className="event-line">
+          <span className="event-icon">📈</span> Fly market drama: {events.length} {events.length === 1 ? "move" : "moves"}
+          <span className="when">{ago(item.at, now)}</span>
+        </p>
+        <ul className="round">
+          {events.map((e) => (
+            <li key={e.id}>
+              {e.kind === "shill" && <>📣 {who(e.fly_id)} is shilling <b>${e.symbol}</b>{e.reach > 0 ? ` to ${e.reach} friends` : ""}</>}
+              {e.kind === "fud" && <>🤬 {who(e.fly_id)} is spreading FUD on <b>${e.symbol}</b>
+                {e.detail.creator && e.detail.bond && ONE[e.detail.bond] ? <>, made by its {ONE[e.detail.bond]} {who(e.detail.creator)}</> : null}</>}
+              {e.kind === "buyback" && <>🛟 {who(e.fly_id)} bought back <b>${e.symbol}</b></>}
+              {e.kind === "dump" && <>🪦 {who(e.fly_id)} dumped <b>${e.symbol}</b> on its holders</>}
+            </li>
+          ))}
+        </ul>
+        <p className="fine">{market}</p>
+      </article>
+    );
+  }
   if (item.type === "duels" && item.duels.length === 1) {
     const d = item.duels[0];
     icon = "⚔";

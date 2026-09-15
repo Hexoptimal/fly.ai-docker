@@ -54,7 +54,9 @@ BUYBACK_DROP = -0.08
 BUYBACK_SHARE = 0.5         # of its usual buy size (risk x ETH)
 DUMP_SHARE = 0.5
 SHILL_MIN_SHARE = 0.05      # a holder shills a fly coin that is at least this share of its portfolio
-SOCIAL_TARGET, SOCIAL_THREAT = 0.6, 0.6   # stimulus per unit of trust, capped at one direct stimulus
+# stimulus per unit of trust, capped at one direct stimulus. Was 0.6: on the first live round after 3 launches
+# (2026-09-15, round 56) a plain pump (SUGAR) out-shouted every friend's launch, so no hype reached a brain
+SOCIAL_TARGET, SOCIAL_THREAT = 1.0, 1.0
 
 OPENROUTER = "https://openrouter.ai/api/v1"
 IMAGE_MODEL = os.environ.get("FLYBOOK_COIN_MODEL", "openai/gpt-image-1-mini")
@@ -398,38 +400,48 @@ def after_round(state: dict, flies: list[dict], did: dict[str, set], traded: dic
 
         if launched >= LAUNCHES_PER_ROUND or budget <= 0 or live_count >= LIVE_CAP or not wants_launch(mind, p, rng):
             continue
-        key = persona(f, mind)
-        theme = THEMES[key]
-        noun = rng.choice(theme["nouns"])
-        taken = {c["symbol"] for c in coins}
-        sym = symbol_for(f["name"], noun, taken)
-        start_price = SEED_ETH / (SUPPLY * (1 - CREATOR_SHARE))
-        coin = {"symbol": sym, "name": f"{f['name']} {noun}"[:40], "kind": "fly", "price": start_price, "regime": "calm",
-                "creator": fid, "persona": key, "tagline": rng.choice(theme["taglines"]), "launched_at": now_iso,
-                "launch_price": start_price, "supply": SUPPLY, "pool_eth": SEED_ETH, "pool_tokens": SUPPLY * (1 - CREATOR_SHARE),
-                "status": "live"}
-        image = state["image"](f, sym, key) if state.get("image") else {"image_path": None, "image_model": None, "image_cost": None}
-        coin.update(image)
-        coins.append(coin)
-        pools[sym] = coin
-        prices[sym] = start_price
-        p["eth"] -= SEED_ETH
-        mine = SUPPLY * CREATOR_SHARE
-        p["holdings"][sym] = {"qty": mine, "cost_eth": SEED_ETH}
-        p["value_eth"] = p["eth"] + sum(h["qty"] * prices.get(s, 0.0) for s, h in p["holdings"].items())
-        st["coins"].append(sym)
-        st["last_round"] = st["rounds"]
-        st["urge"] = 0.0
+        coin, trade, event = launch_coin(f, mind, p, coins, prices, rng, now_iso, state.get("image"), sorted(keys), reach(fid, True))
+        pools[coin["symbol"]] = coin
         launched += 1
         budget -= 1
         live_count += 1
-        launch_trades.append({"symbol": sym, "side": "launch", "qty": mine, "price": start_price, "eth": SEED_ETH,
-                              "fly_id": fid, "value_after": p["value_eth"],
-                              "reason": {"persona": key, "tagline": coin["tagline"], "did": sorted(keys),
-                                         "coin_number": len(st["coins"])}})
-        social.append({"fly_id": fid, "kind": "launch", "symbol": sym, "reach": reach(fid, True),
-                       "detail": {"persona": key, "tagline": coin["tagline"], "number": len(st["coins"])}})
-        print(f"coin launch: {f['name']} launched ${sym} ({coin['name']}, {key}, coin {len(st['coins'])}), "
-              f"image {image.get('image_model')} ${image.get('image_cost')}", flush=True)
+        launch_trades.append(trade)
+        social.append(event)
     state["launch_budget"] = budget
     return social, launch_trades
+
+
+def launch_coin(fly: dict, mind: dict, portfolio: dict, coins: list[dict], prices: dict, rng: random.Random, now_iso: str,
+                image=None, did: list[str] | None = None, reach: int = 0) -> tuple[dict, dict, dict]:
+    """Launch one coin for this fly now: name and tagline from its personality, a logo (image(fly, symbol, persona)),
+    a pool seeded with SEED_ETH and the creator's bag. Mutates mind, portfolio, coins and prices.
+    Returns (coin row, launch trade row, social event). Used by each market round and by launch_now.py."""
+    st = launch_state(mind)
+    key = persona(fly, mind)
+    theme = THEMES[key]
+    noun = rng.choice(theme["nouns"])
+    sym = symbol_for(fly["name"], noun, {c["symbol"] for c in coins})
+    start_price = SEED_ETH / (SUPPLY * (1 - CREATOR_SHARE))
+    coin = {"symbol": sym, "name": f"{fly['name']} {noun}"[:40], "kind": "fly", "price": start_price, "regime": "calm",
+            "creator": fly["id"], "persona": key, "tagline": rng.choice(theme["taglines"]), "launched_at": now_iso,
+            "launch_price": start_price, "supply": SUPPLY, "pool_eth": SEED_ETH, "pool_tokens": SUPPLY * (1 - CREATOR_SHARE),
+            "status": "live"}
+    logo = image(fly, sym, key) if image else {"image_path": None, "image_model": None, "image_cost": None}
+    coin.update(logo)
+    coins.append(coin)
+    prices[sym] = start_price
+    portfolio["eth"] -= SEED_ETH
+    mine = SUPPLY * CREATOR_SHARE
+    portfolio["holdings"][sym] = {"qty": mine, "cost_eth": SEED_ETH}
+    portfolio["value_eth"] = portfolio["eth"] + sum(h["qty"] * prices.get(s, 0.0) for s, h in portfolio["holdings"].items())
+    st["coins"].append(sym)
+    st["last_round"] = st["rounds"]
+    st["urge"] = 0.0
+    trade = {"symbol": sym, "side": "launch", "qty": mine, "price": start_price, "eth": SEED_ETH,
+             "fly_id": fly["id"], "value_after": portfolio["value_eth"],
+             "reason": {"persona": key, "tagline": coin["tagline"], "did": did or [], "coin_number": len(st["coins"])}}
+    event = {"fly_id": fly["id"], "kind": "launch", "symbol": sym, "reach": reach,
+             "detail": {"persona": key, "tagline": coin["tagline"], "number": len(st["coins"])}}
+    print(f"coin launch: {fly['name']} launched ${sym} ({coin['name']}, {key}, coin {len(st['coins'])}), "
+          f"image {logo.get('image_model')} ${logo.get('image_cost')}", flush=True)
+    return coin, trade, event
