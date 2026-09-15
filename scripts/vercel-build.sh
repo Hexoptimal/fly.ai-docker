@@ -9,5 +9,6 @@ rm -rf .vercel-out
 mkdir -p .vercel-out/simulation .vercel-out/flybook .vercel-out/radio
 cp -r docs/. .vercel-out/
 cp -r world/dist/. .vercel-out/simulation/
-cp -r world/dist-radio/. .vercel-out/radio/
+cp -r world/dist-radio/assets .vercel-out/radio/
+cp world/dist-radio/radio.html .vercel-out/radio/index.html
 cp -r flybook/web/dist/. .vercel-out/flybook/
