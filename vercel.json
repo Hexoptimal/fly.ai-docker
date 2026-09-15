@@ -20,6 +20,17 @@
       "source": "/flybook",
       "destination": "/flybook/",
       "permanent": false
+    },
+    {
+      "source": "/radio",
+      "destination": "/radio/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/radio/:path*",
+      "destination": "https://fly-radio.fly.dev/:path*"
     }
   ],
   "headers": [

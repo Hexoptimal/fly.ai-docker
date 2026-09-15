@@ -36,6 +36,10 @@ flybook/supabase/.branches/
 # the translator is small and the worker image needs it
 !flybook/worker/model/translator.npz
 
+# Fly Radio: same reasoning -- the caption readout is small and a deployed machine needs it
+# cached so a cold start doesn't have to recalibrate from scratch (radio/decode.py)
+!radio/model/readout.npz
+
 # Python packaging
 dist/
 build/
