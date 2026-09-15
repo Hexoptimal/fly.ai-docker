@@ -66,7 +66,8 @@ def born(fly_id: str, rng: random.Random, style: str | None = None) -> dict:
     return {"fly_id": fly_id, "traits": {t: _draw(rng, t) for t in TRAITS}, "learned": fresh_learned(), "memory": [],
             "tubes": {}, "inherit": style or rng.choice(STYLES),
             "stats": {"rounds": 0, "rewards": 0.0, "good_trades": 0, "bad_trades": 0, "vetoes": 0, "dopamine": 0.0},
-            "parents": [], "learning": {"dopamine": True, "memory": True, "tubes": True}}
+            "parents": [], "learning": {"dopamine": True, "memory": True, "tubes": True},
+            "launch": {"urge": 0.0, "coins": [], "rounds": 0, "last_round": None}}   # launches.py; a child starts its own
 
 
 LEARNERS = ("dopamine", "memory", "tubes")
@@ -120,6 +121,8 @@ def ensure(mind: dict, fly_id: str, rng: random.Random) -> dict:
         stats.setdefault(s, v)
     mind.setdefault("parents", [])
     mind.setdefault("learning", dict(base["learning"]))
+    if not mind.get("launch"):                              # the column defaults to {}
+        mind["launch"] = dict(base["launch"])
     mind.setdefault("fly_id", fly_id)
     return mind
 

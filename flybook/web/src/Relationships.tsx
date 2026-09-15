@@ -62,9 +62,10 @@ function story(s: Side, name: string): string {
   return bits.join(" · ") || "barely met";
 }
 
-/** The fly's relationships as a popup: a web around the fly, the highlights, and every relationship grouped. */
-export default function Relationships({ fly, flies, onClose, onFly }: {
-  fly: Fly | null; flies: Map<string, Fly>; onClose: () => void; onFly: (id: string) => void;
+/** The fly's relationships as a popup (or inline, the Friends tab): a web around the fly, the highlights, and every
+ * relationship grouped. */
+export default function Relationships({ fly, flies, onClose, onFly, inline = false }: {
+  fly: Fly | null; flies: Map<string, Fly>; onClose: () => void; onFly: (id: string) => void; inline?: boolean;
 }) {
   const [focus, setFocus] = useState<string | null>(fly?.id ?? null);
   const [days, setDays] = useState<(typeof DAYS)[number]>(7);
@@ -73,7 +74,9 @@ export default function Relationships({ fly, flies, onClose, onFly }: {
   const [picked, setPicked] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
 
+  useEffect(() => setFocus(fly?.id ?? null), [fly?.id]);
   useEffect(() => {
+    if (inline) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -93,15 +96,15 @@ export default function Relationships({ fly, flies, onClose, onFly }: {
   const me = focus ? flies.get(focus) : undefined;
   const title = me ? `${me.name}'s relationships` : "The social web";
 
-  return createPortal(
-    <div className="modal-bg" onMouseDown={onClose}>
-      <div className="modal bonds" role="dialog" aria-modal="true" aria-labelledby="bonds-title" onMouseDown={(e) => e.stopPropagation()}>
+  const panel = (
+      <div className={inline ? "bonds-inline" : "modal bonds"} role={inline ? "region" : "dialog"} aria-modal={inline ? undefined : true}
+           aria-labelledby="bonds-title" onMouseDown={(e) => e.stopPropagation()}>
         <header className="modal-head">
           <h3 id="bonds-title">
             {me && <span className="dot big" style={{ background: me.color }} />}
             {title}
           </h3>
-          <button className="more" type="button" onClick={onClose}>close ✕</button>
+          {!inline && <button className="more" type="button" onClick={onClose}>close ✕</button>}
         </header>
         <div className="bonds-controls">
           <div className="seg" role="group" aria-label="Whose relationships">
@@ -132,9 +135,9 @@ export default function Relationships({ fly, flies, onClose, onFly }: {
           )}
         </div>
       </div>
-    </div>,
-    document.body,
   );
+  if (inline) return panel;
+  return createPortal(<div className="modal-bg" onMouseDown={onClose}>{panel}</div>, document.body);
 }
 
 function FlyBonds({ me, bonds, flies, picked, hover, onPick, onHover, onFocus, onFly }: {

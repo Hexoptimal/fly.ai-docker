@@ -25,6 +25,7 @@ export function Spark({ values }: { values: number[] }) {
 
 const DID: Record<Exclude<FlyTrade["side"], "skipped">, string> = {
   buy: "Bought", panic_sell: "Panic-sold", take_profit: "Took profit on", sell: "Sold",
+  launch: "Launched", buyback: "Bought back", dump: "Dumped",
 };
 
 /** One fly's fake-ETH wallet: what it's worth, its cash, each coin it holds, its value over time and its own trades. */
@@ -100,7 +101,9 @@ export default function Wallet({ flyId, refresh }: { flyId: string; refresh?: nu
           {trades.slice(0, 8).map((t) => (
             <li key={t.id}>
               <span>{DID[t.side]} <b>${t.symbol}</b></span>
-              <span className={`mono ${t.side === "buy" ? "" : "up"}`}>{t.side === "buy" ? `paid ${eth(t.eth)} ETH` : `got ${eth(t.eth)} ETH`}</span>
+              {["buy", "launch", "buyback"].includes(t.side)
+                ? <span className="mono">paid {eth(t.eth)} ETH</span>
+                : <span className="mono up">got {eth(t.eth)} ETH</span>}
               <span className="fine mono">worth {eth(t.value_after)} ETH after</span>
               <span className="when">{ago(t.created_at)}</span>
             </li>

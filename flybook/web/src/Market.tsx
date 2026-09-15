@@ -2,16 +2,24 @@ import { useEffect, useState } from "react";
 import type { Viewer } from "./Account";
 import { LEARNERS, StyleEditor, type Style } from "./TradingStyle";
 import Wallet, { Spark, ago, eth, pct } from "./FlyWallet";
-import { db, loadMarket, type Coin, type FlyTrade, type Learning, type MarketControl, type MarketRound, type Trader } from "./feed";
+import { Drama, FlyCoins } from "./FlyCoins";
+import {
+  db, loadMarket, type Coin, type FlyCoin, type FlyTrade, type Learning, type MarketControl, type MarketRound, type MarketSocial, type SocialHit,
+  type Trader,
+} from "./feed";
 
 const SIDE: Record<FlyTrade["side"], string> = {
   buy: "bought", panic_sell: "panic-sold", take_profit: "took profit on", sell: "sold", skipped: "almost traded",
+  launch: "launched", buyback: "bought back", dump: "dumped",
 };
 const WHY: Record<Exclude<FlyTrade["side"], "skipped">, string> = {
   buy: "saw it moving and turned toward it",
   panic_sell: "saw it falling like a looming shape and jumped",
   take_profit: "felt the choppy market like wind and groomed",
   sell: "backed away from it",
+  launch: "launched its own coin and put the ETH in its pool",
+  buyback: "watched its own coin fall and turned toward it",
+  dump: "watched its own coin crash and jumped out",
 };
 const WANTED: Record<string, string> = { buy: "buy", panic_sell: "panic-sell", take_profit: "take profit on", sell: "sell" };
 const SENSE: Record<string, string> = { target: "pumps (moving flies)", threat: "crashes (looming)", wind: "chop (wind)" };
@@ -119,10 +127,14 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
   const [open, setOpen] = useState<string | null>(null);
   const [wallet, setWallet] = useState<string | null>(null);
   const [control, setControl] = useState<MarketControl | null>(null);
+  const [flyCoins, setFlyCoins] = useState<FlyCoin[]>([]);
+  const [social, setSocial] = useState<MarketSocial[]>([]);
 
   useEffect(() => {
     const refresh = () => loadMarket().then((m) => {
       setControl(m.control);
+      setFlyCoins(m.flyCoins);
+      setSocial(m.social);
       setCoins(m.coins);
       setRounds(m.rounds);
       setTraders(m.traders);
@@ -141,6 +153,8 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
   }, []);
 
   const names = new Map(traders.map((t) => [t.fly_id, t]));
+  const hyped = (hits?: SocialHit[]) => [...new Set((hits ?? []).map((h) => names.get(h.from ?? "")?.name).filter(Boolean))].join(" and ");
+  const mineSocial = social.filter((e) => !mine || names.get(e.fly_id ?? "")?.owner === viewer?.userId);
   const last = rounds[rounds.length - 1];
   const prev = rounds[rounds.length - 2];
   const board = traders.filter((t) => !mine || t.owner === viewer?.userId);
@@ -159,7 +173,8 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
       <div className="feed-head">
         <h2>Fly market</h2>
         <p>Holders' flies trade with their real brains, and learn. A pumping coin looks like a fly walking past, a crashing one
-          like a looming shape; what the fly's neurons do becomes the trade. Profit is dopamine: it tunes what the fly notices
+          like a looming shape; what the fly's neurons do becomes the trade. Flies launch their own coins, shill them to their
+          friends and FUD their enemies' coins. Profit is dopamine: it tunes what the fly notices
           and wants, its memory stops trades that hurt before, and slime-mold tubes pull it back to coins that paid. Children
           inherit it. Owners set each fly's trading style (risk and learners) when they hatch or breed it, in My flies, or in its 🧠 mind.</p>
       </div>
@@ -193,8 +208,10 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
             })}
           </div>
           {last?.events?.length ? (
-            <p className="fine">Last round: {last.events.map((e) => `$${e.symbol} ${e.kind === "rug" ? "got rugged" : "pumped"} ${pct(e.move)}`).join(", ")}</p>
+            <p className="fine">Last round: {last.events.map((e) => `$${e.symbol} ${
+              e.kind === "launch" ? "launched" : e.kind === "died" ? "died, its pool is empty" : `${e.kind === "rug" ? "got rugged" : "pumped"} ${pct(e.move)}`}`).join(", ")}</p>
           ) : null}
+          <FlyCoins coins={flyCoins} onFly={onFly} />
 
           <div className="board-controls">
             <div className="seg">
@@ -235,6 +252,7 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
                 ))}
               </ol>
             </section>
+            <Drama social={mineSocial} traders={names} coins={flyCoins} onFly={onFly} />
             <section>
               <h4>Trades</h4>
               {feed.length === 0 && <div className="empty">No trades yet.</div>}
@@ -253,6 +271,9 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
                       <span className="when">{ago(t.created_at)}</span>
                       <p className="fine">
                         {t.side === "skipped" ? `${t.reason.skipped ?? "its learning stopped it"}.` : `It ${WHY[t.side]}.`}
+                        {t.side === "launch" && t.reason.tagline ? ` “${t.reason.tagline}”` : ""}
+                        {t.side === "buy" && hyped(t.reason.felt?.target?.social) ? ` Shilled by ${hyped(t.reason.felt?.target?.social)}.` : ""}
+                        {t.side === "panic_sell" && hyped(t.reason.felt?.threat?.social) ? ` FUD from ${hyped(t.reason.felt?.threat?.social)}.` : ""}
                         {" "}Neurons: {(t.reason.did ?? []).join(", ") || "none"}.
                         {t.reason.memory ? ` Memory: ${t.reason.memory.similar} similar trades, ${pct(t.reason.memory.mean_reward)} on average.` : ""}
                         {t.side !== "skipped" ? ` Worth ${eth(t.value_after)} ETH after.` : ""}

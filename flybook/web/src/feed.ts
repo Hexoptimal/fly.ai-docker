@@ -148,7 +148,21 @@ export async function load(limit = 200): Promise<Snapshot> {
 }
 
 /** The simulated fly market (worker/market.py): fake coins, fake ETH. */
-export type Coin = { symbol: string; name: string; kind: "real" | "meme"; price: number; regime: string };
+export type Coin = { symbol: string; name: string; kind: "real" | "meme" | "fly"; price: number; regime: string };
+/** A coin a fly launched itself (worker/launches.py): a small pool its creator seeded, moved by every buy and sell. */
+export type FlyCoin = {
+  symbol: string; name: string; tagline: string | null; persona: string | null; image_path: string | null;
+  price: number; launch_price: number | null; supply: number | null; pool_eth: number | null; status: "live" | "dead";
+  launched_at: string | null; creator: string | null; creator_name: string | null; creator_color: string | null;
+  creator_owner: string | null; market_cap: number | null; since_launch: number | null; holders: number;
+};
+/** Launches, shills, FUD, buybacks and dumps: next round they reach other flies' senses through their relationships. */
+export type MarketSocial = {
+  id: number; round_id: number | null; fly_id: string | null; kind: "launch" | "shill" | "fud" | "buyback" | "dump";
+  symbol: string; reach: number; created_at: string;
+  detail: { tagline?: string; persona?: string; number?: number; creator?: string | null; bond?: string | null; own?: boolean; eth?: number };
+};
+export const coinImage = (path: string | null) => (url && path ? `${url}/storage/v1/object/public/coins/${path}` : "");
 export type MarketRound = { id: number; started_at: string; prices: Record<string, number>; events: { symbol: string; kind: string; move: number }[]; traders: number; trades: number };
 export type MindTraits = { risk?: number; lr?: number; k?: number; memory_size?: number; tube_growth?: number; tube_decay?: number; caution?: number };
 export type MindStats = { rounds?: number; rewards?: number; good_trades?: number; bad_trades?: number; vetoes?: number; dopamine?: number };
@@ -161,29 +175,40 @@ export type Trader = {
   tubes: Record<string, number> | null; gains: Record<string, number> | null; bias: Record<string, number> | null; memories: number | null;
 };
 export type FlyTrade = {
-  id: number; round_id: number; fly_id: string; symbol: string; side: "buy" | "panic_sell" | "take_profit" | "sell" | "skipped";
+  id: number; round_id: number; fly_id: string; symbol: string;
+  side: "buy" | "panic_sell" | "take_profit" | "sell" | "skipped" | "launch" | "buyback" | "dump";
   qty: number; price: number; eth: number; value_after: number; created_at: string;
   reason: {
-    did?: string[]; dopamine?: number; wanted?: string; skipped?: string; bias?: number;
+    did?: string[]; dopamine?: number; wanted?: string; skipped?: string; bias?: number; persona?: string; tagline?: string;
     memory?: { mean_reward: number; similar: number };
-    felt?: { target?: { symbol: string | null; move: number; tube?: number }; threat?: { symbol: string | null; move: number }; wind?: { chop: number } };
+    felt?: {
+      target?: { symbol: string | null; move: number; tube?: number; social?: SocialHit[] };
+      threat?: { symbol: string | null; move: number; social?: SocialHit[] }; wind?: { chop: number };
+    };
   };
 };
+/** Who a shill or FUD that reached a fly came from. */
+export type SocialHit = { from: string | null; kind: string; label: string };
 export type MarketControl = { paused: boolean; note: string | null; updated_at: string | null };
-export async function loadMarket(rounds = 48): Promise<{ coins: Coin[]; rounds: MarketRound[]; traders: Trader[]; trades: FlyTrade[]; control: MarketControl }> {
+export async function loadMarket(rounds = 48): Promise<{
+  coins: Coin[]; rounds: MarketRound[]; traders: Trader[]; trades: FlyTrade[]; control: MarketControl; flyCoins: FlyCoin[]; social: MarketSocial[];
+}> {
   const idle: MarketControl = { paused: false, note: null, updated_at: null };
-  if (!db) return { coins: [], rounds: [], traders: [], trades: [], control: idle };
-  const [coins, rs, traders, trades, control] = await Promise.all([
-    db.from("market_coins").select("*").order("kind").order("symbol"),
+  if (!db) return { coins: [], rounds: [], traders: [], trades: [], control: idle, flyCoins: [], social: [] };
+  const [coins, rs, traders, trades, control, flyCoins, social] = await Promise.all([
+    db.from("market_coins").select("symbol,name,kind,price,regime").neq("kind", "fly").order("kind").order("symbol"),
     db.from("market_rounds").select("id,started_at,prices,events,traders,trades").order("id", { ascending: false }).limit(rounds),
     db.from("trader_board").select("*").order("value_eth", { ascending: false }).limit(100),
     db.from("fly_trades").select("*").order("id", { ascending: false }).limit(60),
     db.from("market_control").select("paused,note,updated_at").eq("id", 1).maybeSingle(),
+    db.from("fly_coin_board").select("*").order("launched_at", { ascending: false }).limit(60),
+    db.from("market_social").select("*").order("id", { ascending: false }).limit(60),
   ]);
   return {
     coins: (coins.data ?? []) as Coin[], rounds: ((rs.data ?? []) as MarketRound[]).reverse(),
     traders: (traders.data ?? []) as Trader[], trades: (trades.data ?? []) as FlyTrade[],
     control: (control.data as MarketControl | null) ?? idle,
+    flyCoins: (flyCoins.data ?? []) as FlyCoin[], social: (social.data ?? []) as MarketSocial[],
   };
 }
 

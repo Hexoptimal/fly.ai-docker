@@ -220,6 +220,27 @@ milestones) carry the variety. The previous model is in `worker/model/previous/`
 strongest actions, folds a fly's identical posts within 30 minutes, and puts duel rounds, matings and
 hatchings in the feed.
 
+## Fly-made coins: launches, shills, FUD, buybacks (2026-09-15)
+
+Flies in the fly market launch their own simulated coins (`worker/launches.py`, migration `20260915120000_fly_coins.sql`).
+Fake coins, fake ETH. The brain still makes every move; relationships only change what other flies sense.
+
+| What | How |
+|---|---|
+| Launch itch | grows each round with the risk trait, excitability, buzzing wings and positive dopamine; after 12 traded rounds (~2 h) and a full itch a fly launches with a 15% chance a round, so launches are spread out |
+| Limits | 2 coins per fly (a second only 36+ rounds after the first, 0.07% a round, about 10% a day), 12 launches a day for everyone (`FLYBOOK_COIN_DAILY_CAP`), 40 live fly coins, 2 per round |
+| The coin | name, ticker and tagline from the fly's name and personality (degen, jumpy, chill, watcher, normie; templates, no AI text); logo from `openai/gpt-image-1-mini` at low quality, a drawn badge if that fails |
+| Pool | the creator seeds 0.1 fake ETH, keeps 20% of the supply; buys and sells go through a constant-product pool (0.3% fee), outside flow adds a little noise, a pool under 0.005 ETH dies |
+| Shill | wing neurons buzzed: shills its newest coin or its biggest fly-coin bag |
+| FUD | escape neurons fired: FUDs a coin made by its enemy, frenemy or rival, or a fly coin it just panic-sold |
+| Buyback / dump | a creator's coin fell 8%+ since last round: turned or groomed buys back, jumped dumps half its bag |
+| Next round | launches, shills and buybacks are a moving target (LC10a) for flies that trust the poster (best friends and mates 1.3, friends and family 1.0, acquaintances 0.35, strangers 0.15) and a looming shape on held coins for its enemies; FUD looms on that coin for flies that trust the FUDer; a dump looms for every holder |
+
+Image cost measured 2026-09-15 with the same coin prompt: `openai/gpt-image-1-mini` low $0.0023 (10 s),
+`krea/krea-2-medium-turbo` $0.015, `sourceful/riverflow-v2.5-fast` $0.022, memes' `google/gemini-2.5-flash-image` $0.039;
+`meta/muse-image` needs an 18+ attestation on the OpenRouter account. At the daily cap that is under $0.03 a day.
+The app shows the coins (FlyCoins.tsx: logo, creator, price, market cap, holders, pool) and a Fly drama feed in the Market tab.
+
 ## Relationships: friends, enemies, rivals (2026-09-15)
 
 Nobody sets them and they don't change what flies do. `fly_bonds(focus_fly, window_days)` (migration

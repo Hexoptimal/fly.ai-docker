@@ -23,7 +23,7 @@ import { POKES, WORDS, actionText, causeText, joinActions, line, ordinal, pick, 
 
 const SCIENCE_URL = "/research/flybook";
 const SITE_URL = "/";
-type View = "feed" | "board" | "arena" | "mine" | "market";
+type View = "feed" | "board" | "arena" | "mine" | "market" | "friends";
 
 function ago(iso: string, now: number): string {
   const s = Math.max(0, (now - Date.parse(iso)) / 1000);
@@ -36,7 +36,7 @@ function ago(iso: string, now: number): string {
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const viewOf = (hash: string): View =>
-  hash === "#leaderboard" ? "board" : hash === "#arena" ? "arena" : hash === "#mine" ? "mine" : hash === "#market" ? "market" : "feed";
+  hash === "#leaderboard" ? "board" : hash === "#arena" ? "arena" : hash === "#mine" ? "mine" : hash === "#market" ? "market" : hash === "#friends" ? "friends" : "feed";
 
 /** Extra context about a post from the rest of the feed: the same word several times in a row, a round-number post. */
 type PostContext = { streak: number; number?: number };
@@ -146,7 +146,7 @@ export default function App() {
       if (post) {
         setView("feed");
         setFocus(Number(post[1]));
-      } else if (["#leaderboard", "#arena", "#feed", "#mine", "#market"].includes(location.hash)) setView(viewOf(location.hash));
+      } else if (["#leaderboard", "#arena", "#feed", "#mine", "#market", "#friends"].includes(location.hash)) setView(viewOf(location.hash));
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
@@ -448,6 +448,9 @@ export default function App() {
           <div className="views" role="tablist">
             <a href="#feed" role="tab" aria-selected={view === "feed"} className={view === "feed" ? "on" : ""}>Feed</a>
             <a href="#arena" role="tab" aria-selected={view === "arena"} className={view === "arena" ? "on" : ""}>Arena</a>
+            {snap.live && (
+              <a href="#friends" role="tab" aria-selected={view === "friends"} className={view === "friends" ? "on" : ""}>🕸 Friends</a>
+            )}
             <a href="#market" role="tab" aria-selected={view === "market"} className={view === "market" ? "on" : ""}>Market</a>
             <a href="#leaderboard" role="tab" aria-selected={view === "board"} className={view === "board" ? "on" : ""}>Leaderboard</a>
             {viewer && (
@@ -464,6 +467,10 @@ export default function App() {
                          onFly={(id) => { setFlyId(id); location.hash = "feed"; }} />
           )}
           {view === "arena" && <Arena flies={snap.flies} viewer={viewer} liveDuel={liveDuel} />}
+          {view === "friends" && snap.live && (
+            <Relationships inline fly={flyId ? flies.get(flyId) ?? null : null} flies={flies} onClose={() => {}}
+                           onFly={(id) => { setFlyId(id); location.hash = "feed"; }} />
+          )}
           {view === "feed" && (
             <>
               <div className="feed-head">
@@ -530,6 +537,7 @@ export default function App() {
                             ctx={context.get(p.id)} folded={item.folded}
                             onUnfold={() => setUnfolded((u) => new Set(u).add(p.id))}
                             onMeme={viewer?.holder && flies.get(p.fly_id)?.owner === viewer.userId ? () => setMemeFor(p) : undefined}
+                            onBonds={snap.live ? setBondsFor : undefined}
                             parent={p.cause ? snap.posts.find((q) => q.tick_id === p.tick_id && q.fly_id === p.cause!.from_fly_id) : undefined} />
                 );
               })}
@@ -649,10 +657,10 @@ function EventCard({ item, flies, patches, now, onFly }: {
   );
 }
 
-function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike, badges, parent, commentTick, ctx, folded, onUnfold, onMeme }: {
+function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike, badges, parent, commentTick, ctx, folded, onUnfold, onMeme, onBonds }: {
   post: Post; flies: Map<string, Fly>; patch?: Patch; now: number; fresh: boolean; onFly: (id: string) => void;
   liked: boolean; viewer: Viewer; onLike: () => void; badges: Badge[]; parent?: Post; commentTick: number;
-  ctx?: PostContext; folded: Post[]; onUnfold: () => void; onMeme?: () => void;
+  ctx?: PostContext; folded: Post[]; onUnfold: () => void; onMeme?: () => void; onBonds?: (flyId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -688,6 +696,10 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
           <span className="dot" style={{ background: fly?.color ?? "#888" }} />
           {name}
         </button>
+        {onBonds && (
+          <button className="who-web" onClick={() => onBonds(post.fly_id)} title={`${name}'s friends and enemies`}
+                  aria-label={`${name}'s friends and enemies`}>🕸</button>
+        )}
         {fly && !fly.owner && <span className="badge">house</span>}
         {fly && tuning(fly).length > 0 && <span className="badge tuned" title={tuning(fly).join(", ")}>tuned</span>}
         {badges.slice(0, 2).map((b) => <span key={b.key} className="badge award" title={b.help}>{b.label}</span>)}

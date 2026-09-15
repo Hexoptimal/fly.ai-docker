@@ -33,6 +33,7 @@ import time
 
 import numpy as np
 
+import launches
 import minds
 from episode import AMOUNT, DT
 from settings import clean
@@ -81,6 +82,7 @@ def move_prices(coins: list[dict], rng: np.random.Generator) -> tuple[list[dict]
     for c in coins:
         spec = KIND.get(c["symbol"])
         if not spec:
+            out.append(c)                    # fly-made coins move with their pools (launches.drift and trades)
             continue
         _, _, kind, _, vol, drift = spec
         regime = c.get("regime", "calm")
@@ -109,9 +111,12 @@ def new_portfolio(fly_id: str) -> dict:
     return {"fly_id": fly_id, "eth": 1.0, "holdings": {}, "start_eth": 1.0, "value_eth": 1.0, "trades": 0}
 
 
-def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, mind: dict, learning: dict | None = None) -> dict:
+def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, mind: dict, learning: dict | None = None,
+         social: dict | None = None) -> dict:
     """What the market does to this fly's senses: amounts in stimulus units, after its settings and learned gains.
-    A learner switched off is not used: dopamine off ignores learned gains, tubes off ignores tube thickness."""
+    A learner switched off is not used: dopamine off ignores learned gains, tubes off ignores tube thickness.
+    social (launches.social_drive): shills and FUD from flies it has a relationship with; when that hits harder than the
+    price moves, the shilled coin becomes the moving target, and a FUDed coin it holds becomes the looming shape."""
     learning = ALL_LEARNING if learning is None else learning
     old = history[-1] if history else {}
     moves = {s: prices[s] / old[s] - 1 for s in prices if old.get(s)}
@@ -129,7 +134,7 @@ def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, min
     target = max(noticed, key=noticed.get) if noticed else None
     held = [s for s, h in portfolio["holdings"].items() if h["qty"] > 0 and s in moves]
     worst = min(held, key=lambda s: moves[s]) if held else None
-    return {
+    out = {
         "target": {"symbol": target, "move": round(moves[target], 4) if target else 0.0,
                    "tube": round(tube(target), 3) if target else 1.0,
                    "amount": amount("target", moves[target] * 4) if target else 0.0},
@@ -137,6 +142,22 @@ def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, min
                    "amount": amount("threat", -moves[worst] * 3) if worst else 0.0},
         "wind": {"chop": round(chop, 4), "amount": amount("wind", chop * 8)},
     }
+    if social and social["target"]:
+        sym, trust = max(social["target"].items(), key=lambda kv: kv[1])
+        hit = amount("target", min(1.0, launches.SOCIAL_TARGET * trust))
+        if sym in prices and hit > out["target"]["amount"]:
+            out["target"] = {"symbol": sym, "move": round(moves.get(sym, 0.0), 4), "tube": round(tube(sym), 3),
+                             "amount": hit, "social": social["why"].get(sym, [])[:3]}
+    held_now = {s for s, h in portfolio["holdings"].items() if h["qty"] > 0 and s in prices}
+    if social and social["threat"]:
+        scary = {s: v for s, v in social["threat"].items() if s in held_now}
+        if scary:
+            sym, trust = max(scary.items(), key=lambda kv: kv[1])
+            hit = amount("threat", min(1.0, launches.SOCIAL_THREAT * trust))
+            if hit > out["threat"]["amount"]:
+                out["threat"] = {"symbol": sym, "move": round(moves.get(sym, 0.0), 4), "amount": hit,
+                                 "social": social["why"].get(sym, [])[:3]}
+    return out
 
 
 def run_brains(eps, reader, settings: list[dict], drives: list[dict], rewards: list[float], seed: int):
@@ -168,11 +189,15 @@ def run_brains(eps, reader, settings: list[dict], drives: list[dict], rewards: l
 
 
 def decide(portfolio: dict, did: list[dict], drive: dict, prices: dict, mind: dict, learning: dict,
-           rng: random.Random | None = None) -> tuple[dict | None, str, dict]:
+           rng: random.Random | None = None, pools: dict | None = None) -> tuple[dict | None, str, dict]:
     """The fly's actions as a trade, after its learning has had a say. Mutates the portfolio.
+    pools: fly-made coins by symbol; trades in them go through the coin's pool and move its price (launches.py).
     Returns (trade or None, action name or 'hold', a note for the trade's reason)."""
     keys = {a["key"] for a in did}
+    pools = pools or {}
     held = {s: h for s, h in portfolio["holdings"].items() if h["qty"] > 0 and s in prices}
+    if drive["target"]["symbol"] in pools and not launches.live(pools[drive["target"]["symbol"]]):
+        drive = {**drive, "target": {**drive["target"], "symbol": None}}        # nobody can buy a dead coin
     pnl = lambda s: held[s]["qty"] * prices[s] - held[s]["cost_eth"]
     if "jumped" in keys and held:
         action, symbol = "panic_sell", drive["threat"]["symbol"] or min(held, key=pnl)
@@ -208,7 +233,11 @@ def decide(portfolio: dict, did: list[dict], drive: dict, prices: dict, mind: di
         spend = min(portfolio["eth"], portfolio["eth"] * mind["traits"]["risk"] * (1.5 if "buzzed" in keys else 1.0) * size)
         if spend < MIN_TRADE_ETH:
             return None, "hold", {}
-        qty = spend * (1 - FEE) / prices[symbol]
+        if symbol in pools:
+            qty = launches.buy(pools[symbol], spend)
+            prices[symbol] = pools[symbol]["price"]
+        else:
+            qty = spend * (1 - FEE) / prices[symbol]
         h = portfolio["holdings"].setdefault(symbol, {"qty": 0.0, "cost_eth": 0.0})
         h["qty"] += qty
         h["cost_eth"] += spend
@@ -218,7 +247,15 @@ def decide(portfolio: dict, did: list[dict], drive: dict, prices: dict, mind: di
     share = {"panic_sell": 1.0, "take_profit": 0.25, "sell": 0.5}[action] * min(1.0, size)
     h = held[symbol]
     qty = h["qty"] * share
-    got = qty * prices[symbol] * (1 - FEE)
+    if symbol in pools:
+        if not launches.live(pools[symbol]):
+            return None, "hold", {}
+        if launches.quote_sell(pools[symbol], qty) < MIN_TRADE_ETH:              # quote first: tiny sells are skipped
+            return None, "hold", {}
+        got = launches.sell(pools[symbol], qty)
+        prices[symbol] = pools[symbol]["price"]
+    else:
+        got = qty * prices[symbol] * (1 - FEE)
     if got < MIN_TRADE_ETH:
         return None, "hold", {}
     h["cost_eth"] *= (1 - share)
@@ -239,8 +276,17 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
     coins = state.get("coins") or seed_coins()
     old_prices = {c["symbol"]: c["price"] for c in coins}
     coins, events = moved if moved else move_prices(coins, rng)
+    fly_market = bool(state.get("launches"))              # fly-made coins, shills and FUD (off in the offline check)
+    if fly_market:
+        events = events + launches.drift(coins, rng)
+    state["coins"] = coins
     prices = {c["symbol"]: c["price"] for c in coins}
     history = state.get("history", [])
+    last = history[0] if history else {}
+    recent = {s: prices[s] / last[s] - 1 for s in prices if last.get(s)}      # since last round (creators watch this)
+    pools = {c["symbol"]: c for c in coins if c.get("kind") == "fly"}
+    live_symbols = {s for s, c in pools.items() if launches.live(c)}
+    bonds, social_in = state.get("bonds") or {}, state.get("social") or []
     settings_of = lambda f: {k: f.get(k) or {} for k in ("senses", "temperament", "dials")}
 
     dopamine, own = {}, {}
@@ -259,15 +305,23 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
         reader.fit_profiles(new[:PROFILE_FITS_PER_ROUND], seed=int(rng.integers(2**31)))
 
     trades = []
+    did_by_fly: dict[str, set] = {}
+    traded: dict[str, list[dict]] = {}
     seed = int(rng.integers(2**31)) if seed is None else seed
     for start in range(0, len(flies), eps.max_batch):
         batch = flies[start:start + eps.max_batch]
-        drives = [felt(state["portfolios"][f["id"]], prices, history, settings_of(f), state["minds"][f["id"]], own[f["id"]]) for f in batch]
+        drives = [felt(state["portfolios"][f["id"]], prices, history, settings_of(f), state["minds"][f["id"]], own[f["id"]],
+                       launches.social_drive(f["id"], social_in, bonds, live_symbols) if fly_market else None) for f in batch]
         rewards = [dopamine[f["id"]] if own[f["id"]].get("dopamine") else 0.0 for f in batch]
         did = run_brains(eps, reader, [settings_of(f) for f in batch], drives, rewards, seed + start)
         for f, acts, drive in zip(batch, did, drives):
             p, mind = state["portfolios"][f["id"]], state["minds"][f["id"]]
-            trade, action, note = decide(p, acts, drive, prices, mind, own[f["id"]], py_rng)
+            keys = {a["key"] for a in acts}
+            did_by_fly[f["id"]] = keys
+            made = launches.creator_trade(p, keys, pools, recent, mind, prices) if fly_market else None
+            trade, action, note = made if made else decide(p, acts, drive, prices, mind, own[f["id"]], py_rng, pools)
+            if trade and trade["side"] != "skipped":
+                traded.setdefault(f["id"], []).append(trade)
             p["value_eth"] = value(p, prices)
             if trade and action in minds.ACTIONS:
                 minds.open_trade(mind, trade["symbol"], trade["price"], action,
@@ -284,23 +338,41 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
                                       **({"wanted": trade["wanted"]} if "wanted" in trade else {}),
                                       **{k: v for k, v in note.items() if k != "state"}}})
 
-    state["coins"] = coins
+    social = []
+    if fly_market:
+        stamp = time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime())
+        social, launched = launches.after_round(state, flies, did_by_fly, traded, prices, dopamine, py_rng, stamp)
+        trades += launched
+        events = events + [{"symbol": t["symbol"], "kind": "launch", "move": 0.0} for t in launched]
+        for f in flies:
+            p = state["portfolios"][f["id"]]
+            p["value_eth"] = value(p, prices)
     state["history"] = ([prices] + history)[:HISTORY]
     return {"round": {"prices": prices, "events": events, "traders": len(flies),
                       "trades": sum(t["side"] != "skipped" for t in trades), "seconds": round(time.perf_counter() - t0, 1)},
-            "trades": trades}
+            "trades": trades, "social": social}
 
 
 def market_round(store, eps, reader, rng: np.random.Generator, flies: list[dict], learning: dict | None = None) -> dict:
     """Load the market, run one round for these flies, save it. learning: force these learners on every fly
-    (None: each fly's owner's choice)."""
+    (None: each fly's owner's choice). Flies launch, shill and FUD coins here (launches.py)."""
     ids = [f["id"] for f in flies]
     state = {"coins": store.market_coins(), "history": [r["prices"] for r in store.market_history(HISTORY)],
-             "portfolios": {p["fly_id"]: p for p in store.portfolios(ids)}, "minds": {m["fly_id"]: m for m in store.minds(ids)}}
+             "portfolios": {p["fly_id"]: p for p in store.portfolios(ids)}, "minds": {m["fly_id"]: m for m in store.minds(ids)},
+             "launches": True, "social": [], "bonds": {}, "launch_budget": 0}
+    try:                                   # relationships and last round's drama; the round still runs without them
+        state["bonds"] = store.bonds()
+        state["social"] = store.recent_social()
+        state["launch_budget"] = max(0, launches.DAILY_CAP - store.launches_today())
+    except Exception as e:
+        print(f"fly coins: couldn't load bonds or social events: {e}", flush=True)
+    state["image"] = lambda fly, symbol, key: launches.make_image(store.save_coin_image, fly, symbol, key)
     out = simulate_round(state, eps, reader, rng, flies, learning)
     rnd = out["round"]
-    store.save_market(rnd, state["coins"], [state["portfolios"][i] for i in ids], out["trades"], [state["minds"][i] for i in ids])
+    store.save_market(rnd, state["coins"], [state["portfolios"][i] for i in ids], out["trades"], [state["minds"][i] for i in ids],
+                      out["social"])
     skipped = sum(t["side"] == "skipped" for t in out["trades"])
+    kinds = {k: sum(e["kind"] == k for e in out["social"]) for k in ("launch", "shill", "fud", "buyback", "dump")}
     print(f"market round: {len(flies)} traders, {rnd['trades']} trades, {skipped} skipped by learning, "
-          f"events {rnd['events']}, {rnd['seconds']} s", flush=True)
+          f"fly coins {kinds}, events {rnd['events']}, {rnd['seconds']} s", flush=True)
     return rnd

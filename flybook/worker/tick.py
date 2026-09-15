@@ -35,6 +35,7 @@ import numpy as np
 import requests
 
 import chain
+import launches
 import market
 import minds
 from settings import FREE_FLIES
@@ -61,6 +62,7 @@ def house_rows() -> tuple[list[dict], list[dict]]:
 
 class SupabaseStore:
     def __init__(self, url: str, key: str):
+        self.url, self.key = url.rstrip("/"), key
         self.base = url.rstrip("/") + "/rest/v1"
         self.http = requests.Session()
         self.http.headers.update({"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"})
@@ -117,10 +119,32 @@ class SupabaseStore:
         return bool(rows and rows[0].get("paused"))
 
     def market_coins(self) -> list[dict]:
-        return self._req("GET", "market_coins?select=symbol,name,kind,price,regime")
+        return self._req("GET", "market_coins?select=*")
 
     def market_history(self, n: int) -> list[dict]:
         return self._req("GET", f"market_rounds?select=id,prices&order=id.desc&limit={n}")
+
+    # fly-made coins (launches.py)
+    def bonds(self) -> dict:
+        """Every relationship over the last 7 days: {(fly a, fly b) sorted: label} (fly_bonds)."""
+        rows = self._req("POST", "rpc/fly_bonds", json={"focus_fly": None, "window_days": 7}) or []
+        return {launches.pair(r["a"], r["b"]): r["label"] for r in rows}
+
+    def recent_social(self) -> list[dict]:
+        """The latest round's launches, shills, FUD, buybacks and dumps."""
+        rows = self._req("GET", "market_social?select=fly_id,kind,symbol,reach,round_id&order=id.desc&limit=300") or []
+        latest = max((r["round_id"] for r in rows if r.get("round_id") is not None), default=None)
+        return [r for r in rows if r.get("round_id") == latest]
+
+    def launches_today(self) -> int:
+        midnight = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT00:00:00+00:00")
+        return len(self._req("GET", f"market_social?select=id&kind=eq.launch&created_at=gte.{requests.utils.quote(midnight)}") or [])
+
+    def save_coin_image(self, path: str, data: bytes) -> None:
+        r = self.http.post(f"{self.url}/storage/v1/object/coins/{path}", data=data, timeout=60, headers={
+            "Content-Type": "image/webp", "cache-control": "31536000", "x-upsert": "false"})
+        if not r.ok:
+            raise RuntimeError(f"coin image upload: {r.status_code} {r.text[:200]}")
 
     def portfolios(self, ids: list[str]) -> list[dict]:
         if not ids:
@@ -130,13 +154,22 @@ class SupabaseStore:
     def minds(self, ids: list[str]) -> list[dict]:
         if not ids:
             return []
-        return self._req("GET", f"fly_minds?select=fly_id,traits,learned,memory,tubes,inherit,stats,parents,learning&fly_id=in.({','.join(ids)})")
+        return self._req("GET", f"fly_minds?select=fly_id,traits,learned,memory,tubes,inherit,stats,parents,learning,launch&fly_id=in.({','.join(ids)})")
 
-    def save_market(self, round_row: dict, coins: list[dict], portfolios: list[dict], trades: list[dict], minds: list[dict]) -> None:
+    def save_market(self, round_row: dict, coins: list[dict], portfolios: list[dict], trades: list[dict], minds: list[dict],
+                    social: list[dict] | None = None) -> None:
         rnd = self._req("POST", "market_rounds", "return=representation", json=round_row)[0]
         stamp = now_iso()
-        self._req("POST", "market_coins?on_conflict=symbol", "resolution=merge-duplicates",
-                  json=[{**c, "updated_at": stamp} for c in coins])
+        # a bulk upsert needs the same keys on every row: the fixed coins and the fly-made coins go separately
+        fixed = [{k: c.get(k) for k in ("symbol", "name", "kind", "price", "regime")} for c in coins if c.get("kind") != "fly"]
+        made = [{k: c.get(k) for k in launches.COIN_KEYS} for c in coins if c.get("kind") == "fly"]
+        for rows in (fixed, made):
+            if rows:
+                self._req("POST", "market_coins?on_conflict=symbol", "resolution=merge-duplicates",
+                          json=[{**c, "updated_at": stamp} for c in rows])
+        if social:
+            self._req("POST", "market_social", json=[{k: e.get(k) for k in ("fly_id", "kind", "symbol", "reach", "detail")}
+                                                     | {"round_id": rnd["id"]} for e in social])
         if portfolios:
             self._req("POST", "fly_portfolios?on_conflict=fly_id", "resolution=merge-duplicates",
                       json=[{**p, "updated_at": stamp} for p in portfolios])
@@ -244,7 +277,26 @@ class JsonStore:
 
     # fly market (market.py), kept in the same file
     def _market(self) -> dict:
-        return self.d.setdefault("market", {"coins": [], "rounds": [], "portfolios": {}, "minds": {}, "trades": []})
+        m = self.d.setdefault("market", {"coins": [], "rounds": [], "portfolios": {}, "minds": {}, "trades": []})
+        m.setdefault("social", [])
+        return m
+
+    def bonds(self) -> dict:
+        return {launches.pair(b["a"], b["b"]): b["label"] for b in self._market().get("bonds", [])}
+
+    def recent_social(self) -> list[dict]:
+        social = self._market()["social"]
+        latest = social[-1]["round_id"] if social else None
+        return [e for e in social if e["round_id"] == latest]
+
+    def launches_today(self) -> int:
+        today = now_iso()[:10]
+        return sum(e["kind"] == "launch" and e.get("created_at", "")[:10] == today for e in self._market()["social"])
+
+    def save_coin_image(self, path: str, data: bytes) -> None:
+        out = self.path.parent / "coins" / path
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_bytes(data)
 
     def open_wallets(self, ids: list[str]) -> None:
         for i in ids:
@@ -266,9 +318,11 @@ class JsonStore:
     def minds(self, ids: list[str]) -> list[dict]:
         return [self._market()["minds"][i] for i in ids if i in self._market()["minds"]]
 
-    def save_market(self, round_row: dict, coins: list[dict], portfolios: list[dict], trades: list[dict], minds: list[dict]) -> None:
+    def save_market(self, round_row: dict, coins: list[dict], portfolios: list[dict], trades: list[dict], minds: list[dict],
+                    social: list[dict] | None = None) -> None:
         m = self._market()
         rid = (m["rounds"][-1]["id"] + 1) if m["rounds"] else 1
+        m["social"] = (m["social"] + [{**e, "round_id": rid, "created_at": now_iso()} for e in social or []])[-500:]
         m["rounds"] = (m["rounds"] + [{**round_row, "id": rid, "started_at": now_iso()}])[-200:]
         m["coins"] = coins
         m["portfolios"].update({p["fly_id"]: p for p in portfolios})
