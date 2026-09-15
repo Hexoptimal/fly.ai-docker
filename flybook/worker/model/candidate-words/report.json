@@ -1,0 +1,472 @@
+{
+ "criteria": ", fixed before running (on the test set, for the selected candidate):\n  W1 every posted word with >= 5 posts is >= 85% precise\n  W2 flies whose label is 'nothing' post a word <= 10% of the time\n  W3 wind is postable and posted >= 5 times at >= 85% precision\n  W4 directly stimulated flies are read right >= 70% of the time\n  W5 flies hit directly by a threat are read 'threat' >= 90% of the time\n  (readout.py's C6 is left out: it scores the standard-rest action reader, and live actions have been judged against each\n  fly's own resting baseline since 2026-09-14; actions are not part of this refit)",
+ "live_flies": 34,
+ "flies": {
+  "train": 1185,
+  "val": 436,
+  "test": 481
+ },
+ "before": {
+  "val": {
+   "metrics": {
+    "flies": 436,
+    "postable": [
+     "mate",
+     "taste",
+     "threat",
+     "touch"
+    ],
+    "precision": {
+     "mate": [
+      0.958,
+      215
+     ],
+     "taste": [
+      1.0,
+      9
+     ],
+     "threat": [
+      0.944,
+      71
+     ],
+     "touch": [
+      1.0,
+      7
+     ]
+    },
+    "recall": {
+     "mate": 0.752,
+     "taste": 0.9,
+     "threat": 0.893,
+     "touch": 0.467
+    },
+    "posted_share": {
+     "mate": 0.712,
+     "taste": 0.03,
+     "threat": 0.235,
+     "touch": 0.023
+    },
+    "true_share": {
+     "nothing": 0.096,
+     "threat": 0.172,
+     "mate": 0.628,
+     "wind": 0.023,
+     "taste": 0.023,
+     "touch": 0.034,
+     "cva": 0.023
+    },
+    "cva_ratio": 0.0,
+    "hallucination_rate": 0.143,
+    "direct_right": 0.538,
+    "buzz_rest": 0.405,
+    "buzz_threat": 1.0,
+    "post_rate": 0.693
+   },
+   "checks": {
+    "W1 posted words >= 85% precise": true,
+    "W2 label nothing -> word <= 10%": false,
+    "W3 wind posted >= 5 at >= 85%": false,
+    "W4 direct reads right >= 70%": false,
+    "W5 direct threat read >= 90%": true
+   }
+  },
+  "test": {
+   "metrics": {
+    "flies": 481,
+    "postable": [
+     "mate",
+     "taste",
+     "threat",
+     "touch"
+    ],
+    "precision": {
+     "mate": [
+      0.976,
+      252
+     ],
+     "taste": [
+      1.0,
+      3
+     ],
+     "threat": [
+      0.947,
+      95
+     ],
+     "touch": [
+      1.0,
+      6
+     ]
+    },
+    "recall": {
+     "mate": 0.721,
+     "taste": 0.75,
+     "threat": 0.989,
+     "touch": 0.75
+    },
+    "posted_share": {
+     "mate": 0.708,
+     "taste": 0.008,
+     "threat": 0.267,
+     "touch": 0.017
+    },
+    "true_share": {
+     "nothing": 0.035,
+     "threat": 0.189,
+     "mate": 0.709,
+     "wind": 0.012,
+     "taste": 0.008,
+     "touch": 0.017,
+     "cva": 0.029
+    },
+    "cva_ratio": 0.0,
+    "hallucination_rate": 0.059,
+    "direct_right": 0.521,
+    "buzz_rest": 0.471,
+    "buzz_threat": 1.0,
+    "post_rate": 0.74
+   },
+   "checks": {
+    "W1 posted words >= 85% precise": true,
+    "W2 label nothing -> word <= 10%": true,
+    "W3 wind posted >= 5 at >= 85%": false,
+    "W4 direct reads right >= 70%": false,
+    "W5 direct threat read >= 90%": true
+   }
+  }
+ },
+ "candidates": {
+  "A": {
+   "rule": [
+    "peak",
+    0.02
+   ],
+   "thresholds": {
+    "threat": 0.6263,
+    "mate": 0.6614,
+    "wind": 0.6188,
+    "taste": 0.5201,
+    "touch": 0.6058
+   },
+   "val": {
+    "flies": 436,
+    "postable": [
+     "mate",
+     "taste",
+     "threat",
+     "touch",
+     "wind"
+    ],
+    "precision": {
+     "mate": [
+      0.95,
+      221
+     ],
+     "taste": [
+      1.0,
+      10
+     ],
+     "threat": [
+      0.957,
+      70
+     ],
+     "touch": [
+      1.0,
+      7
+     ],
+     "wind": [
+      1.0,
+      10
+     ]
+    },
+    "recall": {
+     "mate": 0.766,
+     "taste": 1.0,
+     "threat": 0.893,
+     "touch": 0.467,
+     "wind": 1.0
+    },
+    "posted_share": {
+     "mate": 0.695,
+     "taste": 0.031,
+     "threat": 0.22,
+     "touch": 0.022,
+     "wind": 0.031
+    },
+    "true_share": {
+     "nothing": 0.096,
+     "threat": 0.172,
+     "mate": 0.628,
+     "wind": 0.023,
+     "taste": 0.023,
+     "touch": 0.034,
+     "cva": 0.023
+    },
+    "cva_ratio": 0.0,
+    "hallucination_rate": 0.167,
+    "direct_right": 0.75,
+    "buzz_rest": 0.405,
+    "buzz_threat": 1.0,
+    "post_rate": 0.729
+   },
+   "val_checks": {
+    "W1 posted words >= 85% precise": true,
+    "W2 label nothing -> word <= 10%": false,
+    "W3 wind posted >= 5 at >= 85%": true,
+    "W4 direct reads right >= 70%": true,
+    "W5 direct threat read >= 90%": true
+   },
+   "passed_val": false
+  },
+  "B": {
+   "rule": [
+    "peak",
+    0.02
+   ],
+   "thresholds": {
+    "threat": 0.6424,
+    "mate": 0.6751,
+    "wind": 0.598,
+    "taste": 0.5348,
+    "touch": 0.5362
+   },
+   "val": {
+    "flies": 436,
+    "postable": [
+     "mate",
+     "taste",
+     "threat",
+     "touch",
+     "wind"
+    ],
+    "precision": {
+     "mate": [
+      0.952,
+      210
+     ],
+     "taste": [
+      1.0,
+      9
+     ],
+     "threat": [
+      0.956,
+      68
+     ],
+     "touch": [
+      1.0,
+      6
+     ],
+     "wind": [
+      1.0,
+      9
+     ]
+    },
+    "recall": {
+     "mate": 0.73,
+     "taste": 0.9,
+     "threat": 0.867,
+     "touch": 0.4,
+     "wind": 0.9
+    },
+    "posted_share": {
+     "mate": 0.695,
+     "taste": 0.03,
+     "threat": 0.225,
+     "touch": 0.02,
+     "wind": 0.03
+    },
+    "true_share": {
+     "nothing": 0.096,
+     "threat": 0.172,
+     "mate": 0.628,
+     "wind": 0.023,
+     "taste": 0.023,
+     "touch": 0.034,
+     "cva": 0.023
+    },
+    "cva_ratio": 0.0,
+    "hallucination_rate": 0.19,
+    "direct_right": 0.692,
+    "buzz_rest": 0.405,
+    "buzz_threat": 1.0,
+    "post_rate": 0.693
+   },
+   "val_checks": {
+    "W1 posted words >= 85% precise": true,
+    "W2 label nothing -> word <= 10%": false,
+    "W3 wind posted >= 5 at >= 85%": true,
+    "W4 direct reads right >= 70%": false,
+    "W5 direct threat read >= 90%": true
+   },
+   "passed_val": false
+  },
+  "C": {
+   "rule": [
+    "total",
+    0.05
+   ],
+   "thresholds": {
+    "threat": 0.6424,
+    "mate": 0.4981,
+    "wind": 0.598,
+    "taste": 0.5348,
+    "touch": 0.4612,
+    "cva": 0.3051
+   },
+   "val": {
+    "flies": 436,
+    "postable": [
+     "cva",
+     "mate",
+     "taste",
+     "threat",
+     "touch",
+     "wind"
+    ],
+    "precision": {
+     "cva": [
+      1.0,
+      6
+     ],
+     "mate": [
+      0.952,
+      209
+     ],
+     "taste": [
+      1.0,
+      9
+     ],
+     "threat": [
+      0.956,
+      68
+     ],
+     "touch": [
+      1.0,
+      5
+     ],
+     "wind": [
+      1.0,
+      9
+     ]
+    },
+    "recall": {
+     "cva": 0.6,
+     "mate": 0.884,
+     "taste": 0.9,
+     "threat": 0.867,
+     "touch": 0.625,
+     "wind": 0.9
+    },
+    "posted_share": {
+     "cva": 0.02,
+     "mate": 0.683,
+     "taste": 0.029,
+     "threat": 0.222,
+     "touch": 0.016,
+     "wind": 0.029
+    },
+    "true_share": {
+     "nothing": 0.225,
+     "threat": 0.172,
+     "mate": 0.516,
+     "wind": 0.023,
+     "taste": 0.023,
+     "touch": 0.018,
+     "cva": 0.023
+    },
+    "cva_ratio": 0.85,
+    "hallucination_rate": 0.071,
+    "direct_right": 0.788,
+    "buzz_rest": 0.439,
+    "buzz_threat": 1.0,
+    "post_rate": 0.702
+   },
+   "val_checks": {
+    "W1 posted words >= 85% precise": true,
+    "W2 label nothing -> word <= 10%": true,
+    "W3 wind posted >= 5 at >= 85%": true,
+    "W4 direct reads right >= 70%": true,
+    "W5 direct threat read >= 90%": true
+   },
+   "passed_val": true
+  }
+ },
+ "selected": "C",
+ "test": {
+  "metrics": {
+   "flies": 481,
+   "postable": [
+    "cva",
+    "mate",
+    "taste",
+    "threat",
+    "touch",
+    "wind"
+   ],
+   "precision": {
+    "cva": [
+     0.8,
+     5
+    ],
+    "mate": [
+     0.942,
+     241
+    ],
+    "taste": [
+     1.0,
+     3
+    ],
+    "threat": [
+     0.957,
+     93
+    ],
+    "touch": [
+     1.0,
+     7
+    ],
+    "wind": [
+     1.0,
+     6
+    ]
+   },
+   "recall": {
+    "cva": 0.286,
+    "mate": 0.866,
+    "taste": 0.75,
+    "threat": 0.978,
+    "touch": 0.875,
+    "wind": 1.0
+   },
+   "posted_share": {
+    "cva": 0.014,
+    "mate": 0.679,
+    "taste": 0.008,
+    "threat": 0.262,
+    "touch": 0.02,
+    "wind": 0.017
+   },
+   "true_share": {
+    "nothing": 0.2,
+    "threat": 0.189,
+    "mate": 0.545,
+    "wind": 0.012,
+    "taste": 0.008,
+    "touch": 0.017,
+    "cva": 0.029
+   },
+   "cva_ratio": 0.48,
+   "hallucination_rate": 0.083,
+   "direct_right": 0.75,
+   "buzz_rest": 0.531,
+   "buzz_threat": 1.0,
+   "post_rate": 0.738
+  },
+  "checks": {
+   "W1 posted words >= 85% precise": false,
+   "W2 label nothing -> word <= 10%": true,
+   "W3 wind posted >= 5 at >= 85%": true,
+   "W4 direct reads right >= 70%": true,
+   "W5 direct threat read >= 90%": true
+  },
+  "passed": false
+ }
+}

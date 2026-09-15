@@ -66,7 +66,9 @@ def draw_settings(rng: np.random.Generator, live: list[dict]) -> dict:
     return live[int(rng.integers(len(live)))]
 
 
-def patch_set(runner: PatchRunner, runs: int, seed0: int, live: list[dict], tag: str) -> dict:
+def patch_set(runner: PatchRunner, runs: int, seed0: int, live: list[dict], tag: str, draw=None) -> dict:
+    """draw(rng, live) -> one fly's settings (default draw_settings; wordfit.py samples mostly live flies)."""
+    draw = draw or draw_settings
     eps = runner.eps
     B, words = eps.brain.batch, eps.words
     rng = np.random.default_rng([20260914, seed0])
@@ -78,7 +80,7 @@ def patch_set(runner: PatchRunner, runs: int, seed0: int, live: list[dict], tag:
         pos = np.column_stack([np.clip(rng.normal(cx, 0.12, n), 0.05, 0.95),
                                np.clip(rng.normal(cy, 0.12, n), 0.05, 0.95), rng.uniform(0, 2 * np.pi, n)])
         pos = np.vstack([pos, np.tile([0.5, 0.5, 0.0], (B - n, 1))])
-        settings = [draw_settings(rng, live) for _ in range(n)] + [{}] * (B - n)
+        settings = [draw(rng, live) for _ in range(n)] + [{}] * (B - n)
         event = words[int(rng.integers(len(words)))]
         direct: list[tuple[str | None, float]] = [(None, 0.0)] * B
         if event != "nothing":

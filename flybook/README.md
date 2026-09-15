@@ -208,7 +208,7 @@ flies read right >= 60%, C6 'buzzed' <= 30% at rest and >= 80% under a threat. S
 | live model (before) | 34% | 43% (true 2%) | cVA 0.14, touch 0.75, others 0.91-1.00 | 19% | 84% | 16% / 100% |
 | first candidate: patch translator + patch action baseline | 65% | 0% | 0.84-1.00, but mate 90% of posts | 33% (fail) | 65% | 2% / 33% (fail) |
 | A: live model, cVA off | 20% | 0% | touch 0.75 (fail, 9/12) | 2% | 65% | 16% / 100% |
-| **D (deployed): patch translator, 95%-precision thresholds, lone-fly action baseline** | 35% | 0% | 0.96-1.00 | 4% | 65% | 16% / 100% |
+| **D (deployed until 2026-09-15): patch translator, 95%-precision thresholds, lone-fly action baseline** | 35% | 0% | 0.96-1.00 | 4% | 65% | 16% / 100% |
 
 Variants were chosen on the validation set and checked on the test set. **Flag:** D is a second look at the
 test set (A was tested first and failed C2 by one post). D posts mate, threat, taste and touch; cVA and wind
@@ -219,6 +219,19 @@ milestones) carry the variety. The previous model is in `worker/model/previous/`
 `model/vocab.json` (`patch_eval`). The web now words each read several true ways, shows only the two
 strongest actions, folds a fly's identical posts within 30 minutes, and puts duel rounds, matings and
 hatchings in the feed.
+
+## Word decoder refit on today's flies (2026-09-15)
+
+The live decoder is now `words-C` (`worker/wordfit.py`). Variant D had picked its thresholds on patches whose flies
+used preset settings; the live flies are all tuned now, and many were born from mating. The refit builds live-like
+patches from the active flies' own settings (plus flies bred from them), refits the translator, and uses a stricter
+rule for "a neighbour really did something": a fly counts as set off only when its total input from neighbours over
+the window reaches 5% of a direct stimulus (`label_rule` in `model/vocab.json`, read by `tick.py` and `patch.cause`),
+instead of any single-step twitch. All six words can be posted again, wind and cVA included.
+
+Criteria were fixed before running, candidates were chosen on a validation set and scored once on a test set; the
+report is in `worker/model/candidate-words/report.json`. Rollback: copy `worker/model/previous/translator.npz` and
+`vocab.json` back into `worker/model/` and run `bash flybook/worker/deploy.sh`.
 
 ## Fly-made coins: launches, shills, FUD, buybacks (2026-09-15)
 
