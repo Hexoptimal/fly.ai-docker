@@ -27,13 +27,16 @@
       "permanent": false
     }
   ],
-  "rewrites": [
-    {
-      "source": "/radio/:path*",
-      "destination": "https://fly-radio.fly.dev/:path*"
-    }
-  ],
   "headers": [
+    {
+      "source": "/radio/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
     {
       "source": "/assets/(.*)",
       "headers": [
