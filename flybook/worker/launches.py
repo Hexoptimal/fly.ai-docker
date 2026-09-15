@@ -57,6 +57,20 @@ SHILL_MIN_SHARE = 0.05      # a holder shills a fly coin that is at least this s
 # stimulus per unit of trust, capped at one direct stimulus. Was 0.6: on the first live round after 3 launches
 # (2026-09-15, round 56) a plain pump (SUGAR) out-shouted every friend's launch, so no hype reached a brain
 SOCIAL_TARGET, SOCIAL_THREAT = 1.0, 1.0
+# encoder v2: trust saturates instead of clipping. With the linear rule one friend (trust 1.0) already hit v2's full
+# strength (37 of 38 socially driven buys on 2026-09-15 were at the 0.8 top, where turning is near-certain), and every
+# friend's FUD sat at the threat top (0.025, jumps ~100%). strength = SOCIAL_MAX * (1 - exp(-trust / SOCIAL_K)):
+# stranger 0.15 -> 0.10, acquaintance 0.35 -> 0.22, friend 1.0 -> 0.50, best friend 1.3 -> 0.58, two friends -> 0.72
+SOCIAL_MAX, SOCIAL_K = 0.9, 1.25
+# FUD: the threat range is steeper at its low end. social_dose_check.py (seed 3150, 12 live flies x 2): with K 1.25 a
+# friend's FUD made 17% jump (criterion S3 wanted 20-85%; shills passed S1, S2, S4). K 0.78 puts a friend at 0.65
+SOCIAL_K_THREAT = 0.78
+
+
+def social_strength(trust: float, sense: str = "target") -> float:
+    """How hard a shill (target) or FUD (threat) with this much summed trust hits, as sense strength 0..SOCIAL_MAX (v2)."""
+    k = SOCIAL_K_THREAT if sense == "threat" else SOCIAL_K
+    return SOCIAL_MAX * (1 - math.exp(-max(0.0, trust) / k))
 
 OPENROUTER = "https://openrouter.ai/api/v1"
 IMAGE_MODEL = os.environ.get("FLYBOOK_COIN_MODEL", "openai/gpt-image-1-mini")
@@ -74,20 +88,27 @@ HOSTILE = {"enemies", "frenemies", "rivals"}
 COIN_KEYS = ["symbol", "name", "kind", "price", "regime", "creator", "persona", "tagline", "image_path", "image_model",
              "image_cost", "launched_at", "launch_price", "supply", "pool_eth", "pool_tokens", "status"]
 
+# a coin's name is its own meme ("Lambo Larva", $LAMBO), flavoured by the launching fly's personality; the creator is
+# shown next to the coin, never in its name (coins launched before 2026-09-15 evening keep their fly-name names)
 THEMES = {
-    "degen": {"nouns": ["Moon", "Rocket", "Lambo", "Pump", "Ape"],
+    "degen": {"nouns": ["Moon", "Rocket", "Lambo", "Pump", "Ape", "Chad", "Yolo", "Send"],
+              "things": ["Larva", "Maggot", "Swarm", "Wings", "Buzz", "Mango", "Rocket", "Frenzy"],
               "taglines": ["Wings up, send it.", "Buzzing straight to the moon.", "Full degen, tiny brain.", "Bought the top. Made the top."],
               "motif": "riding a tiny rocket trailing sparks", "rim": "gold"},
-    "jumpy": {"nouns": ["Panic", "Zoom", "Hop", "Flinch", "Jolt"],
+    "jumpy": {"nouns": ["Panic", "Zoom", "Hop", "Flinch", "Jolt", "Spook", "Yikes", "Dash"],
+              "things": ["Shadow", "Swatter", "Wings", "Legs", "Twitch", "Buzz", "Escape", "Fruit"],
               "taglines": ["Launched it, then jumped.", "Nervous but bullish.", "One shadow and I'm out.", "Scared money, fast wings."],
               "motif": "mid-jump with motion lines and wide startled eyes", "rim": "silver"},
-    "chill": {"nouns": ["Nectar", "Chill", "Zen", "Drift", "Sip"],
+    "chill": {"nouns": ["Nectar", "Chill", "Zen", "Drift", "Sip", "Comfy", "Lazy", "Mellow"],
+              "things": ["Banana", "Peach", "Juice", "Nap", "Vibes", "Melon", "Honey", "Sunbeam"],
               "taglines": ["Slow wings, strong hands.", "Just vibing on a banana.", "No rush. No rug. Probably.", "Hold it like a warm fruit."],
               "motif": "relaxing on a slice of banana with a tiny drink", "rim": "bronze"},
-    "watcher": {"nouns": ["Eye", "Scout", "Radar", "Watch", "Lens"],
+    "watcher": {"nouns": ["Eye", "Scout", "Radar", "Watch", "Lens", "Spy", "Glint", "Peek"],
+                "things": ["Ommatidia", "Signal", "Chart", "Horizon", "Window", "Orbit", "Sight", "Pixel"],
                 "taglines": ["Saw it first.", "All eyes on the chart.", "Thousands of lenses, one coin.", "Watching you watch me."],
                 "motif": "peering through a tiny telescope", "rim": "teal"},
-    "normie": {"nouns": ["Coin", "Token", "Bucks", "Cash", "Gold"],
+    "normie": {"nouns": ["Fruit", "Buzz", "Bowl", "Crumb", "Jam", "Kitchen", "Snack", "Wing"],
+               "things": ["Coin", "Token", "Bucks", "Cash", "Gold", "Money", "Cents", "Bank"],
                "taglines": ["Just a fly with a coin.", "Buzz buzz, buy buy.", "Fruit flies, fruit gains.", "Started from the fruit bowl."],
                "motif": "proudly holding a tiny slice of fruit", "rim": "gold"},
 }
@@ -201,10 +222,25 @@ def wants_launch(mind: dict, portfolio: dict, rng: random.Random) -> bool:
     return st["last_round"] is not None and st["rounds"] - st["last_round"] >= SECOND_AFTER and rng.random() < SECOND_CHANCE
 
 
-def symbol_for(fly_name: str, noun: str, taken: set[str]) -> str:
-    letters = re.sub(r"[^A-Za-z0-9]", "", fly_name).upper() or "FLY"
-    options = [letters[:4], letters[:3] + noun[:2].upper(), (letters[:2] + noun[:3]).upper(), noun.upper()[:5]]
-    options += [f"{letters[:3]}{n}" for n in range(2, 1000)]
+def coin_name(key: str, rng: random.Random, taken_names: set[str]) -> str:
+    """A meme name from the persona's words ("Lambo Larva"), never the fly's name; unique among live names if it can be."""
+    theme = THEMES[key]
+    pairs = [(a, b) for a in theme["nouns"] for b in theme["things"] if a != b]
+    rng.shuffle(pairs)
+    for a, b in pairs:
+        if f"{a} {b}" not in taken_names:
+            return f"{a} {b}"
+    a, b = pairs[0]
+    return f"{a} {b} {rng.randint(2, 99)}"
+
+
+def symbol_for(name: str, taken: set[str]) -> str:
+    """A ticker from the coin's own name: first word, then word mixes, then numbered."""
+    words = [re.sub(r"[^A-Za-z0-9]", "", w).upper() for w in name.split()]
+    words = [w for w in words if w] or ["FLY"]
+    first, rest = words[0], "".join(words[1:])
+    options = [first[:5], first[:3] + rest[:2], first[:2] + rest[:3], rest[:5], first[:1] + rest[:4]]
+    options += [f"{first[:3]}{n}" for n in range(2, 1000)]
     for sym in options:
         sym = sym[:6]
         if len(sym) >= 2 and sym not in taken:
@@ -419,10 +455,10 @@ def launch_coin(fly: dict, mind: dict, portfolio: dict, coins: list[dict], price
     st = launch_state(mind)
     key = persona(fly, mind)
     theme = THEMES[key]
-    noun = rng.choice(theme["nouns"])
-    sym = symbol_for(fly["name"], noun, {c["symbol"] for c in coins})
+    name = coin_name(key, rng, {c.get("name") for c in coins})
+    sym = symbol_for(name, {c["symbol"] for c in coins})
     start_price = SEED_ETH / (SUPPLY * (1 - CREATOR_SHARE))
-    coin = {"symbol": sym, "name": f"{fly['name']} {noun}"[:40], "kind": "fly", "price": start_price, "regime": "calm",
+    coin = {"symbol": sym, "name": name[:40], "kind": "fly", "price": start_price, "regime": "calm",
             "creator": fly["id"], "persona": key, "tagline": rng.choice(theme["taglines"]), "launched_at": now_iso,
             "launch_price": start_price, "supply": SUPPLY, "pool_eth": SEED_ETH, "pool_tokens": SUPPLY * (1 - CREATOR_SHARE),
             "status": "live"}

@@ -242,12 +242,12 @@ Fake coins, fake ETH. The brain still makes every move; relationships only chang
 |---|---|
 | Launch itch | grows each round with the risk trait, excitability, buzzing wings and positive dopamine; after 12 traded rounds (~2 h) and a full itch a fly launches with a 15% chance a round, so launches are spread out |
 | Limits | 2 coins per fly (a second only 36+ rounds after the first, 0.07% a round, about 10% a day), 12 launches a day for everyone (`FLYBOOK_COIN_DAILY_CAP`), 40 live fly coins, 2 per round |
-| The coin | name, ticker and tagline from the fly's name and personality (degen, jumpy, chill, watcher, normie; templates, no AI text); logo from `openai/gpt-image-1-mini` at low quality, a drawn badge if that fails |
+| The coin | its own meme name from two words of the fly's personality (degen, jumpy, chill, watcher, normie; e.g. "Lambo Larva", $LAMBO; templates, no AI text), a ticker from that name, a tagline; the creator is shown next to the coin, not in its name (coins launched before 2026-09-15 evening, like $MART, keep their old names); logo from `openai/gpt-image-1-mini` at low quality, a drawn badge if that fails |
 | Pool | the creator seeds 0.1 fake ETH, keeps 20% of the supply; buys and sells go through a constant-product pool (0.3% fee), outside flow adds a little noise, a pool under 0.005 ETH dies |
 | Shill | wing neurons buzzed: shills its newest coin or its biggest fly-coin bag |
 | FUD | escape neurons fired: FUDs a coin made by its enemy, frenemy or rival, or a fly coin it just panic-sold |
 | Buyback / dump | a creator's coin fell 8%+ since last round: turned or groomed buys back, jumped dumps half its bag |
-| Next round | launches, shills and buybacks are a moving target (LC10a) for flies that trust the poster (best friends and mates 1.3, friends and family 1.0, acquaintances 0.35, strangers 0.15) and a looming shape on held coins for its enemies; FUD looms on that coin for flies that trust the FUDer; a dump looms for every holder |
+| Next round | launches, shills and buybacks are a moving target (LC10a) for flies that trust the poster (best friends and mates 1.3, friends and family 1.0, acquaintances 0.35, strangers 0.15) and a looming shape on held coins for its enemies; FUD looms on that coin for flies that trust the FUDer; a dump looms for every holder. With encoder v2 trust saturates: strength 0.9 × (1 − e^(−trust / K)), K 1.25 for shills (stranger 0.10, friend 0.50, two friends 0.72) and 0.78 for FUD (stranger 0.16, friend 0.65, two friends 0.83); before 2026-09-15 evening one friend already hit full strength. `social_dose_check.py` checks the brain's response against fixed criteria (12 live flies): run 1 with one curve failed only on friend FUD (17% jumped, criterion 20-85%); FUD got its own curve and run 2 on new seeds passed: turned .25 / .62 / .92 for a stranger / friend / two friends (old rule .96), jumped .00 / .54 / .67 (old rule .88) |
 
 The app shows the coins (FlyCoins.tsx: logo, creator, price, market cap, holders, pool) and a Fly drama feed in the Market tab.
 
@@ -268,6 +268,18 @@ The live market uses encoder v2 (`market.MARKET_ENCODER`; set `FLYBOOK_MARKET_EN
 Each move is measured against that coin's usual move, then mapped into the range where the fly's brain responds
 gradually (`RANGE_V2`). When a fly does several things at once, the action with the strongest response relative to its
 typical response becomes the trade. `market_encoder_eval.py` compares v1 and v2 offline on the same flies and prices.
+
+Selling (backed up -> sell) stays rare, and no market sense can fix that in this model yet. 2026-09-15 dose sweeps on 24
+standard flies per level (the market episode): 26 inputs at 0.2 / 0.4 / 0.8 (looming LC4+LPLC2, LC10a, touch, wind, JO-A/B,
+LC6-LC26, LPLC1, every BM bristle group, taste) and the 17 inputs the wiring puts 2-3 hops from the moonwalker neurons
+(LC10b-f, LC9+LC10a+LPLC4, LPLC4, LC24, LC31, LC33, LC36, LC37, leg sensory SNta02/09, SNta29, SNpp10, LgAG1) up to 1.6:
+backed up never passed 12% (MDN ~1 spike at rest, at most 2.2 driven). A real sell channel needs a model experiment first
+(e.g. the VNC normalisation noted in ROADMAP section 5), not a market mapping.
+
+A fly coin's usual move is its own RMS 1-round move over its last 24 rounds (`market.fly_vols`, at least 0.15; coins with
+fewer than 6 moves use 1.1). Fly-coin pools are small, so fly trades swing them far more than outside flow; the old fixed
+0.15 made most of their moves look extreme and pulled flies' attention to fly coins. The fixed coins keep their set
+volatility.
 
 ## Relationships: friends, enemies, rivals (2026-09-15)
 

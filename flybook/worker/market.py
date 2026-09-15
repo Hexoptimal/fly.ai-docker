@@ -92,21 +92,41 @@ MAX_DRIVE_V2 = 0.8
 MARKET_ENCODER = os.environ.get("FLYBOOK_MARKET_ENCODER", "v2")
 # each action's typical z under its own sense at v2's full strength, median over the 12 live flies in that check
 PICK_REF_V2 = {"turned": 4.85, "jumped": 5.2, "groomed": 5.25, "backed_up": 3.0}
-VOL_FLY = 0.15                        # a fly coin's usual move per round (its pool's outside flow)
+# A fly coin's usual move per round. Its pool is small, so fly trades swing it far more than the outside flow: on the live
+# rounds of 2026-09-15 (102 rounds, 12 fly coins) the RMS 1-round log move was 1.11 while the median was 0.07. With one
+# fixed 0.15, 14% of fly-coin moves read as |z| > 3 (fixed meme coins: 6%), a fly coin was the noticed target 71% of the
+# time, and that target was at full strength 92% of the time. Each coin's own RMS move over its last VOL_WINDOW rounds
+# (floor VOL_FLY_MIN; coins with fewer than VOL_MIN_N moves use VOL_FLY_NEW) replayed on the second half of those rounds:
+# |z| > 3 5% (memes 6%), noticed target a fly coin 50% (they are 63% of coins), full strength 75%.
+VOL_FLY = 0.15                        # before 2026-09-15 evening; still the floor
+VOL_FLY_MIN, VOL_FLY_NEW, VOL_WINDOW, VOL_MIN_N = 0.15, 1.1, 24, 6
 
 
-def vol_of(symbol: str) -> float:
+def fly_vols(history: list[dict]) -> dict[str, float]:
+    """Each fly coin's usual 1-round move from price history (newest first, up to VOL_WINDOW + 1 rounds)."""
+    moves: dict[str, list[float]] = {}
+    for new, old in zip(history, history[1:VOL_WINDOW + 1]):
+        for s, p in new.items():
+            if s not in KIND and p and old.get(s) and p > 0 and old[s] > 0:
+                moves.setdefault(s, []).append(math.log(p / old[s]))
+    return {s: max(VOL_FLY_MIN, math.sqrt(sum(m * m for m in ms) / len(ms))) for s, ms in moves.items() if len(ms) >= VOL_MIN_N}
+
+
+def vol_of(symbol: str, vols: dict | None = None) -> float:
     spec = KIND.get(symbol)
-    return spec[4] if spec else VOL_FLY
+    if spec:
+        return spec[4]
+    return (vols or {}).get(symbol, VOL_FLY_NEW if vols is not None else VOL_FLY)
 
 
-def zscores(prices: dict, history: list[dict]) -> dict:
-    """Moves over the history window and last round's chop, each in units of that coin's usual move."""
+def zscores(prices: dict, history: list[dict], vols: dict | None = None) -> dict:
+    """Moves over the history window and last round's chop, each in units of that coin's usual move.
+    vols (fly_vols): fly coins' own usual moves; None keeps the old fixed VOL_FLY."""
     old = history[-1] if history else {}
     span = math.sqrt(max(1, len(history)))
-    moves = {s: math.log(prices[s] / old[s]) / (vol_of(s) * span) for s in prices if old.get(s) and prices[s] > 0}
+    moves = {s: math.log(prices[s] / old[s]) / (vol_of(s, vols) * span) for s in prices if old.get(s) and prices[s] > 0}
     last = history[0] if history else {}
-    chop = [abs(math.log(prices[s] / last[s])) / vol_of(s) for s in prices if last.get(s) and prices[s] > 0]
+    chop = [abs(math.log(prices[s] / last[s])) / vol_of(s, vols) for s in prices if last.get(s) and prices[s] > 0]
     return {"move": moves, "chop": float(np.mean(chop)) if chop else 0.0}
 
 
@@ -150,7 +170,7 @@ def new_portfolio(fly_id: str) -> dict:
 
 
 def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, mind: dict, learning: dict | None = None,
-         social: dict | None = None, mood: dict | None = None, encoder: str = "v1") -> dict:
+         social: dict | None = None, mood: dict | None = None, encoder: str = "v1", vols: dict | None = None) -> dict:
     """What the market does to this fly's senses: amounts in stimulus units, after its settings and learned gains.
     A learner switched off is not used: dopamine off ignores learned gains, tubes off ignores tube thickness.
     social (launches.social_drive): shills and FUD from flies it has a relationship with; when that hits harder than the
@@ -175,7 +195,7 @@ def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, min
             base, cap = AMOUNT * s, MAX_DRIVE
         return round(min(cap, base * senses.get(SENSE_GAIN[sense], 1.0) * gains.get(sense, 1.0)), 4)
 
-    z = zscores(prices, history)
+    z = zscores(prices, history, vols)
     if v2:
         push = {s: v for s, v in z["move"].items() if v > 0}
         mean_tube = float(np.mean([tube(s) for s in push])) if push else 1.0
@@ -206,9 +226,10 @@ def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, min
                    "amount": amount("threat", th_strength) if worst else 0.0},
         "wind": {"chop": round(chop, 4), "z": round(z["chop"], 3), "amount": amount("wind", w_strength)},
     }
+    social_hit = launches.social_strength if v2 else (lambda trust: min(1.0, launches.SOCIAL_TARGET * trust))
     if social and social["target"]:
         sym, trust = max(social["target"].items(), key=lambda kv: kv[1])
-        hit = amount("target", min(1.0, launches.SOCIAL_TARGET * trust))
+        hit = amount("target", social_hit(trust))
         if sym in prices and hit >= out["target"]["amount"]:              # a tie goes to the friend
             out["target"] = {"symbol": sym, "move": round(moves.get(sym, 0.0), 4), "tube": round(tube(sym), 3),
                              "z": round(z["move"].get(sym, 0.0), 3), "amount": hit, "social": social["why"].get(sym, [])[:3]}
@@ -217,7 +238,7 @@ def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, min
         scary = {s: v for s, v in social["threat"].items() if s in held_now}
         if scary:
             sym, trust = max(scary.items(), key=lambda kv: kv[1])
-            hit = amount("threat", min(1.0, launches.SOCIAL_THREAT * trust))
+            hit = amount("threat", launches.social_strength(trust, "threat") if v2 else min(1.0, launches.SOCIAL_THREAT * trust))
             if hit >= out["threat"]["amount"]:
                 out["threat"] = {"symbol": sym, "move": round(moves.get(sym, 0.0), 4), "z": round(z["move"].get(sym, 0.0), 3),
                                  "amount": hit, "social": social["why"].get(sym, [])[:3]}
@@ -380,7 +401,7 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
             social = feedflow.merge(launches.social_drive(f["id"], social_in, bonds, live_symbols), feedflow.set_off(f["id"], mine, coins_of))
             mood = feedflow.mood(mine)
         return felt(state["portfolios"][f["id"]], prices, history, settings_of(f), state["minds"][f["id"]], own[f["id"]], social, mood,
-                    encoder=state.get("encoder", "v1"))
+                    encoder=state.get("encoder", "v1"), vols=state.get("vols"))
     settings_of = lambda f: {k: f.get(k) or {} for k in ("senses", "temperament", "dials")}
 
     dopamine, own = {}, {}
@@ -455,7 +476,8 @@ def market_round(store, eps, reader, rng: np.random.Generator, flies: list[dict]
     """Load the market, run one round for these flies, save it. learning: force these learners on every fly
     (None: each fly's owner's choice). Flies launch, shill and FUD coins here (launches.py)."""
     ids = [f["id"] for f in flies]
-    state = {"coins": store.market_coins(), "history": [r["prices"] for r in store.market_history(HISTORY)],
+    past = [r["prices"] for r in store.market_history(VOL_WINDOW + 1)]     # newest first
+    state = {"coins": store.market_coins(), "history": past[:HISTORY], "vols": fly_vols(past),
              "portfolios": {p["fly_id"]: p for p in store.portfolios(ids)}, "minds": {m["fly_id"]: m for m in store.minds(ids)},
              "launches": True, "social": [], "bonds": {}, "launch_budget": 0,
              "encoder": MARKET_ENCODER, "pick_ref": PICK_REF_V2 if MARKET_ENCODER == "v2" else None}
