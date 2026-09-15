@@ -1,0 +1,43 @@
+# Fly Radio on fly.io: one process, streaming PCM + SSE captions at https://fly-radio.fly.dev.
+# Deploy with radio/deploy.sh. No secrets needed.
+#
+# Cost control: the brain only steps while a listener is actually connected
+# (radio/server.py's Studio.loop pauses at 0 listeners, see add_listener/remove_listener), and
+# this config lets the whole machine stop when nobody has an open connection at all
+# (auto_stop_machines, min_machines_running = 0) -- so an unvisited station costs nothing.
+# A cold start still re-loads the connectome, but doesn't recalibrate captions from scratch --
+# radio/model/readout.npz (generate with `python radio/decode.py --cache` before first deploy)
+# is cached and copied into the image, so calibrate_cached() reuses it. See radio/README.md.
+app = "fly-radio"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NUMBA_NUM_THREADS = "1"
+  RADIO_ORIGINS = "https://flyaiworld.com,https://www.flyaiworld.com,http://localhost:5173"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "120s"
+    method = "GET"
+    path = "/health"
+
+[processes]
+  app = "python radio/server.py --host 0.0.0.0 --port 8080 --no-browser"
+
+[[vm]]
+  processes = ["app"]
+  cpu_kind = "shared"
+  cpus = 2
+  memory = "2gb"
