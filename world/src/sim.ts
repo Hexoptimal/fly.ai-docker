@@ -18,9 +18,9 @@ import { Brain, DEFAULT_PARAMS, type BrainParams, type Learning } from "./brain.
 import { Vision, type Kind, type Seen } from "./eyes.ts";
 import { CH, Mechanosensors, OdourField, Olfaction, type Contact, type Emitter } from "./senses.ts";
 import { mulberry32 } from "./rng.ts";
-import { buildWiring, weightsFor, EDGES, type Population, type Wiring } from "./wiring.ts";
+import { buildWiring, weightsFor, EDGES, POPULATIONS, type Population, type Wiring } from "./wiring.ts";
 import { child, founder, summary, type Genome } from "./genome.ts";
-import { aggregation, findGroups, NEAR_M, Social, STARTLE_CLOSING, STARTLE_M, type Kin } from "./social.ts";
+import { aggregation, findGroups, NEAR_M, Social, STARTLE_CLOSING, STARTLE_M, type Kin, type PairStats } from "./social.ts";
 import { DataLog, FLY_EVERY_S, round, type Row } from "./datalog.ts";
 
 export const WORLD_RADIUS = 32;
@@ -190,7 +190,7 @@ export class Fly {
 
 interface PopRef { L: number; R: number }
 
-export type EventKind = "mate" | "egg" | "hatch" | "feed" | "attack" | "death" | "poop";
+export type EventKind = "mate" | "egg" | "hatch" | "feed" | "attack" | "death" | "poop" | "arrive";
 
 const DEATH_WORD: Record<string, string> = {
   age: "dies of old age",
@@ -207,6 +207,60 @@ export interface WorldEvent {
   /** seconds since it happened */
   age: number;
 }
+
+/** A genome as plain JSON, with the block and population names its arrays are aligned to. */
+export interface GenomeJson {
+  edge: number[];
+  tonic: number[];
+  sense: Record<string, number>;
+  learn: Genome["learn"];
+  lifespan: number;
+  flight: number;
+  clutch: number;
+}
+
+/**
+ * Everything needed to carry a world across a restart (server/run.ts). Not bit-exact: random streams are reseeded,
+ * membrane voltages and odour puffs start fresh (they settle within a second), and the recent-rows tables are not kept
+ * (they were already uploaded). Flies, genes, learned synapses, eggs, lineage, relationships and counters are.
+ * Brain weights are kept only if the wiring is the same shape; if a deploy changed the wiring, genes are carried over
+ * by block and population name and brains restart from what the genes build.
+ */
+export interface WorldCheckpoint {
+  version: 1;
+  seed: number;
+  savedAt: number;
+  wiring: { n: number; nnz: number; edges: string[]; pops: string[] };
+  world: Record<string, unknown>;
+  flies: (Record<string, unknown> & { genome: GenomeJson; weight: Float32Array | null })[];
+  props: Record<string, unknown>[];
+  kin: Kin[];
+  pairs: PairStats[];
+  lineage: Row[];
+  brood: Row[];
+}
+
+const edgeKey = (e: { from: string; to: string; mode: string }) => `${e.from}>${e.to}:${e.mode}`;
+
+function genomeToJson(g: Genome): GenomeJson {
+  return { edge: Array.from(g.edge), tonic: Array.from(g.tonic), sense: { ...g.sense }, learn: { ...g.learn }, lifespan: g.lifespan, flight: g.flight, clutch: g.clutch };
+}
+
+/** Rebuild a genome, remapping its arrays by block and population name if the wiring has changed since it was saved. */
+function genomeFromJson(j: GenomeJson, edges: string[], pops: string[]): Genome {
+  const edgeAt = new Map(edges.map((k, i) => [k, i]));
+  const popAt = new Map(pops.map((k, i) => [k, i]));
+  return {
+    edge: Float32Array.from(EDGES, (e) => j.edge[edgeAt.get(edgeKey(e)) ?? -1] ?? 1),
+    tonic: Float32Array.from(POPULATIONS, (p) => j.tonic[popAt.get(p.name) ?? -1] ?? 1),
+    sense: { ...j.sense },
+    learn: { hebb: j.learn.hebb ?? 1, reward: j.learn.reward ?? 1, mb: j.learn.mb ?? 1 },
+    lifespan: j.lifespan, flight: j.flight, clutch: j.clutch,
+  };
+}
+
+/** JSON has no Infinity: props that never expire are stored with life null. */
+const finite = (x: number) => (Number.isFinite(x) ? x : null);
 
 export interface WorldOptions {
   /** "vary": founders draw their genes; "fixed": every founder gets the mean genome (old behaviour, tools) */
@@ -228,6 +282,8 @@ export class World {
   selected = 0;
   steps = 0;
   speedScale = 1;
+  /** most adults the field holds: a larva that would make more dies of "no room" (the server lowers it to fit its CPU) */
+  maxFlies = MAX_FLIES;
   wind = { angle: 0.7, strength: 1.2 };
   odourStrength = 1;
   cvaStrength = 0.75;
@@ -402,7 +458,7 @@ export class World {
   }
 
   setFlyCount(n: number): void {
-    n = Math.max(1, Math.min(MAX_FLIES, Math.round(n)));
+    n = Math.max(1, Math.min(this.maxFlies, Math.round(n)));
     while (this.flies.length > n) this.recordDeath(this.flies.pop()!, "removed");
     while (this.flies.length < n) {
       const genome = this.genes === "fixed" ? this.fixedGenome() : founder(this.geneRand);
@@ -419,6 +475,142 @@ export class World {
       this.flies.push(fly);
     }
     if (this.selected >= this.flies.length) this.selected = 0;
+  }
+
+  /**
+   * A newcomer flies in from the edge of the field: a founder with fresh genes and no parents. The always-on server
+   * uses this when the population falls below its floor, so the world never runs empty. It is logged as an "arrive"
+   * event and marked immigrant in the lineage table, so the data can tell arrivals from births.
+   */
+  addImmigrant(): Fly {
+    const fly = this.makeFly(founder(this.geneRand));
+    const a = this.rand() * Math.PI * 2;
+    fly.x = Math.cos(a) * WORLD_RADIUS * 0.8;
+    fly.z = Math.sin(a) * WORLD_RADIUS * 0.8;
+    fly.y = 2.5;
+    fly.yaw = a + Math.PI;
+    this.flies.push(fly);
+    const row = this.log.lineage.get(fly.id);
+    if (row) row.immigrant = true;
+    this.mark("arrive", `${fly.name} flies in`, fly.x, fly.y, fly.z, { fly: fly.id });
+    return fly;
+  }
+
+  /**
+   * Drop what only the past needs, so a world that runs for months does not grow without end: lineage rows of flies
+   * dead longer than `keepS` (unless a living fly or a waiting egg names them as a parent), finished egg rows, kin
+   * entries nobody alive refers to, and relationships between two flies that are both gone. Call it only after those
+   * rows have been saved somewhere.
+   */
+  forget(keepS: number): { lineage: number; brood: number; kin: number; pairs: number } {
+    const alive = new Set(this.flies.map((f) => f.id));
+    const parents = new Set<number>();
+    for (const f of this.flies) { if (f.mother !== null) parents.add(f.mother); if (f.father !== null) parents.add(f.father); }
+    for (const p of this.props) if (p.brood) { parents.add(p.brood.mother); parents.add(p.brood.father); }
+    const old = (t: unknown) => typeof t === "number" && this.time - t > keepS;
+    const gone = { lineage: 0, brood: 0, kin: 0, pairs: 0 };
+    for (const [id, row] of this.log.lineage) {
+      if (!alive.has(id) && !parents.has(id) && old(row.died_t)) { this.log.lineage.delete(id); gone.lineage++; }
+    }
+    for (const [id, row] of this.log.brood) {
+      if ((row.fate === "died" || row.fate === "emerged") && old(row.fate_t)) { this.log.brood.delete(id); gone.brood++; }
+    }
+    for (const id of [...this.kin.keys()]) {
+      if (!alive.has(id) && !parents.has(id)) { this.kin.delete(id); gone.kin++; }
+    }
+    for (const [k, p] of this.social.pairs) {
+      if (!alive.has(p.a) && !alive.has(p.b)) { this.social.pairs.delete(k); gone.pairs++; }
+    }
+    return gone;
+  }
+
+  toCheckpoint(): WorldCheckpoint {
+    const flyJson = this.flies.map((f) => ({
+      id: f.id, name: f.name, sex: f.sex, generation: f.generation, mother: f.mother, father: f.father, born: f.born,
+      age: f.age, lifespan: f.lifespan, x: f.x, y: f.y, z: f.z, yaw: f.yaw, speed: f.speed, vy: f.vy, landed: f.landed,
+      state: f.state, gut: f.gut, stats: { ...f.stats }, mated: f.mated, eggLoad: f.eggLoad, sinceFed: f.sinceFed,
+      meals: f.meals, matings: f.matings,
+      sperm: f.sperm ? { id: f.sperm.id, name: f.sperm.name, generation: f.sperm.generation, genome: genomeToJson(f.sperm.genome) } : null,
+      brain: { pairings: f.brain.pairings, rewards: f.brain.rewards, depressed: f.brain.depressed },
+      genome: genomeToJson(f.genome),
+      weight: f.brain.weight.slice(),
+    }));
+    return {
+      version: 1,
+      seed: this.seed,
+      savedAt: this.time,
+      wiring: { n: this.wiring.n, nnz: this.wiring.nnz, edges: EDGES.map(edgeKey), pops: POPULATIONS.map((p) => p.name) },
+      world: {
+        steps: this.steps, timeOfDay: this.timeOfDay, wind: { ...this.wind }, odourStrength: this.odourStrength,
+        cvaStrength: this.cvaStrength, landings: this.landings, feedSteps: this.feedSteps, matings: this.matings,
+        eggsLaid: this.eggsLaid, hatched: this.hatched, emerged: this.emerged, deaths: { ...this.deaths },
+        broodDeaths: { ...this.broodDeaths }, history: this.history, nextId: this.nextId, madeFlies: this.madeFlies,
+        learning: { ...this.learning }, genes: this.genes,
+      },
+      flies: flyJson,
+      props: this.props.map((p) => ({
+        ...p, life: finite(p.life),
+        brood: p.brood ? { ...p.brood, genome: genomeToJson(p.brood.genome) } : undefined,
+      })),
+      kin: [...this.kin.values()],
+      pairs: [...this.social.pairs.values()],
+      lineage: [...this.log.lineage.values()],
+      brood: [...this.log.brood.values()],
+    };
+  }
+
+  /** Rebuild a world from toCheckpoint(). See WorldCheckpoint for what is and is not carried over. */
+  static fromCheckpoint(c: WorldCheckpoint): { world: World; weightsKept: boolean } {
+    const w = c.world as Record<string, any>;
+    const world = new World(1, c.seed, { genes: w.genes, learning: w.learning });
+    world.flies.length = 0;
+    world.props.length = 0;
+    world.kin.clear();
+    world.log.lineage.clear();
+    world.log.brood.clear();
+    world.rand = mulberry32((c.seed ^ w.steps) >>> 0);
+    world.geneRand = mulberry32((c.seed ^ 0x5eed5 ^ w.steps) >>> 0);
+    world.steps = w.steps;
+    world.timeOfDay = w.timeOfDay;
+    Object.assign(world.wind, w.wind);
+    world.odourStrength = w.odourStrength;
+    world.cvaStrength = w.cvaStrength;
+    world.landings = w.landings; world.feedSteps = w.feedSteps; world.matings = w.matings;
+    world.eggsLaid = w.eggsLaid; world.hatched = w.hatched; world.emerged = w.emerged;
+    Object.assign(world.deaths, w.deaths);
+    world.broodDeaths = { ...w.broodDeaths };
+    world.history = w.history ?? [];
+    const sameShape = c.wiring.n === world.wiring.n && c.wiring.nnz === world.wiring.nnz &&
+      c.wiring.edges.join("|") === EDGES.map(edgeKey).join("|") && c.wiring.pops.join("|") === POPULATIONS.map((p) => p.name).join("|");
+    const genome = (j: GenomeJson) => genomeFromJson(j, c.wiring.edges, c.wiring.pops);
+    for (const j of c.flies as Record<string, any>[]) {
+      const index = Math.max(0, NAMES.indexOf(j.name));
+      const fly = new Fly(j.id, world.wiring, (c.seed * 31 + j.id * 7919) >>> 0, index, genome(j.genome), j.sex);
+      Object.assign(fly, {
+        generation: j.generation, mother: j.mother, father: j.father, born: j.born, age: j.age, lifespan: j.lifespan,
+        x: j.x, y: j.y, z: j.z, yaw: j.yaw, speed: j.speed, vy: j.vy, landed: j.landed, state: j.state, gut: j.gut,
+        mated: j.mated, eggLoad: j.eggLoad, sinceFed: j.sinceFed, meals: j.meals, matings: j.matings,
+      });
+      Object.assign(fly.stats, j.stats);
+      fly.sperm = j.sperm ? { ...j.sperm, genome: genome(j.sperm.genome) } : null;
+      fly.brain.learning = world.learning;
+      fly.brain.pairings = j.brain.pairings; fly.brain.rewards = j.brain.rewards; fly.brain.depressed = j.brain.depressed;
+      if (sameShape && j.weight) fly.brain.weight.set(j.weight as Float32Array);
+      world.flies.push(fly);
+    }
+    for (const p of c.props as Record<string, any>[]) {
+      world.props.push({
+        ...p, life: p.life === null ? Infinity : p.life,
+        brood: p.brood ? { ...p.brood, genome: genome(p.brood.genome) } : undefined,
+      } as Prop);
+    }
+    for (const k of c.kin) world.kin.set(k.id, k);
+    for (const p of c.pairs) world.social.pairs.set(p.a < p.b ? `${p.a}|${p.b}` : `${p.b}|${p.a}`, { ...p });
+    for (const r of c.lineage) world.log.lineage.set(Number(r.id), r);
+    for (const r of c.brood) world.log.brood.set(Number(r.id), r);
+    world.nextId = w.nextId;
+    world.madeFlies = w.madeFlies;
+    return { world, weightsKept: sameShape };
   }
 
   /** Bring the swatter down over the flies. */
@@ -910,7 +1102,7 @@ export class World {
         if (Math.hypot(p.x - q.x, p.z - q.z) < 1.6) { q.open = Math.max(0, q.open - 0.02 * dt); break; }
       }
       if (p.life <= 0) {
-        if (this.flies.length >= MAX_FLIES || !p.brood) { this.broodDies(p, "no room"); continue; }
+        if (this.flies.length >= this.maxFlies || !p.brood) { this.broodDies(p, "no room"); continue; }
         this.props.splice(this.props.indexOf(p), 1);
         const fly = this.makeFly(p.brood.genome, p.brood);
         fly.x = p.x; fly.z = p.z; fly.y = 0.6;

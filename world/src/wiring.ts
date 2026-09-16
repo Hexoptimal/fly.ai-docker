@@ -59,10 +59,7 @@ export const POPULATIONS: PopSpec[] = [
   { name: "Gr21a", count: 4, inhibitory: false, modality: "olfaction", note: "Gr21a/Gr63a -> V: CO2. Aversive." },
   { name: "Gr68a", count: 4, inhibitory: false, modality: "olfaction", note: "Gr68a/ppk23: foreleg contact chemoreceptors, female pheromone" },
   { name: "AL-LN", count: 8, inhibitory: true, modality: "olfaction", note: "antennal lobe local neurons (GABA)" },
-  // Real projection neurons have a spontaneous rate of a few Hz. Without one, nothing downstream of the antennal
-  // lobe ever spikes in this model: food ORNs sit under threshold, so lPN fired at 0.1 Hz and the mushroom body was
-  // deaf to everything but geosmin. Raised to 1.9 on 2026-09-16; the effect on the old measurements is in the README.
-  { name: "lPN", count: 12, inhibitory: false, modality: "olfaction", note: "uniglomerular projection neurons: two per glomerulus, AL -> protocerebrum", tonic: 1.9 },
+  { name: "lPN", count: 14, inhibitory: false, modality: "olfaction", note: "projection neurons, AL -> protocerebrum (steering and thrust)" },
   { name: "DA2 PN", count: 6, inhibitory: false, modality: "olfaction", note: "DA2 and V glomerulus PNs: the aversive line" },
   { name: "LH", count: 8, inhibitory: false, modality: "olfaction", note: "lateral horn: innate valence" },
 
@@ -81,22 +78,6 @@ export const POPULATIONS: PopSpec[] = [
   { name: "PFL3", count: 10, inhibitory: false, modality: "central", note: "central complex steering" },
   { name: "P1", count: 6, inhibitory: false, modality: "central", note: "P1: the male courtship command neurons" },
 
-  // --- mushroom body: where an odour can pick up a meaning -----------------
-  // Two outputs that push in opposite directions and cancel at birth. They do not
-  // steer left or right: like the real mushroom body they decide whether to keep
-  // approaching. MBON-g2a1 (cholinergic) drives forward flight and steering on its
-  // side; MBON-g5b2a drives backing off and vetoes steering. Both rest near silent,
-  // so what they carry is the odour, not their own resting drive. A teacher tips the balance
-  // by depressing one of them (brain.ts): PPL1-g2a1 is a punishment dopamine
-  // neuron, PAM-g5 a reward one. Compartments and teachers are real; which way
-  // each output steers is this model's simplification.
-  { name: "KC", count: 30, inhibitory: false, modality: "memory", note: "Kenyon cells: a sparse code for the odour", tonic: 0.25, tau: 6 },
-  { name: "APL", count: 2, inhibitory: true, modality: "memory", note: "APL (GABA): feedback inhibition that keeps the KC code sparse" },
-  { name: "MBON-g2a1", count: 3, inhibitory: false, modality: "memory", note: "MBON-g2a'1 (cholinergic): the toward-the-odour output", tau: 3, tonic: 0.4 },
-  { name: "MBON-g5b2a", count: 3, inhibitory: false, modality: "memory", note: "MBON-g5b2a: the away-from-the-odour output", tau: 3, tonic: 0.4 },
-  { name: "PPL1-g2a1", count: 2, inhibitory: false, modality: "memory", note: "PPL1-g2a1: the punishment teacher (dopamine)", tonic: 0.4 },
-  { name: "PAM-g5", count: 2, inhibitory: false, modality: "memory", note: "PAM-g5: the reward teacher (dopamine)", tonic: 0.4 },
-
   // --- descending neurons ---------------------------------------------------
   { name: "DNa02", count: 4, inhibitory: false, modality: "descending", note: "steering (ipsiversive turn)" },
   { name: "DNp01", count: 2, inhibitory: false, modality: "descending", note: "giant fibre, escape take-off" },
@@ -114,6 +95,31 @@ export const POPULATIONS: PopSpec[] = [
   { name: "Ti extensor MN", count: 3, inhibitory: false, modality: "motor", note: "tibia extensor (jump)" },
   { name: "Tr flexor MN", count: 3, inhibitory: false, modality: "motor", note: "trochanter flexor", tonic: 1.2 },
   { name: "Sternotrochanter MN", count: 3, inhibitory: false, modality: "motor", note: "sternotrochanter: take-off" },
+
+  // ======== added 2026-09-16, deliberately LAST: every population and block below is appended after the original
+  // wiring, so the random draws that build the original blocks (buildWiring walks EDGES with one seeded stream) and the
+  // neuron indices of the original populations are exactly what they were. Inserting them in the middle re-rolled the
+  // connectivity of every later block, lifted flies to a median 3.8 m and cut feeding by a quarter (see the README).
+  // The mushroom body's own projection neurons: uniglomerular (two per glomerulus), with a spontaneous rate, and read
+  // only by Kenyon cells. Without the rate food ORNs never got a spike through to a KC; without one glomerulus each,
+  // fruit and carrion gave the same KC code. Both were first done on lPN itself (2026-09-16), which lifted flies to a
+  // median 7 m and starved the field (5 of 24 fed in 230 s against 19). Split off so steering is as it was.
+  { name: "uPN", count: 12, inhibitory: false, modality: "olfaction", note: "uniglomerular PNs to the mushroom body: two per glomerulus", tonic: 1.9 },
+  // --- mushroom body: where an odour can pick up a meaning -----------------
+  // Two outputs that push in opposite directions and cancel at birth. They do not
+  // steer left or right: like the real mushroom body they decide whether to keep
+  // approaching. MBON-g2a1 (cholinergic) drives forward flight and steering on its
+  // side; MBON-g5b2a drives backing off and vetoes steering. Both rest near silent,
+  // so what they carry is the odour, not their own resting drive. A teacher tips the balance
+  // by depressing one of them (brain.ts): PPL1-g2a1 is a punishment dopamine
+  // neuron, PAM-g5 a reward one. Compartments and teachers are real; which way
+  // each output steers is this model's simplification.
+  { name: "KC", count: 30, inhibitory: false, modality: "memory", note: "Kenyon cells: a sparse code for the odour", tonic: 0.25, tau: 6 },
+  { name: "APL", count: 2, inhibitory: true, modality: "memory", note: "APL (GABA): feedback inhibition that keeps the KC code sparse" },
+  { name: "MBON-g2a1", count: 3, inhibitory: false, modality: "memory", note: "MBON-g2a'1 (cholinergic): the toward-the-odour output", tau: 3, tonic: 0.4 },
+  { name: "MBON-g5b2a", count: 3, inhibitory: false, modality: "memory", note: "MBON-g5b2a: the away-from-the-odour output", tau: 3, tonic: 0.4 },
+  { name: "PPL1-g2a1", count: 2, inhibitory: false, modality: "memory", note: "PPL1-g2a1: the punishment teacher (dopamine)", tonic: 0.4 },
+  { name: "PAM-g5", count: 2, inhibitory: false, modality: "memory", note: "PAM-g5: the reward teacher (dopamine)", tonic: 0.4 },
 ];
 
 /** Food-odour receptor types and pheromone (cVA) receptor types, split the way
@@ -188,10 +194,8 @@ export const EDGES: Edge[] = [
   // ======================= olfaction =======================================
   // ORNs -> their glomerulus: projection neurons out, local neurons for gain
   // control and left-right contrast.
-  // Each glomerulus has its own projection neurons (a labelled line into two of the twelve), which is what makes
-  // the code downstream an odour's identity and not just "something smells". The local neurons see the whole lobe.
-  ...[...ORN_FOOD, ...ORN_CVA].flatMap((orn, i, all) => [
-    L(orn, "lPN", "ipsi", 0.9, 3, i, all.length),
+  ...[...ORN_FOOD, ...ORN_CVA].flatMap((orn) => [
+    C(orn, "lPN", "ipsi", 0.45, 3),
     C(orn, "AL-LN", "ipsi", 0.32, 2),
   ]),
   // the aversive line: geosmin and CO2 have their own glomeruli and their own
@@ -226,33 +230,6 @@ export const EDGES: Edge[] = [
   C("lPN", "LAL", "ipsi", 0.4, 3),
   C("lPN", "PVLP", "ipsi", 0.32, 2.5),
   C("lPN", "WED", "ipsi", 0.3, 2.5), // odour raises the gain of the wind pathway: surge upwind
-
-  // ======================= mushroom body ===================================
-  // Projection neurons -> Kenyon cells, sparse and random: each KC samples a
-  // few PNs, so which KCs fire is a signature of the odour, not its intensity.
-  // APL feeds inhibition back over the whole pool and keeps that signature small.
-  C("lPN", "KC", "ipsi", 0.14, 2.5),
-  C("lPN", "KC", "contra", 0.07, 2.5),
-  C("DA2 PN", "KC", "ipsi", 0.16, 2.5),
-  C("KC", "APL", "ipsi", 0.5, 2),
-  C("APL", "KC", "ipsi", 0.7, 2),
-  // The teachers. Nothing injects them: dopamine arrives through the same senses
-  // everything else uses -- a threat filling the eye (LC4), a knock on the body
-  // (LgLG), the aversive glomeruli (DA2 PN), which is how a NEIGHBOUR'S alarm CO2
-  // reaches this fly, and juice on the labellum (LB3) for reward.
-  C("LC4", "PPL1-g2a1", "ipsi", 0.5, 3.5),
-  C("LgLG", "PPL1-g2a1", "ipsi", 0.4, 2.5),
-  C("DA2 PN", "PPL1-g2a1", "ipsi", 0.5, 3.5),
-  C("LB3", "PAM-g5", "ipsi", 0.5, 3.5),
-  // KC -> MBON: the only synapses the memory rule may touch.
-  C("KC", "MBON-g2a1", "ipsi", 0.6, 2),
-  C("KC", "MBON-g5b2a", "ipsi", 0.6, 2),
-  // and the MBONs onto approach: toward drives forward flight and odour steering,
-  // away drives backing off and vetoes steering, as the lateral horn does.
-  C("MBON-g2a1", "DNg100", "ipsi", 0.5, 4),
-  C("MBON-g2a1", "PFL3", "ipsi", 0.5, 4),
-  C("MBON-g5b2a", "LPi", "ipsi", 0.5, 4),
-  C("MBON-g5b2a", "MDN", "ipsi", 0.5, 4),
 
   // ======================= mechanosensory ==================================
   C("JO", "WED", "ipsi", 0.5, 3),
@@ -317,6 +294,37 @@ export const EDGES: Edge[] = [
   C("IN19A", "DLM MN", "ipsi", 0.6, 4),
   C("IN19A", "b1 MN", "ipsi", 0.4, 3),
   C("IN19A", "VNC-IN", "ipsi", 0.22, 2),
+
+  // ======== added 2026-09-16, deliberately LAST (see POPULATIONS) ========
+  // ======================= mushroom body ===================================
+  // The steering PNs (lPN) pool the food glomeruli. The mushroom body's PNs do not: each glomerulus has its own
+  // (a labelled line into two of the twelve), which is what makes the KC code an odour's identity.
+  ...[...ORN_FOOD, ...ORN_CVA].map((orn, i, all) => L(orn, "uPN", "ipsi", 0.9, 3, i, all.length)),
+  // Projection neurons -> Kenyon cells, sparse and random: each KC samples a
+  // few PNs, so which KCs fire is a signature of the odour, not its intensity.
+  // APL feeds inhibition back over the whole pool and keeps that signature small.
+  C("uPN", "KC", "ipsi", 0.14, 2.5),
+  C("uPN", "KC", "contra", 0.07, 2.5),
+  C("DA2 PN", "KC", "ipsi", 0.16, 2.5),
+  C("KC", "APL", "ipsi", 0.5, 2),
+  C("APL", "KC", "ipsi", 0.7, 2),
+  // The teachers. Nothing injects them: dopamine arrives through the same senses
+  // everything else uses -- a threat filling the eye (LC4), a knock on the body
+  // (LgLG), the aversive glomeruli (DA2 PN), which is how a NEIGHBOUR'S alarm CO2
+  // reaches this fly, and juice on the labellum (LB3) for reward.
+  C("LC4", "PPL1-g2a1", "ipsi", 0.5, 3.5),
+  C("LgLG", "PPL1-g2a1", "ipsi", 0.4, 2.5),
+  C("DA2 PN", "PPL1-g2a1", "ipsi", 0.5, 3.5),
+  C("LB3", "PAM-g5", "ipsi", 0.5, 3.5),
+  // KC -> MBON: the only synapses the memory rule may touch.
+  C("KC", "MBON-g2a1", "ipsi", 0.6, 2),
+  C("KC", "MBON-g5b2a", "ipsi", 0.6, 2),
+  // and the MBONs onto approach: toward drives odour steering, away drives backing
+  // off and vetoes steering, as the lateral horn does. (Toward also drove DNg100
+  // forward flight until 2026-09-16; that lifted flies off their food.)
+  C("MBON-g2a1", "PFL3", "ipsi", 0.5, 4),
+  C("MBON-g5b2a", "LPi", "ipsi", 0.5, 4),
+  C("MBON-g5b2a", "MDN", "ipsi", 0.5, 4),
 ];
 
 export interface Population {

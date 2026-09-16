@@ -1,0 +1,46 @@
+# The always-on fly world (world/server/run.ts) on fly.io, org treasure-403.
+#   first time:  fly apps create fly-world-sim --org treasure-403
+#                fly secrets set -a fly-world-sim SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
+#   deploy:      bash world/server/deploy.sh
+# It must never sleep: one machine, always on. A deploy stops it with SIGTERM, it saves a checkpoint, and the new
+# machine resumes from it.
+app = "fly-world-sim"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  WORLD_SINK = "supabase"
+  WORLD_START_FLIES = "24"
+  WORLD_MIN_FLIES = "8"
+  # A shared CPU keeps ~24-30 flies in real time (a desktop core runs 24 flies at 17x, 80 at 2.7x; shared fly.io
+  # CPUs measured ~13x slower for Flybook). With performance-1x below, raise this to 80.
+  WORLD_MAX_FLIES = "30"
+  WORLD_EVERY_S = "10"
+  FLY_EVERY_S = "60"
+  CHECKPOINT_EVERY_S = "600"
+  WORLD_ORIGINS = "https://flyaiworld.com,https://www.flyaiworld.com,http://localhost:5173"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  cpu_kind = "shared"      # "performance" for a full core (~$32/mo) and 80 flies
+  cpus = 1
+  memory = "512mb"
+
+[[restart]]
+  policy = "always"

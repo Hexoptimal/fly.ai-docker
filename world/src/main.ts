@@ -307,6 +307,7 @@ const EVENT_FACE: Record<string, string> = {
   attack: "✖",    // a spider strike
   death: "☠",     // a fly died
   poop: "○",      // a dropping: amines for everybody else
+  arrive: "➤",    // a newcomer flies in (the always-on world never runs empty)
 };
 const eventEls: HTMLElement[] = [];
 const seenEvents = new WeakSet<object>();

@@ -158,8 +158,8 @@
   <div class="wrap">
     <p class="eyebrow">In the 3-D world</p>
     <h2>Flies that forage, mate and die</h2>
-    <p class="lede">A second model, smaller and built to the same block diagram: 612 leaky
-      integrate-and-fire neurons per fly, 4,718 synapses, never trained. Because every fly is cheap, whole
+    <p class="lede">A second model, smaller and built to the same block diagram: 748 leaky
+      integrate-and-fire neurons per fly, 5,716 synapses, and one part that learns: a mushroom body. Because every fly is cheap, whole
       pathways can be cut and the population measured with and without them.</p>
 
     <h3 style="margin-bottom: 14px;">Cast-and-surge falls out of the wiring</h3>
@@ -196,6 +196,24 @@
       ground, so most of that is posture rather than a failed escape. Cutting the giant fibre's <i>output</i>
       is the clean test: the neuron still fires, time near the ground is unchanged, and deaths still more than
       double. That is the escape circuit doing its job, measured with the confound removed.</p>
+
+    <h3 style="margin: 34px 0 14px;">A memory for smells, and a world that never stops</h3>
+    <p>Every fly now has a mushroom body. Kenyon cells give each smell its own sparse signature: over a
+      quarter of them fire for a given odour, and fruit, carrion and mouldy fruit come out clearly different.
+      Dopamine neurons are wired to the fly's own senses (a looming threat, a knock, alarm CO<sub>2</sub>, a
+      taste of juice) and, only when they burst, weaken the synapses of whatever smell was present.</p>
+    <div class="scroller">
+      <table class="data">
+        <tr><th>Question</th><th>Result</th></tr>
+        <tr class="hi"><td>Is the smell code sparse and odour-specific?</td><td>Yes</td></tr>
+        <tr><td>Does punishment write a memory of that smell, and only that one?</td><td>Yes: its pull drops from 1.16 to 0.06 Hz; exposure alone leaves it alone</td></tr>
+        <tr><td>Do flies then avoid it?</td><td>Not measurably yet: the memory barely reaches the wings</td></tr>
+        <tr class="hi"><td>Can a fly learn a smell from another fly&rsquo;s fright?</td><td>No: onlookers learn from seeing the threat themselves</td></tr>
+      </table>
+    </div>
+    <p class="caption">Every test had its pass mark written before it ran, and all four rounds are in the
+      world README. The world itself now runs around the clock on a server and records every mating, egg,
+      meal, death, family tree and relationship, with a live report and CSV exports.</p>
 
     <h3 style="margin: 34px 0 14px;">The motor stage is real</h3>
     <p>Cut the descending neurons off the premotor pool and the flies stop being flies: wing motor
@@ -274,8 +292,8 @@
     <div class="card pad notreal">
       <ul>
         <li>The wiring is real; the neurons are simplified. One simple model per cell, no dendrites, no
-          neuromodulators, no learning yet.</li>
-        <li>The 3-D world is <b>not</b> the connectome: 612 neurons against 166,700, with real cell-type
+          neuromodulators. The only learning is the 3-D world's small mushroom body.</li>
+        <li>The 3-D world is <b>not</b> the connectome: 748 neurons against 166,700, with real cell-type
           names but invented counts and weights.</li>
         <li>The eye is a shortcut. Signals are fed into the fly's motion-detecting neurons rather than
           simulating its optics.</li>

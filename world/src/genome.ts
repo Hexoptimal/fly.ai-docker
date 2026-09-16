@@ -89,7 +89,7 @@ export const KEY_EDGES: Record<string, [string, string]> = {
   contact_courtship: ["Gr68a", "P1"],
   aversion_turn: ["LH", "LAL"],
   taste_stop: ["LB3", "IN19A"],
-  odour_to_kc: ["lPN", "KC"],
+  odour_to_kc: ["uPN", "KC"],
   alarm_to_teacher: ["DA2 PN", "PPL1-g2a1"],
   memory_turn: ["MBON-g2a1", "LAL"],
 };

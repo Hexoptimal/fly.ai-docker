@@ -44,8 +44,8 @@ v <- exp(-dt/tau) * v + gain * (W @ spikes) + tonic + noise + sensory input
 v >= 1  ->  spike, reset to 0
 ```
 
-`dt` 20 ms, `tau` 100 ms (600 ms for Kenyon cells, 300 ms for MBONs), threshold 1. **720 neurons per fly (360 per side),
-5,338 synapses**, generated once from seed 64 and never trained, with
+`dt` 20 ms, `tau` 100 ms (600 ms for Kenyon cells, 300 ms for MBONs), threshold 1. **748 neurons per fly (374 per side),
+5,716 synapses**, generated once from seed 64 and never trained, with
 `flybrain/build.py`'s weight recipe: synapse counts, negative when the presynaptic
 neuron is inhibitory, then each neuron's incoming weights normalised to sum to 1.
 All flies share the matrix and keep their own voltages and noise, exactly as
@@ -338,6 +338,69 @@ and within 0.8 m) rather than a courtship sequence; female receptivity is a
 minimum age; egg, larval and adult timings are seconds rather than days; larvae
 have no brain at all.
 
+## Why the flies starved, and the fix (2026-09-16)
+
+The first hours of the always-on world lost 25 of 31 flies to starvation. Food was never short (fruit stayed 99%
+uneaten): the flies flew too high to land. Over fruit they were a median 6.8 m up, and only 1% of the time low enough
+to touch down. Three of this round's changes did it, and none of them was the mushroom body's learning:
+
+| cause | what it did |
+|---|---|
+| lPN spontaneous rate (1.9×) and uniglomerular lPN, added so the mushroom body could hear food odours | both also feed PVLP/WED → DNg100 thrust |
+| toward-MBON → DNg100 forward flight (round 2) | more lift in every plume |
+| **the new blocks were inserted in the middle of EDGES** | buildWiring draws every block's connectivity from one seeded stream in order, so every later block (steering, descending, VNC, motor) was re-rolled into a different random nervous system |
+
+The fix keeps the memory and puts flight back exactly as it was:
+* `lPN` is the original again (pooled, 14 per side, resting at 1×). The mushroom body gets its own **uPN**:
+  uniglomerular, resting at 1.9×, read only by Kenyon cells. Real antennal lobes have both kinds.
+* The toward-MBON drives PFL3 steering only, not DNg100.
+* Every added population and block is **appended at the end** of `POPULATIONS` and `EDGES`. All 4,923 original
+  synapses are now identical to the pre-round build; the 793 extra ones are all mushroom body.
+
+The rule was fixed before the runs: over 8 seeds, fed flies within 90% of the pre-round build and median altitude
+within 0.5 m (24 flies, 230 s, food within landing reach).
+
+| build | fed of 24 | median altitude |
+|---|---|---|
+| before this round (fixed genes / varied) | 17.6 / 17.2 | 2.69 / 2.38 m |
+| broken (varied genes) | 12.9 | 3.68 m (7.06 m on the live seed) |
+| **fixed** (fixed genes / varied) | **17.2 / 16.4** | **2.50 / 1.56 m** |
+
+600 s, 24 flies, seeds 1234 / 7 / 42: starved 19 / 10 / 16 before this round, and **11 / 14 / 12** now. Adults left
+10 / 12 / 1 before, **17 / 7 / 12** now. The Kenyon-cell code still passes (sparse 32%; fruit vs carrion 0.48, fruit
+vs mould 0.55, carrion vs mould 0.70, against a 0.997 ceiling). Starvation is still the main cause of death, about
+half the founders in 10 minutes, as it was before this round.
+
+**Caveat for the memory rounds above:** rounds 1–4 and the transfer diagnostic ran on the re-rolled wiring. Their
+mechanisms still hold, but their numbers belong to that wiring and should be re-run before they are quoted.
+
+## The always-on world (`server/`, 2026-09-16)
+
+One field of flies that never stops, recorded as it goes. `server/run.ts` steps the same `World` the page runs, in
+real time. On fly.io the app is `fly-world-sim` in org `treasure-403`, and the records go to Flybook's Supabase in
+`world_*` tables (`flybook/supabase/migrations/20260916120000_world_sim.sql`).
+
+| what | how |
+|---|---|
+| clock | 50 steps per simulated second, real time; if the CPU falls behind, simulated time slows instead of skipping steps (`realtime_ratio` in `/health`) |
+| recorded | every 10 s a batch: a world row every 10 simulated s, each fly every 60 s, every event, changed lineage and egg rows; relationships every 5 min |
+| restarts | a gzipped checkpoint every 10 min and on SIGTERM (flies, genes, learned synapses, eggs, lineage, relationships, counters); a deploy or crash resumes the same run. If the wiring changed, genes carry over by name and learned synapses reset |
+| never empty | below `WORLD_MIN_FLIES` (8) a newcomer flies in every 20 s: an `arrive` event, `immigrant` in the lineage |
+| bounded | records of flies dead more than an hour are dropped from memory once saved; the in-memory tables keep the last hour |
+| HTTP | `/health`, `/state` (counters, every fly, recent events), `/report` (the printable report; Save as PDF), `/export/{world,flies,events,lineage,eggs,relationships}.csv` (recent, from memory; the full history is in the database) |
+
+Run it locally without the database: `WORLD_SINK=files WORLD_DATA_DIR=world-data node --experimental-strip-types server/run.ts`
+(add `WORLD_SPEED=10 WORLD_STOP_AFTER_S=600` for a quick test). Every setting is listed at the top of `server/run.ts`.
+
+Tested locally (files sink, 10× speed): 600 s, then a restart to 900 s. The run resumed at t=600 with the same run id,
+counters and flies; world rows are continuous 0 → 890 s with no gaps or duplicates; checkpoints were 0.15–0.67 MB.
+In that run 25 of 31 deaths were starvation and the population fell from 24 to 5 before newcomers held it at 8, so
+expect the long-run world to lean on newcomers until feeding is better.
+
+**Size.** At these intervals, roughly 20–30 MB of rows a day with 30 flies (about 1 GB a month), plus the last 3
+checkpoints. **CPU.** A desktop core runs 24 flies at 17× real time and 80 at 2.7×. Shared fly.io CPUs measured about
+13× slower for Flybook, so `fly.toml` caps the population at 30 on a shared CPU; a performance-1x machine can take 80.
+
 ## Data, genes, eggs and rewiring (2026-09-15)
 
 Four questions — do flies gather, do they make friends and enemies, can their brains rewire, do children take after
@@ -350,8 +413,8 @@ became of every egg. CSV buttons download seven tables (`src/datalog.ts`):
 
 | table | one row per |
 |---|---|
-| `world.csv` | second: adults, eggs, larvae, groups, share in groups, aggregation ratio, share of grouped flies at food, brain change, relationship counts, generations, running totals |
-| `flies.csv` | fly every 5 s: position, state, meals, time since fed, brain change, DNp01 / P1 / DLM / LH / LB3 rates, flies within 2 m, group |
+| `world.csv` | second: adults, eggs, larvae, groups, share in groups, aggregation ratio, share of grouped flies at food, brain change, mean memory depth, relationship counts, generations, running totals |
+| `flies.csv` | fly every 5 s: position, state, meals, time since fed, brain change, memory depth, DNp01 / P1 / DLM / LH / LB3 / KC / MBON rates, flies within 2 m, group |
 | `lineage.csv` | fly ever: sex, generation, mother and father, every gene, and on death the cause, age, meals, distance, brain change, offspring |
 | `eggs.csv` | egg: parents, generation, substrate, fate (hatched, became an adult, or died and why, at which stage) |
 | `relationships.csv` | pair of flies: seconds near, bumps, startles, courtship, matings, family, label |
@@ -488,16 +551,17 @@ body (`src/wiring.ts`, the rule in `src/brain.ts`, `learning.mb`, **on** by defa
 
 | population | per side | job |
 |---|---|---|
-| KC | 30 | Kenyon cells: each samples a few projection neurons, so which KCs fire is the odour's signature. τ 600 ms |
+| uPN | 12 | the mushroom body's own projection neurons: two per glomerulus, spontaneous rate 1.9×, read only by KCs |
+| KC | 30 | Kenyon cells: each samples a few uPNs (and DA2 PN), so which KCs fire is the odour's signature. τ 600 ms |
 | APL | 2 | GABA feedback over all KCs: keeps the code sparse |
-| MBON-g2a1 | 3 | cholinergic output that keeps a fly **approaching** the odour (drives DNg100 forward flight and PFL3 steering). τ 300 ms, near silent at rest |
+| MBON-g2a1 | 3 | cholinergic output that keeps a fly **approaching** the odour (drives PFL3 steering; it drove DNg100 forward flight until the starvation fix). τ 300 ms, near silent at rest |
 | MBON-g5b2a | 3 | output that makes it **back off** (drives MDN and the LPi steering veto). τ 300 ms, near silent at rest |
 | PPL1-g2a1 | 2 | punishment teacher, fed by LC4 (a looming threat), LgLG (a knock) and DA2 PN (geosmin, **CO2**) |
 | PAM-g5 | 2 | reward teacher, fed by LB3 (juice on the labellum) |
 
 **The rule.** A KC spike leaves a 5 s trace. When a teacher fires, the traced KCs' synapses onto that teacher's
 MBON are depressed (punishment → the toward-MBON, reward → the away-MBON), down to 15% of their birth size, and
-what is left fades over 900 s. Only KC → MBON synapses change, and they are kept out of the synaptic rescaling.
+what is left fades over 900 s. A teacher writes only inside a burst (its running rate above 5 Hz, round 3). Only KC → MBON synapses change, and they are kept out of the synaptic rescaling.
 Nothing injects the teachers. They are neurons on the same senses as everything else, so **learning from another
 fly has no channel of its own**: a frightened fly gives off CO2, the CO2 reaches a neighbour's Gr21a → DA2 PN →
 PPL1, and whatever that neighbour was smelling at the time is punished. The compartment names are real; which
@@ -508,6 +572,9 @@ odours never reached a Kenyon cell. `lPN` fired 0.1 Hz next to a fruit, because 
 every lPN listened to every food glomerulus, so fruit and carrion gave the same KC code (cosine 0.95):
 * `lPN` rests at 1.9× tonic. Real projection neurons have a spontaneous rate; with it, fruit drives lPN to 1.3 Hz against 0.1 Hz in clean air.
 * PNs are **uniglomerular**: 12 per side, two per glomerulus (a labelled-line `slice` on the ORN → lPN block), where there used to be 14 pooled ones.
+
+*Superseded by the starvation fix below:* both changes lifted flies off their food. `lPN` is the original again, and
+the spontaneous rate and the labelled lines now belong to a separate `uPN` population that only Kenyon cells read.
 
 Before and after, on the old tools (HEAD vs this round, same seeds):
 
@@ -656,7 +723,7 @@ that is a change to the whole flight model, not to memory.
 
 ## What isn't real
 
-* **This is not the connectome.** 720 neurons and 5,338 synapses from a seeded
+* **This is not the connectome.** 748 neurons and 5,716 synapses from a seeded
   PRNG and a block diagram, against 166,700 neurons and 25.6 M connections of
   electron microscopy. Nothing downloaded, nothing trained.
 * **Names real, numbers invented.** Every population is a real cell type and
@@ -783,6 +850,7 @@ COMMAND:** no motor group rose by more than 1 Hz at any step size. The relay is 
 | `src/scene.ts` | low-poly Three.js: instanced flies, props, swatter, wind motes |
 | `src/brainview.ts` | live neuron view and spike raster, grouped by modality |
 | `src/main.ts` | overlay, labels, leaderboard, cameras, loop |
+| `server/` | `run.ts` (the always-on world), `sink.ts` (Supabase or local files), `Dockerfile`, `fly.toml`, `deploy.sh` |
 | `tools/` | `memory.ts` (the odour code, conditioning, learning from another fly's fright), `lifedata.ts` (does rewiring help, do children take after parents, do flies gather), `ablate.ts` (the table), `lifeab.ts` (predation, courtship, egg substrate), `surge.ts` (cast-and-surge), `choice.ts` (geosmin two-choice), `assay.ts`, `flight.ts`, `probe.ts`, `tune.ts`, `sweep.ts`, `smell.ts`, `range.ts`, `motor.ts` — run with `node --experimental-strip-types tools/<file>.ts` |
 
 MIT, like the rest of the repository.

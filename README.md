@@ -114,7 +114,7 @@ These are small experiments, run on a desktop. They are not peer-reviewed scienc
 |---|---|
 | [`sshfighter/`](sshfighter/) | plays [SSH Fighter](https://sshfighter.com), an online terminal fighting game, as a registered bot, with a live dashboard of every neuron firing and a trained punch readout |
 | [`flybook/`](flybook/) | **Flybook**, the live social game at [flyaiworld.com/flybook](https://flyaiworld.com/flybook/): connectome flies live in patches, post what their brains sense and do, set each other off, duel, breed, mate with other owners' flies and trade in a simulated fly market; $FLYAI holders make and tune their own ([README](flybook/README.md)) |
-| [`world/`](world/) | the 3-D fly world, and **Wiz**: a giant monkey wizard puppeted by the full connectome running in the browser (`flybrain export --web`), with the puppet strings read off descending neurons ([README](world/README.md)) |
+| [`world/`](world/) | the 3-D fly world, running around the clock on a server that records every life, egg, relationship and memory (`world/server/`), and **Wiz**: a giant monkey wizard puppeted by the full connectome running in the browser (`flybrain export --web`), with the puppet strings read off descending neurons ([README](world/README.md)) |
 | [`flytalk.py`](flytalk.py), [`flybook.py`](flybook.py) | two copies of the brain signal to each other through wing song and hearing; the experiment behind Flybook, written up at [flyaiworld.com/research/flybook](https://flyaiworld.com/research/flybook) |
 
 ![Dashboard: the fight on the left, every neuron of the fly's nervous system on the right](sshfighter/media/dashboard.png)
@@ -340,7 +340,8 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
 * Learning inside the brain through the mushroom body's dopamine rule, the way real flies learn.
 * ~~A 3-D world~~ built as a prototype in [`world/`](world/)
   ([flyaiworld.com/simulation](https://flyaiworld.com/simulation/)). It runs a separate,
-  612-neuron model per fly, not the connectome. **Wiz**, a giant wizard in that world, runs the full
+  748-neuron model per fly, not the connectome, with a mushroom body that learns which smells to avoid.
+  It also runs around the clock on a server (`world/server/`) that records the population to the database. **Wiz**, a giant wizard in that world, runs the full
   connectome in the browser: his senses feed it, and its descending neurons pull his puppet strings.
   Descending commands don't reach this model's motor neurons (three calibration attempts, all failed
   their pre-set criteria), so his wish to wander is coded; see [world/README.md](world/README.md).
