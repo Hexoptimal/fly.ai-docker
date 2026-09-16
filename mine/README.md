@@ -1,17 +1,32 @@
-# fly.ai mining (v1)
+# fly.ai compute
 
-People lend their GPU or CPU to the fly brain from a browser tab. Each job runs the full connectome
-(166,700 neurons, 25 million synapses) for 15 simulated seconds and counts what the motor neurons do.
-The server checks a sample of the answers by re-running them and keeps each day's credit. Credit
-becomes monthly points per wallet, multiplied by the wallet's stake tier. After each month, a $FLYAI
-pool is split by points and claimed from a contract.
+People lend their GPU or CPU to the network from a browser tab. The free work is the fly brain: each job runs
+the full connectome (166,700 neurons, 25 million synapses) for 15 simulated seconds and counts what the motor
+neurons do. The server checks a sample of the answers by re-running them and keeps each day's credit. Credit
+becomes monthly points per wallet, multiplied by the wallet's stake tier. After each month, a $FLYAI pool is
+split by points and claimed from a contract.
 
-**Status (2026-09-16):**
-- **API:** live at https://flyai-mine.fly.dev, with wallet sign-in, stake tiers, monthly points and claims.
+Anyone can also buy compute:
+- **Brain experiments.**
+- **Their own programs:** WebAssembly or GPU shaders.
+
+Buyers pay in $FLYAI per finished job, and 80% goes to miners. We queue our own work as house orders: brain
+tuning, world simulations and encoding data.
+
+**Status (2026-09-17):**
+- **API:** live at https://flyai-mine.fly.dev (database schema 9), with:
+  - wallet sign-in, stake tiers, monthly points and claims;
+  - paid orders with bids, budgets and balances, and results by webhook, stream or pull;
+  - buyers' programs (WASM and WGSL);
+  - house orders.
+- **Website:** live at www.flyaiworld.com/compute/: Mine, Buy compute, Stake, Claims and Leaderboard. The API
+  guide is at /compute/compute-api.md.
 - **Contracts:** deployed and verified on Robinhood Chain.
-- **Website pages:** built by the Vercel build at www.flyaiworld.com/compute/; they go live on the next push.
-- **Extension:** built, not yet on the Chrome Web Store.
-- **Pools:** none announced or funded yet.
+- **Pool:** September 2026 announced at 5,250,000 $FLYAI; not yet snapshotted or funded (after 1 October).
+- **House work:** 11 orders queued, about 11,000 jobs (see *House orders*).
+- **Examples:** `examples/`, published on GitHub.
+- **Extension:** built, not yet on the Chrome Web Store. It takes brain jobs only (no programs, world or probe
+  jobs yet).
 
 People mine from either place, and both earn points for the linked wallet:
 - **The website's Mine page:** runs while the tab is open.
@@ -71,29 +86,21 @@ What the UI's job counts mean:
   - **jobs today:** all miners' jobs today.
   - **"X of Y screen jobs done":** progress through the current grid, which grows by a round when it runs low.
 
-### Next: experiments (planned, not built)
+### Beyond the screen
 
-The grid proves the network works but isn't useful research on its own. The plan is to turn the work
-into named **experiments**, each with its own job generator, goal and collected results. The job stays
-the same kind of deterministic integer brain run, so checking keeps working.
+The screen proves the network works. Useful work now runs as orders:
 
-1. **Tuning:** search brain settings for the sshfighter bot, the simulation's flies and Flybook.
-2. **Evolution:** each round keeps the best-scoring brains and mutates them, with a best-brains
-   leaderboard that credits the miners who found them.
-3. **Research data:** sensory-to-motor maps, which neurons matter for each behaviour, and what breaks
-   when parts are removed. Published as an open dataset (flybrain / research page).
-4. **Selling compute:** built as paid orders (see *Paid orders* below). Anyone can buy connectome sweeps.
+- **Paid orders:** buyers' brain sweeps and programs.
+- **House orders:** our own tuning, world simulations and encoding datasets, stored for good and pulled with
+  `scripts/pull-house.ts`.
 
-To build:
+Still to come:
+- **Evolution:** keep the best-scoring brains each round and mutate them.
+- **Scoring:** a per-experiment score from the recorded output.
+- **Results page:** `/compute/results`.
+- **Fitting:** Flybook's translator and the market's action reader, fitted on the probe data.
 
-- **Storage:** experiments and results tables, with jobs tagged by experiment.
-- **Scoring:** a per-experiment score from the recorded motor output.
-- **Export:** a download or API per experiment.
-- **Page:** `/compute/results` showing progress and the best brains.
-
-Start with the storage and the evolution experiment.
-
-## Paid orders (built, not deployed)
+## Paid orders
 
 Anyone can buy connectome sweeps on the Buy compute page (`/compute/jobs`) or through the API. Orders are off
 until `PAY_TO` is set. The code is in `src/orders.ts` and the "paid orders" part of `src/server.ts`, and
@@ -153,7 +160,7 @@ deterministic across GPUs, which is what makes answers checkable. For work that 
 inference, rendering), redundancy alone would have to judge answers, with a tolerance instead of a hash. That's
 weaker, and a separate design.
 
-## Buyers' programs (built, not deployed)
+## Buyers' programs
 
 Buyers can run their own code, not only brain sweeps: a WebAssembly module (`kind: "wasm"`, CPU) or a WGSL compute
 shader (`kind: "wgsl"`, GPU), over uploaded inputs or `count` jobs numbered 0..N-1. The buyer guide with examples,
@@ -196,7 +203,7 @@ limits and ideas is `web/compute-api.md`, downloadable at `/compute/compute-api.
 - **Also new:** a struck miner's pending paid brain jobs are re-run by the server at once. `SEED_PAID=0` stops
   idle verifiers working paid brain jobs (the order test uses it).
 
-## House orders: our own work (built, not deployed)
+## House orders: our own work
 
 Work we queue for ourselves, created with the admin token. It needs no payment, charges nothing and adds nothing
 to the pool. It runs after every paid order and before the free screen. Brain sweeps earn their usual points;
@@ -393,9 +400,20 @@ bash mine/deploy.sh    # stages server + world engine files + connectome (~58 MB
 First-time setup, including the IP allocation that failed automatically, is at the top of
 `deploy.sh`. Settings live in `fly.toml`: `PUBLIC_ORIGIN`, `VERIFIERS = 2` and `CANARY_POOL = 500`.
 
-**Last deploy: 2026-09-16.** It included wallet sign-in, points, stake tiers and claims. The secrets
-`ADMIN_TOKEN`, `CLAIMS_CONTRACT`, `STAKING_CONTRACT` and `STAKE_TIERS` are set, and the production
-database upgraded itself from schema 2 to 5 with its jobs and miners kept.
+**Last deploy: 2026-09-17** (schema 9: house orders). The deploys of 2026-09-16 and 17 added, in order:
+1. **Schema 5:** wallet sign-in, points, stake tiers and claims.
+2. **Schema 6:** paid orders.
+3. **Schema 7:** result delivery (webhooks, streams).
+4. **Schema 8:** buyers' programs and uploads.
+5. **Schema 9:** house orders.
+
+The database upgraded itself each time, keeping its jobs and miners. The secrets `ADMIN_TOKEN`,
+`CLAIMS_CONTRACT`, `STAKING_CONTRACT` and `STAKE_TIERS` are set. `fly.toml` carries `PAY_TO` (the dev wallet),
+`MIN_BID` 20, `CACHED_PRICE` 5, `POOL_SHARE` 0.8 and `STORE_MAX_MB` 400. Uploads live in `/data/blobs` on the
+volume.
+
+`deploy.sh` is run by the operator. Claude Code's auto mode blocks production deploys, so a session asks
+the operator to run it.
 
 **Shared CPUs throttle checking.** Right after deploy, the server re-ran about 1.5 jobs a minute,
 against about 16 on the development laptop. Fly's shared vCPUs are throttled under sustained load. That's
@@ -747,8 +765,14 @@ How answers are checked, without the server re-running a fixed share of a fast G
 
 ## Not in v1
 
-- **Experiments and result collection.** Jobs are still the fixed sensory screen; see *Next: experiments*.
-- **Chrome Web Store listing.** The extension is loaded unpacked for now.
+- **Chrome Web Store listing.** The extension is loaded unpacked for now. It takes brain jobs only: WebAssembly
+  needs `wasm-unsafe-eval` in its content policy, and it doesn't ship the world or probe runners yet.
+- **Evolution, scoring and a results page.** House orders collect data; nothing scores it or shows it yet.
+- **Refunds on-chain.** Buyers' unspent budgets are balances held in the dev wallet. Sending one back is manual:
+  send the tokens, then call `POST /api/admin/withdraw`.
+- **Program jobs in other browsers.** WASM agrees everywhere. World runs are float JavaScript: Chrome and Node
+  agree, other engines may not, and those jobs end up disputed.
+- **Automatic month funding.** Snapshots and funding are still the manual steps under *Every month*.
 - **Intel and Apple GPUs, Firefox and Safari.** NVIDIA (Lovelace) and AMD (RDNA 3) in Chrome match
   the CPU exactly. The others should by design, but haven't been tried.
 - **An idle server stays busy.** Verifiers keep working open jobs until `CANARY_POOL` answers are

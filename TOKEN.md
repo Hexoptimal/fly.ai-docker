@@ -60,9 +60,16 @@ re-runs a sample of answers, and a wrong answer zeroes that day's credit.
   The contract has no owner. Unstaking has a 7-day cooldown. Tiers are set by the server and may be
   changed at the start of a month, with notice.
 * **Monthly pool.** After a month ends, the team may split a $FLYAI pool by points. A pool may be
-  announced during the month and can only be raised. The team buys those tokens on the open market and
-  funds the MonthlyClaims contract, and wallets claim their share within 90 days. Anything unclaimed
-  after that returns to the team.
+  announced during the month. The team buys those tokens on the open market and funds the MonthlyClaims
+  contract, and wallets claim their share within 90 days. Anything unclaimed after that returns to the team.
+* **Buyers.** Anyone can buy compute and pay in $FLYAI. Payments go to the dev wallet
+  (`0x625862521777E19Ad54Ce6C7ABeD9Ca54D6589ea`).
+  * **Charging:** a job is charged only when its result settles.
+  * **The pool:** 80% of each charge joins that month's pool. For buyers' own programs, that 80% is set
+    aside for the wallets whose results settled the job, and is added to their claim.
+  * **The rest:** 20% stays with the dev wallet.
+  * **Unspent budgets:** stay a balance the buyer can spend on a next order. They're held in the dev wallet
+    and returned on request.
 * **No guaranteed reward.** Points are not tokens, and no month's pool is guaranteed. Like Flybook
   seasons, it's a promotion run by the team, not a right attached to the token. No tokens are created
   for it.
@@ -74,7 +81,9 @@ re-runs a sample of answers, and a wrong answer zeroes that day's credit.
 
 Both contracts are verified on Robinhood Chain.
 
-Funded months (pool, Merkle root, transactions) are logged here. As of 16 September 2026: **none yet.**
+Funded months (pool, Merkle root, transactions) are logged here. As of 17 September 2026: **none yet.**
+September 2026 is announced at 5,250,000 $FLYAI, plus whatever buyers' charges add; it will be funded after
+it ends.
 
 ## The world
 
@@ -153,6 +162,8 @@ same way the research results are reported, including the ones that did not work
 
 As of now: **no treasury exists and no treasury tokens have been created.** Compute pools (above) are
 bought on the open market for each month and paid straight into MonthlyClaims, not held in a treasury.
+Compute buyers' payments land in the dev wallet. Their pool part goes to MonthlyClaims with the month, and
+their unspent budgets are held for them. Both are tracked per wallet by the compute server.
 
 ## Bounties
 
