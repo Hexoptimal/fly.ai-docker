@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buy compute &mdash; fly.ai compute</title>
+<meta name="description" content="Run experiments on the full fly connectome: pick what the fly senses, pay in $FLYAI per finished run. Most of it goes to the miners.">
+<meta property="og:title" content="Buy compute &mdash; fly.ai compute">
+<meta property="og:description" content="Run experiments on the full fly connectome: pick what the fly senses, pay in $FLYAI per finished run. Most of it goes to the miners.">
+<meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@flydotai">
+<meta name="theme-color" content="#07090c">
+<link rel="canonical" href="https://flyaiworld.com/compute/jobs">
+<link rel="icon" href="/assets/logo.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/compute/mine/web/compute.css">
+</head>
+<body>
+
+<nav aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="/"><img class="logo" src="/assets/logo.webp" alt="fly.ai" width="1774" height="887">$FLYAI</a>
+    <ul>
+      <li class="opt"><a href="/">Home</a></li>
+      <li class="opt"><a href="/research">Research</a></li>
+      <li class="opt"><a href="/roadmap">Roadmap</a></li>
+      <li class="opt"><a href="/token">$FLYAI</a></li>
+      <li class="opt"><a href="/simulation/">Simulation</a></li>
+      <li class="opt"><a href="/flybook/">Flybook</a></li>
+      <li class="opt"><a href="/radio/">Radio</a></li>
+      <li class="opt"><a class="on" href="/compute/">Compute</a></li>
+      <li class="opt"><a href="/shop" target="_blank" rel="noopener">Merch</a></li>
+      <li class="opt"><a href="/agents">For Agents</a></li>
+      <li><a class="btn sm" href="https://x.com/flydotai" target="_blank" rel="noopener">Follow @flydotai</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="pagehead">
+  <div class="wrap">
+    <p class="eyebrow">fly.ai compute · buy compute</p>
+    <h1 id="headline">Run an experiment on the fly brain</h1>
+    <p class="lede" id="lede">Choose what the fly senses. The network plays it into the full connectome, 166,700 neurons, over and over, and hands back what its muscles and escape neurons do. You pay in $FLYAI only for runs that finish, and <span id="pool-share">most</span> of it goes to the miners.</p>
+    <div class="tabs">
+      <a href="/compute/">Mine</a>
+      <a class="on" href="/compute/jobs">Buy compute</a>
+      <a href="/compute/stake">Stake</a>
+      <a href="/compute/claim">Claims</a>
+      <a href="/compute/leaderboard">Leaderboard</a>
+    </div>
+  </div>
+</section>
+
+<section class="firstsec">
+  <div class="wrap stack">
+    <div class="card pad">
+      <span class="num">WHAT TO RUN</span>
+      <div id="modes" class="choices compact"></div>
+    </div>
+
+    <div class="card pad" id="brain-card">
+      <span class="num">1 · WHAT TO TEST</span>
+      <h3>Pick an experiment</h3>
+      <div id="presets" class="choices"></div>
+    </div>
+
+    <div class="card pad" id="program-card" hidden>
+      <span class="num">1 · YOUR PROGRAM</span>
+      <h3>Upload it</h3>
+      <div class="controls">
+        <label class="grow">Program: a .wasm module or a .wgsl compute shader <input id="program-file" type="file" accept=".wasm,.wgsl"></label>
+      </div>
+      <p id="program-status" class="codeline">No program yet. Start from <a href="https://github.com/alextitonis/fly.ai/tree/main/mine/examples" target="_blank" rel="noopener">the examples</a> (pi, hash search, Mandelbrot tiles, TSP, WASI, a GPU shader) or <a href="/compute/compute-api.md" download="flyai-compute-api.md">the guide</a>: Rust, C, Zig, Go or WGSL.</p>
+      <p class="caption">Jobs</p>
+      <div id="input-modes" class="choices compact"></div>
+      <div class="controls" id="count-field">
+        <label class="grow">Number of jobs (each is given its job number, 0, 1, 2… as its input) <input id="count" type="number" min="1" value="100"></label>
+      </div>
+      <div class="controls" id="files-field" hidden>
+        <label class="grow">Input files, one job each <input id="input-files" type="file" multiple></label>
+      </div>
+      <p id="inputs-status" class="codeline"></p>
+      <div class="controls">
+        <label class="grow">Time limit per job (seconds) <input id="timeout" type="number" min="1" max="600" value="60"></label>
+        <label class="grow">Miners who must agree <select id="redundancy"><option value="1">1 (trust the first)</option><option value="2" selected>2</option><option value="3">3</option></select></label>
+      </div>
+      <div id="gpu-fields" hidden>
+        <div class="controls">
+          <label class="grow">Workgroups x <input id="dispatch-x" type="number" min="1" value="64"></label>
+          <label class="grow">y <input id="dispatch-y" type="number" min="1" value="1"></label>
+          <label class="grow">z <input id="dispatch-z" type="number" min="1" value="1"></label>
+        </div>
+        <div class="controls">
+          <label class="grow">Output bytes <input id="output-bytes" type="number" min="4" value="256"></label>
+          <label class="grow">Float tolerance (blank: exact) <input id="tolerance" inputmode="decimal" placeholder="e.g. 0.0001"></label>
+        </div>
+      </div>
+      <label class="chip"><input id="keep-open" type="checkbox"> Keep the order open to add jobs from code later</label>
+      <p class="caption">Programs run in miners' browsers, sandboxed: no network, no files, a memory cap and your time limit. Anyone who takes a job can see the program and its input, so don't send secrets. Outputs are kept for 14 days.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="card pad" id="repeats-card">
+        <span class="num">2 · HOW SURE</span>
+        <h3>Repeats</h3>
+        <div id="repeats" class="choices compact"></div>
+        <p class="caption">The brain has random noise, like a real one. Each repeat runs the whole experiment again with different noise, so more repeats give steadier averages.</p>
+      </div>
+      <div class="card pad" id="speed-card">
+        <span class="num">3 · HOW FAST</span>
+        <h3>Speed</h3>
+        <div id="speeds" class="choices compact"></div>
+        <p class="caption">Miners pick orders at random, weighted by price. Paying more per run gets your runs picked more often. <span id="market"></span></p>
+      </div>
+    </div>
+
+    <div class="card pad">
+      <span class="num">4 · ORDER</span>
+      <p id="summary" class="summary">—</p>
+      <div class="row"><span class="k">Wallet</span><span class="v rowbtn"><span id="account">not connected</span><button id="connect" class="btn sm" type="button">Connect</button></span></div>
+      <div class="row" id="balance-row" hidden><span class="k">Balance</span><span class="v" id="balance">—</span></div>
+      <div class="cta" style="margin-top:16px">
+        <button id="buy" class="btn red" type="button" disabled>Pay and run</button>
+        <button id="use-balance" class="btn" type="button" hidden>Pay from balance</button>
+      </div>
+      <p id="tx" class="codeline" style="margin-top:14px"></p>
+      <div id="secret" class="hint" hidden>
+        <b>Your webhook secret, shown only this once.</b> Results POSTed to your URL are signed with it. Save it now:
+        <div class="ca"><code id="secret-value"></code><button id="secret-copy" class="btn sm" type="button">Copy</button></div>
+      </div>
+      <p id="note" class="caption"></p>
+
+      <div id="key" class="hint" hidden>
+        <b>Your order key, shown only this once.</b> Use it from code to add jobs or stop the order (Authorization: Bearer). Save it now:
+        <div class="ca"><code id="key-value"></code><button id="key-copy" class="btn sm" type="button">Copy</button></div>
+      </div>
+
+      <details class="advanced">
+        <summary>Advanced settings</summary>
+        <div id="brain-advanced">
+        <p class="caption">Senses to drive</p>
+        <div id="channels" class="chips"></div>
+        <p class="caption">Sides</p>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="side" value="L" checked> Left</label>
+          <label class="chip"><input type="checkbox" name="side" value="R" checked> Right</label>
+        </div>
+        <div class="controls">
+          <label class="grow">Strengths <input id="amounts" autocomplete="off"></label>
+          <label class="grow">Gains <input id="gains" autocomplete="off"></label>
+          <label class="grow">Tonics <input id="tonics" autocomplete="off"></label>
+        </div>
+        <div class="controls">
+          <label class="grow">Repeats <input id="seeds" type="number" min="1" max="1000"></label>
+          <label class="grow">Rest steps before the stimulus <input id="warm" type="number" min="0"></label>
+        </div>
+        </div>
+        <div class="controls">
+          <label class="grow">Price per run ($FLYAI) <input id="bid" inputmode="decimal" autocomplete="off"></label>
+          <label class="grow">Budget ($FLYAI) <input id="budget" inputmode="decimal" placeholder="the whole experiment" autocomplete="off"></label>
+        </div>
+        <div class="controls">
+          <label class="grow">Stop after (hours) <input id="hours" inputmode="decimal" placeholder="no limit" autocomplete="off"></label>
+          <label class="grow">Runs at once <input id="parallel" type="number" min="1"></label>
+        </div>
+        <div class="controls">
+          <label class="grow">Send results to (webhook, optional) <input id="webhook" type="url" placeholder="https://your-server.com/flyai" autocomplete="off"></label>
+        </div>
+        <p class="caption">Strength is how hard the sense is driven. Gain scales every synapse, and tonic is a steady background drive for every neuron. Lists are comma separated. Each run is <span id="job-length">15 simulated seconds</span>: a rest, then the stimulus. A smaller budget or a time limit stops the order early, and what it didn't spend goes back to your balance.</p>
+      </details>
+    </div>
+
+    <div class="card pad">
+      <span class="num">5 · RESULTS</span>
+      <h3>Your orders</h3>
+      <div id="orders" class="list"><p class="caption">Connect a wallet to see its orders.</p></div>
+    </div>
+
+    <div class="card pad">
+      <span class="num">FOR DEVELOPERS</span>
+      <h3>Use it from code</h3>
+      <p class="caption">Everything on this page is a plain JSON API at <code>https://flyai-mine.fly.dev</code>. Results come to you as miners settle them, three ways. Every row has a <code>seq</code> that only goes up, so keep the last one you handled.</p>
+      <div class="cta" style="margin:10px 0 16px">
+        <a class="btn red sm" href="/compute/compute-api.md" download="flyai-compute-api.md">Download the API guide (.md)</a>
+        <a class="btn sm" href="https://github.com/alextitonis/fly.ai/tree/main/mine/examples" target="_blank" rel="noopener">Example programs on GitHub</a>
+      </div>
+      <p class="caption"><b>1. Create and pay.</b> Create the order for your wallet, then send one $FLYAI transfer of exactly <code>budget_wei</code> to <code>pay_to</code> and hand over the transaction hash.</p>
+<pre class="codeblock"><code>curl -X POST https://flyai-mine.fly.dev/api/orders -H 'content-type: application/json' -d '{
+  "wallet": "0xYourWallet", "bid": "20", "budget": "255", "webhook": "https://your-server.com/flyai",
+  "spec": {"kind": "connectome-sweep", "channels": ["LPLC2", "none"], "sides": ["L", "R"],
+           "amounts": [0.2, 0.4], "gains": [3], "tonics": [0.14], "seeds": 3, "warm": 250}
+}'
+# → {"id": "…", "budget_wei": "…", "pay_to": "0x…", "webhook_secret": "…"}
+
+curl -X POST https://flyai-mine.fly.dev/api/orders/ORDER_ID/pay -H 'content-type: application/json' -d '{"tx": "0xTransferHash"}'</code></pre>
+      <p class="caption"><b>2. Stream results live</b> (server-sent events; a browser reconnects and resumes on its own):</p>
+<pre class="codeblock"><code>const es = new EventSource("https://flyai-mine.fly.dev/api/orders/ORDER_ID/stream");
+es.addEventListener("result", (e) =&gt; save(JSON.parse(e.data)));   // one settled run
+es.addEventListener("status", (e) =&gt; {
+  if (["done", "ended"].includes(JSON.parse(e.data).status)) es.close();
+});</code></pre>
+      <p class="caption"><b>3. Or pull pages</b>, asking again with <code>after=next</code>:</p>
+<pre class="codeblock"><code>curl "https://flyai-mine.fly.dev/api/orders/ORDER_ID/results?after=0&amp;limit=5000"
+# → {"status": "live", "next": 1042, "more": false, "outputs": [...], "rows": [{"seq": 1031, "channel": "LPLC2", "base": [...], "stim": [...]}, ...]}</code></pre>
+      <p class="caption"><b>4. Or get a webhook.</b> Batches of up to 500 rows are POSTed to your URL, with <code>"final": true</code> on the last call. They're retried until your server answers 2xx, and signed with <code>X-Flyai-Signature: t=&lt;ms&gt;,v1=HMAC-SHA256(secret, "t.body")</code>. The guide has receivers for Node and Python, paying with viem, and every field.</p>
+    </div>
+
+    <div class="card pad">
+      <span class="num">HOW IT WORKS</span>
+      <ul class="caption">
+        <li><b>You pay per finished run.</b> A run counts once <b id="h-redundancy">two</b> different miners return exactly the same answer, or the server runs it itself. A miner who answers wrong loses the day. Runs the network has already done cost <b id="h-cached">—</b> and are ready at once.</li>
+        <li><b>It stops when it's done,</b> or when the budget runs out, the time limit passes, or you press Stop. What it didn't spend goes back to your balance for your next order.</li>
+        <li><b><span id="h-pool">—</span> of what you spend goes to the miners</b> through this month's pool.</li>
+        <li>Paying is one $FLYAI transfer from your wallet. The amount ends in a few extra wei so it can be matched to your order, and your wallet fills it in. Paying from your balance or stopping an order asks for a free signature.</li>
+        <li>Results are spike counts for each motor group, before and during the stimulus, as CSV or JSON. Anyone with an order's link can download them.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://x.com/flydotai" target="_blank" rel="noopener">X @flydotai</a>
+      <a href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/alextitonis/fly.ai/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+    </div>
+    <p>Connectome data: MaleCNS v1.0 by FlyEM (HHMI Janelia) and collaborators, used under CC BY 4.0. Code MIT licensed.</p>
+  </div>
+</footer>
+
+<script type="module" src="/compute/mine/web/jobs.js"></script>
+</body>
+</html>

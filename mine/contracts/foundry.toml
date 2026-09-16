@@ -1,0 +1,15 @@
+# MonthlyClaims: forge build / forge test from mine/contracts. OpenZeppelin comes from mine/node_modules (npm).
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+cache_path = "cache"
+libs = ["../node_modules"]
+remappings = ["@openzeppelin/contracts/=../node_modules/@openzeppelin/contracts/", "forge-std/=../node_modules/forge-std/src/"]
+solc_version = "0.8.28"
+# Shanghai, not solc's Cancun default: no MCOPY/TSTORE, so it runs whatever ArbOS version Robinhood Chain is on
+evm_version = "shanghai"
+optimizer = true
+optimizer_runs = 200
+fs_permissions = [{ access = "read", path = "./test/fixtures" }]

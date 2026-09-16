@@ -33,7 +33,9 @@ or its earnings.** The research stays free: every line of code in this repositor
 and runs on your own machine without the token, forever. What the token buys is a place in the
 shared simulation that we host, nothing else.
 
-There is no staking, no emission schedule and no promise about price. The only automatic mechanism
+There is no emission schedule and no promise about price. The only staking is the optional compute
+staking described under *Compute* below, which raises a miner's points and pays nothing by itself.
+The only automatic mechanism
 is the buyback below, and it runs on a schedule rather than on anyone's judgement. It is not a
 promise that the price will go anywhere.
 
@@ -42,6 +44,37 @@ promise that the price will go anywhere.
 [Flybook](https://flyaiworld.com/flybook/) is live. Anyone can watch it, and anyone can play free: sign in with email or a wallet to make 1 fly, poke patches, like, comment on and caption posts, challenge other flies to duels in the Arena, and complete missions. Holding at least 1 $FLYAI raises that to 3 flies you can tune and breed, makes your likes count on the boards, and makes you eligible for season rewards. The balance is checked on chain when you act; a wallet that drops below 1 $FLYAI keeps its first fly active and its other made flies go dormant until it holds again.
 
 **Rewards.** Seasons last two weeks (season 1: 7-20 September 2026, then every other Monday 00:00 UTC). Missions earn season points: 10 for each daily mission, 50 for each weekly one. At the end of each season the top 3 on the Season points board win $FLYAI. Rewards are sent to the winners' wallets; amounts are announced on [@flydotai](https://x.com/flydotai). Points are counted from real activity in the app, and the rewards are a promotion run by the team, not a right attached to the token. Holding $FLYAI earns nothing by itself.
+
+## Compute
+
+[fly.ai compute](https://flyaiworld.com/compute/) lets anyone lend a GPU or CPU to the connectome, from
+the website or the Chrome extension. Each job runs the full brain for 15 simulated seconds. The server
+re-runs a sample of answers, and a wrong answer zeroes that day's credit.
+
+* **Points.** Checked work earns points for the wallet the miner signed in with, added up per UTC month.
+* **Staking.** Staking $FLYAI in the FlyStaking contract multiplies each day's points by a tier:
+  * under 2,000,000: 1×;
+  * 2,000,000 or more: 1.25×;
+  * 20,000,000 or more: 1.5×.
+
+  The contract has no owner. Unstaking has a 7-day cooldown. Tiers are set by the server and may be
+  changed at the start of a month, with notice.
+* **Monthly pool.** After a month ends, the team may split a $FLYAI pool by points. A pool may be
+  announced during the month and can only be raised. The team buys those tokens on the open market and
+  funds the MonthlyClaims contract, and wallets claim their share within 90 days. Anything unclaimed
+  after that returns to the team.
+* **No guaranteed reward.** Points are not tokens, and no month's pool is guaranteed. Like Flybook
+  seasons, it's a promotion run by the team, not a right attached to the token. No tokens are created
+  for it.
+
+| | |
+|---|---|
+| FlyStaking | `0x5279dafA0858d4A5B2DCeb05E5b41f954CD692Cc` |
+| MonthlyClaims | `0x9C11Cfba5564Fb6e3f0258DDcB92Fd6BA6b4d77A` (owner: dev wallet `0x625862521777E19Ad54Ce6C7ABeD9Ca54D6589ea`) |
+
+Both contracts are verified on Robinhood Chain.
+
+Funded months (pool, Merkle root, transactions) are logged here. As of 16 September 2026: **none yet.**
 
 ## The world
 
@@ -118,7 +151,8 @@ If a treasury is ever created, it will be a single named address published here,
 supply, and every outflow will be logged in this file with date, amount and what it bought — the
 same way the research results are reported, including the ones that did not work.
 
-As of now: **no treasury exists and no treasury tokens have been created.**
+As of now: **no treasury exists and no treasury tokens have been created.** Compute pools (above) are
+bought on the open market for each month and paid straight into MonthlyClaims, not held in a treasury.
 
 ## Bounties
 

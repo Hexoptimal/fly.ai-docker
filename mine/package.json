@@ -1,0 +1,38 @@
+{
+  "name": "fly-mine",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.ts",
+    "check": "node src/selftest.ts",
+    "validate": "node src/validate.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "build:extension": "node --disable-warning=ExperimentalWarning extension/build.ts",
+    "test:auth": "node --disable-warning=ExperimentalWarning src/authtest.ts",
+    "test:payouts": "node --disable-warning=ExperimentalWarning src/payouttest.ts",
+    "test:contracts": "npm run test:payouts && cd contracts && forge test",
+    "test:claims": "node --disable-warning=ExperimentalWarning src/claimtest.ts",
+    "test:orders": "node --disable-warning=ExperimentalWarning src/ordertest.ts",
+    "test:programs": "node --disable-warning=ExperimentalWarning src/programtest.ts",
+    "test:house": "node --disable-warning=ExperimentalWarning src/housetest.ts",
+    "test:examples": "node --disable-warning=ExperimentalWarning examples/test-examples.ts",
+    "pull:house": "node --disable-warning=ExperimentalWarning scripts/pull-house.ts",
+    "seed:house": "node --disable-warning=ExperimentalWarning scripts/seed-house.ts"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^5.6.1",
+    "@types/chrome": "^0.3.0",
+    "@types/node": "^22.20.3",
+    "@webgpu/types": "^0.1.72",
+    "forge-std": "github:foundry-rs/forge-std#v1.10.0",
+    "typescript": "5.9"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0"
+  }
+}

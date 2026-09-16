@@ -135,6 +135,16 @@ New applications go in their own folder and import the core from the `flybrain` 
 
 How it is built, measured and deployed: [flybook/README.md](flybook/README.md).
 
+## Compute
+
+[fly.ai compute](https://flyaiworld.com/compute/) lets anyone lend a GPU or CPU to the full connectome, from a browser tab or the Chrome extension.
+
+* **The brain:** each job runs the brain in exact integer maths (WebGPU, or CPU as a fallback) for 15 simulated seconds, so every machine gets identical spikes.
+* **Checks:** the server re-runs a sample of answers, and a wrong answer zeroes the day.
+* **Rewards:** checked work earns monthly points per wallet. Staking $FLYAI raises the multiplier. After each month, a $FLYAI pool may be split by points and claimed on-chain (see [TOKEN.md](TOKEN.md#compute)).
+
+How it works, how answers are checked, the contracts and operations: [mine/README.md](mine/README.md).
+
 ## Use it on your own task
 
 `flybrain/reservoir.py` is the reusable half of the SSH Fighter bot's reservoir readout, pulled out so
@@ -327,6 +337,7 @@ types, sides, positions, readout groups, eye layout) into `$FLY_DATA`. Expect ex
 | `flytalk.py` | the talking-flies experiment: two brains coupled through wing song and hearing, a scrambled-wiring control, permutation tests (`pilot`, `run`, `report`, `followup`) |
 | `flybook.py` | turns a `flytalk.py` run into the Flybook feed (`docs/assets/flybook.json`) |
 | `talk/`, `talk-fix/`, `talk-2ms/` | results of the three talking-flies runs (`results.json`; the raw `.npz` recordings are not committed) |
+| `mine/` | fly.ai compute: integer brain (CPU and WebGPU), checking server on fly.io, website pages, Chrome extension, staking and monthly-claims contracts ([README](mine/README.md)) |
 | `sshfighter/` | the SSH Fighter bot, dashboard and trained readout ([README](sshfighter/README.md)), built on `flybrain/reservoir.py` |
 
 ## What's next

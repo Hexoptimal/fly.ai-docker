@@ -1,0 +1,7 @@
+target/
+*.pgm
+inputs/
+results*/
+tiles/
+mats/
+order-*.json

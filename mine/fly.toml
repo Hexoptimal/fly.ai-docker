@@ -1,0 +1,42 @@
+# fly.ai mining server on fly.io, Treasure org: one machine with a volume for its SQLite database, so it
+# doesn't scale out and doesn't stop when idle (miners hold jobs, and the expiry timer runs in-process).
+# Deploy with mine/deploy.sh.
+app = "flyai-mine"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PUBLIC_ORIGIN = "https://www.flyaiworld.com"  # the pages live on Vercel: wallet sign-in messages and /compute/connect links name the website
+  VERIFIERS = "2"         # ~300 MB of memory each
+  CANARY_POOL = "500"     # idle verifiers stop here: shared vCPUs get throttled under sustained load, which would delay real checks
+  # paid orders (src/orders.ts): payments go to the dev wallet, which also funds MonthlyClaims
+  PAY_TO = "0x625862521777E19Ad54Ce6C7ABeD9Ca54D6589ea"
+  MIN_BID = "20"          # $FLYAI per job, ~$0.001 at $0.00005092 (2026-09-16)
+  CACHED_PRICE = "5"      # already-settled jobs, ~$0.00025
+  POOL_SHARE = "0.8"
+  STORE_MAX_MB = "400"    # buyers' uploads and program outputs, on the 1 GB volume next to the database
+
+[mounts]
+  source = "mine_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "60s"
+    method = "GET"
+    path = "/api/stats"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 2
+  memory = "2gb"

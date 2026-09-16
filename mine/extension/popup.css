@@ -1,0 +1,35 @@
+/* The website's look (/assets/site.css + compute.css), sized for a 390 px extension popup. */
+body { width: 390px; overflow-x: hidden; }
+.popup-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px;
+              border-bottom: 1px solid var(--line); background: rgba(7,9,12,.85); }
+.popup-head .brand { font-size: 16px; color: var(--red-hi); }
+.popup-head .brand .logo { height: 28px; margin: -4px -6px -4px -8px; }
+.popup-head .srcline { font-size: 11px; text-align: right; }
+.popup { display: grid; gap: 10px; padding: 12px; }
+.popup .pad { padding: 14px; }
+.popup .num { margin-bottom: 6px; }
+.popup .row { padding: 6px 0; font-size: 13px; gap: 10px; }
+.popup .row .v { font-size: 13px; }
+.popup .controls { margin: 8px 0 10px; gap: 8px; }
+.popup .controls label { font-size: 10px; }
+.popup input, .popup select { padding: 8px 10px; font-size: 13px; width: 100%; }
+.popup .band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.popup .band div { padding: 12px 14px; }
+.popup .band b { font-size: 20px; }
+.popup .band span { font-size: 12px; }
+.popup .cta { gap: 6px; margin-top: 10px; }
+.popup .lane { grid-template-columns: 52px minmax(0, 1fr) 96px; font-size: 11px; }
+.popup .hint { font-size: 12px; padding: 10px 12px; }
+.caption { margin: 2px 0 0; font-size: 12px; }
+
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.switch { position: relative; flex: none; cursor: pointer; }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch .track { display: block; width: 48px; height: 26px; border-radius: 13px; background: var(--line); transition: background .15s; }
+.switch .knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text);
+                box-shadow: 0 1px 3px rgba(0,0,0,.5); transition: transform .15s; }
+.switch input:checked + .track { background: var(--red); }
+.switch input:checked + .track .knob { transform: translateX(22px); }
+.switch input:focus-visible + .track { outline: 2px solid var(--cool); outline-offset: 2px; }
+
+.settings summary { cursor: pointer; font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }

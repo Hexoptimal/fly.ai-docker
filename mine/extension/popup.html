@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>fly.ai compute</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/site.css">
+  <link rel="stylesheet" href="../web/compute.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="popup-head">
+    <span class="brand"><img class="logo" src="../../assets/logo.webp" alt="fly.ai" width="1774" height="887">compute</span>
+    <span id="fleet" class="srcline">connecting…</span>
+  </header>
+
+  <main class="popup">
+    <div class="card pad">
+      <div class="switch-row">
+        <div>
+          <span class="num">CONTRIBUTE</span>
+          <p id="state-line" class="caption">Off. Nothing runs until you turn it on.</p>
+        </div>
+        <label class="switch" title="Turn contributing on or off">
+          <input id="enabled" type="checkbox">
+          <span class="track"><span class="knob"></span></span>
+        </label>
+      </div>
+      <div class="controls">
+        <label>Use <select id="engine">
+          <option value="gpu">GPU</option>
+          <option value="cpu">CPU</option>
+        </select></label>
+        <label id="batch-field" class="grow">Intensity <select id="batch">
+          <option value="8">Light · 8 at once</option>
+          <option value="16">Medium · 16 at once</option>
+          <option value="32">Full · 32 at once</option>
+        </select></label>
+        <label id="threads-field" class="grow" hidden>Threads <select id="threads"></select></label>
+      </div>
+      <div class="row"><span class="k">Status</span><span class="v" id="status">off</span></div>
+      <div class="row"><span class="k">Job</span><span class="v" id="job">—</span></div>
+      <div class="row"><span class="k">Session</span><span class="v" id="session">—</span></div>
+      <div class="row"><span class="k">Wallet</span><span class="v rowbtn"><span id="wallet">not linked</span><button id="connect-wallet" class="btn sm" type="button">Connect</button></span></div>
+      <div id="slots" class="lanes"></div>
+    </div>
+
+    <div class="band">
+      <div><b id="today-jobs">0</b><span>jobs today</span></div>
+      <div><b id="today-checked">0</b><span>checked</span></div>
+      <div><b id="today-units">0.0</b><span>credited</span></div>
+      <div><b id="today-share">0.0%</b><span>share</span></div>
+    </div>
+
+    <div class="card pad">
+      <span class="num">THIS MONTH</span>
+      <div class="row"><span class="k">Standing</span><span class="v" id="today-standing">no jobs yet today</span></div>
+      <div class="row"><span class="k">Month</span><span class="v" id="month">—</span></div>
+      <div class="row"><span class="k">Stake</span><span class="v" id="stake">—</span></div>
+      <div class="cta">
+        <a id="leaderboard-link" class="btn sm" target="_blank" rel="noopener">Leaderboard</a>
+        <a id="claims-link" class="btn sm" target="_blank" rel="noopener">Claims</a>
+        <a id="stake-link" class="btn sm" target="_blank" rel="noopener">Stake</a>
+      </div>
+    </div>
+
+    <div class="card pad">
+      <span class="num">THIS MACHINE</span>
+      <div class="row"><span class="k">GPU</span><span class="v" id="gpu">checking…</span></div>
+      <div class="row"><span class="k">Miner sees</span><span class="v" id="miner-gpu">starts when you turn it on</span></div>
+      <div class="row"><span class="k">CPU</span><span class="v" id="cpu">—</span></div>
+      <p id="gpu-hint" class="hint" hidden>Laptop with two GPUs? Chrome uses the weaker built-in one unless you set it to <b>High performance</b>: Windows Settings → System → Display → Graphics → Google Chrome, then restart Chrome.</p>
+    </div>
+
+    <details class="card pad settings">
+      <summary>Settings</summary>
+      <div class="controls">
+        <label class="grow">Name <input id="label" maxlength="64" placeholder="optional" autocomplete="off" spellcheck="false"></label>
+        <label class="grow">Server <input id="server" autocomplete="off" spellcheck="false"></label>
+        <button id="save" class="btn sm" type="button">Save</button>
+      </div>
+      <p id="saved" class="caption"></p>
+    </details>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

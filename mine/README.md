@@ -1,0 +1,759 @@
+# fly.ai mining (v1)
+
+People lend their GPU or CPU to the fly brain from a browser tab. Each job runs the full connectome
+(166,700 neurons, 25 million synapses) for 15 simulated seconds and counts what the motor neurons do.
+The server checks a sample of the answers by re-running them and keeps each day's credit. Credit
+becomes monthly points per wallet, multiplied by the wallet's stake tier. After each month, a $FLYAI
+pool is split by points and claimed from a contract.
+
+**Status (2026-09-16):**
+- **API:** live at https://flyai-mine.fly.dev, with wallet sign-in, stake tiers, monthly points and claims.
+- **Contracts:** deployed and verified on Robinhood Chain.
+- **Website pages:** built by the Vercel build at www.flyaiworld.com/compute/; they go live on the next push.
+- **Extension:** built, not yet on the Chrome Web Store.
+- **Pools:** none announced or funded yet.
+
+People mine from either place, and both earn points for the linked wallet:
+- **The website's Mine page:** runs while the tab is open.
+- **The extension:** runs in the background.
+
+Standalone: it shares the connectome files and parser with `world/` and nothing with flybook.
+
+## Run
+
+```sh
+cd mine
+npm run check      # integer engine: exact helpers, deterministic, seed/drive sensitive (~10 s)
+npm run validate   # integer brain vs the world's float brain, 6 conditions x 4 seeds (~5 min)
+npm start          # http://localhost:8787/compute/ to mine, /compute/bench for GPU vs CPU
+```
+
+Needs Node 22.18+ (built-in TypeScript stripping and `node:sqlite`). No runtime dependencies and no
+build step: the server strips types from the `.ts` files as it serves them. `npm install` only
+brings in dev types for `npm run typecheck`. GPU mining needs WebGPU (desktop Chrome and Edge).
+
+| env | default | |
+|---|---|---|
+| `PORT` | 8787 | |
+| `MINE_DB` | `data/mine.db` | SQLite file |
+| `CONNECTOME_DIR` | `../world/public/connectome` | output of `flybrain export --web` |
+| `VERIFIERS` | cores − 1, at most 4 | server threads that re-run answers (~300 MB of memory each) |
+| `AUDITS` | 3 | an answer is re-run with chance `AUDITS / (miner's jobs today + AUDITS)` |
+| `CANARY_RATE` | 0.15 | share of handed-out jobs whose answer the server already knows |
+| `CANARY_POOL` | 100000 | idle verifiers work open jobs until this many answers are known |
+| `MIN_CHECKED` | 2 | checked answers a miner needs in a day before its credit counts |
+| `AUDIT_QUEUE_MAX` | 500 | re-runs waiting beyond this are skipped (canaries still apply) |
+| `OPEN_TARGET` | 3000 | when fewer jobs are open, the next round of the screen is added |
+| `MAX_JOBS` | 64 | jobs one miner can hold at once (a GPU holds a batch of up to 32) |
+| `JOB_TTL_MIN` | 20 | minutes before an unreturned job goes back out |
+| `TRUST_PROXY` | unset | set behind a reverse proxy so per-IP limits use `X-Forwarded-For` |
+
+## The work
+
+The job grid is a sensory-to-motor screen:
+
+- **Channels:** each eye channel (LPLC2, LC4, LPLC1, LC10a) and touch (SNta), on each side.
+- **Grid:** 4 drive strengths × gain {2, 3, 4} × tonic {0.10, 0.14, 0.18} × 3 seeds, plus undriven controls. That's 1,107 jobs per round.
+- **Rounds:** when open jobs drop below `OPEN_TARGET`, the server adds the next round with 3 new seeds.
+  Work never runs out, and every round tightens each cell's average.
+- **Each job:** 5 seconds at rest, then 10 seconds driven. It records spikes per motor group in both windows.
+- **Where to read it:** `/api/results` averages the jobs over seeds.
+
+For example, driving the left LPLC2 raises DNp01 (the giant-fiber escape neuron) on the left side by about 11 Hz.
+
+What the UI's job counts mean:
+
+- **Session:** jobs, units and jobs/min since Start on this page. It resets when the page reloads.
+- **Jobs today / units:** your jobs accepted today, and the credit left after checks. Points = units × stake multiplier.
+- **Standing today:** `ok` if every checked answer matched, `zeroed` after a wrong one.
+- **Fleet line:**
+  - **online:** miners active now.
+  - **jobs today:** all miners' jobs today.
+  - **"X of Y screen jobs done":** progress through the current grid, which grows by a round when it runs low.
+
+### Next: experiments (planned, not built)
+
+The grid proves the network works but isn't useful research on its own. The plan is to turn the work
+into named **experiments**, each with its own job generator, goal and collected results. The job stays
+the same kind of deterministic integer brain run, so checking keeps working.
+
+1. **Tuning:** search brain settings for the sshfighter bot, the simulation's flies and Flybook.
+2. **Evolution:** each round keeps the best-scoring brains and mutates them, with a best-brains
+   leaderboard that credits the miners who found them.
+3. **Research data:** sensory-to-motor maps, which neurons matter for each behaviour, and what breaks
+   when parts are removed. Published as an open dataset (flybrain / research page).
+4. **Selling compute:** built as paid orders (see *Paid orders* below). Anyone can buy connectome sweeps.
+
+To build:
+
+- **Storage:** experiments and results tables, with jobs tagged by experiment.
+- **Scoring:** a per-experiment score from the recorded motor output.
+- **Export:** a download or API per experiment.
+- **Page:** `/compute/results` showing progress and the best brains.
+
+Start with the storage and the evolution experiment.
+
+## Paid orders (built, not deployed)
+
+Anyone can buy connectome sweeps on the Buy compute page (`/compute/jobs`) or through the API. Orders are off
+until `PAY_TO` is set. The code is in `src/orders.ts` and the "paid orders" part of `src/server.ts`, and
+`npm run test:orders` runs the whole flow on anvil.
+
+- **The job:** the buyer picks channels, sides, drive strengths, gains, tonics, seeds and rest steps. Each job is
+  the same 750-step integer brain run as the screen, so GPU batches, verifiers and existing miners all work
+  unchanged. Seeds come outermost, so an order cut short still has whole seeds of every condition.
+- **The bid:** a price per job, at least `MIN_BID`. When a miner claims work, a random live order is drawn,
+  weighted by its bid, and only then the free screen. Higher bids feed the pool more and get picked more often.
+  Canaries still come first at `CANARY_RATE`.
+- **The limits:** `max_parallel` is how many of an order's jobs are out at once. The buyer sets it, capped at
+  `ORDER_MAX_PARALLEL`. Each job has one holder at a time, so this also caps how many miners work on one order.
+  Sweeps hold at most `ORDER_MAX_JOBS` jobs.
+- **The budget and the end:** an order runs until its sweep is done, its budget is spent, its optional time
+  limit (`hours`) passes, or the wallet stops it. The unspent budget goes back to the wallet's balance, which
+  can fund its next order.
+- **Charging:** a job is charged at the bid when its answer settles, meaning `ORDER_REDUNDANCY` (2) different
+  clean miners (wallets count once) returned the same answer, or the server ran it itself. If clean miners
+  disagree, the job goes to the front of the audit queue, so a liar is struck at once. The server takes on a job
+  only while `budget − spent − jobs out × bid` covers it, so charges never exceed the budget. With few miners
+  around, idle verifiers work paid jobs regardless of `CANARY_POOL`.
+- **Resale:** jobs are unique by params. When a sweep overlaps work already settled, including the screen's
+  own runs, those answers are charged at `CACHED_PRICE` (or the bid, if lower) and are ready at once.
+- **The pool:** `POOL_SHARE` (0.8) of every charge goes into the month it happened in. Pool figures and
+  estimates (`announced_pool`) show the operator's announcement plus the buyers' part. A snapshot without `pool`
+  uses that total and refuses a pool smaller than the buyers' part. The rest stays with the treasury (`PAY_TO`).
+- **Paying:** no contract. The buyer sends one plain $FLYAI transfer of the order's budget to `PAY_TO`, and
+  the server reads the receipt. Transfers carry no memo, so each budget ends in a random tag of 1–999,999 wei
+  that's unique among unpaid orders. The server matches the exact amount, the order's wallet as sender, a block
+  no older than the order, and a transaction not used before. A late payment for an expired order still
+  starts it. A payment for an order that's already funded goes to the balance.
+- **Signatures:** funding from the balance and stopping an order each need a `personal_sign` from the order's
+  wallet, over a message the server writes.
+- **Balances:** kept in the `ledger` table (deposit, fund, release, withdraw, charge). They're held in the
+  treasury wallet. To return one: send the tokens back, then record it with `POST /api/admin/withdraw`.
+- **Feeding results** (`src/webhooks.ts`): every settled row gets a `seq` that only grows. Buyers can pull pages after a seq, keep a server-sent event stream open, or give a `webhook` when creating the order. Webhook calls carry batches of up to 500 rows plus a final call. They're signed `X-Flyai-Signature: t=<ms>,v1=HMAC-SHA256(secret, "t.body")`, the secret is shown once at creation, and failures are retried with backoff (10 s doubling to 1 h, 60 tries). Webhook URLs must be https and resolve to public addresses; they're checked at creation and again before each call, and redirects aren't followed. The buyer guide with code is `web/compute-api.md`, downloadable from `/compute/compute-api.md`.
+- **Results:** `GET /api/orders/:id/results` (JSON, or `?format=csv`) returns spike counts per motor group
+  before and after the drive, marked `checked_by` server or miners. Hashes are never included. Anyone with the
+  order id can read the results.
+
+| env | default | |
+|---|---|---|
+| `PAY_TO` | unset | treasury address that receives payments; orders are off without it. `fly.toml` sets the dev wallet |
+| `MIN_BID` | 1000 | lowest bid per job, whole tokens. `fly.toml` sets 20 (~$0.001 on 2026-09-16) |
+| `CACHED_PRICE` | 250 | charge per job already settled (or the bid, if lower). `fly.toml` sets 5 |
+| `POOL_SHARE` | 0.8 | share of each charge that goes to the month's pool |
+| `ORDER_MAX_JOBS` | 50000 | jobs in one sweep |
+| `ORDER_MAX_PARALLEL` | 64 | cap on an order's jobs out at once |
+| `ORDER_MAX_HOURS` | 720 | longest time limit |
+| `ORDER_TTL_MIN` | 60 | how long an unpaid order holds its tag |
+| `ORDER_REDUNDANCY` | 2 | agreeing miners that settle a paid job |
+
+**Other kinds of work later:** specs carry `kind` (only `connectome-sweep` exists). A new kind needs three
+things: its expansion in `orders.ts`, a runner the verifiers can re-run, and an engine in `web/`. It must stay
+deterministic across GPUs, which is what makes answers checkable. For work that can't be bit-exact (float ML
+inference, rendering), redundancy alone would have to judge answers, with a tolerance instead of a hash. That's
+weaker, and a separate design.
+
+## Buyers' programs (built, not deployed)
+
+Buyers can run their own code, not only brain sweeps: a WebAssembly module (`kind: "wasm"`, CPU) or a WGSL compute
+shader (`kind: "wgsl"`, GPU), over uploaded inputs or `count` jobs numbered 0..N-1. The buyer guide with examples,
+limits and ideas is `web/compute-api.md`, downloadable at `/compute/compute-api.md`. Examples live in `examples/`
+(Rust with the flyai imports, Rust WASI, both built and tested). `npm run test:programs` covers it all.
+
+- **Code:**
+  - `src/wasmcheck.ts`: the module inspector.
+  - `web/openjob.ts`: the runner, flyai imports and a deterministic WASI subset, plus the shader runner.
+  - `web/open.worker.ts`: one fresh worker per job.
+  - `src/server.ts`: the "buyers' programs" section.
+- **Miners:** lanes claim `kinds` (the website's CPU lanes `wasm`, the GPU lane `wgsl` and `wasm`) with
+  `open_max` programs per claim. Clients that don't send `kinds` (the deployed extension) get only brain
+  jobs. The Mine page has a switch, on by default. The extension passes `programs: false`, because
+  WebAssembly needs `wasm-unsafe-eval` in its content policy.
+- **Checking:** there's no server re-run and nobody is struck.
+  - **Settles:** when `redundancy` wallets return the same output (for shaders, within an optional f32
+    tolerance).
+  - **Disputed:** after `redundancy + 2` answers with no agreement, every distinct output goes to the buyer.
+  - **Non-matching answers:** earn nothing (status `expired`).
+- **Pay:** the pool part of each charge goes straight to the settling wallets (the `earnings` table). The
+  snapshot adds it on top of the points split. Program jobs earn no points, so buying trivial jobs for your
+  own miners can't farm the operator's pool.
+- **Order key:** returned once at creation. It lets code add jobs (`POST /api/orders/:id/jobs`) to a
+  `keep_open` order and stop it.
+- **Uploads:**
+  - **Storage:** blobs sit in `BLOBS_DIR` (default next to the database, `/data/blobs` on Fly), at most
+    `BLOB_MAX_MB` (8) each.
+  - **Rate:** 600 uploads and 2 GB an hour per IP.
+  - **Total:** capped at `STORE_MAX_MB` (400 on Fly, alongside the 1 GB volume's database).
+  - **Cleanup:** deleted after `BLOB_TTL_DAYS` (14) unused, unless an unpaid or live order needs them.
+  - **Serving:** as sandboxed downloads.
+- **Price:** the lowest bid is `MIN_BID` per started 30 s of the job's time limit.
+- **Security:**
+  - **The server never runs buyer code.** The inspector returns or refuses, and is fuzzed with 20,000
+    broken modules. The server test sends 24 junk 6 MiB modules at once and checks it stays up.
+  - **Miners:** they re-inspect every module themselves before running it. They cap memory at 256 MiB
+    and output at 4 MiB, check downloads against their hashes, and kill the worker at the time limit.
+  - **Tested in Chrome on the RTX 4060:** WASM, WGSL, a tampered download and a broken shader.
+- **Also new:** a struck miner's pending paid brain jobs are re-run by the server at once. `SEED_PAID=0` stops
+  idle verifiers working paid brain jobs (the order test uses it).
+
+## House orders: our own work (built, not deployed)
+
+Work we queue for ourselves, created with the admin token. It needs no payment, charges nothing and adds nothing
+to the pool. It runs after every paid order and before the free screen. Brain sweeps earn their usual points;
+other house jobs earn `units` points per settled job, by default sized to the work. Everything they upload or
+produce is kept for good (`blobs.keep`).
+
+- **Kinds:**
+  - **Any buyer kind:** `connectome-sweep`, `wasm`, `wgsl`.
+  - **`world`** (house only): one seeded run of the world simulation (`world/src/sim.ts`) per job. Miners run
+    it in a fresh worker (`web/worldjob.ts`); the output is a JSON summary. Identical in Chrome and Node for the
+    same seed.
+  - **`probe`** (house only): named stimulus conditions played into the integer brain (`src/probe.ts`) on the
+    CPU lanes' loaded connectome. The output is u16 spike counts, bins × neurons, for the 1,314 descending
+    neurons and 58 wing motor neurons. It matches the screen engine spike for spike. Senses match Flybook's
+    words (threat, mate, wind, taste, touch, cva) plus `reward` (PAM).
+- **Settling:** two agreeing miners settle a job; nobody is struck.
+- **API:**
+  - **Admin:** `POST /api/admin/house {label, spec, max_parallel?, hours?, units?}` creates an order;
+    `POST /api/admin/house/:id/jobs {count|inputs}` adds jobs (programs); `POST /api/admin/house/:id/stop`
+    stops one.
+  - **Public:** `GET /api/house` lists house orders and progress.
+- **Seeding:** `node scripts/seed-house.ts [--dry-run] [--only prefix]` (needs `ADMIN_TOKEN`) starts the first
+  orders and skips labels that already exist:
+  - **tuning/threat, tuning/target, tuning/touch:** wider brain sweeps.
+  - **world/life, world/learning-on, world/learning-off:** paired seeds.
+  - **encoding/words:** 7 conditions × 300 seeds.
+  - **encoding/market:** 19 conditions × 150 seeds, graded drives, with and without reward.
+  - **demo/*:** the example programs.
+- **Pulling results:** `node scripts/pull-house.ts [--label prefix]` copies results into `mine/data/house/<label>/<id>/`
+  (git-ignored), picking up where it stopped: `results.jsonl`, `outputs/`, and a probe `layout.json` giving
+  each output column's neuron index, cell type and side.
+- **Miners:** CPU lanes claim `world` and `probe` too; the GPU lane claims `world`. Clients that don't send
+  `kinds` still get only brain jobs.
+- **Tests:** `npm run test:house`.
+- **Caveats:**
+  - **Engine difference:** probes use the integer engine. Decoders fitted on this data describe it; the Python
+    FlyBrain agrees statistically, not spike for spike.
+  - **Cross-engine floats:** world runs are float JavaScript. Chrome and Node agree; other browsers may
+    disagree, and those jobs just end up disputed.
+
+## Example programs
+
+`examples/` has prebuilt, tested programs to copy from:
+- **Programs:** pi, a proof-of-work hash search, Mandelbrot tiles, a TSP search, a WASI word count and a GPU
+  matrix multiply.
+- **`run-local.ts`:** runs a module exactly as a miner would, twice.
+- **`order.ts`:** create, pay, watch, add jobs and stop from the command line.
+
+`examples/README.md` covers using them and making a new one. `npm run test:examples` checks every example
+gives the right answer.
+
+## The integer brain
+
+Answers are checked by comparing a hash of every spike, so an honest miner must get *exactly* the
+server's result. Floats can't promise that across GPU drivers (fused multiply-add, reordering, vendor
+rounding). A spiking network turns one flipped threshold into a different spike train within a few
+steps, so honest GPUs would disagree and get zeroed.
+
+So jobs run in `src/fixed.ts`, the connectome in integers:
+
+| | |
+|---|---|
+| voltage | Q16 (1.0 = 65536), spike at ≥ 65536, reset to 0 |
+| synapse | Q20 weight; inputs summed with 32-bit wraparound, so summing order never matters |
+| update | `v ← mulshift16(v, decay) + mulshift16(input, gain·4096) + tonic + drive + noise` |
+| noise | `lowbias32(neuron, step key)` under a threshold, so every neuron draws independently |
+| record | each spike adds a keyed hash of (neuron, step) into two 32-bit sums, which don't depend on order |
+
+Every operation wraps at 32 bits exactly as WGSL does. The server ships the only numbers derived from
+`Math.exp` (the weight table and decay) in `/api/model`, so every engine starts from the same integers.
+
+**It is still the same brain.** `npm run validate` compares it with `world/src/connectome.ts` (float)
+over 6 conditions × 4 seeds:
+
+- **Population rates:** the same to within about 0.004 Hz (e.g. 2.260 vs 2.259 Hz at rest).
+- **Sensory effects:** within a few percent. Left LPLC2 raises DNp01 L by +11.10 Hz (float) vs
+  +11.15 Hz (integer). Touch raises the right leg kick by +8.17 Hz vs +8.21 Hz.
+- **Motor-group rates:** correlated at 1.000 across 240 comparisons.
+
+`world/` still runs the float engine. The two agree statistically, not spike for spike.
+
+## GPU
+
+`web/gpu.ts` runs the integer brain in WebGPU, up to 32 jobs per batch. Each step is two compute
+passes, one invocation per neuron:
+
+1. **Synapses:** sum incoming weights from neurons that fired, for every brain at once. `fired[j]` is
+   a 32-bit mask with one bit per brain, so an input that is silent in every brain costs one read.
+2. **Neurons:** update, spike and record for every brain.
+
+A final pass totals each brain's record and counts, and only that is read back. The
+GPU's results are checked by the server's CPU re-runs like anyone else's.
+
+`/bench` in headless Chrome on one laptop with two GPUs:
+
+- **Exactness:** 4 very different jobs gave identical hashes and spike counts on the CPU, on both GPUs,
+  and at scattered positions in a batch of 32. NVIDIA and AMD agree bit for bit.
+
+| jobs/hour | CPU, 1 thread | GPU, 1 job | GPU, batch 16 | GPU, batch 32 |
+|---|---|---|---|---|
+| RTX 4060 Laptop | 579 | 1,144 | 9,278 | **11,129** (19× a CPU thread) |
+| Radeon 890M (integrated) | 514–583 | 216–355 | 2,121–2,929 | 3,263–3,881 (5.6–7.6×) |
+
+Mining runs from the real page at batch 32:
+
+- **RTX 4060:** 640 jobs in 5 minutes, at 124–162 jobs/min (likely thermal throttling). With the
+  checking described below, the server's queue stayed at 0–4 the whole run. It checked 13 answers, all
+  matched, and none were skipped. The earlier fixed 10% check rate left 12 waiting after 5 minutes.
+- **Radeon 890M:** 65.7 jobs/min. The server re-ran 9, and all matched.
+
+At 300,000 jobs in the database, claiming a batch of 32 takes 14 ms and a submit takes 8 ms. Four
+verifier threads clear checks about 3–4× faster than one.
+
+**Laptops with two GPUs:** Chrome on Windows starts on the integrated GPU and ignores WebGPU's
+`powerPreference`. To mine on the discrete GPU, set Chrome to "High performance" in Windows Settings
+→ System → Display → Graphics. For testing, launch Chrome with `--force_high_performance_gpu`.
+
+## Browser extension
+
+```sh
+npm run build:extension   # → extension/dist; load it at chrome://extensions → Developer mode → Load unpacked
+```
+
+The popup uses the website's design:
+
+- **Contribute switch:** off by default. Nothing runs until the user turns it on, and turning it off stops
+  all work immediately.
+- **Use:** GPU or CPU. The GPU option is disabled when WebGPU can't be used here.
+- **Intensity:** GPU batch of 8, 16 or 32 jobs, or 1–4 CPU threads.
+- **This machine:** what the popup's WebGPU sees, and separately what the background miner sees. It also
+  shows the laptop dual-GPU hint.
+- **Today:** jobs, checks, credited units and share, plus standing.
+- **Settings:** wallet or name label, and the server. Servers other than `localhost:8787` and
+  `*.flyaiworld.com` ask for permission first.
+
+How it runs:
+
+- **Background worker:** `extension/background.ts` is stateless. It opens an offscreen document while the
+  switch is on and closes it when it's off. A service worker can't use WebGPU, and Chrome stops it when
+  idle.
+- **Offscreen document:** `extension/offscreen.ts` runs the same `web/mine-core.ts` miner as the website
+  and reports its state to the popup through `chrome.storage.session`.
+- **Bundled code:** Chrome extensions can't load code from a server, so `extension/build.ts` bundles the
+  engine (type-stripped, `.ts` imports rewritten to `.js`) and draws the icons.
+
+Tested in headless Chrome 152 on the RTX 4060, loaded through the DevTools pipe (`Extensions.loadUnpacked`):
+
+- **Off:** off by default, with no offscreen document.
+- **GPU check:** the popup and the background miner both saw the RTX.
+- **On:** switching on mined on the GPU, 64 jobs at about 230 jobs/min, and the server received all of them.
+- **CPU:** switching to CPU mid-run kept mining.
+- **Off again:** switching off closed the offscreen document, and the server got no further jobs.
+
+Loading from inside the OneDrive folder failed over DevTools ("File path cannot be resolved"). A copy
+outside OneDrive loaded fine. The normal Load unpacked button wasn't tried.
+
+**Before publishing:** the Chrome Web Store bans extensions that mine cryptocurrency. This one computes
+brain simulations, not coins, but it pays in a token. The listing should describe it as research
+compute ("mining" appears nowhere in the extension), and review may still ask about the rewards. The
+default server is the deployed one, `https://flyai-mine.fly.dev`.
+
+## Website (Vercel)
+
+The pages live on the main site at **www.flyaiworld.com/compute/**: Mine, `/stake`, `/claim`,
+`/leaderboard`, `/connect` and `/bench`. They use the site's `/assets/site.css`, nav and footer, plus
+`web/compute.css` for the few pieces the site doesn't have.
+
+- **Build:** `scripts/vercel-build.sh` runs `node mine/scripts/build-web.mjs .vercel-out/compute`. It
+  strips types from `web/*.ts`, writes `config.js` and copies the pages. It needs Node 22.13+ on Vercel.
+- **API:** the pages call the fly.io server (`MINE_API`, default `https://flyai-mine.fly.dev`).
+- **Brain files:** the miner loads them from `/simulation/connectome` on the same site, not from Fly.
+- **Sign-in:** the Fly server has `PUBLIC_ORIGIN = https://www.flyaiworld.com` (in `fly.toml`), so wallet
+  sign-in messages and the extension's Connect link name the website.
+- **Locally:** `npm start` serves the same layout at `http://localhost:8787/compute/`.
+
+**Release order:** the API first (`bash mine/deploy.sh`, after `fly secrets set`), then push to GitHub so
+Vercel rebuilds the site. The new pages need the new API. The API was deployed on 2026-09-16; the pages
+go live on the next push.
+
+## Deploy
+
+Live at **https://flyai-mine.fly.dev**: app `flyai-mine` in the Treasure org (`treasure-403`), region
+`cdg`.
+
+- **Machine:** one shared-cpu-2x machine with 2 GB of memory.
+- **Database:** SQLite on the encrypted 1 GB volume `mine_data`, mounted at `/data`, with daily snapshots
+  kept for 5 days.
+- **Scaling:** the database lives on the volume, so there is one machine and it never auto-stops.
+
+```sh
+bash mine/deploy.sh    # stages server + world engine files + connectome (~58 MB), builds remotely
+```
+
+First-time setup, including the IP allocation that failed automatically, is at the top of
+`deploy.sh`. Settings live in `fly.toml`: `PUBLIC_ORIGIN`, `VERIFIERS = 2` and `CANARY_POOL = 500`.
+
+**Last deploy: 2026-09-16.** It included wallet sign-in, points, stake tiers and claims. The secrets
+`ADMIN_TOKEN`, `CLAIMS_CONTRACT`, `STAKING_CONTRACT` and `STAKE_TIERS` are set, and the production
+database upgraded itself from schema 2 to 5 with its jobs and miners kept.
+
+**Shared CPUs throttle checking.** Right after deploy, the server re-ran about 1.5 jobs a minute,
+against about 16 on the development laptop. Fly's shared vCPUs are throttled under sustained load. That's
+why the canary pool is capped at 500: filling a pool of 3,000 would keep both vCPUs pinned for over a
+day and delay real checks. With a real fleet of miners, move to `performance-2x` (`fly scale vm
+performance-2x`), which costs more but isn't throttled, then raise `CANARY_POOL`.
+
+## Contracts on Robinhood Chain
+
+Deployed 2026-09-16 and verified on Sourcify and on Etherscan (robin.etherscan.io, "Exact Match"):
+
+| contract | address | settings |
+|---|---|---|
+| MonthlyClaims | `0x9C11Cfba5564Fb6e3f0258DDcB92Fd6BA6b4d77A` | owner `0x625862521777E19Ad54Ce6C7ABeD9Ca54D6589ea` (dev wallet), claim window 90 days |
+| FlyStaking | `0x5279dafA0858d4A5B2DCeb05E5b41f954CD692Cc` | no owner, cooldown 7 days |
+
+Both use $FLYAI, `0x0088CE7905025c4B5ea1d49aB6179B6aaADB3B9C`.
+
+To re-verify on Etherscan (key in `.env.local`), from `mine/contracts`:
+`forge verify-contract <address> <Contract> --verifier etherscan --verifier-url "https://api.etherscan.io/v2/api?chainid=4663" --etherscan-api-key $ETHERSCAN_API_KEY --constructor-args $(cat verify/<Contract>.constructor-args.txt)`.
+
+**Blockscout** doesn't show the source automatically, because its API is behind a Cloudflare check that
+blocks `forge` and Sourcify's forwarding. To publish it there:
+
+1. Open the contract on robinhoodchain.blockscout.com and choose **Verify & publish**.
+2. Pick **Sourcify**, or **Solidity (Standard JSON input)** with compiler 0.8.28.
+3. For the JSON option, upload `contracts/verify/<Contract>.standard-input.json` and paste
+   `contracts/verify/<Contract>.constructor-args.txt` as the constructor arguments.
+
+## Operations
+
+All commands are for Git Bash from the repo root.
+
+### Local values and secrets
+
+`mine/.env.local` is git-ignored. It holds the chain, token, owner and deployer addresses, the contract
+addresses, the server URL, `ADMIN_TOKEN` and `STAKE_TIERS`. Load it into a shell before running anything
+below:
+
+```bash
+set -a; source mine/.env.local; set +a
+```
+
+The deployer wallet's key is in `mine/contracts/.deployer/`, also git-ignored. That wallet only pays gas
+and has no control over the contracts. Both folders sit inside OneDrive, so they sync to the cloud; never
+commit them or paste them anywhere.
+
+The Fly app's secrets must match `.env.local`:
+
+```bash
+fly secrets set -a $FLY_APP ADMIN_TOKEN=$ADMIN_TOKEN CLAIMS_CONTRACT=$CLAIMS STAKING_CONTRACT=$STAKING STAKE_TIERS="$STAKE_TIERS"
+fly secrets list -a $FLY_APP      # names only; values are never shown
+```
+
+### Update the server
+
+```bash
+cd mine && npx tsc -p tsconfig.json && npm run check && npm run test:auth && cd ..
+bash mine/deploy.sh
+fly logs -a $FLY_APP --no-tail | tail -20
+curl -s $SERVER/api/stats
+```
+
+The database migrates itself on start. Changing a secret restarts the machine, with no deploy needed.
+
+### Update the extension
+
+The default server is set in `extension/settings.ts`.
+
+```bash
+cd mine && npm run build:extension && cd ..
+```
+
+Reload `mine/extension/dist` at `chrome://extensions`. For the Chrome Web Store, zip the *contents* of
+`dist/` and bump `version` in `extension/manifest.json` first.
+
+### Contracts
+
+Contracts can't be updated. A fix means deploying new ones and pointing `CLAIMS_CONTRACT` and
+`STAKING_CONTRACT` at them. Stakers have to withdraw from the old staking contract themselves, since it
+has no owner.
+
+```bash
+cd mine/contracts && forge test
+# dry run, then add --broadcast --verify --verifier blockscout --verifier-url https://robinhoodchain.blockscout.com/api/
+TOKEN=$TOKEN OWNER=$OWNER CLAIM_WINDOW_DAYS=$CLAIM_WINDOW_DAYS COOLDOWN_DAYS=$COOLDOWN_DAYS \
+  forge script script/Deploy.s.sol --rpc-url $RPC --private-key "$(cat .deployer/private-key.txt)"
+```
+
+After a real deploy, copy the addresses from `broadcast/Deploy.s.sol/4663/run-latest.json` into
+`.env.local`, then set the Fly secrets again.
+
+### Stake tiers
+
+Tiers are whole $FLYAI tokens and live only on the server, so changing them needs no contract change.
+**Change them on the 1st of a month.** A month's points are rated with the tiers in force when they're
+added up, so a change mid-month re-rates days already mined. Announce changes ahead, since raising
+`min` drops people below it.
+
+```bash
+# edit STAKE_TIERS in mine/.env.local, then:
+set -a; source mine/.env.local; set +a
+fly secrets set -a $FLY_APP STAKE_TIERS="$STAKE_TIERS"
+curl -s $SERVER/api/stake-config
+```
+
+For reference, at $0.00005092 per $FLYAI (2026-09-16), 2,000,000 tokens ≈ $100 and 20,000,000 ≈ $1,000.
+Re-check the price monthly on DexScreener (FLYAI/NVDA, Uniswap V4 on Robinhood Chain).
+
+### Every month
+
+1. **During the month (optional):** announce a pool, and miners see an estimate at their share. Run it
+   again with a larger number to raise the pool. `"pool": null` withdraws it.
+
+   ```bash
+   curl -s -X POST $SERVER/api/admin/announce -H "Authorization: Bearer $ADMIN_TOKEN" \
+     -H "content-type: application/json" -d '{"month":"2026-10","pool":"9800000"}'
+   ```
+
+2. **About 3 days after the month ends:** take the snapshot. This can happen only once per month, so
+   check the pool figure first.
+
+   ```bash
+   curl -s $SERVER/api/month?month=2026-10           # points per wallet, sanity check
+   curl -s -X POST $SERVER/api/admin/snapshot -H "Authorization: Bearer $ADMIN_TOKEN" \
+     -H "content-type: application/json" -d '{"month":"2026-10","pool":"9800000"}'
+   # note "month_id", "root" and "pool_wei"
+   ```
+
+3. **Fund and open the month from the owner wallet.** The owner must hold `pool_wei` of $FLYAI. It's
+   final, so the month can't be topped up after this.
+   - With MetaMask on the dev wallet: on the token, `approve(CLAIMS, pool_wei)`; then on `CLAIMS`,
+     `openMonth(month_id, root, pool_wei)`. Use Blockscout's "Write contract" tab on each verified
+     contract.
+   - Or with `cast`, if the owner key is imported as `owner`:
+
+     ```bash
+     cast send $TOKEN "approve(address,uint256)" $CLAIMS <pool_wei> --rpc-url $RPC --account owner
+     cast send $CLAIMS "openMonth(uint256,bytes32,uint128)" <month_id> <root> <pool_wei> --rpc-url $RPC --account owner
+     ```
+
+4. **Miners claim on `/claim`.** Check progress with
+   `cast call $CLAIMS "months(uint256)(bytes32,uint128,uint128,uint64,bool)" <month_id> --rpc-url $RPC`,
+   which returns the root, total, claimed amount, deadline and whether it's been swept.
+
+5. **After the claim window** (`CLAIM_WINDOW_DAYS` after opening), return what nobody claimed:
+
+   ```bash
+   cast send $CLAIMS "sweep(uint256,address)" <month_id> $OWNER --rpc-url $RPC --account owner
+   ```
+
+6. **Log it:** add the month's pool, root and transaction hashes to `TOKEN.md`.
+
+### Health checks
+
+```bash
+curl -s $SERVER/api/stats            # miners online, jobs, check queue (audit_queue should stay low)
+curl -s $SERVER/api/month            # this month's leaderboard data
+fly status -a $FLY_APP
+fly scale vm performance-2x -a $FLY_APP    # if checks fall behind with many miners
+```
+
+## Wallets
+
+Credit belongs to a miner, and a miner proves its wallet with Sign-In with Ethereum (`src/wallet.ts`).
+Several miners, say a laptop, a desktop and the extension, can link the same wallet.
+
+1. **Nonce:** the page sends the wallet's address with the miner's token (`POST /api/auth/nonce`). The
+   server writes an EIP-4361 message itself, with this server's domain, chain ID 4663 (Robinhood Chain),
+   a single-use nonce and a 10-minute expiry, and keeps it. It never parses text a client wrote.
+2. **Sign:** the wallet signs it with `personal_sign`. This is free and sends no transaction.
+3. **Verify:** `POST /api/auth/verify` recovers the signer with secp256k1 and Keccak from the audited
+   `@noble` libraries (the server's only runtime dependencies). If the signer matches, the wallet is
+   linked. Signing again with another wallet moves the miner there.
+
+**The extension** can't reach a browser wallet, because wallet extensions don't inject into other
+extensions' pages. Its Connect button asks for a one-time link code (`POST /api/link`, 10 minutes, single
+use) and opens `/connect#code` in a normal tab, where the code stands in for the miner's token.
+
+Tested:
+
+- **`npm run test:auth`, 20 checks:**
+  - both flows link the wallet;
+  - refused: wrong signer, text changed by one character, malformed signature, reused nonce, reused code,
+    and missing token and code;
+  - a schema-2 database (as deployed before wallets) upgrades in place and keeps its miners.
+- **`npm run check`:** the EIP-55 spec checksums and the standard `hashMessage("hello world")` vector.
+- **Headless Chrome with a stand-in wallet:**
+  - the website's Connect button links;
+  - the popup opens `/connect#code`, signing there links the extension's miner, and the popup then shows
+    the wallet.
+
+Not supported yet: smart-contract wallets (EIP-1271, e.g. Safe) and WalletConnect for mobile wallets. On
+mobile, open the page in the wallet app's own browser.
+
+## Staking
+
+`contracts/src/FlyStaking.sol` has no owner and no admin functions, so nobody but the staker can move
+staked tokens.
+
+- **Stake:** `stake` counts at once.
+- **Unstake:** `requestUnstake` stops the amount counting immediately. `withdraw` works only after the
+  cooldown (7 days by default), and `cancelUnstake` puts it back.
+
+The server (`src/staking.ts`) samples `stakedOf` for wallets whose miners were active that day: every
+`STAKE_SAMPLE_MIN` minutes, and right after a wallet links. Each day's points are multiplied by the tier
+of that day's **lowest** sample. Stake added mid-day doesn't boost that day; it counts from the next day,
+and the UIs say so. Stake can't leave between samples either, because unstaking stops counting at once and
+locks the tokens for the cooldown.
+
+**Tiers:** set with `STAKE_TIERS` (JSON, whole tokens). The placeholder defaults are Holder 0+ at 1×,
+Operator 100k+ at 1.25× and Foundry 1M+ at 1.5×. If the lowest tier's `min` is above 0, unstaked
+wallets earn no points, which makes staking a requirement to mine for payouts. Staking stays **off**
+until `STAKING_CONTRACT` is set; until then every wallet counts 1×.
+
+**Where it shows:** `/stake` stakes and unstakes through the browser wallet, the website and extension
+show the tier, and `GET /api/stake-config` feeds the page.
+
+**Tests:**
+
+- **`forge test`:** 8 staking tests, including a fuzz check that the contract always holds exactly what's
+  staked plus what's waiting to be withdrawn.
+- **`npm run test:claims`,** on anvil:
+  - a stake made on-chain is read as a tier when the wallet links;
+  - a staked day doubles that day's points, and the payout split follows.
+- **Browser:** `/stake` did approve and stake, an unstake request, and staking it again against anvil,
+  checked on-chain.
+
+## Audit fixes
+
+An audit found nothing critical or high. These findings were fixed:
+
+- **Points gaming (medium):** staking just before the day's last sample boosted the whole day. The
+  multiplier now uses the lowest sample of the day (tested on anvil).
+- **Constructor checks (low):** both contracts reject a zero token address. `MonthlyClaims` requires a
+  claim window of 7–730 days; a window of 0 would let the owner sweep before anyone could claim.
+  `FlyStaking` requires a cooldown of 1–90 days; 0 removes the protection, and a huge value overflows
+  and locks every stake. The deploy script uses SafeCast.
+- **Renounce (low):** `renounceOwnership` on `MonthlyClaims` always reverts.
+- **Month IDs (informational):** now bounded above at 299912.
+- **Second unstake (informational):** `/stake` warns before a second unstake request restarts the
+  cooldown.
+- **Owner-set roots (informational):** `/claim` says the treasury posts each month's split.
+- **EVM version:** pinned to `shanghai`, so the contracts don't depend on the ArbOS version supporting
+  Cancun.
+
+Left as is: tokens sent to `MonthlyClaims` by mistake can't be recovered. Adding a rescue function would
+add complexity. `forge test` now runs 25 tests.
+
+## Monthly claims
+
+Nothing is funded while a month runs.
+
+1. **Points:** miners earn points, which are credited units added up per wallet over the UTC month.
+   Zeroed or unchecked days add nothing. `GET /api/month`, `/api/me` and both UIs show points and
+   share, never token amounts.
+2. **Snapshot, after the month ends (wait a few days so late checks land):** run
+   `POST /api/admin/snapshot {month, pool}` with `Authorization: Bearer $ADMIN_TOKEN`. It splits `pool`
+   tokens by points (exact to the wei, reproducible) and stores a Merkle root and one proof per wallet
+   (`src/payouts.ts`). A month can only be snapshotted once, and never while it's still running.
+3. **Fund, as owner:** on the token, `approve(claims, pool_wei)`; then on the claims contract,
+   `openMonth(month_id, root, pool_wei)`. This funds exactly that month in the same transaction.
+4. **Claim:** a wallet opens `/claim`, sees its months (`GET /api/claims?wallet=`, which includes
+   ready-made calldata) and claims. The claim sends it the tokens, and the wallet pays the gas.
+5. **Sweep:** after the claim window (90 days by default), `sweep(month, treasury)` returns anything
+   unclaimed.
+
+`contracts/src/MonthlyClaims.sol` uses OpenZeppelin's `MerkleProof`, `SafeERC20` and `Ownable2Step`. The owner can't change a month's root once
+posted, or take its funds before the window ends. Claims can never exceed what was funded, and
+fee-on-transfer tokens are refused. Deploy with `contracts/script/Deploy.s.sol`, then set
+`CLAIMS_CONTRACT` and `ADMIN_TOKEN` (`fly secrets set`).
+
+Tests:
+
+- **`npm run test:payouts`:** 14 checks on the split and the tree. It also writes the fixture the Solidity
+  tests claim with.
+- **`cd contracts && forge test`:** 13 tests, using proofs made by the TypeScript code.
+- **`npm run test:claims`,** 17 checks on anvil with a real server:
+  - points per wallet, with a zeroed day excluded and unlinked miners counted separately;
+  - the snapshot guards;
+  - the owner funding the month on-chain;
+  - a wallet claiming with the server's calldata;
+  - double claims and someone else's claim refused.
+
+`/claim` was also driven in headless Chrome against anvil. The page listed the funded month and
+claimed it (the wallet received its amount on-chain), and after a refresh it read "claimed".
+
+**Going live:**
+
+1. Reviewed: audit findings applied.
+2. Contracts deployed on 2026-09-16 (see *Contracts on Robinhood Chain*).
+3. Fly secrets set.
+4. Server deployed on 2026-09-16; the database is at schema 5.
+5. `TOKEN.md` has a *Compute* section. Log each funded month there.
+
+Still to do: announce and fund the first pool (planned at about $500, about 9.8M FLYAI).
+
+## Why answers can be checked
+
+How answers are checked, without the server re-running a fixed share of a fast GPU's work:
+
+- **Canaries:** `CANARY_RATE` of every miner's jobs already have a server answer. They cost the server
+  nothing and scale with the miner: faking 100 jobs at 15% meets a canary with probability 1 − 0.85¹⁰⁰,
+  which is effectively certain.
+- **Re-runs:** an answer is re-run with chance `AUDITS / (jobs today + AUDITS)`, on a pool of
+  `VERIFIERS` threads (`src/verifier.ts`). Early answers of the day are usually checked and later ones
+  rarely, never predictably. That's about `AUDITS × ln(jobs/AUDITS + 1)` re-runs a day, around 24
+  for 10,000 jobs.
+- **The canary pool:** every re-run answer joins it. Verifiers with nothing to check work open jobs
+  themselves, so fast miners don't run out of canaries they haven't had yet. An idle 4-thread server
+  added about 20 known answers a minute.
+- **Same reply every time:** a miner can't tell which answers get checked, and every submit gets the same reply.
+- **Wrong answers:** one wrong answer zeroes the miner's day. It also marks the miner, so their unchecked answers stop counting and those jobs go back out.
+- **Hashes stay private:** they are never published, so answers can't be looked up.
+
+## API
+
+| | |
+|---|---|
+| `POST /api/register {label?}` | → `{miner, token}`. `label` is an optional name. 5 per IP per hour |
+| `POST /api/auth/nonce {address, code?}` (Bearer, or `code`) | → `{nonce, message}`: the EIP-4361 message to sign |
+| `POST /api/auth/verify {nonce, signature}` | → `{wallet, miner}` once the signer matches; links the wallet |
+| `POST /api/link` (Bearer) | → `{code, url, expires_at}`: a one-time `/compute/connect#code` for the extension |
+| `GET /api/model` | engine constants: `w20` (base64 int32 × 256), `decay`, `noise_thresh`, `noise_amp`, `outputs` |
+| `POST /api/claim {count?}` (Bearer) | → `{jobs: [{job, params, expires_at}]}` (count 1..32), or 204 when there's nothing to do |
+| `POST /api/submit {job, result}` (Bearer) | → `{status: "received"}` |
+| `GET /api/me` (Bearer) | today's jobs, checks, credited units, share, standing; wallet, stake tier, this month's points, share, rank, days left and pool estimate |
+| `GET /api/month?month=YYYY-MM` | points per wallet, end date, days left, announced pool, snapshot |
+| `GET /api/claims?wallet=` | the wallet's snapshotted months with proofs and ready-made calldata, plus chain info |
+| `GET /api/stake-config` | staking contract, token, tiers and function selectors |
+| `POST /api/admin/announce {month, pool}` (Bearer `ADMIN_TOKEN`) | set, raise or withdraw (`null`) a month's announced pool |
+| `POST /api/admin/snapshot {month, pool}` (Bearer `ADMIN_TOKEN`) | split a finished month's pool; → `month_id`, `root`, `pool_wei` |
+| `GET /api/epoch?day=YYYY-MM-DD` | per-miner credit for a UTC day: `ok` / `unchecked` / `zeroed`, and share |
+| `GET /api/stats` | fleet counts |
+| `GET /api/results` | screen results in Hz, averaged over seeds, no hashes |
+| `GET /api/orders/config` | whether orders are open, pay-to, limits, prices, live bids (`market`), channels, outputs |
+| `POST /api/orders/quote {spec, bid?}` | → jobs, how many are already settled, what the whole sweep costs at the bid |
+| `POST /api/orders {wallet, spec, bid, budget, hours?, max_parallel?}` | → an unpaid order with `budget_wei` (budget + tag) to transfer |
+| `POST /api/orders/:id/pay {tx}` | match the transfer and start the order (409 while it isn't mined) |
+| `POST /api/orders/:id/intent {action: fund\|stop}` | → `{nonce, message}` for the order's wallet to sign |
+| `POST /api/orders/:id/fund\|stop {nonce, signature}` | fund from the balance, or stop and return what's unspent |
+| `GET /api/orders/:id` | status, end reason, jobs taken on / out / settled / dropped, bid, budget, spent, returned |
+| `GET /api/orders/:id/results?after=&limit=` | settled rows after a `seq`, in settle order (`format=csv` for all of them) |
+| `GET /api/orders/:id/stream?after=` | server-sent events: `result` per settled row, `status` on changes |
+| `GET /api/orders?wallet=` | the wallet's orders and balance |
+| `GET /api/balance?wallet=` | balance and its ledger |
+| `GET /api/admin/orders` (admin) | charged, pool and treasury per month; balances held; orders |
+| `POST /api/admin/withdraw {wallet, amount, tx}` (admin) | record a balance sent back on-chain |
+
+## Not in v1
+
+- **Experiments and result collection.** Jobs are still the fixed sensory screen; see *Next: experiments*.
+- **Chrome Web Store listing.** The extension is loaded unpacked for now.
+- **Intel and Apple GPUs, Firefox and Safari.** NVIDIA (Lovelace) and AMD (RDNA 3) in Chrome match
+  the CPU exactly. The others should by design, but haven't been tried.
+- **An idle server stays busy.** Verifiers keep working open jobs until `CANARY_POOL` answers are
+  known, so the server's CPU is in use whenever miners aren't. Set `CANARY_POOL` lower to limit it.
+- **Batches over 32.** The per-neuron fired mask is one u32. Two masks would allow 64.
+- **Sybil limits beyond 5 registrations per IP per hour.** One person with many tokens can share out
+  their own work. It still has to be real work, and each token gets checked on its own.
+- **Durable audit queue.** Audits waiting at a restart are dropped; those answers stay unchecked.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Vercel build: the 3-D simulator, Fly Radio, the Flybook app, and the static site, assembled into .vercel-out.
+# Vercel build: the 3-D simulator, Fly Radio, the Flybook app, fly.ai compute and the static site, assembled into .vercel-out.
 # Fly Radio runs the connectome in the browser and loads the Simulation's brain files (/simulation/connectome/).
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -12,3 +12,5 @@ cp -r world/dist/. .vercel-out/simulation/
 cp -r world/dist-radio/assets .vercel-out/radio/
 cp world/dist-radio/radio.html .vercel-out/radio/index.html
 cp -r flybook/web/dist/. .vercel-out/flybook/
+# fly.ai compute: static pages; the API runs on fly.io (mine/), brain files come from /simulation/connectome/
+node mine/scripts/build-web.mjs .vercel-out/compute
