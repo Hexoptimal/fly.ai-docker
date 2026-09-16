@@ -32,7 +32,7 @@ export interface Genome {
   /** resting-drive multiplier per population spec, aligned with POPULATIONS */
   tonic: Float32Array;
   sense: Record<string, number>;
-  learn: { hebb: number; reward: number };
+  learn: { hebb: number; reward: number; mb: number };
   lifespan: number;
   flight: number;
   clutch: number;
@@ -50,7 +50,11 @@ export function founder(rand: () => number): Genome {
     edge: Float32Array.from(EDGES, () => clamp(1 + sd.edge * gauss(rand), range.edge)),
     tonic: Float32Array.from(POPULATIONS, () => clamp(1 + sd.tonic * gauss(rand), range.tonic)),
     sense: Object.fromEntries(SENSES.map((s) => [s, clamp(1 + sd.sense * gauss(rand), range.sense)])),
-    learn: { hebb: clamp(1 + sd.learn * gauss(rand), range.learn), reward: clamp(1 + sd.learn * gauss(rand), range.learn) },
+    learn: {
+      hebb: clamp(1 + sd.learn * gauss(rand), range.learn),
+      reward: clamp(1 + sd.learn * gauss(rand), range.learn),
+      mb: clamp(1 + sd.learn * gauss(rand), range.learn),
+    },
     lifespan: clamp(650 + sd.lifespan * gauss(rand), range.lifespan),
     flight: clamp(1 + sd.flight * gauss(rand), range.flight),
     clutch: clamp(10 + sd.clutch * gauss(rand), range.clutch),
@@ -68,6 +72,7 @@ export function child(mother: Genome, father: Genome, rand: () => number): Genom
     learn: {
       hebb: pick(mother.learn.hebb, father.learn.hebb, sd.learn, range.learn),
       reward: pick(mother.learn.reward, father.learn.reward, sd.learn, range.learn),
+      mb: pick(mother.learn.mb, father.learn.mb, sd.learn, range.learn),
     },
     lifespan: pick(mother.lifespan, father.lifespan, sd.lifespan, range.lifespan),
     flight: pick(mother.flight, father.flight, sd.flight, range.flight),
@@ -84,6 +89,9 @@ export const KEY_EDGES: Record<string, [string, string]> = {
   contact_courtship: ["Gr68a", "P1"],
   aversion_turn: ["LH", "LAL"],
   taste_stop: ["LB3", "IN19A"],
+  odour_to_kc: ["lPN", "KC"],
+  alarm_to_teacher: ["DA2 PN", "PPL1-g2a1"],
+  memory_turn: ["MBON-g2a1", "LAL"],
 };
 
 function edgeGene(g: Genome, from: string, to: string): number {
@@ -96,7 +104,7 @@ export function summary(g: Genome): Record<string, number> {
   const out: Record<string, number> = {
     lifespan: g.lifespan, flight: g.flight, clutch: g.clutch,
     vision_gain: g.sense.vision, olfaction_gain: g.sense.olfaction, mechano_gain: g.sense.mechanosensory,
-    hebb_rate: g.learn.hebb, reward_rate: g.learn.reward,
+    hebb_rate: g.learn.hebb, reward_rate: g.learn.reward, memory_rate: g.learn.mb,
     edge_mean: g.edge.reduce((a, b) => a + b, 0) / Math.max(1, g.edge.length),
     motor_tonic: meanTonic(g, "motor"),
   };

@@ -21,7 +21,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const START_FLIES = 36;
 // brains start frozen: with learning on the flies forage worse and the population dies out (world/README, tools/lifedata.ts).
 // Switch either rule on in the Data card to watch them rewire.
-const world = new World(START_FLIES, 1234, { learning: { hebbian: false, reward: false } });
+const world = new World(START_FLIES, 1234, { learning: { hebbian: false, reward: false, mb: true } });
 const dataPanel = new DataPanel(world);
 const renderer = new Renderer($<HTMLCanvasElement>("view"), world);
 const wiz = new Wiz(world);

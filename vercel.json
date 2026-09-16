@@ -25,6 +25,16 @@
       "source": "/radio",
       "destination": "/radio/",
       "permanent": false
+    },
+    {
+      "source": "/shop",
+      "destination": "https://shop.flyaiworld.com",
+      "permanent": false
+    },
+    {
+      "source": "/merch",
+      "destination": "/shop",
+      "permanent": false
     }
   ],
   "headers": [

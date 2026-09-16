@@ -18,6 +18,19 @@
  * what that neuron was born with (the wiring's own normalisation, flybrain/build.py): learning can move strength
  * between a neuron's inputs, not inflate the whole brain.
  *
+ * The mushroom body learns on its own rule (`learning.mb`, MEMORY below), the way the real one does:
+ *   a Kenyon cell's spike leaves a presynaptic trace lasting MEMORY.preTau; when a dopamine neuron fires while that
+ *   trace is up, that cell's synapse onto the MBON of the teacher's compartment is DEPRESSED. PPL1-g2a1
+ *   (punishment) depresses KC -> MBON-g2a1, the output that pushes toward the odour; PAM-g5 (reward) depresses
+ *   KC -> MBON-g5b2a, the one that pushes away. A punished odour therefore loses its "toward" vote and the fly turns
+ *   away from it, and only that odour is affected, because only the Kenyon cells that odour drives carry a trace.
+ *   A teacher only writes inside a burst (its running rate above MEMORY.burstHz): a trickle of dopamine teaches nothing.
+ *   Depression only, down to MEMORY.floor of the birth size, and what is left fades with MEMORY.forgetTau. These
+ *   synapses are left out of the synaptic rescaling below: rescaling would put the memory straight back.
+ *   The teachers are not injected by the world. They are ordinary neurons fed by LC4 (a threat filling the eye),
+ *   LgLG (a knock), DA2 PN (geosmin and CO2 -- including the alarm CO2 a frightened neighbour gives off) and LB3
+ *   (juice on the labellum). Learning from another fly needs no new channel: it is that CO2 route.
+ *
  * Only synapses onto central-brain and descending neurons can change. Sensory inputs, the VNC premotor pool and the
  * motor neurons stay hardwired: the flight rhythm there runs on tonic drive, like a real fly's flight pattern
  * generator, and flies learn in the brain, not in the nerve cord. Why, measured on 36 flies, seed 7, 900 s
@@ -27,7 +40,24 @@
  * drift() measures how far the brain has moved.
  */
 import { mulberry32 } from "./rng.ts";
-import type { Population, Wiring } from "./wiring.ts";
+import { MB_POPS, type Population, type Wiring } from "./wiring.ts";
+
+interface MbMap {
+  /** neuron -> Kenyon cell slot, -1 for everything else */
+  slotOf: Int32Array;
+  /** neuron -> 0 none, 1 punishment teacher, 2 reward teacher */
+  danOf: Uint8Array;
+  kcCount: number;
+  punishCount: number;
+  rewardCount: number;
+  /** per synapse: 1 if it is a KC -> MBON synapse (the only ones the rule may touch) */
+  isMb: Uint8Array;
+  /** those synapses grouped by Kenyon cell: synE[synPtr[k] .. synPtr[k+1]] */
+  synE: Int32Array;
+  /** 0 = onto the toward-MBON (punishment depresses it), 1 = onto the away-MBON (reward does) */
+  synGroup: Uint8Array;
+  synPtr: Int32Array;
+}
 
 export interface BrainParams {
   dt: number;
@@ -56,7 +86,22 @@ export const PLASTICITY = {
   recoverTau: 400,
 };
 
-export interface Learning { hebbian: boolean; reward: boolean }
+/** The mushroom-body rule: dopamine-gated depression of KC -> MBON, and how long what is left lasts. */
+export const MEMORY = {
+  preTau: 5, // seconds a Kenyon cell spike stays eligible for a teacher
+  depress: 0.12, // share of the birth size removed per teacher spike, times the trace
+  floor: 0.15, // a KC -> MBON synapse never drops below this share of its birth size
+  forgetTau: 900, // seconds: what is left drifts back
+  trace: 0.4, // how much one KC spike adds to the trace (capped at 1)
+  // A teacher writes only in a burst. Without one, 3 minutes of a 0.7 Hz dopamine trickle (a crowd's stray CO2)
+  // flattened memories as surely as a real fright (round 2). Set 2026-09-16 by a rule fixed before looking: twice the
+  // highest rate any held fly's teacher reached with no punishment anywhere (2.5 Hz in 0.5 s windows; with a swatter
+  // it bursts to 12-13 Hz).
+  burstHz: 5,
+  burstTau: 0.5, // seconds: the teacher's rate is averaged over about this long
+};
+
+export interface Learning { hebbian: boolean; reward: boolean; mb: boolean }
 
 const RATE_TAU = 0.18; // seconds, for the displayed / decoded firing rates
 
@@ -69,6 +114,9 @@ export class Brain {
   /** per neuron: the wiring's resting-drive scale times this fly's tonic genes */
   readonly tonicScale: Float32Array;
   readonly v: Float32Array;
+  /** exp(-dt / tau) per neuron, rebuilt if dt or tau change */
+  private decayPer: Float32Array | null = null;
+  private decayFor = 0;
   readonly drive: Float32Array; // injected voltage for the next step only
   readonly fired: Int32Array;
   firedCount = 0;
@@ -81,14 +129,19 @@ export class Brain {
   senseGain = 1;
   tonicGain = 1;
   /** receptor gain per modality (genes) */
-  readonly modalityGain: Record<string, number> = { vision: 1, olfaction: 1, mechanosensory: 1, central: 1, descending: 1, motor: 1 };
+  readonly modalityGain: Record<string, number> = { vision: 1, olfaction: 1, memory: 1, mechanosensory: 1, central: 1, descending: 1, motor: 1 };
   /** which rules run; the world hands every fly the same object so a switch applies to all */
-  learning: Learning = { hebbian: false, reward: false };
+  learning: Learning = { hebbian: false, reward: false, mb: false };
   /** this fly's learning-rate genes */
-  learnScale = { hebb: 1, reward: 1 };
+  learnScale = { hebb: 1, reward: 1, mb: 1 };
   /** causal pre -> post pairings seen, and rewards received (for the data) */
   pairings = 0;
   rewards = 0;
+  /** how much depression the mushroom body has taken, summed over synapses (for the data) */
+  depressed = 0;
+  private kcTrace: Float32Array | null = null;
+  /** each teacher's running rate, Hz per neuron: [punishment, reward] */
+  private teachHz = [0, 0];
   private readonly prevFired: Int32Array;
   private readonly spiked: Uint8Array;
   /** per synapse: 1 if it may change (onto a central-brain or descending neuron) */
@@ -146,7 +199,7 @@ export class Brain {
       for (let e = colPtr[j]; e < end; e++) cur[rowIdx[e]] += weight[e];
     }
 
-    const decay = Math.exp(-p.dt / p.tau);
+    const decay = this.decays(p);
     const pNoise = p.noiseHz * p.dt;
     const v = this.v;
     const drive = this.drive;
@@ -155,7 +208,7 @@ export class Brain {
     spikes.fill(0);
     let m = 0;
     for (let i = 0; i < n; i++) {
-      let x = decay * v[i] + p.gain * cur[i] + p.tonic * tonicScale[i] * this.tonicGain + drive[i];
+      let x = decay[i] * v[i] + p.gain * cur[i] + p.tonic * tonicScale[i] * this.tonicGain + drive[i];
       if (rand() < pNoise) x += p.noiseAmp;
       if (x >= 1) {
         this.fired[m++] = i;
@@ -169,7 +222,10 @@ export class Brain {
 
     if ((this.learning.hebbian || this.learning.reward) && prevCount && m) this.learn(prevCount, p.dt);
     else if (this.activeCount) this.fadeTraces(p.dt);
-    if (++this.stepsDone % 50 === 0 && (this.learning.hebbian || this.learning.reward || this.pairings)) this.recover(p.dt * 50);
+    if (this.learning.mb) this.remember(p.dt);
+    if (++this.stepsDone % 50 === 0 && (this.learning.hebbian || this.learning.reward || this.learning.mb || this.pairings || this.depressed)) {
+      this.recover(p.dt * 50);
+    }
 
     const a = Math.exp(-p.dt / RATE_TAU);
     const pops = this.w.pops;
@@ -177,6 +233,17 @@ export class Brain {
       const hz = spikes[q] / (pops[q].count * p.dt);
       this.rate[q] = a * this.rate[q] + (1 - a) * hz;
     }
+  }
+
+  /** exp(-dt / tau) for every neuron, with the mushroom body's longer time constants (wiring.tauScale). */
+  private decays(p: BrainParams): Float32Array {
+    const key = p.dt / p.tau;
+    if (this.decayPer && this.decayFor === key) return this.decayPer;
+    const out = new Float32Array(this.w.n);
+    for (let i = 0; i < this.w.n; i++) out[i] = Math.exp(-p.dt / (p.tau * this.w.tauScale[i]));
+    this.decayPer = out;
+    this.decayFor = key;
+    return out;
   }
 
   private learn(prevCount: number, dt: number): void {
@@ -204,6 +271,57 @@ export class Brain {
       }
     }
     for (let k = 0; k < this.firedCount; k++) spiked[this.fired[k]] = 0;
+  }
+
+  /**
+   * The mushroom-body rule. Every Kenyon cell that fires leaves a trace; a teacher spiking while that trace is up
+   * depresses the cell's synapse onto the MBON of the teacher's compartment. Nothing else in the brain changes.
+   */
+  private remember(dt: number): void {
+    const m = Brain.mbMap(this.w);
+    if (!m.kcCount) return;
+    if (!this.kcTrace) this.kcTrace = new Float32Array(m.kcCount);
+    const trace = this.kcTrace;
+    const fade = Math.exp(-dt / MEMORY.preTau);
+    let any = false;
+    for (let k = 0; k < m.kcCount; k++) {
+      if (trace[k] === 0) continue;
+      const t = trace[k] * fade;
+      trace[k] = t > 0.02 ? t : 0;
+      if (trace[k]) any = true;
+    }
+    let punish = 0, reward = 0;
+    for (let k = 0; k < this.firedCount; k++) {
+      const i = this.fired[k];
+      const slot = m.slotOf[i];
+      if (slot >= 0) { trace[slot] = Math.min(1, trace[slot] + MEMORY.trace); any = true; }
+      const d = m.danOf[i];
+      if (d === 1) punish++; else if (d === 2) reward++;
+    }
+    // one dose per compartment: the share of that teacher's neurons that fired this step, and only inside a burst
+    const dose = [punish / Math.max(1, m.punishCount), reward / Math.max(1, m.rewardCount)];
+    const k = Math.min(1, dt / MEMORY.burstTau);
+    for (let c = 0; c < 2; c++) {
+      this.teachHz[c] += (dose[c] / dt - this.teachHz[c]) * k;
+      if (this.teachHz[c] < MEMORY.burstHz) dose[c] = 0;
+    }
+    if (!any || (!dose[0] && !dose[1])) return;
+    const rate = MEMORY.depress * this.learnScale.mb;
+    for (let slot = 0; slot < m.kcCount; slot++) {
+      const t = trace[slot];
+      if (t === 0) continue;
+      for (let q = m.synPtr[slot]; q < m.synPtr[slot + 1]; q++) {
+        const d = dose[m.synGroup[q]];
+        if (d <= 0) continue;
+        const e = m.synE[q];
+        const b = this.base[e];
+        const size = Math.abs(b);
+        if (size === 0) continue;
+        const mag = Math.max(MEMORY.floor * size, Math.abs(this.weight[e]) - rate * d * t * size);
+        this.depressed += (Math.abs(this.weight[e]) - mag) / size;
+        this.weight[e] = b < 0 ? -mag : mag;
+      }
+    }
   }
 
   private fadeTraces(dt: number): void {
@@ -241,18 +359,100 @@ export class Brain {
 
   private recover(seconds: number): void {
     const f = 1 - Math.exp(-seconds / PLASTICITY.recoverTau);
+    const fm = 1 - Math.exp(-seconds / MEMORY.forgetTau);
+    const isMb = Brain.mbMap(this.w).isMb;
     const w = this.weight, b = this.base, post = this.w.rowIdx;
     const now = Brain.sums(this.w.n, 0), born = Brain.sums(this.w.n, 1);
     for (let e = 0; e < w.length; e++) {
+      // a memory fades on its own clock, and stays out of the scaling below:
+      // rescaling a depressed synapse back to its birth total is forgetting it
+      if (isMb[e]) { if (w[e] !== b[e]) w[e] += (b[e] - w[e]) * fm; continue; }
       if (w[e] !== b[e]) w[e] += (b[e] - w[e]) * f;
       now[post[e]] += Math.abs(w[e]);
       born[post[e]] += Math.abs(b[e]);
     }
     // synaptic scaling: each neuron's total input back to its birth total
     for (let e = 0; e < w.length; e++) {
+      if (isMb[e]) continue;
       const i = post[e];
       if (now[i] > 0) w[e] *= born[i] / now[i];
     }
+  }
+
+  /** How deep the memory is: mean depression of the KC -> MBON synapses. 0 = untouched, 1 = flattened. */
+  memoryDepth(): number {
+    const [toward, away] = this.memoryByCompartment();
+    return (toward + away) / 2;
+  }
+
+  /** Mean depression onto each output: [toward-MBON (punishment writes it), away-MBON (reward writes it)]. What a fly
+   *  has learned is the difference: toward - away > 0 means its smells have lost pull, i.e. learned aversion. */
+  memoryByCompartment(): [number, number] {
+    const m = Brain.mbMap(this.w);
+    const sum = [0, 0], n = [0, 0];
+    for (let q = 0; q < m.synE.length; q++) {
+      const e = m.synE[q];
+      if (this.base[e] === 0) continue;
+      sum[m.synGroup[q]] += 1 - Math.abs(this.weight[e]) / Math.abs(this.base[e]);
+      n[m.synGroup[q]]++;
+    }
+    return [n[0] ? sum[0] / n[0] : 0, n[1] ? sum[1] / n[1] : 0];
+  }
+
+  /** Which Kenyon cells fired on the last step: the odour's signature, one entry per KC. */
+  kcActive(): Float32Array {
+    const m = Brain.mbMap(this.w);
+    const out = new Float32Array(m.kcCount);
+    for (let k = 0; k < this.firedCount; k++) {
+      const slot = m.slotOf[this.fired[k]];
+      if (slot >= 0) out[slot] = 1;
+    }
+    return out;
+  }
+
+  private static mbMaps = new WeakMap<Wiring, MbMap>();
+  /** Where the mushroom body is in this wiring: which neurons are Kenyon cells and teachers, and which synapses
+   *  between them the memory rule may depress. */
+  private static mbMap(w: Wiring): MbMap {
+    const hit = Brain.mbMaps.get(w);
+    if (hit) return hit;
+    const slotOf = new Int32Array(w.n).fill(-1);
+    const danOf = new Uint8Array(w.n);
+    const mbonOf = new Uint8Array(w.n); // 1 = toward-MBON, 2 = away-MBON
+    let kcCount = 0, punishCount = 0, rewardCount = 0;
+    for (const pop of w.pops) {
+      for (let i = pop.start; i < pop.start + pop.count; i++) {
+        if (pop.name === MB_POPS.kc) slotOf[i] = kcCount++;
+        else if (pop.name === MB_POPS.punish) { danOf[i] = 1; punishCount++; }
+        else if (pop.name === MB_POPS.reward) { danOf[i] = 2; rewardCount++; }
+        else if (pop.name === MB_POPS.toward) mbonOf[i] = 1;
+        else if (pop.name === MB_POPS.away) mbonOf[i] = 2;
+      }
+    }
+    const isMb = new Uint8Array(w.nnz);
+    const synE: number[][] = Array.from({ length: kcCount }, () => []);
+    const synG: number[][] = Array.from({ length: kcCount }, () => []);
+    for (let j = 0; j < w.n; j++) {
+      const slot = slotOf[j];
+      if (slot < 0) continue;
+      for (let e = w.colPtr[j]; e < w.colPtr[j + 1]; e++) {
+        const target = mbonOf[w.rowIdx[e]];
+        if (!target) continue;
+        isMb[e] = 1;
+        synE[slot].push(e);
+        synG[slot].push(target - 1);
+      }
+    }
+    const synPtr = new Int32Array(kcCount + 1);
+    for (let k = 0; k < kcCount; k++) synPtr[k + 1] = synPtr[k] + synE[k].length;
+    const map: MbMap = {
+      slotOf, danOf, kcCount, punishCount, rewardCount, isMb,
+      synE: Int32Array.from(synE.flat()),
+      synGroup: Uint8Array.from(synG.flat()),
+      synPtr,
+    };
+    Brain.mbMaps.set(w, map);
+    return map;
   }
 
   private static masks = new WeakMap<Wiring, Uint8Array>();

@@ -4,7 +4,7 @@
  */
 import type { Row } from "./datalog.ts";
 import { BROOD, REWARD, type World } from "./sim.ts";
-import { PLASTICITY } from "./brain.ts";
+import { MEMORY, PLASTICITY } from "./brain.ts";
 
 /** Traits for the parent-child comparison: genes (inherited by construction) and lived outcomes (not). */
 export const TRAITS: { key: string; label: string }[] = [
@@ -16,6 +16,7 @@ export const TRAITS: { key: string; label: string }[] = [
   { key: "gene_contact_courtship", label: "gene: contact → courtship" },
   { key: "olfaction_gain", label: "gene: smell gain" },
   { key: "reward_rate", label: "gene: reward learning rate" },
+  { key: "memory_rate", label: "gene: odour memory rate" },
   { key: "meals_per_min", label: "lived: meals per minute" },
   { key: "age_at_death", label: "lived: age at death" },
   { key: "final_drift", label: "lived: brain change at death" },
@@ -162,6 +163,17 @@ ${svgLines(thin, [{ key: "mean_drift", label: "mean synapse change %", color: "#
 <div>dead flies, mean change at death<b>${fmt(mean(dead.map((r) => Number(r.final_drift))) * 100)}%</b></div></div>
 ${table(["connection block (living flies)", "mean change"], blocks.map((b) => [`${b.from} → ${b.to} (${b.mode})`, `${(Number(b.mean_change) * 100).toFixed(2)}%`]))}
 <p class="muted">Whether this change helps a fly is a separate, measured question (world/tools/lifedata.ts compares learners with frozen flies).</p>
+
+<h2>What do flies remember about smells?</h2>
+<p>The mushroom body: Kenyon cells give each odour a sparse signature; when a dopamine teacher fires while that
+signature is active, the Kenyon cells' synapses onto one output are depressed by up to ${Math.round((1 - MEMORY.floor) * 100)}%, and
+what is left fades over ${MEMORY.forgetTau} s. The punishment teacher listens to a looming threat, a knock and the aversive
+glomeruli, which carry the alarm CO<sub>2</sub> a frightened neighbour gives off; the reward teacher listens to juice
+on the labellum. Memory depth is the mean depression of those synapses (0 = nothing learned).</p>
+${svgLines(thin, [{ key: "mean_memory", label: "mean memory depth %", color: "#8a5cd0", scale: 100 }], 0, Math.max(5, Math.ceil(Math.max(0, ...col("mean_memory")) * 100)))}
+<div class="kv"><div>living flies, mean memory depth<b>${fmt(mean(world.flies.map((f) => f.brain.memoryDepth())) * 100)}%</b></div>
+<div>deepest memory, living fly<b>${fmt(Math.max(0, ...world.flies.map((f) => f.brain.memoryDepth())) * 100)}%</b></div></div>
+<p class="muted">Whether a punished odour really becomes repellent, and whether a fly can learn it from another fly's fright, is measured in world/tools/memory.ts.</p>
 
 <h2>Do babies take after their parents?</h2>
 <p>Each child against the average of its two parents. Genes are passed on by design (each gene from one parent at random,

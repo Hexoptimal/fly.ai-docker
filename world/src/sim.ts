@@ -181,7 +181,7 @@ export class Fly {
     this.lifespan = genome.lifespan;
     this.brain = new Brain(wiring, seed, weightsFor(wiring, genome.edge), tonicFor(wiring, genome.tonic));
     Object.assign(this.brain.modalityGain, genome.sense);
-    this.brain.learnScale = { hebb: genome.learn.hebb, reward: genome.learn.reward };
+    this.brain.learnScale = { hebb: genome.learn.hebb, reward: genome.learn.reward, mb: genome.learn.mb };
     this.vision = new Vision(wiring);
     this.smell = new Olfaction(wiring);
     this.mech = new Mechanosensors(wiring);
@@ -275,7 +275,7 @@ export class World {
     this.rand = mulberry32(seed);
     this.geneRand = mulberry32(seed ^ 0x5eed5);
     this.genes = opts.genes ?? "vary";
-    this.learning = opts.learning ?? { hebbian: false, reward: false };
+    this.learning = opts.learning ?? { hebbian: false, reward: false, mb: true };
     this.field = new OdourField(seed + 99);
     this.wiring = buildWiring(64);
     this.buildProps();
@@ -373,7 +373,7 @@ export class World {
     const g = founder(() => 0.5);
     g.edge.fill(1); g.tonic.fill(1);
     for (const k of Object.keys(g.sense)) g.sense[k] = 1;
-    g.learn = { hebb: 1, reward: 1 };
+    g.learn = { hebb: 1, reward: 1, mb: 1 };
     g.lifespan = 650; g.flight = 1; g.clutch = 10;
     return g;
   }
@@ -974,7 +974,9 @@ export class World {
       mean_generation: round(mean(gens), 2), max_generation: gens.length ? Math.max(...gens) : 0,
       ...labels, matings: this.matings, eggs_laid: this.eggsLaid, hatched: this.hatched, emerged: this.emerged,
       brood_deaths: broodDeaths, deaths: Object.values(this.deaths).reduce((a, b) => a + b, 0),
-      learning: `${this.learning.hebbian ? "hebbian" : ""}${this.learning.hebbian && this.learning.reward ? "+" : ""}${this.learning.reward ? "reward" : ""}` || "off",
+      mean_memory: round(mean(flies.map((f) => f.brain.memoryDepth())), 5),
+      learning: [this.learning.hebbian && "hebbian", this.learning.reward && "reward", this.learning.mb && "memory"]
+        .filter(Boolean).join("+") || "off",
     });
 
     if (Math.round(this.time) % FLY_EVERY_S !== 0) return;
@@ -985,7 +987,11 @@ export class World {
         t: round(this.time, 1), id: f.id, name: f.name, sex: f.sex, generation: f.generation, age: round(f.age, 1),
         x: round(f.x, 2), y: round(f.y, 2), z: round(f.z, 2), state: f.state, meals: f.meals,
         fed_s: round(f.stats.fed * this.params.dt, 1), since_fed: round(f.sinceFed, 1), drift: round(drifts[i], 5),
-        pairings: f.brain.pairings, dnp01_hz: round(this.pair("DNp01", f) * MOTOR.maxRate, 2),
+        pairings: f.brain.pairings, memory: round(f.brain.memoryDepth(), 4),
+        mbon_toward_hz: round(this.pair("MBON-g2a1", f) * MOTOR.maxRate, 2),
+        mbon_away_hz: round(this.pair("MBON-g5b2a", f) * MOTOR.maxRate, 2),
+        kc_hz: round(this.pair("KC", f) * MOTOR.maxRate, 2),
+        dnp01_hz: round(this.pair("DNp01", f) * MOTOR.maxRate, 2),
         p1_hz: round(this.pair("P1", f) * MOTOR.maxRate, 2), dlm_hz: round(this.pair("DLM MN", f) * MOTOR.maxRate, 2),
         lh_hz: round(this.pair("LH", f) * MOTOR.maxRate, 2), lb3_hz: round(this.pair("LB3", f) * MOTOR.maxRate, 2),
         flies_within_2m: near, group: g.groupOf[i],

@@ -69,6 +69,9 @@
   nav .ddmenu a.on{background:var(--surface-2);}
   nav .ddmenu a.on::after{display:none;}
   nav .ddmenu small{display:block; color:var(--dim); font:12px/1.4 'JetBrains Mono',monospace; margin-top:2px; white-space:normal;}
+  @media (max-width:1080px){
+    nav ul{gap:14px; font-size:13px;}
+  }
   @media (max-width:760px){
     nav .wrap{height:auto; padding-block:10px; flex-wrap:wrap; gap:8px 14px;}
     nav ul{gap:14px; font-size:13px; flex-wrap:wrap;}
@@ -203,6 +206,7 @@
       <li class="opt"><a href="/simulation/">Simulation</a></li>
       <li class="opt"><a href="/flybook/">Flybook</a></li>
       <li class="opt"><a class="on" href="/radio/">Radio</a></li>
+      <li class="opt"><a href="/shop" target="_blank" rel="noopener">Merch</a></li>
       <li class="opt"><a href="/agents.html">For Agents</a></li>
       <li><a class="btn sm" href="https://x.com/flydotai" target="_blank" rel="noopener">Follow @flydotai</a></li>
     </ul>

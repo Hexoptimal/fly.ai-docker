@@ -33,6 +33,9 @@
   nav ul { display: flex; gap: 22px; list-style: none; margin: 0; padding: 0; font-size: 14px; align-items: center; }
   nav ul a { color: var(--muted); text-decoration: none; }
   nav ul a:hover { color: var(--text); }
+  @media (max-width: 1080px) {                /* ten tabs: tighten before they wrap to two lines */
+    nav ul { gap: 14px; font-size: 13px; }
+  }
   @media (max-width: 760px) {
     nav .wrap { height: auto; padding-block: 10px; flex-wrap: wrap; gap: 8px 14px; }
     nav ul { gap: 14px; font-size: 13px; flex-wrap: wrap; }

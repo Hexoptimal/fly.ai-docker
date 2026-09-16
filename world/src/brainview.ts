@@ -10,6 +10,7 @@ export const MODALITY_COLOR: Record<Modality, string> = {
   vision: "#3ed8ff",
   olfaction: "#ffb23e",
   mechanosensory: "#7ce0c0",
+  memory: "#c9a2ff",
   central: "#9fb4c8",
   descending: "#6cf08a",
   motor: "#b8ffcf",

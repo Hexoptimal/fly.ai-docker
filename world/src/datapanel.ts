@@ -92,10 +92,13 @@ export class DataPanel {
     document.head.appendChild(style);
 
     const reward = $<HTMLInputElement>("learnReward"), hebb = $<HTMLInputElement>("learnHebb");
+    const mb = $<HTMLInputElement>("learnMemory");
     reward.checked = world.learning.reward;
     hebb.checked = world.learning.hebbian;
+    mb.checked = world.learning.mb;
     reward.addEventListener("change", () => (world.learning.reward = reward.checked));
     hebb.addEventListener("change", () => (world.learning.hebbian = hebb.checked));
+    mb.addEventListener("change", () => (world.learning.mb = mb.checked));
 
     const pick = $<HTMLSelectElement>("traitPick");
     for (const t of TRAITS) pick.add(new Option(t.label, t.key));

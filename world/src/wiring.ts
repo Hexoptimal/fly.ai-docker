@@ -18,7 +18,7 @@
  */
 import { mulberry32 } from "./rng.ts";
 
-export type Modality = "vision" | "olfaction" | "mechanosensory" | "central" | "descending" | "motor";
+export type Modality = "vision" | "olfaction" | "memory" | "mechanosensory" | "central" | "descending" | "motor";
 
 export interface PopSpec {
   name: string;
@@ -31,6 +31,10 @@ export interface PopSpec {
    *  central pattern generator runs on its own and the descending neurons
    *  modulate it -- so they rest above 1. */
   tonic?: number;
+  /** membrane time constant relative to the global tau. Kenyon cells and their outputs are the slow part of a real
+   *  brain: a KC has to hear a few projection-neuron spikes that arrive over hundreds of milliseconds and answer to
+   *  the combination, which at tau 100 ms it cannot. Everything else stays at 1. */
+  tau?: number;
 }
 
 /** Counts are per side; both L and R are built. */
@@ -55,7 +59,10 @@ export const POPULATIONS: PopSpec[] = [
   { name: "Gr21a", count: 4, inhibitory: false, modality: "olfaction", note: "Gr21a/Gr63a -> V: CO2. Aversive." },
   { name: "Gr68a", count: 4, inhibitory: false, modality: "olfaction", note: "Gr68a/ppk23: foreleg contact chemoreceptors, female pheromone" },
   { name: "AL-LN", count: 8, inhibitory: true, modality: "olfaction", note: "antennal lobe local neurons (GABA)" },
-  { name: "lPN", count: 14, inhibitory: false, modality: "olfaction", note: "projection neurons, AL -> protocerebrum" },
+  // Real projection neurons have a spontaneous rate of a few Hz. Without one, nothing downstream of the antennal
+  // lobe ever spikes in this model: food ORNs sit under threshold, so lPN fired at 0.1 Hz and the mushroom body was
+  // deaf to everything but geosmin. Raised to 1.9 on 2026-09-16; the effect on the old measurements is in the README.
+  { name: "lPN", count: 12, inhibitory: false, modality: "olfaction", note: "uniglomerular projection neurons: two per glomerulus, AL -> protocerebrum", tonic: 1.9 },
   { name: "DA2 PN", count: 6, inhibitory: false, modality: "olfaction", note: "DA2 and V glomerulus PNs: the aversive line" },
   { name: "LH", count: 8, inhibitory: false, modality: "olfaction", note: "lateral horn: innate valence" },
 
@@ -73,6 +80,22 @@ export const POPULATIONS: PopSpec[] = [
   { name: "LAL", count: 14, inhibitory: false, modality: "central", note: "lateral accessory lobe, premotor" },
   { name: "PFL3", count: 10, inhibitory: false, modality: "central", note: "central complex steering" },
   { name: "P1", count: 6, inhibitory: false, modality: "central", note: "P1: the male courtship command neurons" },
+
+  // --- mushroom body: where an odour can pick up a meaning -----------------
+  // Two outputs that push in opposite directions and cancel at birth. They do not
+  // steer left or right: like the real mushroom body they decide whether to keep
+  // approaching. MBON-g2a1 (cholinergic) drives forward flight and steering on its
+  // side; MBON-g5b2a drives backing off and vetoes steering. Both rest near silent,
+  // so what they carry is the odour, not their own resting drive. A teacher tips the balance
+  // by depressing one of them (brain.ts): PPL1-g2a1 is a punishment dopamine
+  // neuron, PAM-g5 a reward one. Compartments and teachers are real; which way
+  // each output steers is this model's simplification.
+  { name: "KC", count: 30, inhibitory: false, modality: "memory", note: "Kenyon cells: a sparse code for the odour", tonic: 0.25, tau: 6 },
+  { name: "APL", count: 2, inhibitory: true, modality: "memory", note: "APL (GABA): feedback inhibition that keeps the KC code sparse" },
+  { name: "MBON-g2a1", count: 3, inhibitory: false, modality: "memory", note: "MBON-g2a'1 (cholinergic): the toward-the-odour output", tau: 3, tonic: 0.4 },
+  { name: "MBON-g5b2a", count: 3, inhibitory: false, modality: "memory", note: "MBON-g5b2a: the away-from-the-odour output", tau: 3, tonic: 0.4 },
+  { name: "PPL1-g2a1", count: 2, inhibitory: false, modality: "memory", note: "PPL1-g2a1: the punishment teacher (dopamine)", tonic: 0.4 },
+  { name: "PAM-g5", count: 2, inhibitory: false, modality: "memory", note: "PAM-g5: the reward teacher (dopamine)", tonic: 0.4 },
 
   // --- descending neurons ---------------------------------------------------
   { name: "DNa02", count: 4, inhibitory: false, modality: "descending", note: "steering (ipsiversive turn)" },
@@ -99,6 +122,15 @@ export const POPULATIONS: PopSpec[] = [
 export const ORN_FOOD = ["ORN_DM1", "ORN_VM5d", "ORN_VL2a", "IR92a"];
 export const ORN_CVA = ["ORN_DA1", "ORN_VA1d"];
 export const ORN_AVERSIVE = ["Or56a", "Gr21a"];
+
+/** Mushroom-body population names, used by the learning rule in brain.ts. */
+export const MB_POPS = {
+  kc: "KC",
+  toward: "MBON-g2a1",
+  away: "MBON-g5b2a",
+  punish: "PPL1-g2a1",
+  reward: "PAM-g5",
+} as const;
 export const ORN_TYPES = [...ORN_FOOD, ...ORN_CVA, ...ORN_AVERSIVE];
 
 type Mode = "ipsi" | "contra" | "both";
@@ -108,9 +140,15 @@ interface Edge {
   mode: Mode;
   p: number;
   w: number;
+  /** [from, to) as fractions of the target population: a labelled line into a slice of it rather than all of it.
+   *  This is what makes a projection neuron uniglomerular -- it listens to one glomerulus, not to the whole lobe. */
+  slice?: [number, number];
 }
 
 const C = (from: string, to: string, mode: Mode, p: number, w = 1): Edge => ({ from, to, mode, p, w });
+/** One labelled line: `from` reaches only slot `k` of `of` equal slices of the target population. */
+const L = (from: string, to: string, mode: Mode, p: number, w: number, k: number, of: number): Edge =>
+  ({ from, to, mode, p, w, slice: [k / of, (k + 1) / of] });
 
 /** Connection blocks: p = chance a given pre-post pair exists,
  *  w = mean synapse count for that pair (before normalisation). */
@@ -150,8 +188,10 @@ export const EDGES: Edge[] = [
   // ======================= olfaction =======================================
   // ORNs -> their glomerulus: projection neurons out, local neurons for gain
   // control and left-right contrast.
-  ...[...ORN_FOOD, ...ORN_CVA].flatMap((orn) => [
-    C(orn, "lPN", "ipsi", 0.45, 3),
+  // Each glomerulus has its own projection neurons (a labelled line into two of the twelve), which is what makes
+  // the code downstream an odour's identity and not just "something smells". The local neurons see the whole lobe.
+  ...[...ORN_FOOD, ...ORN_CVA].flatMap((orn, i, all) => [
+    L(orn, "lPN", "ipsi", 0.9, 3, i, all.length),
     C(orn, "AL-LN", "ipsi", 0.32, 2),
   ]),
   // the aversive line: geosmin and CO2 have their own glomeruli and their own
@@ -186,6 +226,33 @@ export const EDGES: Edge[] = [
   C("lPN", "LAL", "ipsi", 0.4, 3),
   C("lPN", "PVLP", "ipsi", 0.32, 2.5),
   C("lPN", "WED", "ipsi", 0.3, 2.5), // odour raises the gain of the wind pathway: surge upwind
+
+  // ======================= mushroom body ===================================
+  // Projection neurons -> Kenyon cells, sparse and random: each KC samples a
+  // few PNs, so which KCs fire is a signature of the odour, not its intensity.
+  // APL feeds inhibition back over the whole pool and keeps that signature small.
+  C("lPN", "KC", "ipsi", 0.14, 2.5),
+  C("lPN", "KC", "contra", 0.07, 2.5),
+  C("DA2 PN", "KC", "ipsi", 0.16, 2.5),
+  C("KC", "APL", "ipsi", 0.5, 2),
+  C("APL", "KC", "ipsi", 0.7, 2),
+  // The teachers. Nothing injects them: dopamine arrives through the same senses
+  // everything else uses -- a threat filling the eye (LC4), a knock on the body
+  // (LgLG), the aversive glomeruli (DA2 PN), which is how a NEIGHBOUR'S alarm CO2
+  // reaches this fly, and juice on the labellum (LB3) for reward.
+  C("LC4", "PPL1-g2a1", "ipsi", 0.5, 3.5),
+  C("LgLG", "PPL1-g2a1", "ipsi", 0.4, 2.5),
+  C("DA2 PN", "PPL1-g2a1", "ipsi", 0.5, 3.5),
+  C("LB3", "PAM-g5", "ipsi", 0.5, 3.5),
+  // KC -> MBON: the only synapses the memory rule may touch.
+  C("KC", "MBON-g2a1", "ipsi", 0.6, 2),
+  C("KC", "MBON-g5b2a", "ipsi", 0.6, 2),
+  // and the MBONs onto approach: toward drives forward flight and odour steering,
+  // away drives backing off and vetoes steering, as the lateral horn does.
+  C("MBON-g2a1", "DNg100", "ipsi", 0.5, 4),
+  C("MBON-g2a1", "PFL3", "ipsi", 0.5, 4),
+  C("MBON-g5b2a", "LPi", "ipsi", 0.5, 4),
+  C("MBON-g5b2a", "MDN", "ipsi", 0.5, 4),
 
   // ======================= mechanosensory ==================================
   C("JO", "WED", "ipsi", 0.5, 3),
@@ -276,6 +343,8 @@ export interface Wiring {
   viewX: Float32Array;
   viewY: Float32Array;
   tonicScale: Float32Array;
+  /** per neuron: its membrane time constant as a multiple of the global tau */
+  tauScale: Float32Array;
   nnz: number;
   /** per synapse, in the same CSC order as rowIdx: the signed synapse count before normalisation */
   raw: Float32Array;
@@ -305,7 +374,7 @@ const SIDES: ("L" | "R")[] = ["L", "R"];
  *  column's midline and R neurons right of it. */
 const COLUMNS: Modality[][] = [
   ["vision", "olfaction"],
-  ["mechanosensory", "central"],
+  ["mechanosensory", "central", "memory"],
   ["descending", "motor"],
 ];
 
@@ -375,9 +444,11 @@ export function buildWiring(seed = 64): Wiring {
   const post: number[] = [];
   const raw: number[] = [];
   const edgeIdx: number[] = [];
-  const add = (a: Population, b: Population, p: number, w: number, ei: number) => {
+  const add = (a: Population, b: Population, p: number, w: number, ei: number, slice?: [number, number]) => {
+    const from = b.start + (slice ? Math.floor(slice[0] * b.count) : 0);
+    const to = b.start + (slice ? Math.max(Math.floor(slice[1] * b.count), Math.floor(slice[0] * b.count) + 1) : b.count);
     for (let i = a.start; i < a.start + a.count; i++) {
-      for (let j = b.start; j < b.start + b.count; j++) {
+      for (let j = from; j < to; j++) {
         if (i === j || rand() >= p) continue;
         const syn = Math.max(1, Math.round(w * (0.5 + rand())));
         pre.push(i);
@@ -391,8 +462,8 @@ export function buildWiring(seed = 64): Wiring {
     for (const side of SIDES) {
       const other: "L" | "R" = side === "L" ? "R" : "L";
       const a = index.get(e.from + "_" + side)!;
-      if (e.mode === "ipsi" || e.mode === "both") add(a, index.get(e.to + "_" + side)!, e.p, e.w, ei);
-      if (e.mode === "contra" || e.mode === "both") add(a, index.get(e.to + "_" + other)!, e.p, e.w, ei);
+      if (e.mode === "ipsi" || e.mode === "both") add(a, index.get(e.to + "_" + side)!, e.p, e.w, ei, e.slice);
+      if (e.mode === "contra" || e.mode === "both") add(a, index.get(e.to + "_" + other)!, e.p, e.w, ei, e.slice);
     }
   });
 
@@ -421,16 +492,18 @@ export function buildWiring(seed = 64): Wiring {
 
   const popOf = new Int32Array(n);
   const tonicScale = new Float32Array(n);
+  const tauScale = new Float32Array(n);
   pops.forEach((pop, pi) => {
     const spec = POPULATIONS.find((s) => s.name === pop.name)!;
     for (let k = 0; k < pop.count; k++) {
       popOf[pop.start + k] = pi;
       tonicScale[pop.start + k] = spec.tonic ?? 1;
+      tauScale[pop.start + k] = spec.tau ?? 1;
     }
   });
   const viewX = new Float32Array(n);
   const viewY = new Float32Array(n);
   layout(pops, viewX, viewY);
 
-  return { n, pops, index, colPtr, rowIdx, weight, popOf, viewX, viewY, tonicScale, nnz: raw.length, raw: rawCsc, edgeOf };
+  return { n, pops, index, colPtr, rowIdx, weight, popOf, viewX, viewY, tonicScale, tauScale, nnz: raw.length, raw: rawCsc, edgeOf };
 }

@@ -10,7 +10,7 @@ its brain fire; every label above a fly is a readout of its population rates.
 what a fly sees, smells, hears and feels
   └─> R1-6 · LPLC2 LC4 LPLC1 LC10a VS · ORN_DM1 VM5d VL2a IR92a DA1 VA1d · Or56a Gr21a
       · JO · SNta LgLG LB3
-        └─> antennal lobe (AL-LN, lPN, DA2 PN) · lateral horn · central brain
+        └─> antennal lobe (AL-LN, lPN, DA2 PN) · lateral horn · mushroom body (KC, MBON, DAN) · central brain
               └─> descending neurons DNa02, DNp01, DNg100, MDN
                     └─> VNC premotor (VNC-IN, IN19A)
                           └─> motor neurons DLM, b1, b2, Ti flexor/extensor, …
@@ -44,8 +44,8 @@ v <- exp(-dt/tau) * v + gain * (W @ spikes) + tonic + noise + sensory input
 v >= 1  ->  spike, reset to 0
 ```
 
-`dt` 20 ms, `tau` 100 ms, threshold 1. **612 neurons per fly (306 per side),
-4,718 synapses**, generated once from seed 64 and never trained, with
+`dt` 20 ms, `tau` 100 ms (600 ms for Kenyon cells, 300 ms for MBONs), threshold 1. **720 neurons per fly (360 per side),
+5,338 synapses**, generated once from seed 64 and never trained, with
 `flybrain/build.py`'s weight recipe: synapse counts, negative when the presynaptic
 neuron is inhibitory, then each neuron's incoming weights normalised to sum to 1.
 All flies share the matrix and keep their own voltages and noise, exactly as
@@ -480,9 +480,183 @@ slightly lower without it (difference +0.03 ± 0.04; cVA EFFECT NOT SHOWN). Real
 rare (7% of flies), and few of those are at food. The loose clustering most likely comes from shared flight paths and
 the arena's layout, not from flies seeking each other.
 
+## Odour memory: the mushroom body (2026-09-16)
+
+Before this round nothing in a fly could learn what a smell *means*: no Kenyon cells, no output neurons, no
+dopamine, and the only thing another fly could pass on was its wingbeat and its CO2. Now every fly has a mushroom
+body (`src/wiring.ts`, the rule in `src/brain.ts`, `learning.mb`, **on** by default, "odour memory" in the Data card).
+
+| population | per side | job |
+|---|---|---|
+| KC | 30 | Kenyon cells: each samples a few projection neurons, so which KCs fire is the odour's signature. τ 600 ms |
+| APL | 2 | GABA feedback over all KCs: keeps the code sparse |
+| MBON-g2a1 | 3 | cholinergic output that keeps a fly **approaching** the odour (drives DNg100 forward flight and PFL3 steering). τ 300 ms, near silent at rest |
+| MBON-g5b2a | 3 | output that makes it **back off** (drives MDN and the LPi steering veto). τ 300 ms, near silent at rest |
+| PPL1-g2a1 | 2 | punishment teacher, fed by LC4 (a looming threat), LgLG (a knock) and DA2 PN (geosmin, **CO2**) |
+| PAM-g5 | 2 | reward teacher, fed by LB3 (juice on the labellum) |
+
+**The rule.** A KC spike leaves a 5 s trace. When a teacher fires, the traced KCs' synapses onto that teacher's
+MBON are depressed (punishment → the toward-MBON, reward → the away-MBON), down to 15% of their birth size, and
+what is left fades over 900 s. Only KC → MBON synapses change, and they are kept out of the synaptic rescaling.
+Nothing injects the teachers. They are neurons on the same senses as everything else, so **learning from another
+fly has no channel of its own**: a frightened fly gives off CO2, the CO2 reaches a neighbour's Gr21a → DA2 PN →
+PPL1, and whatever that neighbour was smelling at the time is punished. The compartment names are real; which
+MBON pushes which way is this model's simplification.
+
+**Two changes outside the mushroom body were needed, and they touch old results.** The first probe showed food
+odours never reached a Kenyon cell. `lPN` fired 0.1 Hz next to a fruit, because food ORNs sit below threshold, and
+every lPN listened to every food glomerulus, so fruit and carrion gave the same KC code (cosine 0.95):
+* `lPN` rests at 1.9× tonic. Real projection neurons have a spontaneous rate; with it, fruit drives lPN to 1.3 Hz against 0.1 Hz in clean air.
+* PNs are **uniglomerular**: 12 per side, two per glomerulus (a labelled-line `slice` on the ORN → lPN block), where there used to be 14 pooled ones.
+
+Before and after, on the old tools (HEAD vs this round, same seeds):
+
+| tool | before | after |
+|---|---|---|
+| `surge.ts` upwind heading, hit → plume lost | 0.679 → 0.442 | 0.542 → 0.368 (the surge-and-cast gradient survives, weaker and less upwind) |
+| `assay.ts` reached fruit: intact / wind 0 / no JO → WED | 0% / 67% / 0% | 0% / 71% / 58% |
+| `choice.ts` fruit vs mould ratio, sides swapped | 0.52 / 1.65 | 0.72 / 1.34 (side-dominated both times) |
+| `life.ts` adults at 480 s of 30 | 15 (17 starved, 7 eaten) | 21 (19 starved, 4 eaten) |
+
+The table above is the round-2 wiring. Round 1 used MBON-g1pedc/PPL1-g1pedc, with a GABAergic "toward" output
+onto the turn-away line, which gave punishment nothing active to change (see round 2 below).
+
+### Measured, round 1 (`tools/memory.ts`, seeds 11, 23, 37, 51)
+
+Criteria were written into the tool before the first run. Twelve flies, fruit at (−5, 0) and carrion at (+5, 0), the
+punished side swapped between seeds, 4 seeds. The score is the change in preference for the punished source (dPI,
+−1…+1) from a 120 s free test before training to one after. During training flies are held in place. The swatter is
+removed before it reaches anyone, and flies neither starve nor age during an assay. **The first full run is void**:
+every held fly died of old age mid-trial, which made the conditions identical and dropped carrion into the arena.
+
+| test | result | verdict |
+|---|---|---|
+| **code**: active KCs per 0.2 s | 27% | **SPARSE** |
+| same odour, split half / fruit vs carrion / fruit vs mould / carrion vs mould | 0.995 / 0.60 / 0.56 / 0.53 | **SEPARATES ODOURS** |
+| **conditioning**: paired − unpaired dPI, rule on | −0.04 ± 0.23 (3/4 seeds down), memory depth 46% | **NO CLEAR EFFECT** (needs ≤ −0.15) |
+| same, rule off (control) | −0.08 ± 0.11 (3/4 seeds down), depth 0% | no clear effect |
+| **social**: observers' dPI, demonstrators − none | −0.22 ± 0.49 (2/4 seeds down) | **NOT SHOWN** (needs ≤ −0.15 on 3/4) |
+| same, CO2 → PPL1 cut / rule off | +0.01 ± 0.16 / −0.19 ± 0.33 | route not shown |
+
+**The memory forms, and the flies do not act on it yet.** The odour code works: sparse, reliable, and different for
+fruit, carrion and geosmin. Pairing an odour with a looming swatter depresses 46% of KC → MBON strength. But
+the preference change is inside the noise, and it is no bigger than with the rule off, whose −0.08 is the noise
+floor of a 6-fly, 120 s test. Six MBONs are a small voice in LAL, which hears from a dozen other blocks.
+
+**The social test has a confound that sinks it before the MBONs even matter.** Held observers got the same CO2
+(0.79) and their teacher fired (2.1 Hz) even when **no demonstrator was ever scared**. A held fly is a frightened
+fly: its own giant fibre fires, it gives off CO2 and punishes itself and its neighbours. Observers came out with the
+same 43% memory depth with or without demonstrators, so this test cannot tell "learned from a neighbour's fright"
+from "was frightened". Cutting DA2 PN → PPL1 does bring observer PPL1 down from 2.9 to 0.9 Hz, so the CO2 route is
+what carries the teaching signal. It just carries it in every condition.
+
+Obvious next measurements, each needing new criteria written first: a stronger MBON → steering block, larger groups
+or longer tests to lower the noise floor, and a social layout where observers are not held (or are held without
+fright), so the demonstrators' CO2 is the only alarm in the air.
+
+### Round 2: the cage and the outputs fixed, fresh seeds (61, 73, 89, 97)
+
+What round 1 got wrong, found with held-fly diagnostics that are not the test scores:
+* **Held flies 0.8 m apart frighten each other.** Neighbours loom (LPLC2 4.1 Hz), the giant fibre fires, they give off CO2 and teach themselves. At 1.6 m, DNp01 drops to 0.01 Hz and CO2 to zero. Observers held 9 m downwind were also spooked by the rock ring, so they now sit at 6 m.
+* **The "toward" output could not act.** It was GABAergic onto the turn-away line, and for fruit nothing drives that line, so taking away its brake did nothing. Even driven at 50 Hz, the outputs turned a fly −0.02 (LAL driven directly: −0.28). Left-right steering was the wrong target anyway: in plume the Kenyon cells fire almost equally on both sides (0.5 / 0.7 Hz). The outputs now act on approach, as the real ones do: toward → forward flight and odour steering, away → backing off and the veto. They rest near silent, so what they carry is the odour.
+* After that, held in a fruit plume, punishment takes the toward output from 1.16 to 0.06 Hz; odour exposure alone leaves it at 1.21. Forward-flight drive (DNg100) falls about 20–25%, but **wing power (DLM) does not change** (5.69 → 5.68 Hz). Raising MBON gain only added resting noise. Gains were not pushed further, because that would have meant tuning until the test passes.
+
+Thresholds unchanged:
+
+| test | result | verdict |
+|---|---|---|
+| **conditioning**: paired − unpaired dPI, rule on | **−0.11 ± 0.06, 4/4 seeds down**, learned aversion 0.78 | **NO CLEAR EFFECT** (needs ≤ −0.15) |
+| same, rule off | −0.04 ± 0.01, 4/4 seeds down | no clear effect |
+| **social**: observers' dPI, demonstrators − none | +0.07 ± 0.08 (0/4 seeds down) | **NOT SHOWN** |
+| observers' learned aversion: demonstrators / none / CO2 route cut / rule off | 0.82 / 0.80 / 0.58 / 0 | |
+
+**Conditioning is now in the right direction on every seed, three times the rule-off baseline, and still short of
+the line.** That fits the diagnostics: the memory is written and read out by the MBONs, but a 1 Hz swing in three
+neurons barely moves the wings.
+
+**The social test is still not a test.** Observers came out with the same learned aversion whether or not a
+demonstrator was ever scared (0.82 vs 0.80). Twelve flies in one plume still carry some CO2 (0.29 with no swatter),
+the punishment teacher fires 0.7 Hz, and 180 s of that saturates the rule at its floor. That points at the rule, not
+the cage: **there is no teaching threshold**, so a trickle of dopamine writes as surely as a burst, just slower.
+Cutting DA2 PN → PPL1 is the only thing that lowers it (0.58), so the CO2 route is the teacher.
+
+Next, each with criteria first: a burst threshold on the teachers (dopamine must exceed a rate before it writes),
+and a stronger MB vote at the motor level. That second one is a real question about this network (every
+central-brain vote is weak against the tonic flight drive, the innate lateral horn included), not a dial.
+
+### Round 3: teachers write only in a burst (seeds 103, 107, 109, 113)
+
+The threshold came from a rate diagnostic, not these scores. With no punishment anywhere, a held fly's punishment
+teacher never went above 2.5 Hz (0.5 s windows; a crowd's stray CO2 keeps it at 0.7 Hz on average), while a swatter
+drives bursts to 12–13 Hz. The rule fixed beforehand was twice the highest no-punishment rate, so `MEMORY.burstHz` = 5 Hz.
+One criterion was added: SELECTIVE, meaning observers' learned aversion is ≤ 0.2 without demonstrators and at least
+twice that with them.
+
+| test | result | verdict |
+|---|---|---|
+| observers' learned aversion: demonstrator frightened / none | 0.53 / −0.003 | **SELECTIVE** |
+| same, DA2 PN → PPL1 cut | 0.48 | |
+| **social**: observers' dPI, demonstrators − none | −0.005 ± 0.03 (2/4 seeds down) | **NOT SHOWN** |
+| **conditioning**: paired − unpaired dPI | −0.02 ± 0.03 (3/4 down; rule off −0.003) | **NO CLEAR EFFECT** |
+
+**The threshold does what it was for:** a crowd no longer teaches itself (0.80 → 0.00). **But this is still not learning
+from another fly.** Cutting the alarm-CO2 route leaves observers almost as aversive (0.48). They are mostly taught by
+seeing the swatter come down about 5 m away. The "no demonstrators" control had no swatter at all; the control this
+question needs is the swatter coming down on an empty spot. Behaviour does not move in either test, and direct
+conditioning is weaker than in round 2, which is what the diagnostics predicted: the memory is written and read out,
+and it does not reach the wings.
+
+### Round 4: the right control (seeds 127, 131, 137, 139)
+
+The control is now the swatter coming down on the demonstrators' spot while the demonstrators are held in clean air
+9 m upwind. Model as in round 3; thresholds unchanged.
+
+| condition | observers' learned aversion | observer teacher | observer CO2 | observers' dPI |
+|---|---|---|---|---|
+| demonstrators frightened | 0.54 | 2.06 Hz | 0.42 | −0.03 ± 0.08 |
+| swatter on an empty spot | **0.57** | 2.15 Hz | 0.44 | −0.07 ± 0.06 |
+| alarm CO2 route cut | 0.56 | 0.93 Hz | 0.40 | +0.03 ± 0.13 |
+| memory rule off | 0 | 2.07 Hz | 0.42 | −0.01 ± 0.05 |
+
+Verdicts: **SOCIAL LEARNING NOT SHOWN** (shift +0.04, 1/4 seeds down), **ROUTE NOT SHOWN**, **NOT SELECTIVE**.
+
+**A clean no: in this model a fly does not learn a smell from another fly's fright.** Observers learn exactly as much
+when nobody is under the swatter (0.57 vs 0.54). They are taught by seeing it come down about 5 m away, and they
+frighten each other: their CO2 is the same with or without demonstrators. Cutting the CO2 → teacher route halves the
+teacher's rate and leaves the memory untouched (0.56), because a burst from the looming swatter is enough on its own.
+Demonstrators add nothing measurable. Behaviour does not move in any condition, as the transfer diagnostic predicted.
+
+Testing the social route itself would need observers who cannot see the threat (further away, or with the LC4 →
+PPL1 route cut), so a demonstrator's CO2 is the only possible teacher.
+
+### Why no central-brain vote reaches the wings (transfer diagnostic, 2026-09-16)
+
+One population is driven in quiet air, and every stage downstream is read:
+
+| driven | reaches | result |
+|---|---|---|
+| DNa02 L at 6 Hz | wings | turn −0.08. **Descending → motor works.** |
+| DNg100 both at 6 Hz | wings | thrust 0.048 → 0.128 |
+| LAL L at 6 Hz | DNa02 | 1 Hz, turn −0.013 (needs ~13 Hz) |
+| lateral horn L at 6 Hz | MDN | 1 Hz; only 50 Hz turns the fly |
+| toward-MBON at 7.5 Hz | DNg100 | **0.1 Hz** |
+| away-MBON at 7.5 Hz | MDN | 0.1 / 1.9 Hz |
+
+**The block is central brain → descending neurons, for innate and learned votes alike.** A descending neuron hears
+from many areas, and every neuron's inputs are normalised to sum to 1, so at 1–10 Hz no single area gets it to
+threshold. It is the same limit as the tonic fudge below.
+
+**The obvious fix breaks feeding.** Descending neurons integrating over 2× τ (chosen by a rule: the largest τ keeping
+resting DN firing ≤ 0.5 Hz and resting thrust within +30%) let 3.5–5× more through: LAL at 6 Hz turned the fly
+−0.068, toward-MBON drove DNg100 to 2.2 Hz, and the plume assay went from 0% to 71% reaching fruit with the surge
+gradient intact. But resting forward drive rose (DNg100 4.2 → 6.0 Hz), flies stopped landing (4 landings in 120 s
+among 24 flies → 0), and in `life.ts` all 30 starved by 240 s. **Reverted.** The world was already on a knife edge
+(4 landings in 2 minutes). Letting central votes through needs forward drive and landing rebalanced together, and
+that is a change to the whole flight model, not to memory.
+
 ## What isn't real
 
-* **This is not the connectome.** 612 neurons and 4,718 synapses from a seeded
+* **This is not the connectome.** 720 neurons and 5,338 synapses from a seeded
   PRNG and a block diagram, against 166,700 neurons and 25.6 M connections of
   electron microscopy. Nothing downloaded, nothing trained.
 * **Names real, numbers invented.** Every population is a real cell type and
@@ -609,6 +783,6 @@ COMMAND:** no motor group rose by more than 1 Hz at any step size. The relay is 
 | `src/scene.ts` | low-poly Three.js: instanced flies, props, swatter, wind motes |
 | `src/brainview.ts` | live neuron view and spike raster, grouped by modality |
 | `src/main.ts` | overlay, labels, leaderboard, cameras, loop |
-| `tools/` | `lifedata.ts` (does rewiring help, do children take after parents, do flies gather), `ablate.ts` (the table), `lifeab.ts` (predation, courtship, egg substrate), `surge.ts` (cast-and-surge), `choice.ts` (geosmin two-choice), `assay.ts`, `flight.ts`, `probe.ts`, `tune.ts`, `sweep.ts`, `smell.ts`, `range.ts`, `motor.ts` — run with `node --experimental-strip-types tools/<file>.ts` |
+| `tools/` | `memory.ts` (the odour code, conditioning, learning from another fly's fright), `lifedata.ts` (does rewiring help, do children take after parents, do flies gather), `ablate.ts` (the table), `lifeab.ts` (predation, courtship, egg substrate), `surge.ts` (cast-and-surge), `choice.ts` (geosmin two-choice), `assay.ts`, `flight.ts`, `probe.ts`, `tune.ts`, `sweep.ts`, `smell.ts`, `range.ts`, `motor.ts` — run with `node --experimental-strip-types tools/<file>.ts` |
 
 MIT, like the rest of the repository.
