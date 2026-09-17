@@ -4,7 +4,7 @@
  */
 import { API, CONNECTOME } from "./config.ts";
 import { api, ApiError, Miner, probeGpu } from "./mine-core.ts";
-import { mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, signedIn } from "./account.ts";
+import { isPhone, mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, signedIn } from "./account.ts";
 import { shortAddress } from "./wallet.ts";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -61,6 +61,7 @@ async function toggle(): Promise<void> {
   const button = $<HTMLButtonElement>("toggle");
   if (miner.running) {
     miner.stop();
+    void keepAwake(false);
     button.textContent = "Start mining";
     return;
   }
@@ -69,12 +70,36 @@ async function toggle(): Promise<void> {
   store.set(ENGINE_KEY, engine);
   button.textContent = "Stop";
   refresh();
+  void keepAwake(true);
   await miner.start({
     engine, batch: Number($<HTMLSelectElement>("batch").value), threads: Number($<HTMLSelectElement>("threads").value),
     programs: $<HTMLInputElement>("programs").checked,
   });
-  if (!miner.running) button.textContent = "Start mining";
+  if (!miner.running) {
+    button.textContent = "Start mining";
+    void keepAwake(false);
+  }
 }
+
+// ---- phones ------------------------------------------------------------------------------------------
+// A phone pauses a tab that's in the background or behind a locked screen, and mining pauses with it. While
+// mining, the screen is kept on (Screen Wake Lock); the browser drops the lock when the tab is hidden, so
+// it's taken again on return. Jobs held while paused go back out on their own (JOB_TTL on the server).
+let wakeLock: WakeLockSentinel | null = null;
+async function keepAwake(on: boolean): Promise<void> {
+  if (!on) {
+    await wakeLock?.release().catch(() => {});
+    wakeLock = null;
+    return;
+  }
+  if (wakeLock && !wakeLock.released) return;
+  try {
+    wakeLock = await navigator.wakeLock?.request("screen") ?? null;
+  } catch { /* refused (battery saver, or not on screen right now) */ }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && miner.running) void keepAwake(true);
+});
 
 // ---- numbers -----------------------------------------------------------------------------------------
 const STANDING: Record<string, string> = {
@@ -164,13 +189,18 @@ function showEngine(): void {
   $("gpu-hint").hidden = !(gpu && /Windows/.test(navigator.userAgent));
   $("runs-on").textContent = gpu
     ? "the GPU, a batch of jobs at once (~4 MB of GPU memory per job, plus 125 MB for the wiring)"
-    : "CPU threads, one connectome copy each (~200 MB memory per thread)";
+    : "CPU threads, one connectome copy each (~350 MB memory per thread)";
 }
 
 const threads = $<HTMLSelectElement>("threads");
-const maxThreads = Math.min(4, Math.max(1, cores - 1));
+const phone = isPhone();
+// each thread holds its own ~350 MB copy: a phone's browser tab is killed well before its RAM is full
+const maxThreads = Math.min(phone ? 2 : 4, Math.max(1, cores - 1), memoryGb ? Math.max(1, Math.floor(memoryGb / (phone ? 3 : 1))) : 4);
 for (let i = 1; i <= maxThreads; i++) threads.add(new Option(String(i), String(i), i === 1, i === 1));
 $<HTMLInputElement>("label").value = store.get(LABEL_KEY) ?? "";
+$("phone-hint").hidden = !phone;
+// a phone GPU runs a batch far slower than a desktop one; a smaller batch reports back sooner
+if (phone) $<HTMLSelectElement>("batch").value = "8";
 $("cpu").textContent = `${cores} threads${memoryGb ? ` · ${memoryGb}+ GB memory` : ""}`;
 probeGpu().then((probe) => {
   $("gpu").textContent = probe.usable ? `${probe.name} (WebGPU)` : `can't mine on the GPU: ${probe.reason}`;

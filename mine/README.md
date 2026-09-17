@@ -317,6 +317,12 @@ Mining runs from the real page at batch 32:
 At 300,000 jobs in the database, claiming a batch of 32 takes 14 ms and a submit takes 8 ms. Four
 verifier threads clear checks about 3–4× faster than one.
 
+**Phones:** the Mine page runs there too (CPU threads, or WebGPU where the phone's browser has it with
+100 MB buffers). A phone pauses a tab in the background or behind a locked screen, so the page keeps the
+screen on while mining (Screen Wake Lock) and says so. Each CPU thread holds ~350 MB (measured peak in
+Node: 335 MB), so phones get at most 2 threads, and GPU batches start at 8. Tested only in headless Chrome
+at phone size (layout, limits, wake lock, jobs submitted), not on a real phone yet.
+
 **Laptops with two GPUs:** Chrome on Windows starts on the integrated GPU and ignores WebGPU's
 `powerPreference`. To mine on the discrete GPU, set Chrome to "High performance" in Windows Settings
 → System → Display → Graphics. For testing, launch Chrome with `--force_high_performance_gpu`.

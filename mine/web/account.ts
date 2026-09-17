@@ -70,7 +70,8 @@ function kit(): Promise<Kit> {
   return kitLoad;
 }
 
-const isPhone = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+/** A phone or tablet, whose browser pauses background tabs and has little memory to spare. */
+export const isPhone = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 
 /** Wallet apps with their own browser, where this page finds the wallet the way a desktop extension would. */
 const walletApps = () => {
