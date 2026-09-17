@@ -32,8 +32,8 @@ orders: brain tuning, world simulations and encoding data.
 - **House work:** 11 orders queued, about 11,000 jobs (see *House orders*).
 - **Examples:** `examples/`, published on GitHub, including `btc-pool`: a bridge from a Bitcoin pool to a
   hash-search order, with a guided setup for non-coders (checked against live pools, no real share yet).
-- **Next:** opt-in Monero mining for the project (RandomX in the browser, a pool bridge, a switch on the Mine
-  page); see *Monero (planned)*.
+- **Mining for the project:** yespower on the CPU (~$0.02 per machine-day) and Kaspa on the GPU (a rounding
+  error, but it proves the path) are built and tested; see *Mining for the project*.
 - **Extension:** built, not yet on the Chrome Web Store. It takes brain jobs only (no programs, world or probe
   jobs yet).
 
@@ -398,24 +398,43 @@ at phone size (layout, limits, wake lock, jobs submitted), not on a real phone y
 `powerPreference`. To mine on the discrete GPU, set Chrome to "High performance" in Windows Settings
 → System → Display → Graphics. For testing, launch Chrome with `--force_high_performance_gpu`.
 
-## Monero (planned)
+## Mining for the project
 
-Opt-in mining that earns Monero for the project, not for the miner's wallet: miners still earn points for the jobs.
-Nothing is built yet.
+Our own mining, so the network earns something without needing buyers: the coins go to a project address, and the
+miners running it still get their usual points. Built and tested, not yet pointed at a real pool.
 
-1. **RandomX in the browser:** compile a pure-Rust RandomX (`rustdom-x`, GPL-3.0, kept in its own folder with its
-   license) to WebAssembly, checked against RandomX's official test vectors. It needs a C linker on the build
-   machine (Rust's GNU toolchain or Visual Studio Build Tools); this PC has neither yet.
-2. **Measure:** hashes per second in Chrome (light mode, about 256 MB per thread), then estimate earnings before
-   going further.
-3. **Bridge and switch:** a Monero pool bridge like `examples/btc-pool` (SupportXMR, paying the project's Monero
-   wallet) as a house job kind with its own worker, and an off-by-default "Also mine Monero for fly.ai" switch
-   on the Mine page. Not in the extension (the Chrome Web Store bans mining).
-4. **Disclosure:** the Mine page and TOKEN.md say what opted-in mining earns and how it's used.
+- **CPU: yespower** ([`examples/yespower`](examples/yespower), [`examples/yespower-pool`](examples/yespower-pool)).
+  A pure-Rust port of the reference implementation, matching all fourteen of its published vectors, plus a Stratum
+  bridge that runs the coin's work as a keep-open house order. `npm run test:yespower` covers the hasher, the
+  search, the bridge against a mock pool, and the whole path end to end.
+- **What it earns:** 243 H/s per browser thread at yescrypt's parameters, which is **about $0.02 per 8-thread
+  machine-day** at September 2026 pool rates. Roughly five times what browser Monero would make, and the reason
+  RandomX was dropped: it needs a runtime JIT and a 2 GB dataset, so a browser pays 30x over native.
+- **To start it:** a payout address, a pool (zpool and zergpool take a wallet address as the login, no account),
+  then run the bridge with the server's `ADMIN_TOKEN`. See [the bridge's README](examples/yespower-pool).
 
-**Waiting on:** the project's Monero wallet address (created in Monero GUI or Feather, seed kept offline), and the
-build toolchain. **Risks:** browser RandomX is slow (likely cents to a dollar a day per 1,000 threads), and
-in-browser mining can get a site flagged as cryptojacking, which is why it's opt-in and measured first.
+- **GPU: Kaspa** ([`examples/kaspa`](examples/kaspa)). kHeavyHash as a WebGPU shader, checked against
+  rusty-kaspa's own test vectors and against the reference implementation nonce for nonce on a real GPU, plus a
+  Stratum bridge that runs it as a house order. `npm run test:kaspa` covers all of it, including a share accepted
+  by a mock pool.
+- **What it earns: almost nothing.** 11.2 MH/s on an RTX 4060, about 2% of native (WGSL has no 64-bit integers, so
+  keccak is emulated), against an ASIC-dominated network - a fraction of a cent a year per browser. It exists
+  because it is the only GPU proof-of-work with a published specification *and* vectors, so it proves the whole
+  path with a shader that can be swapped when a worthwhile coin turns up.
+
+**The GPU coin that would be worth it is Pearl**, whose proof-of-work is an integer matrix multiply. A hand-written
+WGSL kernel on the 4060 reached 9.7 TOPS - 6% of what the card's tensor cores do natively, since WebGPU cannot
+reach them - so about **$0.05 per machine-day**. Their miner is a vLLM plugin built on CUTLASS kernels, so a
+browser version is a from-scratch reimplementation that must match their hashing bit-exactly. Worth starting only
+at several hundred concurrent miners.
+
+**Everything else was measured and rejected:** Monero (~$0.004 per machine-day: RandomX needs a runtime JIT and a
+2 GB dataset, so a browser pays 30x over native), Bitcoin (~$0, ASICs), Ergo, Chia, Gridcoin and the folding coins
+(either untradeable or impossible in a browser). The honest summary: donated browser compute is worth cents a day per machine whatever it mines, and far
+more than that when a buyer pays for it.
+
+**Disclosure:** the Mine page and TOKEN.md should say what mining earns and where it goes before this is switched
+on for anyone but us. In-browser mining can get a site flagged as cryptojacking, which is why it stays opt-in.
 
 ## Browser extension
 

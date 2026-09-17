@@ -1,0 +1,35 @@
+# The project's mining bridges on fly.io: one small always-on machine that turns pool work into house-order jobs.
+# It holds no data; the mining server (flyai-mine) keeps everything. Deploy with mine/bridge/deploy.sh.
+app = "flyai-bridge"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  FLYAI_SERVER = "https://flyai-mine.fly.dev"
+  YESPOWER_COIN = "yescrypt"
+  YESPOWER_PER_JOB = "20000"   # about a minute and a half of one browser thread
+  YESPOWER_AHEAD = "16"
+  KASPA_GROUPS = "1024"        # 4.2 M nonces a job: a few seconds of a desktop GPU
+  KASPA_PER_THREAD = "64"
+  KASPA_AHEAD = "8"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "60s"
+    timeout = "5s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "1gb"

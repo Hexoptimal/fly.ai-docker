@@ -13,6 +13,9 @@ read outputs where it needs one.
 | [`pi-rust`](pi-rust) | Monte Carlo pi, integers only | `count: N`: each job is a seed | 8 bytes: hits |
 | [`hash-search`](hash-search) | proof-of-work nonce search, double SHA-256 over a block header (Bitcoin's scheme) | one input per nonce range | the nonces that meet the target |
 | [`btc-pool`](btc-pool) | a bridge from a Bitcoin mining pool (Stratum) to a keep-open hash-search order: jobs out, shares back to the pool | added by the bridge | shares submitted to your pool account |
+| [`yespower`](yespower) | proof-of-work nonce search for the yespower family, ported to pure Rust from the reference implementation | one input per nonce range | the nonces that meet the target |
+| [`yespower-pool`](yespower-pool) | the same bridge for a yespower pool, but as a house order: the project's own mining, and miners earn points | added by the bridge | shares submitted to the project's address |
+| [`kaspa`](kaspa) | kHeavyHash as a WebGPU shader, plus a pool bridge: GPU mining for the project as a house order | added by the bridge | the nonces that met the pool's target |
 | [`mandelbrot-tiles`](mandelbrot-tiles) | a 2048 × 2048 image rendered as 64 tiles, then stitched | `count: 64`: each job is a tile | 256 × 256 iteration counts |
 | [`tsp-search`](tsp-search) | travelling salesman by random restarts: keep the best tour | `count: N`: each job is a restart | tour length + city order |
 | [`wordcount-wasi`](wordcount-wasi) | an ordinary program: stdin in, stdout out (WASI) | one input per text file | lines of "count word" |
