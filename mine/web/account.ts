@@ -1,0 +1,290 @@
+/**
+ * Signing in once for every compute page. A wallet connects (a browser wallet, or a phone's wallet app through
+ * WalletConnect) and signs one Sign-In with Ethereum message; the server hands back a session that this browser
+ * keeps for 30 days. With it, pages link miners, pay from the balance and stop orders without asking for another
+ * signature. Transactions still go through the wallet.
+ *
+ * wagmi (wallet/kit.js, built from mine/wallet/) is only loaded when a wallet is actually needed, so a page that
+ * just shows the signed-in address stays light.
+ */
+import { API, WALLETCONNECT_PROJECT_ID } from "./config.ts";
+import { api, ApiError } from "./mine-core.ts";
+import { shortAddress } from "./wallet.ts";
+import type * as KitModule from "./wallet/kit.js";
+
+type Kit = typeof KitModule;
+interface Session { token: string; wallet: string; expires_at: number }
+
+const KEY = "flyai.compute.session";
+const listeners = new Set<(wallet: string | null) => void>();
+
+function load(): Session | null {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY) ?? "null") as Session | null;
+    return s && s.expires_at > Date.now() ? s : null;
+  } catch {
+    return null;
+  }
+}
+let session = load();
+
+function save(s: Session | null): void {
+  session = s;
+  try { s ? localStorage.setItem(KEY, JSON.stringify(s)) : localStorage.removeItem(KEY); } catch { /* private window: this page only */ }
+  for (const fn of listeners) fn(signedIn());
+}
+
+/** The signed-in wallet (checksummed), or null. */
+export const signedIn = (): string | null => session?.wallet ?? null;
+
+/** Headers that prove the signed-in wallet to the API. */
+export const sessionHeaders = (): Record<string, string> => (session ? { "x-flyai-session": session.token } : {});
+
+/** Calls fn now and whenever the signed-in wallet changes, in this tab or another. */
+export function onAccount(fn: (wallet: string | null) => void): void {
+  listeners.add(fn);
+  fn(signedIn());
+}
+
+window.addEventListener("storage", (e) => {
+  if (e.key !== KEY) return;
+  session = load();
+  for (const fn of listeners) fn(signedIn());
+});
+
+/** A wallet error in words; a refusal in the wallet reads as a cancel. */
+export function errorText(err: unknown): string {
+  const e = err as { code?: number; name?: string; shortMessage?: string; message?: string; cause?: { code?: number } };
+  if (e?.code === 4001 || e?.cause?.code === 4001 || /UserRejected/.test(e?.name ?? "") || /rejected|denied|cancel/i.test(e?.shortMessage ?? "")) return "cancelled in the wallet";
+  return e?.shortMessage ?? e?.message ?? String(err);
+}
+
+let kitLoad: Promise<Kit> | null = null;
+function kit(): Promise<Kit> {
+  kitLoad ??= (async () => {
+    const [k, chain] = await Promise.all([import("./wallet/kit.js") as Promise<Kit>, api(API, "/api/orders/config", null)]);
+    await k.setup({ chain, walletConnectProjectId: WALLETCONNECT_PROJECT_ID || undefined, url: location.origin, icon: `${location.origin}/assets/logo.webp` });
+    return k;
+  })();
+  kitLoad.catch(() => { kitLoad = null; });
+  return kitLoad;
+}
+
+const isPhone = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+
+/** Wallet apps with their own browser, where this page finds the wallet the way a desktop extension would. */
+const walletApps = () => {
+  const here = location.href;
+  return [
+    { name: "MetaMask", href: `https://metamask.app.link/dapp/${here.replace(/^https?:\/\//, "")}` },
+    { name: "Trust Wallet", href: `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(here)}` },
+    { name: "Coinbase Wallet", href: `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(here)}` },
+  ];
+};
+
+// ---- the picker ----------------------------------------------------------------------------------------------
+let sheet: { root: HTMLElement; list: HTMLElement; status: HTMLElement; title: HTMLElement; text: HTMLElement } | null = null;
+let settle: ((uid: string | null) => void) | null = null;
+
+function picker() {
+  if (sheet) return sheet;
+  const root = document.createElement("div");
+  root.className = "acct-sheet";
+  root.hidden = true;
+  root.innerHTML = `<div class="acct-panel card pad" role="dialog" aria-modal="true" aria-labelledby="acct-title">
+    <div class="acct-head"><h3 id="acct-title"></h3><button type="button" class="btn sm acct-close" aria-label="Close">✕</button></div>
+    <p class="caption acct-text"></p>
+    <div class="acct-list"></div>
+    <p class="codeline acct-status"></p>
+  </div>`;
+  document.body.append(root);
+  const close = () => { root.hidden = true; settle?.(null); settle = null; };
+  root.querySelector(".acct-close")!.addEventListener("click", close);
+  root.addEventListener("click", (e) => { if (e.target === root) close(); });
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape" && !root.hidden) close(); });
+  sheet = {
+    root, list: root.querySelector(".acct-list")!, status: root.querySelector(".acct-status")!,
+    title: root.querySelector("#acct-title")!, text: root.querySelector(".acct-text")!,
+  };
+  return sheet;
+}
+
+const say = (text: string, bad = false) => {
+  const s = picker();
+  s.status.textContent = text;
+  if (bad) s.status.dataset.standing = "zeroed";
+  else delete s.status.dataset.standing;
+};
+
+/** Shows the wallets and resolves with the chosen one's uid, or null when closed. */
+async function chooseWallet(title: string, text: string, problem = ""): Promise<string | null> {
+  const s = picker();
+  s.title.textContent = title;
+  s.text.textContent = text;
+  say(problem, !!problem);
+  s.list.replaceChildren(Object.assign(document.createElement("p"), { className: "caption", textContent: "looking for wallets…" }));
+  s.root.hidden = false;
+  settle?.(null);
+  const chosen = new Promise<string | null>((resolve) => { settle = resolve; });
+  try {
+    const k = await kit();
+    await new Promise((r) => setTimeout(r, 150)); // wallets announce themselves (EIP-6963) just after load
+    const options = k.wallets();
+    const rows: HTMLElement[] = options.map((w) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "acct-wallet";
+      if (w.icon) b.append(Object.assign(document.createElement("img"), { src: w.icon, alt: "", width: 28, height: 28 }));
+      else b.append(Object.assign(document.createElement("span"), { className: "acct-icon", textContent: w.kind === "walletconnect" ? "⌁" : "◆" }));
+      const label = document.createElement("span");
+      label.innerHTML = "<b></b><small></small>";
+      label.querySelector("b")!.textContent = w.name;
+      label.querySelector("small")!.textContent = w.kind === "walletconnect" ? (isPhone() ? "open a wallet app on this phone" : "scan with a wallet app on your phone") : "in this browser";
+      b.append(label);
+      b.addEventListener("click", () => { settle?.(w.uid); settle = null; });
+      return b;
+    });
+    const browserWallets = options.some((w) => w.kind === "browser");
+    if (isPhone() && !browserWallets) {
+      const head = Object.assign(document.createElement("p"), { className: "caption", textContent: options.length ? "Or open this page inside your wallet app:" : "Open this page inside your wallet app:" });
+      const apps = document.createElement("div");
+      apps.className = "acct-apps";
+      apps.append(...walletApps().map((a) => Object.assign(document.createElement("a"), { className: "btn sm", href: a.href, textContent: a.name })));
+      rows.push(head, apps);
+    }
+    if (!options.length && !isPhone()) {
+      rows.push(Object.assign(document.createElement("p"), { className: "caption", textContent: "No wallet found in this browser. Install MetaMask or Rabby, then reload this page." }));
+    }
+    s.list.replaceChildren(...rows);
+  } catch (err) {
+    s.list.replaceChildren();
+    say(`couldn't load wallets: ${errorText(err)}`, true);
+  }
+  return chosen;
+}
+
+async function connectWith(k: Kit, uid: string) {
+  const s = picker();
+  const wc = k.wallets().find((w) => w.uid === uid)?.kind === "walletconnect";
+  // WalletConnect draws its own modal; ours would sit on top of it
+  if (wc) s.root.hidden = true;
+  say(wc ? "" : "approve the connection in your wallet");
+  try {
+    return await k.connect(uid);
+  } finally {
+    s.root.hidden = false;
+  }
+}
+
+/**
+ * Connect a wallet and sign in with it. Resolves with the wallet, or null if the picker was closed. The picker stays
+ * open showing the error when something fails, so the person can pick again.
+ */
+export async function signIn(): Promise<string | null> {
+  let text = "Connect a wallet and sign one message. It's free and sends no transaction, and it keeps you signed in on every compute page for 30 days.";
+  let problem = "";
+  for (;;) {
+    const uid = await chooseWallet("Sign in", text, problem);
+    if (!uid) return null;
+    try {
+      const k = await kit();
+      const c = await connectWith(k, uid);
+      say("sign the message in your wallet (free, no transaction)");
+      const { nonce, message } = await api(API, "/api/session/nonce", null, { address: c.address });
+      const signature = await k.sign(message);
+      say("checking the signature");
+      const s = await api(API, "/api/session", null, { nonce, signature }) as { session: string; wallet: string; expires_at: number };
+      save({ token: s.session, wallet: s.wallet, expires_at: s.expires_at });
+      picker().root.hidden = true;
+      return s.wallet;
+    } catch (err) {
+      text = "Pick a wallet to try again.";
+      problem = errorText(err);
+    }
+  }
+}
+
+export async function signOut(): Promise<void> {
+  const headers = sessionHeaders();
+  save(null);
+  await api(API, "/api/session/end", null, {}, headers).catch(() => {});
+  if (kitLoad) await (await kitLoad).disconnect().catch(() => {});
+}
+
+/** The signed-in wallet, signing in first if needed; null if the person closed the picker. */
+export async function requireWallet(): Promise<string | null> {
+  return signedIn() ?? signIn();
+}
+
+/** A session the server no longer knows (expired, or signed out elsewhere) is dropped here. */
+export function sessionLost(err: unknown): boolean {
+  if (err instanceof ApiError && err.status === 401 && session) {
+    save(null);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Sends one transaction from the signed-in wallet, connecting it first if this page hasn't yet. Resolves with the
+ * hash once the wallet has sent it; `mined` waits for the receipt. `step` narrates.
+ */
+export async function transact(to: string, data: string, step: (text: string) => void = () => {}): Promise<string> {
+  const wallet = await requireWallet();
+  if (!wallet) throw new Error("sign in first");
+  const k = await kit();
+  let c = k.connection();
+  if (!c) {
+    const uid = await chooseWallet("Connect your wallet", `You're signed in as ${shortAddress(wallet)}. Connect that wallet to send the transaction.`);
+    if (!uid) throw new Error("cancelled");
+    try {
+      c = await connectWith(k, uid);
+    } finally {
+      picker().root.hidden = true;
+    }
+  }
+  if (c.address.toLowerCase() !== wallet.toLowerCase()) {
+    throw new Error(`your wallet is on ${shortAddress(c.address)} but you're signed in as ${shortAddress(wallet)}: switch accounts in the wallet, or sign out and in again`);
+  }
+  step("confirm in your wallet…");
+  return k.send(to, data);
+}
+
+export async function mined(hash: string): Promise<void> {
+  await (await kit()).receipt(hash);
+}
+
+// ---- the account button on every page ------------------------------------------------------------------------
+/** Puts the sign-in button at the end of the page's tabs. */
+export function mountAccount(): void {
+  const tabs = document.querySelector(".tabs");
+  if (!tabs) return;
+  const box = document.createElement("span");
+  box.className = "acct";
+  tabs.append(box);
+  const validate = async () => {
+    if (!session) return;
+    try {
+      await api(API, "/api/session", null, undefined, sessionHeaders());
+    } catch (err) {
+      sessionLost(err);
+    }
+  };
+  onAccount((wallet) => {
+    box.replaceChildren();
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = wallet ? "btn sm" : "btn red sm";
+    if (wallet) {
+      const who = Object.assign(document.createElement("span"), { className: "acct-who mono", textContent: shortAddress(wallet), title: wallet });
+      button.textContent = "Sign out";
+      button.addEventListener("click", () => void signOut());
+      box.append(who, button);
+    } else {
+      button.textContent = "Sign in";
+      button.addEventListener("click", () => void signIn());
+      box.append(button);
+    }
+  });
+  void validate();
+}

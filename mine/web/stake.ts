@@ -1,14 +1,12 @@
 /**
- * /stake: stake and unstake $FLYAI in FlyStaking through the browser wallet. Reads go through the public
+ * /stake: stake and unstake $FLYAI in FlyStaking from the signed-in wallet (account.ts). Reads go through the public
  * RPC; writes are approve / stake / requestUnstake / cancelUnstake / withdraw, with selectors from the server.
  */
 import { API } from "./config.ts";
+import { errorText, mined, mountAccount, onAccount, requireWallet, transact } from "./account.ts";
 import { api } from "./mine-core.ts";
 import { shortAddress } from "./wallet.ts";
 
-interface Eip1193 {
-  request(args: { method: string; params?: unknown[] }): Promise<any>;
-}
 interface Config {
   contract: string | null; token: string; rpc: string; explorer: string; chain_id: number; chain_name: string; token_symbol: string;
   tiers: { name: string; min: string; multiplier: number }[];
@@ -16,7 +14,6 @@ interface Config {
 }
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
-const eth = () => (window as unknown as { ethereum?: Eip1193 }).ethereum;
 const WEI = 10n ** 18n;
 let config: Config;
 let account: string | null = null;
@@ -74,35 +71,20 @@ async function refresh(): Promise<void> {
   }
 }
 
-/** Switch the wallet to the staking chain, send one transaction, wait for its receipt. */
+/** One transaction from the signed-in wallet (the wallet is moved to the staking chain first), then its receipt. */
 async function send(to: string, input: string, label: string): Promise<void> {
-  const wallet = eth()!;
-  const chainId = `0x${config.chain_id.toString(16)}`;
-  try {
-    await wallet.request({ method: "wallet_switchEthereumChain", params: [{ chainId }] });
-  } catch (err) {
-    if ((err as { code?: number }).code !== 4902) throw err;
-    await wallet.request({
-      method: "wallet_addEthereumChain",
-      params: [{ chainId, chainName: config.chain_name, rpcUrls: [config.rpc], blockExplorerUrls: [config.explorer], nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 } }],
-    });
-  }
-  $("tx").textContent = `${label}: confirm in your wallet…`;
-  const hash: string = await wallet.request({ method: "eth_sendTransaction", params: [{ from: account, to, data: input }] });
+  delete $("tx").dataset.standing;
+  const hash = await transact(to, input, (text) => { $("tx").textContent = `${label}: ${text}`; });
   $("tx").textContent = `${label}: waiting for the chain…`;
-  for (let i = 0; i < 120; i++) {
-    const receipt = await rpc("eth_getTransactionReceipt", [hash]);
-    if (receipt) {
-      if (receipt.status !== "0x1") throw new Error(`${label} failed on-chain`);
-      $("tx").innerHTML = `${label} done ✓ <a target="_blank" rel="noopener"></a>`;
-      const link = $("tx").querySelector("a")!;
-      link.href = `${config.explorer}/tx/${hash}`;
-      link.textContent = "view transaction";
-      return;
-    }
-    await new Promise((r) => setTimeout(r, 2000));
+  try {
+    await mined(hash);
+  } catch (err) {
+    throw new Error(`${label}: ${errorText(err)}`);
   }
-  throw new Error(`no receipt for ${label} after 4 minutes; check your wallet's activity`);
+  $("tx").innerHTML = `${label} done ✓ <a target="_blank" rel="noopener"></a>`;
+  const link = $("tx").querySelector("a")!;
+  link.href = `${config.explorer}/tx/${hash}`;
+  link.textContent = "view transaction";
 }
 
 /** Runs one user action with the buttons disabled and any error shown. */
@@ -111,29 +93,16 @@ async function act(fn: () => Promise<void>): Promise<void> {
   const was = buttons.map((b) => b.disabled);
   buttons.forEach((b) => { b.disabled = true; });
   try {
-    if (!account) await connect(); // the buttons show before a wallet is connected
+    account = await requireWallet(); // the buttons show before anyone signs in
     if (!account) return;
     await fn();
   } catch (err) {
     $("tx").dataset.standing = "zeroed";
-    $("tx").textContent = (err as { code?: number }).code === 4001 ? "cancelled in the wallet" : err instanceof Error ? err.message : String(err);
+    $("tx").textContent = errorText(err);
   } finally {
     buttons.forEach((b, i) => { b.disabled = was[i]; });
-    await refresh();
+    await refresh().catch(() => {});
   }
-}
-
-async function connect(): Promise<void> {
-  const wallet = eth();
-  if (!wallet) {
-    $("note").textContent = "No browser wallet found: install MetaMask, Rabby or Coinbase Wallet, or open this page in your wallet app's browser.";
-    return;
-  }
-  [account] = await wallet.request({ method: "eth_requestAccounts" });
-  $("account").textContent = shortAddress(account!);
-  $("account").title = account!;
-  $("connect").textContent = "Refresh";
-  await refresh();
 }
 
 async function boot(): Promise<void> {
@@ -154,7 +123,17 @@ async function boot(): Promise<void> {
   }
   if (!config.contract) $("note").textContent = "Staking isn't live yet. Until it is, every miner's points count 1×.";
 
-  $("connect").addEventListener("click", () => void (account ? refresh() : connect()));
+  mountAccount();
+  onAccount((wallet) => {
+    account = wallet;
+    $("account").textContent = wallet ? shortAddress(wallet) : "not signed in";
+    $("account").title = wallet ?? "";
+    $("connect").textContent = wallet ? "Refresh" : "Sign in";
+    for (const id of ["staked", "tier", "balance"]) $(id).textContent = "—";
+    $("pending").hidden = true;
+    void refresh().catch((err) => { $("note").textContent = errorText(err); });
+  });
+  $("connect").addEventListener("click", () => void (account ? refresh() : requireWallet()));
   $("stake").addEventListener("click", () => void act(async () => {
     const amount = toWei($<HTMLInputElement>("amount").value);
     const allowance = BigInt(await read(config.token, data(config.selectors.allowance, account!, config.contract!)));

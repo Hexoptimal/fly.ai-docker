@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "cd world && npm install && cd ../flybook/web && npm install",
+  "installCommand": "cd world && npm install && cd ../flybook/web && npm install && cd ../../mine/wallet && npm ci",
   "buildCommand": "bash scripts/vercel-build.sh",
   "outputDirectory": ".vercel-out",
   "cleanUrls": true,

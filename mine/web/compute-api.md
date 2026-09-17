@@ -154,7 +154,8 @@ Payment errors:
 
 ## Paying from your balance, or stopping an order
 
-Both take a free signature from the order's wallet over a message the server writes:
+Both take a free signature from the order's wallet over a message the server writes. (Signed in on the
+website, the pages send the wallet's session header instead, so there's nothing to sign.)
 
 ```ts
 const { nonce, message } = await post(`/api/orders/${id}/intent`, { action: "fund" }); // or "stop"

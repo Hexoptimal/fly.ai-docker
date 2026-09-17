@@ -121,6 +121,44 @@ try {
   check("link code can't be used twice", (await call("/api/auth/nonce", null, { address: carol.address, code: linkRes.json.code })).status === 410);
   check("the website's miner is untouched", (await call("/api/me", token)).json.wallet === bob.address);
   check("/compute/connect page served", (await fetch(`${BASE}/compute/connect`)).status === 200 && (await fetch(`${BASE}/compute/mine/web/connect.js`)).status === 200);
+
+  // ---- one sign-in for every page: a session, then linking without another signature
+  const withSession = async (path: string, session: string | null, miner: string | null, body?: unknown) => {
+    const res = await fetch(BASE + path, {
+      method: body === undefined ? "GET" : "POST",
+      headers: { "content-type": "application/json", ...(miner ? { authorization: `Bearer ${miner}` } : {}), ...(session ? { "x-flyai-session": session } : {}) },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    return { status: res.status, json: await res.json().catch(() => null) };
+  };
+  const dave = wallet();
+  const sn = await call("/api/session/nonce", null, { address: dave.address });
+  check("a session sign-in needs no miner", sn.status === 200 && sn.json.message.includes("Sign in to fly.ai compute for 30 days") && sn.json.message.includes("Chain ID: 4663"));
+  check("a session needs the address's own signature", (await call("/api/session", null, { nonce: sn.json.nonce, signature: carol.sign(sn.json.message) })).status === 401);
+  const sn2 = await call("/api/session/nonce", null, { address: dave.address });
+  const started = await call("/api/session", null, { nonce: sn2.json.nonce, signature: dave.sign(sn2.json.message) });
+  const session: string = started.json?.session;
+  check("signing in starts a 30-day session", started.status === 200 && /^[0-9a-f]{64}$/.test(session) && started.json.wallet === dave.address
+    && Math.abs(started.json.expires_at - Date.now() - 30 * 86_400_000) < 60_000, JSON.stringify(started.json));
+  check("the sign-in nonce is single use", (await call("/api/session", null, { nonce: sn2.json.nonce, signature: dave.sign(sn2.json.message) })).status === 410);
+  check("the session names its wallet", (await withSession("/api/session", session, null)).json?.wallet === dave.address);
+  check("no session, no wallet", (await withSession("/api/session", null, null)).status === 401 && (await withSession("/api/session", "ab".repeat(32), null)).status === 401);
+
+  const { json: { token: siteToken } } = await call("/api/register", null, { label: "session site" });
+  check("linking needs a session", (await withSession("/api/session/link", null, siteToken, {})).status === 401);
+  const linked = await withSession("/api/session/link", session, siteToken, {});
+  check("the session links this site's miner, no signature", linked.status === 200 && linked.json.wallet === dave.address && (await call("/api/me", siteToken)).json.wallet === dave.address);
+  check("linking needs a miner or a code", (await withSession("/api/session/link", session, null, {})).status === 401);
+  const { json: { token: ext2 } } = await call("/api/register", null, { label: "session extension" });
+  const code2 = (await call("/api/link", ext2, {})).json.code;
+  check("the session links the extension's miner by its code", (await withSession("/api/session/link", session, null, { code: code2 })).json?.wallet === dave.address
+    && (await call("/api/me", ext2)).json.wallet === dave.address);
+  check("that code is spent", (await withSession("/api/session/link", session, null, { code: code2 })).status === 410);
+  check("CORS lets pages send the session header", ((await fetch(`${BASE}/api/session`, { method: "OPTIONS" })).headers.get("access-control-allow-headers") ?? "").includes("x-flyai-session"));
+
+  const out = await withSession("/api/session/end", session, null, {});
+  check("signing out ends the session", out.status === 200 && (await withSession("/api/session", session, null)).status === 401
+    && (await withSession("/api/session/link", session, siteToken, {})).status === 401);
 } catch (err) {
   console.log("test crashed:", err);
   failed++;

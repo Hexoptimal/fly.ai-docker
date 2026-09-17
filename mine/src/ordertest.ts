@@ -130,6 +130,15 @@ try {
     const { json } = await api(`/api/orders/${id}/intent`, null, { action });
     return api(`/api/orders/${id}/${action}`, null, { nonce: json.nonce, signature: signer.sign(json.message) });
   };
+  /** One sign-in (the website's session) instead of a signature per action. */
+  const signIn = async (signer: typeof alice) => {
+    const { json } = await api("/api/session/nonce", null, { address: signer.address });
+    return (await api("/api/session", null, { nonce: json.nonce, signature: signer.sign(json.message) })).json.session as string;
+  };
+  const asSession = async (id: string, action: "fund" | "stop", session: string) => {
+    const res = await fetch(`${BASE}/api/orders/${id}/${action}`, { method: "POST", headers: { "content-type": "application/json", "x-flyai-session": session }, body: "{}" });
+    return { status: res.status, json: await res.json().catch(() => null) };
+  };
 
   // ---- config, specs, terms
   const cfg = (await api("/api/orders/config", null)).json;
@@ -296,14 +305,17 @@ try {
   const far = { ...spec, channels: ["LPLC1"], seeds: [900010, 900011] };
   const o5 = await create(alice.address, { spec: far, bid: "10", budget: "100", max_parallel: 1 });
   check("O5 live, one out", (await payFor(o5)).json?.out === 1);
-  const stopped = await signed(o5.id, "stop", alice);
+  const aliceSession = await signIn(alice);
+  check("bob's session can't stop alice's order", (await asSession(o5.id, "stop", await signIn(bob))).status === 401);
+  check("no session and no signature can't stop it", (await asSession(o5.id, "stop", "00".repeat(32))).status === 410);
+  const stopped = await asSession(o5.id, "stop", aliceSession);
   check("stopping it returns the whole budget and drops its job", stopped.json?.status === "ended" && stopped.json.end_reason === "stopped" && stopped.json.dropped === 1 && near(stopped.json.returned, 100), JSON.stringify(stopped.json));
   const dropDb = new DatabaseSync(DB);
   const droppedPriority = (dropDb.prepare("select max(t.priority) as p from order_tasks ot join tasks t on t.id = ot.task where ot.order_id = ?").get(o5.id) as { p: number }).p;
   dropDb.close();
   check("a dropped job is no longer paid work", droppedPriority === 0);
   const o6 = await create(alice.address, { spec: far, bid: "10", budget: "50", hours: 0.25 });
-  check("O6 funded from alice's balance", (await signed(o6.id, "fund", alice)).json?.status === "live");
+  check("O6 funded from alice's balance by her session", (await asSession(o6.id, "fund", aliceSession)).json?.status === "live");
   const db = new DatabaseSync(DB);
   db.exec("pragma busy_timeout = 5000");
   db.prepare("update orders set ends_at = 1 where id = ?").run(o6.id);

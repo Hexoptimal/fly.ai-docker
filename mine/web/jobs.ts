@@ -2,17 +2,14 @@
  * /jobs: buy compute. A buyer picks an experiment (a preset sweep), how many repeats and how fast (the price per run),
  * and gets one sentence with the size and the most it can cost. Everything the API takes is under Advanced settings,
  * and the presets just fill those fields in. The order is funded with one $FLYAI transfer of its exact budget (the
- * server reads it from the chain) or from the wallet's balance with a signature. Orders, progress, results and a Stop
- * button are listed per wallet. A payment sent before a reload is remembered in this browser, so the order still
- * gets funded.
+ * server reads it from the chain) or from the wallet's balance. Orders, progress, results and a Stop button are listed
+ * for the signed-in wallet (account.ts), which spends the balance and stops orders without another signature. A
+ * payment sent before a reload is remembered in this browser, so the order still gets funded.
  */
 import { API } from "./config.ts";
+import { errorText, mined, mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, transact } from "./account.ts";
 import { api } from "./mine-core.ts";
 import { shortAddress } from "./wallet.ts";
-
-interface Eip1193 {
-  request(args: { method: string; params?: unknown[] }): Promise<any>;
-}
 interface Config {
   open: boolean; pay_to: string | null; token: string; transfer_selector: string;
   min_bid: string; cached_price: string; pool_share: number; max_jobs: number; max_parallel: number; max_hours: number; redundancy: number;
@@ -54,7 +51,6 @@ const SPEEDS = [{ x: 1, name: "Normal" }, { x: 2, name: "Faster" }, { x: 5, name
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const input = (id: string) => $<HTMLInputElement>(id);
-const eth = () => (window as unknown as { ethereum?: Eip1193 }).ethereum;
 const PENDING = "flyai-compute-pending-payment";
 let config: Config;
 let account: string | null = null;
@@ -66,7 +62,6 @@ let fullCost = 0;
 const fmt = (tokens: string | number) => `${Number(tokens).toLocaleString("en-US", { maximumFractionDigits: 4 })} $${config.token_symbol}`;
 const count = (n: number) => n.toLocaleString("en-US");
 const numbers = (id: string) => input(id).value.split(",").map((x) => x.trim()).filter(Boolean).map(Number);
-const errorText = (err: unknown) => ((err as { code?: number }).code === 4001 ? "cancelled in the wallet" : err instanceof Error ? err.message : String(err));
 const store = {
   get: (): { order: string; tx: string } | null => {
     try { return JSON.parse(localStorage.getItem(PENDING) ?? "null"); } catch { return null; }
@@ -282,34 +277,7 @@ async function rpc(method: string, params: unknown[]): Promise<any> {
   return body.result;
 }
 
-async function connect(): Promise<void> {
-  const wallet = eth();
-  if (!wallet) {
-    $("note").textContent = "No browser wallet found: install MetaMask, Rabby or Coinbase Wallet, or open this page in your wallet app's browser.";
-    return;
-  }
-  [account] = await wallet.request({ method: "eth_requestAccounts" });
-  $("account").textContent = shortAddress(account!);
-  $("account").title = account!;
-  $("connect").textContent = "Refresh";
-  await listOrders();
-}
-
-async function switchChain(wallet: Eip1193): Promise<void> {
-  const chainId = `0x${config.chain_id.toString(16)}`;
-  try {
-    await wallet.request({ method: "wallet_switchEthereumChain", params: [{ chainId }] });
-  } catch (err) {
-    if ((err as { code?: number }).code !== 4902) throw err;
-    await wallet.request({
-      method: "wallet_addEthereumChain",
-      params: [{ chainId, chainName: config.chain_name, rpcUrls: [config.rpc], blockExplorerUrls: [config.explorer], nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 } }],
-    });
-  }
-}
-
 const word = (v: bigint | string) => (typeof v === "string" ? v.replace(/^0x/, "").toLowerCase().padStart(64, "0") : v.toString(16).padStart(64, "0"));
-const hexUtf8 = (text: string) => `0x${Array.from(new TextEncoder().encode(text), (b) => b.toString(16).padStart(2, "0")).join("")}`;
 
 /** Hand the transaction to the server until the chain it reads has it too. */
 async function confirmPayment(order: string, tx: string): Promise<Order> {
@@ -326,12 +294,14 @@ async function confirmPayment(order: string, tx: string): Promise<Order> {
   }
 }
 
-/** A free signature from the order's wallet, for spending the balance or stopping the order. */
+/** Spending the balance or stopping an order, as the signed-in wallet. */
 async function signed(order: string, action: "fund" | "stop"): Promise<Order> {
-  const { nonce, message } = await api(API, `/api/orders/${order}/intent`, null, { action });
-  $("tx").textContent = "Sign in your wallet (free, no transaction)…";
-  const signature = await eth()!.request({ method: "personal_sign", params: [hexUtf8(message), account] });
-  return api(API, `/api/orders/${order}/${action}`, null, { nonce, signature });
+  try {
+    return await api(API, `/api/orders/${order}/${action}`, null, {}, sessionHeaders());
+  } catch (err) {
+    if (sessionLost(err)) throw new Error("your sign-in expired: sign in again, then retry");
+    throw err;
+  }
 }
 
 const started = (o: Order) =>
@@ -342,7 +312,7 @@ async function order(fromBalance: boolean): Promise<void> {
   buttons.forEach((b) => { b.disabled = true; });
   $("tx").removeAttribute("data-standing");
   try {
-    if (!account) await connect();
+    account = await requireWallet();
     if (!account || !spec) return;
     const t = terms();
     const created: Order = await api(API, "/api/orders", null, {
@@ -364,15 +334,12 @@ async function order(fromBalance: boolean): Promise<void> {
       const amount = BigInt(created.budget_wei);
       const held = BigInt(await rpc("eth_call", [{ to: config.token, data: `0x70a08231${word(account)}` }, "latest"]));
       if (held < amount) throw new Error(`this wallet holds ${fmt(Number(held / 10n ** 14n) / 10_000)}; the order needs ${fmt(created.budget)}`);
-      const wallet = eth()!;
-      await switchChain(wallet);
-      $("tx").textContent = `Pay ${fmt(created.budget)}: confirm in your wallet…`;
-      const tx: string = await wallet.request({
-        method: "eth_sendTransaction",
-        params: [{ from: account, to: config.token, data: config.transfer_selector + word(config.pay_to!) + word(amount) }],
+      const tx = await transact(config.token, config.transfer_selector + word(config.pay_to!) + word(amount), (text) => {
+        $("tx").textContent = `Pay ${fmt(created.budget)}: ${text}`;
       });
       store.set({ order: created.id, tx });
       $("tx").textContent = "Payment sent, waiting for the chain…";
+      await mined(tx).catch(() => {}); // the server's own read of the chain decides
       result = await confirmPayment(created.id, tx);
     }
     $("tx").dataset.standing = "ok";
@@ -511,7 +478,20 @@ async function boot(): Promise<void> {
     else if (["amounts", "gains", "tonics", "warm"].includes(id) || name === "channel" || name === "side") press("presets", "custom");
     changed();
   });
-  $("connect").addEventListener("click", () => void (account ? listOrders() : connect()).catch((err) => { $("note").textContent = errorText(err); }));
+  mountAccount();
+  onAccount((wallet) => {
+    account = wallet;
+    $("account").textContent = wallet ? shortAddress(wallet) : "not signed in";
+    $("account").title = wallet ?? "";
+    $("connect").textContent = wallet ? "Refresh" : "Sign in";
+    if (wallet) void listOrders().catch((err) => { $("note").textContent = errorText(err); });
+    else {
+      balance = 0;
+      $("balance-row").hidden = true;
+      $("orders").innerHTML = `<p class="caption">Sign in to see your orders.</p>`;
+    }
+  });
+  $("connect").addEventListener("click", () => void (account ? listOrders() : requireWallet()).catch((err) => { $("note").textContent = errorText(err); }));
   $("buy").addEventListener("click", () => void order(false));
   $("key-copy").addEventListener("click", () => void navigator.clipboard.writeText($("key-value").textContent ?? "").then(() => { $("key-copy").textContent = "Copied"; }));
 

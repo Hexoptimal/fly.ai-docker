@@ -123,7 +123,7 @@ function round(r: number): TaskParams[] {
 }
 
 // ---- storage -----------------------------------------------------------------------------------------
-const SCHEMA = 9; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders; created below for new and old databases alike
+const SCHEMA = 10; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions; created below for new and old databases alike
 mkdirSync(dirname(DB_PATH), { recursive: true });
 const db = new DatabaseSync(DB_PATH);
 const version = (db.prepare("pragma user_version").get() as { user_version: number }).user_version;
@@ -218,6 +218,13 @@ db.exec(`
   create index if not exists assignments_by_task on assignments (task, status);
   create index if not exists assignments_by_day on assignments (day, miner);
   create index if not exists assignments_issued on assignments (expires_at) where status = 'issued';
+  -- a wallet signed in once on the site: links miners, spends its balance and stops its orders without signing again
+  create table if not exists sessions (
+    token_hash text primary key,
+    wallet text not null,
+    created_at integer not null,
+    expires_at integer not null
+  );
   -- a closed month's payout: the pool the operator chose, split by points, committed to by a Merkle root
   create table if not exists snapshots (
     month text primary key,           -- YYYY-MM
@@ -373,11 +380,32 @@ function topUp(): void {
 
 /** Jobs not returned in time go back out. */
 function expire(): void {
-  const gone = db.prepare("update assignments set status = 'expired' where status = 'issued' and expires_at < ? returning task")
-    .all(Date.now()) as { task: number }[];
-  const reopen = db.prepare(`update tasks set state = 'open' where id = ? and state = 'out'
+  reopen(db.prepare("update assignments set status = 'expired' where status = 'issued' and expires_at < ? returning task")
+    .all(Date.now()) as { task: number }[]);
+}
+
+function reopen(gone: { task: number }[]): void {
+  const stmt = db.prepare(`update tasks set state = 'open' where id = ? and state = 'out'
     and not exists (select 1 from assignments where task = ? and status = 'issued')`);
-  for (const { task } of gone) reopen.run(task, task);
+  for (const { task } of gone) stmt.run(task, task);
+}
+
+/**
+ * Jobs a miner gives back unrun: all it holds (a page that reloaded lost track of them), or the listed ones (a
+ * program this machine can't run). Without this they'd fill its MAX_JOBS until they time out.
+ */
+function release(miner: string, jobs: unknown): { released: number } {
+  if (jobs !== undefined && (!Array.isArray(jobs) || jobs.length > MAX_JOBS || jobs.some((j) => typeof j !== "string"))) {
+    throw new HttpError(400, `jobs is a list of up to ${MAX_JOBS} job ids`);
+  }
+  return transaction(() => {
+    const gone = (jobs === undefined
+      ? db.prepare("update assignments set status = 'expired' where miner = ? and status = 'issued' returning task").all(miner)
+      : (jobs as string[]).flatMap((id) => db.prepare("update assignments set status = 'expired' where id = ? and miner = ? and status = 'issued' returning task").all(id, miner))
+    ) as { task: number }[];
+    reopen(gone);
+    return { released: gone.length };
+  });
 }
 
 // ---- verifiers ---------------------------------------------------------------------------------------
@@ -558,7 +586,7 @@ function cached<K, T>(ms: number, compute: (key: K) => T): (key: K) => T {
  * Any origin may call the API (the browser extension runs on its own). Safe because miners authenticate
  * with a bearer token, never cookies, so another site gains nothing a script calling the API directly wouldn't.
  */
-const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "authorization, content-type", "access-control-max-age": "86400" };
+const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "authorization, content-type, x-flyai-session", "access-control-max-age": "86400" };
 
 function send(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { "content-type": "application/json", "cache-control": "no-store", ...CORS });
@@ -691,6 +719,75 @@ function verifySignIn(body: any) {
   return { wallet: signer, miner: pending.miner.slice(0, 8) };
 }
 
+// ---- wallet sessions ---------------------------------------------------------------------------------
+// One Sign-In with Ethereum per browser instead of a signature on every page and action. The token travels as
+// x-flyai-session (Authorization stays the miner's) and proves the wallet for linking miners, spending its
+// balance and stopping its orders. The per-action signatures above still work for API clients and old pages.
+const SESSION_TTL_MS = Number(env("SESSION_DAYS", "30")) * 86_400_000;
+const sessionNonces = new Map<string, { address: string; message: string; expires: number }>();
+
+function sessionNonce(req: IncomingMessage, body: any) {
+  if (typeof body.address !== "string" || !ADDRESS.test(body.address)) throw new HttpError(400, "address must be 0x followed by 40 hex digits");
+  prune(sessionNonces);
+  const origin = originOf(req);
+  const nonce = randomBytes(12).toString("hex");
+  const now = new Date();
+  const message = siweMessage({
+    domain: origin.host,
+    address: body.address,
+    statement: `Sign in to fly.ai compute for ${Math.round(SESSION_TTL_MS / 86_400_000)} days. Free, and sends no transaction.`,
+    uri: origin.origin,
+    chainId: CHAIN_ID,
+    nonce,
+    issuedAt: now,
+    expirationTime: new Date(now.getTime() + SIGN_IN_TTL_MS),
+  });
+  sessionNonces.set(nonce, { address: checksumAddress(body.address), message, expires: now.getTime() + SIGN_IN_TTL_MS });
+  return { nonce, message };
+}
+
+function startSession(body: any) {
+  const pending = typeof body.nonce === "string" ? sessionNonces.get(body.nonce) : undefined;
+  if (!pending || pending.expires < Date.now()) throw new HttpError(410, "this sign-in has expired; try again");
+  let signer: string;
+  try {
+    signer = recoverAddress(pending.message, String(body.signature ?? ""));
+  } catch (err) {
+    throw new HttpError(400, `bad signature: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  if (signer !== pending.address) throw new HttpError(401, "the signature is from a different wallet");
+  sessionNonces.delete(body.nonce);
+  const token = randomBytes(32).toString("hex");
+  const now = Date.now();
+  db.prepare("delete from sessions where expires_at < ?").run(now);
+  db.prepare("insert into sessions (token_hash, wallet, created_at, expires_at) values (?, ?, ?, ?)").run(sha256(token), signer, now, now + SESSION_TTL_MS);
+  return { session: token, wallet: signer, expires_at: now + SESSION_TTL_MS };
+}
+
+/** The signed-in wallet, or null when the request carries no live session. */
+function sessionWallet(req: IncomingMessage): { wallet: string; expires_at: number } | null {
+  const token = /^[0-9a-f]{64}$/.exec(String(req.headers["x-flyai-session"] ?? ""))?.[0];
+  const row = token ? one<{ wallet: string; expires_at: number } | undefined>("select wallet, expires_at from sessions where token_hash = ?", sha256(token)) : undefined;
+  return row && row.expires_at >= Date.now() ? row : null;
+}
+
+function sessionOf(req: IncomingMessage): { wallet: string; expires_at: number } {
+  const s = sessionWallet(req);
+  if (!s) throw new HttpError(401, "not signed in, or the sign-in has expired");
+  return s;
+}
+
+/** POST /api/session/link: the signed-in wallet takes a miner (its bearer token, or the extension's link code). */
+function linkBySession(req: IncomingMessage, body: any) {
+  const { wallet } = sessionOf(req);
+  const { miner, code } = signInMiner(req, body.code);
+  if (code) linkCodes.delete(code);
+  db.prepare("update miners set wallet = ?, wallet_at = ? where id = ?").run(wallet, Date.now(), miner);
+  console.log(`miner ${miner.slice(0, 8)} linked to ${wallet} (session)`);
+  void sampleStake(wallet).catch(() => {});
+  return { wallet, miner: miner.slice(0, 8) };
+}
+
 const openFrom = db.prepare("select id, params, kind from tasks where state = 'open' and kind = 'connectome' and r >= ? and r < ? order by r limit 16");
 const canaryFrom = db.prepare("select id, params, kind from tasks where truth is not null and kind = 'connectome' and r >= ? and r < ? order by r limit 16");
 const alreadyHad = db.prepare("select task from assignments where miner = ? and task in (select value from json_each(?))");
@@ -757,10 +854,11 @@ function openJob(params: string, kind: string) {
 }
 
 function claim(miner: string, want: number, kinds: string[] = ["connectome"], openMax = 1) {
-  const live = count("select count(*) as n from assignments where miner = ? and status = 'issued'", miner);
+  const now = Date.now();
+  // overdue jobs count for nothing even before the sweep marks them
+  const live = count("select count(*) as n from assignments where miner = ? and status = 'issued' and expires_at >= ?", miner, now);
   const room = Math.min(want, MAX_JOBS - live);
   if (room <= 0) throw new HttpError(429, `already running ${MAX_JOBS} jobs`);
-  const now = Date.now();
   const issue = db.prepare("insert into assignments (id, miner, task, issued_at, expires_at, status) values (?, ?, ?, ?, ?, 'issued')");
   return transaction(() => {
     const jobs = [];
@@ -1553,18 +1651,23 @@ function signedAction(id: string, action: "fund" | "stop", body: any, req?: Inco
     });
     return order(id);
   }
-  const pending = typeof body.nonce === "string" ? intents.get(body.nonce) : undefined;
-  if (!pending || pending.expires < Date.now() || pending.order !== id || pending.action !== action) throw new HttpError(410, "this request has expired; try again");
   const o = orderRow(id);
   if (!o) throw new HttpError(404, "no such order");
-  let signer: string;
-  try {
-    signer = recoverAddress(pending.message, String(body.signature ?? ""));
-  } catch (err) {
-    throw new HttpError(400, `bad signature: ${err instanceof Error ? err.message : String(err)}`);
+  const signedIn = req && body.nonce === undefined ? sessionWallet(req) : null;
+  if (signedIn) {
+    if (signedIn.wallet !== o.wallet) throw new HttpError(401, "you're signed in with a different wallet from the order's");
+  } else {
+    const pending = typeof body.nonce === "string" ? intents.get(body.nonce) : undefined;
+    if (!pending || pending.expires < Date.now() || pending.order !== id || pending.action !== action) throw new HttpError(410, "this request has expired; try again");
+    let signer: string;
+    try {
+      signer = recoverAddress(pending.message, String(body.signature ?? ""));
+    } catch (err) {
+      throw new HttpError(400, `bad signature: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    if (signer !== o.wallet) throw new HttpError(401, "the signature isn't from the order's wallet");
+    intents.delete(body.nonce);
   }
-  if (signer !== o.wallet) throw new HttpError(401, "the signature isn't from the order's wallet");
-  intents.delete(body.nonce);
   transaction(() => {
     const now = orderRow(id)!;
     if (action === "stop") {
@@ -2157,10 +2260,13 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     if (p === "/compute/mine/web/compute.css") return serveFile(res, join(ROOT, "web", "compute.css"));
     if (p === "/compute/compute-api.md") return serveFile(res, join(ROOT, "web", "compute-api.md"));
     if ((m = /^\/compute\/mine\/web\/([\w-]+(?:\.worker)?)\.js$/.exec(p))) return serveFile(res, join(ROOT, "web", `${m[1]}.ts`));
+    // the wagmi bundle, when built locally (cd wallet && npm ci && npm run build); Vercel builds its own
+    if ((m = /^\/compute\/mine\/web\/wallet\/((?:chunks\/)?[\w.-]+\.js)$/.exec(p))) return serveFile(res, join(ROOT, "wallet", "dist", m[1]));
     if ((m = /^\/compute\/mine\/src\/(model|runner|fixed|wasmcheck|probe)\.js$/.exec(p))) return serveFile(res, join(ROOT, "src", `${m[1]}.ts`));
     if ((m = /^\/compute\/world\/src\/(connectome|rng|sim|brain|eyes|senses|wiring|genome|social|datalog)\.js$/.exec(p))) return serveFile(res, join(WORLD_SRC, `${m[1]}.ts`));
     if ((m = /^\/assets\/(site\.css|site\.js|logo\.webp)$/.exec(p))) return serveFile(res, join(DOCS_ASSETS, m[1]), 3600);
     if (p === "/api/stake-config") return send(res, 200, stakeConfig());
+    if (p === "/api/session") return send(res, 200, sessionOf(req));
     if (p === "/api/month") {
       const m = url.searchParams.get("month") ?? thisMonth();
       if (!/^\d{4}-\d{2}$/.test(m)) throw new HttpError(400, "month is YYYY-MM");
@@ -2230,6 +2336,14 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     }
     if (p === "/api/link") return send(res, 200, link(req, minerOf(req)));
     if (p === "/api/auth/nonce") return send(res, 200, nonceFor(req, await readJson(req)));
+    if (p === "/api/session/nonce") return send(res, 200, sessionNonce(req, await readJson(req)));
+    if (p === "/api/session") return send(res, 200, startSession(await readJson(req)));
+    if (p === "/api/session/link") return send(res, 200, linkBySession(req, await readJson(req)));
+    if (p === "/api/session/end") {
+      const token = /^[0-9a-f]{64}$/.exec(String(req.headers["x-flyai-session"] ?? ""))?.[0];
+      if (token) db.prepare("delete from sessions where token_hash = ?").run(sha256(token));
+      return send(res, 200, { ended: true });
+    }
     if (p === "/api/auth/verify") return send(res, 200, verifySignIn(await readJson(req)));
     if (p === "/api/admin/announce") {
       adminOnly(req);
@@ -2256,6 +2370,10 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
       if (!Number.isInteger(openMax) || openMax < 0 || openMax > 32) throw new HttpError(400, "open_max is 0..32");
       const jobs = claim(miner, want, kinds, openMax);
       return jobs.length ? send(res, 200, { jobs }) : send(res, 204, null);
+    }
+    if (p === "/api/release") {
+      const miner = minerOf(req);
+      return send(res, 200, release(miner, (await readJson(req)).jobs));
     }
     if (p === "/api/submit") {
       const miner = minerOf(req);

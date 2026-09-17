@@ -44,10 +44,10 @@ export class ApiError extends Error {
   }
 }
 
-export async function api(server: string, path: string, token: string | null, body?: unknown): Promise<any> {
+export async function api(server: string, path: string, token: string | null, body?: unknown, headers: Record<string, string> = {}): Promise<any> {
   const res = await fetch(server + path, {
     method: body === undefined ? "GET" : "POST",
-    headers: { "content-type": "application/json", ...(token ? { authorization: `Bearer ${token}` } : {}) },
+    headers: { "content-type": "application/json", ...(token ? { authorization: `Bearer ${token}` } : {}), ...headers },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (res.status === 204) return null;
@@ -151,8 +151,28 @@ export class Miner {
   private generation = 0;
   private session = { jobs: 0, units: 0, since: 0 };
 
+  /** jobs claimed and not yet submitted: given back on stop or unload so they don't fill the server's per-miner cap */
+  private held = new Set<string>();
+
   constructor(hooks: MinerHooks) {
     this.hooks = hooks;
+    // a reload would otherwise leave a whole batch assigned to this miner until it times out
+    globalThis.addEventListener?.("pagehide", () => this.release([...this.held], true));
+  }
+
+  /** Give jobs back unrun (none listed: everything this miner holds on the server). */
+  private release(jobs?: string[], keepalive = false): Promise<void> {
+    if (jobs) {
+      if (!jobs.length) return Promise.resolve();
+      for (const j of jobs) this.held.delete(j);
+    }
+    const token = this.hooks.getToken();
+    if (!token) return Promise.resolve();
+    return fetch(this.hooks.server + "/api/release", {
+      method: "POST", keepalive,
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      body: JSON.stringify(jobs ? { jobs } : {}),
+    }).then(() => {}, () => {});
   }
 
   get running(): boolean {
@@ -201,6 +221,7 @@ export class Miner {
 
   stop(status = "stopped"): void {
     this.generation++;
+    void this.release([...this.held]);
     this.starting = false;
     for (const lane of this.lanes) lane.worker.terminate();
     this.lanes = [];
@@ -271,12 +292,13 @@ export class Miner {
     await api(h.server, "/api/submit", h.getToken(), { job: job.job, result }).catch((err) => {
       if (err instanceof ApiError) throw err;
       return sleep(2_000).then(() => api(h.server, "/api/submit", h.getToken(), { job: job.job, result }));
-    });
+    }).finally(() => this.held.delete(job.job));
   }
 
   private async loop(lane: Lane, gen: number): Promise<void> {
     const h = this.hooks;
     while (gen === this.generation) {
+      let mine: string[] = [];
       try {
         const claim = await api(h.server, "/api/claim", h.getToken(), { count: lane.size, kinds: lane.kinds, open_max: lane.openMax });
         if (gen !== this.generation) return; // stopped while claiming; the jobs expire on the server
@@ -286,6 +308,8 @@ export class Miner {
           continue;
         }
         const all: (Claimed | ProgramClaim | ProbeClaim)[] = claim.jobs;
+        for (const j of all) this.held.add(j.job);
+        mine = all.map((j) => j.job);
         const jobs = all.filter((j): j is Claimed => j.kind === undefined || j.kind === "connectome");
         const programs = all.filter((j): j is ProgramClaim => j.kind === "wasm" || j.kind === "wgsl" || j.kind === "world");
         const probes = all.filter((j): j is ProbeClaim => j.kind === "probe");
@@ -312,7 +336,10 @@ export class Miner {
           h.lane(lane.index, `running ${describeClaim(job)}`);
           const answer = await runProgram(h.server, job);
           if (gen !== this.generation) return;
-          if (!answer) continue;
+          if (!answer) {
+            await this.release([job.job]); // this machine can't run it: straight back out for someone else
+            continue;
+          }
           await this.submit(job, answer);
           this.session.jobs++;
           this.session.units += job.units ?? 0;
@@ -322,6 +349,14 @@ export class Miner {
         h.lane(lane.index, "", 0);
       } catch (err) {
         if (gen !== this.generation) return;
+        // whatever of this claim didn't get submitted goes back now rather than in JOB_TTL
+        await this.release(mine.filter((j) => this.held.has(j)));
+        // the server says this miner holds a full load, yet this page holds nothing: leftovers of a crashed or
+        // reloaded page that couldn't say goodbye
+        if (err instanceof ApiError && err.status === 429 && !this.held.size) {
+          await this.release();
+          continue;
+        }
         if (err instanceof ApiError && err.status === 401) {
           h.setToken(null);
           await this.ensureMiner().catch(() => {});

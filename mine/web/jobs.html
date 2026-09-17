@@ -121,7 +121,7 @@
     <div class="card pad">
       <span class="num">4 · ORDER</span>
       <p id="summary" class="summary">—</p>
-      <div class="row"><span class="k">Wallet</span><span class="v rowbtn"><span id="account">not connected</span><button id="connect" class="btn sm" type="button">Connect</button></span></div>
+      <div class="row"><span class="k">Wallet</span><span class="v rowbtn"><span id="account">not signed in</span><button id="connect" class="btn sm" type="button">Sign in</button></span></div>
       <div class="row" id="balance-row" hidden><span class="k">Balance</span><span class="v" id="balance">—</span></div>
       <div class="cta" style="margin-top:16px">
         <button id="buy" class="btn red" type="button" disabled>Pay and run</button>
@@ -177,7 +177,7 @@
     <div class="card pad">
       <span class="num">5 · RESULTS</span>
       <h3>Your orders</h3>
-      <div id="orders" class="list"><p class="caption">Connect a wallet to see its orders.</p></div>
+      <div id="orders" class="list"><p class="caption">Sign in to see your orders.</p></div>
     </div>
 
     <div class="card pad">
@@ -215,7 +215,7 @@ es.addEventListener("status", (e) =&gt; {
         <li><b>You pay per finished run.</b> A run counts once <b id="h-redundancy">two</b> different miners return exactly the same answer, or the server runs it itself. A miner who answers wrong loses the day. Runs the network has already done cost <b id="h-cached">—</b> and are ready at once.</li>
         <li><b>It stops when it's done,</b> or when the budget runs out, the time limit passes, or you press Stop. What it didn't spend goes back to your balance for your next order.</li>
         <li><b><span id="h-pool">—</span> of what you spend goes to the miners</b> through this month's pool.</li>
-        <li>Paying is one $FLYAI transfer from your wallet. The amount ends in a few extra wei so it can be matched to your order, and your wallet fills it in. Paying from your balance or stopping an order asks for a free signature.</li>
+        <li>Paying is one $FLYAI transfer from your wallet. The amount ends in a few extra wei so it can be matched to your order, and your wallet fills it in. Paying from your balance or stopping an order needs only your sign-in: no extra signature.</li>
         <li>Results are spike counts for each motor group, before and during the stimulus, as CSV or JSON. Anyone with an order's link can download them.</li>
       </ul>
     </div>

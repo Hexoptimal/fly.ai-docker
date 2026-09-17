@@ -6,8 +6,11 @@
  * and relative .ts imports renamed to .js. config.js points the pages at the API on fly.io and the brain files
  * the Simulation already serves. The site's CSS and logo come from /assets/.
  *
- * Env: MINE_API (https://flyai-mine.fly.dev) · MINE_CONNECTOME (/simulation/connectome)
+ * The wallet kit (wagmi, mine/wallet/) is bundled by esbuild into <out>/mine/web/wallet/: `npm ci` in mine/wallet first.
+ *
+ * Env: MINE_API (https://flyai-mine.fly.dev) · MINE_CONNECTOME (/simulation/connectome) · MINE_WC_PROJECT_ID (Reown; defaults to the site's project)
  */
+import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import * as nodeModule from "node:module";
 import { dirname, join, relative, resolve } from "node:path";
@@ -23,11 +26,13 @@ const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = resolve(process.argv[2] ?? join(REPO, ".vercel-out/compute"));
 const API = process.env.MINE_API ?? "https://flyai-mine.fly.dev";
 const CONNECTOME = process.env.MINE_CONNECTOME ?? "/simulation/connectome";
+// Reown (WalletConnect) project id: public, it ships in the page anyway; only listed domains can use it
+const WC_PROJECT_ID = process.env.MINE_WC_PROJECT_ID ?? "330e75825d85bf92782cfe559e12bd63";
 
 const SCRIPTS = [
   "world/src/connectome.ts", "world/src/rng.ts", "world/src/sim.ts", "world/src/brain.ts", "world/src/eyes.ts", "world/src/senses.ts", "world/src/wiring.ts", "world/src/genome.ts", "world/src/social.ts", "world/src/datalog.ts",
   "mine/src/model.ts", "mine/src/runner.ts", "mine/src/fixed.ts", "mine/src/wasmcheck.ts", "mine/src/probe.ts",
-  "mine/web/mine-core.ts", "mine/web/download.ts", "mine/web/wallet.ts", "mine/web/gpu.ts",
+  "mine/web/mine-core.ts", "mine/web/download.ts", "mine/web/wallet.ts", "mine/web/account.ts", "mine/web/gpu.ts",
   "mine/web/gpu.worker.ts", "mine/web/miner.worker.ts", "mine/web/openjob.ts", "mine/web/open.worker.ts", "mine/web/worldjob.ts",
   "mine/web/app.ts", "mine/web/jobs.ts", "mine/web/stake.ts", "mine/web/claim.ts", "mine/web/leaderboard.ts", "mine/web/connect.ts", "mine/web/bench.ts",
 ];
@@ -45,7 +50,8 @@ for (const file of SCRIPTS) {
   write(join(OUT, file.replace(/\.ts$/, ".js")), code.replace(RELATIVE_TS, "$1$2.js$1"));
 }
 write(join(OUT, "mine/web/config.js"),
-  `// written by mine/scripts/build-web.mjs\nexport const API = ${JSON.stringify(API)};\nexport const CONNECTOME = ${JSON.stringify(CONNECTOME)};\n`);
+  `// written by mine/scripts/build-web.mjs\nexport const API = ${JSON.stringify(API)};\nexport const CONNECTOME = ${JSON.stringify(CONNECTOME)};\nexport const WALLETCONNECT_PROJECT_ID = ${JSON.stringify(WC_PROJECT_ID)};\n`);
+execFileSync(process.execPath, [join(REPO, "mine/wallet/build.mjs"), join(OUT, "mine/web/wallet")], { stdio: "inherit" });
 for (const page of PAGES) copyFileSync(join(REPO, "mine/web", `${page}.html`), join(OUT, `${page}.html`));
 copyFileSync(join(REPO, "mine/web/compute.css"), join(OUT, "mine/web/compute.css"));
 copyFileSync(join(REPO, "mine/web/compute-api.md"), join(OUT, "compute-api.md")); // the API guide, downloadable from /compute/jobs
@@ -67,4 +73,4 @@ if (missing.length) {
   console.error(`unresolved:\n  ${missing.join("\n  ")}`);
   process.exit(1);
 }
-console.log(`built ${relative(REPO, OUT) || OUT}: ${PAGES.length} pages, ${SCRIPTS.length} scripts · API ${API} · brain files ${CONNECTOME}`);
+console.log(`built ${relative(REPO, OUT) || OUT}: ${PAGES.length} pages, ${SCRIPTS.length} scripts · API ${API} · brain files ${CONNECTOME} · WalletConnect ${WC_PROJECT_ID ? "on" : "off"}`);

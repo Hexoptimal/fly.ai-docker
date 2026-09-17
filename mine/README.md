@@ -372,7 +372,16 @@ The pages live on the main site at **www.flyaiworld.com/compute/**: Mine, `/stak
 `web/compute.css` for the few pieces the site doesn't have.
 
 - **Build:** `scripts/vercel-build.sh` runs `node mine/scripts/build-web.mjs .vercel-out/compute`. It
-  strips types from `web/*.ts`, writes `config.js` and copies the pages. It needs Node 22.13+ on Vercel.
+  strips types from `web/*.ts`, writes `config.js`, bundles the wallet kit and copies the pages. It needs
+  Node 22.13+ on Vercel.
+- **Wallet kit:** `mine/wallet/` is wagmi (`@wagmi/core`, WalletConnect) bundled by esbuild into
+  `web/wallet/kit.js`, the only bundled code on the pages. Vercel installs it (`npm ci` in `vercel.json`).
+  Pages load it only when a wallet is needed. `web/wallet/kit.d.ts` gives its types to the pages; keep it
+  in step with `wallet/src/kit.ts`. For local pages, run `npm ci && npm run build` in `mine/wallet`.
+- **Phones:** the build uses the site's Reown project id (`330e7582…`, public by design; `MINE_WC_PROJECT_ID`
+  overrides it). Its domain list on dashboard.reown.com must include www.flyaiworld.com. The picker offers WalletConnect, which opens wallet apps on a phone or shows a
+  QR code on a computer. On a phone with no wallet in the browser, the picker also links to "open this page
+  in MetaMask / Trust / Coinbase Wallet". With an empty id, only browser wallets and those links are offered.
 - **API:** the pages call the fly.io server (`MINE_API`, default `https://flyai-mine.fly.dev`).
 - **Brain files:** the miner loads them from `/simulation/connectome` on the same site, not from Fly.
 - **Sign-in:** the Fly server has `PUBLIC_ORIGIN = https://www.flyaiworld.com` (in `fly.toml`), so wallet
@@ -581,6 +590,14 @@ fly scale vm performance-2x -a $FLY_APP    # if checks fall behind with many min
 Credit belongs to a miner, and a miner proves its wallet with Sign-In with Ethereum (`src/wallet.ts`).
 Several miners, say a laptop, a desktop and the extension, can link the same wallet.
 
+**One sign-in for every page (schema 10).** The pages sign in once (`web/account.ts`, the Sign in button
+in the tabs): the wallet signs one EIP-4361 message from `POST /api/session/nonce`, and `POST /api/session`
+returns a 30-day session token (`SESSION_DAYS`) that the browser keeps in localStorage. The server stores
+only its hash. Pages send it as `x-flyai-session` to link miners (`POST /api/session/link`, with the miner's
+token or the extension's link code), pay from the balance and stop orders, with no further signature.
+Transactions (paying, staking, claiming) still go through the wallet, and the connected account must be
+the signed-in one. The per-action signatures below still work for API clients and older pages.
+
 1. **Nonce:** the page sends the wallet's address with the miner's token (`POST /api/auth/nonce`). The
    server writes an EIP-4361 message itself, with this server's domain, chain ID 4663 (Robinhood Chain),
    a single-use nonce and a 10-minute expiry, and keeps it. It never parses text a client wrote.
@@ -595,8 +612,8 @@ use) and opens `/connect#code` in a normal tab, where the code stands in for the
 
 Tested:
 
-- **`npm run test:auth`, 20 checks:**
-  - both flows link the wallet;
+- **`npm run test:auth`, 33 checks:**
+  - both flows link the wallet, and a session links both without a signature, then stops working on sign-out;
   - refused: wrong signer, text changed by one character, malformed signature, reused nonce, reused code,
     and missing token and code;
   - a schema-2 database (as deployed before wallets) upgrades in place and keeps its miners.
@@ -604,10 +621,13 @@ Tested:
 - **Headless Chrome with a stand-in wallet:**
   - the website's Connect button links;
   - the popup opens `/connect#code`, signing there links the extension's miner, and the popup then shows
-    the wallet.
+    the wallet;
+  - one sign-in on /stake carries to /jobs, /claim and Mine: an order is paid through wagmi and stopped, and
+    a miner is linked, all with no second signature; signing out ends the session on the server;
+  - at phone size with no wallet: no sideways scroll, and the picker offers WalletConnect (its modal opens)
+    and the open-in-wallet-app links.
 
-Not supported yet: smart-contract wallets (EIP-1271, e.g. Safe) and WalletConnect for mobile wallets. On
-mobile, open the page in the wallet app's own browser.
+Not supported yet: smart-contract wallets (EIP-1271, e.g. Safe).
 
 ## Staking
 
@@ -736,10 +756,16 @@ How answers are checked, without the server re-running a fixed share of a fast G
 | `POST /api/register {label?}` | → `{miner, token}`. `label` is an optional name. 5 per IP per hour |
 | `POST /api/auth/nonce {address, code?}` (Bearer, or `code`) | → `{nonce, message}`: the EIP-4361 message to sign |
 | `POST /api/auth/verify {nonce, signature}` | → `{wallet, miner}` once the signer matches; links the wallet |
+| `POST /api/session/nonce {address}` | → `{nonce, message}`: the sign-in message, no miner needed |
+| `POST /api/session {nonce, signature}` | → `{session, wallet, expires_at}`: a 30-day session for the signer |
+| `GET /api/session` (x-flyai-session) | → `{wallet, expires_at}`, or 401 |
+| `POST /api/session/link {code?}` (x-flyai-session, and Bearer or `code`) | links the miner to the session's wallet, no signature |
+| `POST /api/session/end` (x-flyai-session) | signs out: the session stops working |
 | `POST /api/link` (Bearer) | → `{code, url, expires_at}`: a one-time `/compute/connect#code` for the extension |
 | `GET /api/model` | engine constants: `w20` (base64 int32 × 256), `decay`, `noise_thresh`, `noise_amp`, `outputs` |
 | `POST /api/claim {count?}` (Bearer) | → `{jobs: [{job, params, expires_at}]}` (count 1..32), or 204 when there's nothing to do |
 | `POST /api/submit {job, result}` (Bearer) | → `{status: "received"}` |
+| `POST /api/release {jobs?}` (Bearer) | gives claimed jobs back unrun: the listed ids, or every job the miner holds → `{released}`. Pages call it on stop, reload and unrunnable programs, so a reload doesn't leave `MAX_JOBS` filled until `JOB_TTL_MIN` |
 | `GET /api/me` (Bearer) | today's jobs, checks, credited units, share, standing; wallet, stake tier, this month's points, share, rank, days left and pool estimate |
 | `GET /api/month?month=YYYY-MM` | points per wallet, end date, days left, announced pool, snapshot |
 | `GET /api/claims?wallet=` | the wallet's snapshotted months with proofs and ready-made calldata, plus chain info |
@@ -754,7 +780,7 @@ How answers are checked, without the server re-running a fixed share of a fast G
 | `POST /api/orders {wallet, spec, bid, budget, hours?, max_parallel?}` | → an unpaid order with `budget_wei` (budget + tag) to transfer |
 | `POST /api/orders/:id/pay {tx}` | match the transfer and start the order (409 while it isn't mined) |
 | `POST /api/orders/:id/intent {action: fund\|stop}` | → `{nonce, message}` for the order's wallet to sign |
-| `POST /api/orders/:id/fund\|stop {nonce, signature}` | fund from the balance, or stop and return what's unspent |
+| `POST /api/orders/:id/fund\|stop {nonce, signature}` | fund from the balance, or stop and return what's unspent; `{}` with the order wallet's `x-flyai-session` works too |
 | `GET /api/orders/:id` | status, end reason, jobs taken on / out / settled / dropped, bid, budget, spent, returned |
 | `GET /api/orders/:id/results?after=&limit=` | settled rows after a `seq`, in settle order (`format=csv` for all of them) |
 | `GET /api/orders/:id/stream?after=` | server-sent events: `result` per settled row, `status` on changes |

@@ -5,3 +5,5 @@
  */
 export const API = "";
 export const CONNECTOME = "/connectome";
+/** Reown (WalletConnect) project id: phones without a wallet browser connect through it. Empty offers browser wallets only. */
+export const WALLETCONNECT_PROJECT_ID = "";

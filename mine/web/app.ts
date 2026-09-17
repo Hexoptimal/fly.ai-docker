@@ -4,7 +4,8 @@
  */
 import { API, CONNECTOME } from "./config.ts";
 import { api, ApiError, Miner, probeGpu } from "./mine-core.ts";
-import { linkWallet, shortAddress } from "./wallet.ts";
+import { mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, signedIn } from "./account.ts";
+import { shortAddress } from "./wallet.ts";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -92,7 +93,10 @@ async function refresh(): Promise<void> {
   if (!token) return;
   try {
     const me = await api(API, "/api/me", token);
+    meLoaded = true;
     showWallet(me.wallet);
+    // signed in on this site and the miner has no wallet yet: it takes the signed-in one, no questions
+    if (!me.wallet && signedIn()) void linkMiner();
     $("stake").textContent = me.stake
       ? `${Number(me.stake.staked).toLocaleString("en-US")} FLYAI · ${me.stake.tier ?? "no tier"} · ${me.stake.multiplier}× points today${me.stake.tomorrow ? ` (${me.stake.tomorrow.multiplier}× from tomorrow)` : ""}`
       : me.wallet ? "staking isn't live yet: 1× points" : "link a wallet first";
@@ -116,24 +120,36 @@ async function refresh(): Promise<void> {
 }
 
 // ---- wallet ------------------------------------------------------------------------------------------
+let linked: string | null = null;
+let meLoaded = false;
 function showWallet(wallet: string | null): void {
+  linked = wallet;
+  const me = signedIn();
   $("wallet").textContent = wallet ? `${shortAddress(wallet)} ✓` : "not linked: credit can't be paid";
   $("wallet").title = wallet ?? "";
-  $("connect-wallet").textContent = wallet ? "Change" : "Connect";
+  // the button offers what would change: sign in, or move this miner to the signed-in wallet
+  $("connect-wallet").hidden = !!wallet && wallet === me;
+  $("connect-wallet").textContent = !me ? "Sign in" : wallet ? `Use ${shortAddress(me)}` : "Link";
 }
 
-async function connectWallet(): Promise<void> {
+/** Link this browser's miner to the signed-in wallet (signing in first if needed). */
+async function linkMiner(): Promise<void> {
   const button = $<HTMLButtonElement>("connect-wallet");
   button.disabled = true;
   try {
+    if (!(await requireWallet())) return;
     let token = store.get(TOKEN_KEY);
     if (!token) {
       token = (await api(API, "/api/register", null, { label: $<HTMLInputElement>("label").value.trim() })).token as string;
       store.set(TOKEN_KEY, token);
     }
-    showWallet(await linkWallet(API, { token }, (text) => { $("wallet").textContent = text; }));
+    $("wallet").textContent = "linking…";
+    const { wallet } = await api(API, "/api/session/link", token, {}, sessionHeaders());
+    showWallet(wallet);
+    refresh();
   } catch (err) {
-    $("wallet").textContent = err instanceof Error ? err.message : String(err);
+    if (sessionLost(err)) showWallet(linked);
+    else $("wallet").textContent = err instanceof Error ? err.message : String(err);
   } finally {
     button.disabled = false;
   }
@@ -165,6 +181,12 @@ probeGpu().then((probe) => {
 });
 $("engine").addEventListener("change", showEngine);
 $("toggle").addEventListener("click", () => { void toggle(); });
-$("connect-wallet").addEventListener("click", () => { void connectWallet(); });
+$("connect-wallet").addEventListener("click", () => { void linkMiner(); });
+mountAccount();
+onAccount((wallet) => {
+  showWallet(linked);
+  // signing in with a miner here whose wallet isn't linked yet links it (refresh does the same once /api/me is in)
+  if (wallet && meLoaded && !linked && store.get(TOKEN_KEY)) void linkMiner();
+});
 refresh();
 setInterval(refresh, 20_000);

@@ -3,6 +3,7 @@
  * or snapshotted, and the visitor's own row if this browser has a miner with a linked wallet.
  */
 import { API } from "./config.ts";
+import { mountAccount, signedIn } from "./account.ts";
 import { api } from "./mine-core.ts";
 import { shortAddress } from "./wallet.ts";
 
@@ -35,10 +36,10 @@ async function load(): Promise<void> {
   const pool = data.snapshot?.pool ?? data.announced_pool;
   $("pool").textContent = pool ? fmt(Number(pool), 0) : "not set";
 
-  let mine: string | null = null;
+  let mine: string | null = signedIn();
   try {
     const token = localStorage.getItem("flymine.token");
-    if (token) mine = (await api(API, "/api/me", token)).wallet;
+    if (token && !mine) mine = (await api(API, "/api/me", token)).wallet;
   } catch { /* no miner in this browser */ }
 
   const rows = data.wallets as { rank: number; wallet: string; points: number; share: number }[];
@@ -67,4 +68,5 @@ async function load(): Promise<void> {
   }));
 }
 
+mountAccount();
 void load();
