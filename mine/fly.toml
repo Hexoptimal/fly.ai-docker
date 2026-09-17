@@ -9,7 +9,7 @@ primary_region = "cdg"
 
 [env]
   PUBLIC_ORIGIN = "https://www.flyaiworld.com"  # the pages live on Vercel: wallet sign-in messages and /compute/connect links name the website
-  VERIFIERS = "2"         # ~300 MB of memory each
+  VERIFIERS = "1"         # ~300 MB of memory each; 2 of them starved the main thread on 2 shared vCPUs, so miners waited seconds per request
   CANARY_POOL = "500"     # idle verifiers stop here: shared vCPUs get throttled under sustained load, which would delay real checks
   # paid orders (src/orders.ts): payments go to the dev wallet, which also funds MonthlyClaims
   PAY_TO = "0x625862521777E19Ad54Ce6C7ABeD9Ca54D6589ea"

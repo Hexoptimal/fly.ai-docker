@@ -65,6 +65,20 @@ try {
   check("and full batches come again", again.json?.jobs.length === 32);
   const late = await api("/api/submit", { job: b.json.jobs[0].job, result: {} }, token);
   check("a released job can't be submitted", late.status === 409, late.json?.error);
+
+  // a whole batch's answers in one request (web/mine-core.ts submitMany)
+  const groups = (await api("/api/model")).json?.outputs?.length ?? 0;
+  check("the model lists its motor groups", groups > 0, String(groups));
+  const zeros = Array.from({ length: groups }, () => 0);
+  const answer = { hash: "0000000000000000", spikes: 1, base: zeros, stim: zeros };
+  const batch = await api("/api/submit", { results: again.json.jobs.map((j: any) => ({ job: j.job, result: answer })) }, token);
+  check("a batch of answers goes in one request", batch.status === 200 && batch.json?.results?.length === 32
+    && batch.json.results.every((r: any) => r.status === "received"),
+    `${batch.json?.results?.filter((r: any) => r.status !== "received").length} of 32 not received: ${JSON.stringify(batch.json?.results?.find((r: any) => r.status !== "received"))}`);
+  const mixed = await api("/api/submit", { results: [{ job: again.json.jobs[0].job, result: answer }, { job: "nope", result: answer }] }, token);
+  check("a bad job in a batch fails on its own", mixed.status === 200 && mixed.json.results[0].status === "error"
+    && mixed.json.results[1].code === 404, JSON.stringify(mixed.json).slice(0, 160));
+  check("an oversized batch is refused", (await api("/api/submit", { results: Array.from({ length: 65 }, () => ({ job: "x", result: answer })) }, token)).status === 400);
 } catch (err) {
   console.error(err);
   failed++;

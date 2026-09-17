@@ -160,11 +160,12 @@ function round(r: number): TaskParams[] {
 }
 
 // ---- storage -----------------------------------------------------------------------------------------
-const SCHEMA = 12; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions, 11 USDC payments, 12 guest card orders; created below for new and old databases alike
+const SCHEMA = 13; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions, 11 USDC payments, 12 guest card orders, 13 day_credit; created below for new and old databases alike
 mkdirSync(dirname(DB_PATH), { recursive: true });
 const db = new DatabaseSync(DB_PATH);
 const version = (db.prepare("pragma user_version").get() as { user_version: number }).user_version;
 const hasTables = !!db.prepare("select 1 from sqlite_master where name = 'tasks'").get();
+const hadDayCredit = !!db.prepare("select 1 from sqlite_master where name = 'day_credit'").get();
 if (hasTables && version < 2) {
   throw new Error(`${DB_PATH} is from an older version of the mining server; move it aside to start fresh`);
 }
@@ -260,6 +261,39 @@ db.exec(`
   create index if not exists assignments_by_task on assignments (task, status);
   create index if not exists assignments_by_day on assignments (day, miner);
   create index if not exists assignments_issued on assignments (expires_at) where status = 'issued';
+  -- 13: each miner-day's credit kept as it happens, so pages and month points never scan the assignments
+  create table if not exists day_credit (
+    day text not null,
+    miner text not null,
+    units real not null default 0,         -- brain jobs accepted or pending
+    program_units real not null default 0, -- everything else accepted or pending, before PROGRAM_BONUS
+    accepted integer not null default 0,
+    pending integer not null default 0,
+    rejected integer not null default 0,
+    primary key (day, miner)
+  ) without rowid;
+  create index if not exists day_credit_by_miner on day_credit (miner);
+  create trigger if not exists day_credit_insert after insert on assignments when new.day is not null begin
+    insert into day_credit (day, miner, units, program_units, accepted, pending, rejected)
+      select new.day, new.miner, (case when new.status in ('accepted', 'pending') then coalesce((select units from tasks where id = new.task and kind = 'connectome'), 0) else 0 end), (case when new.status in ('accepted', 'pending') then coalesce((select units from tasks where id = new.task and kind != 'connectome'), 0) else 0 end), new.status = 'accepted', new.status = 'pending', new.status = 'rejected' where new.day is not null
+      on conflict (day, miner) do update set units = units + excluded.units, program_units = program_units + excluded.program_units,
+        accepted = accepted + excluded.accepted, pending = pending + excluded.pending, rejected = rejected + excluded.rejected;
+  end;
+  create trigger if not exists day_credit_update after update of status, day on assignments
+    when old.status is not new.status or old.day is not new.day begin
+    update day_credit set units = units - (case when old.status in ('accepted', 'pending') then coalesce((select units from tasks where id = old.task and kind = 'connectome'), 0) else 0 end), program_units = program_units - (case when old.status in ('accepted', 'pending') then coalesce((select units from tasks where id = old.task and kind != 'connectome'), 0) else 0 end),
+      accepted = accepted - (old.status = 'accepted'), pending = pending - (old.status = 'pending'), rejected = rejected - (old.status = 'rejected')
+      where old.day is not null and day = old.day and miner = old.miner;
+    insert into day_credit (day, miner, units, program_units, accepted, pending, rejected)
+      select new.day, new.miner, (case when new.status in ('accepted', 'pending') then coalesce((select units from tasks where id = new.task and kind = 'connectome'), 0) else 0 end), (case when new.status in ('accepted', 'pending') then coalesce((select units from tasks where id = new.task and kind != 'connectome'), 0) else 0 end), new.status = 'accepted', new.status = 'pending', new.status = 'rejected' where new.day is not null
+      on conflict (day, miner) do update set units = units + excluded.units, program_units = program_units + excluded.program_units,
+        accepted = accepted + excluded.accepted, pending = pending + excluded.pending, rejected = rejected + excluded.rejected;
+  end;
+  create trigger if not exists day_credit_delete after delete on assignments when old.day is not null begin
+    update day_credit set units = units - (case when old.status in ('accepted', 'pending') then coalesce((select units from tasks where id = old.task and kind = 'connectome'), 0) else 0 end), program_units = program_units - (case when old.status in ('accepted', 'pending') then coalesce((select units from tasks where id = old.task and kind != 'connectome'), 0) else 0 end),
+      accepted = accepted - (old.status = 'accepted'), pending = pending - (old.status = 'pending'), rejected = rejected - (old.status = 'rejected')
+      where day = old.day and miner = old.miner;
+  end;
   -- a wallet signed in once on the site: links miners, spends its balance and stops its orders without signing again
   create table if not exists sessions (
     token_hash text primary key,
@@ -417,6 +451,17 @@ db.exec(`
   );
   create index if not exists earnings_by_month on earnings (month, wallet);
 `);
+if (hasTables && !hadDayCredit) {
+  // 13: one pass over every assignment so far; from here on the triggers keep it
+  const t = Date.now();
+  db.exec(`insert into day_credit (day, miner, units, program_units, accepted, pending, rejected)
+    select a.day, a.miner,
+      coalesce(sum(case when a.status in ('accepted', 'pending') and t.kind = 'connectome' then t.units end), 0),
+      coalesce(sum(case when a.status in ('accepted', 'pending') and t.kind != 'connectome' then t.units end), 0),
+      coalesce(sum(a.status = 'accepted'), 0), coalesce(sum(a.status = 'pending'), 0), coalesce(sum(a.status = 'rejected'), 0)
+    from assignments a join tasks t on t.id = a.task where a.day is not null group by a.day, a.miner`);
+  console.log(`database upgraded to schema 13 (day_credit, ${Date.now() - t} ms)`);
+}
 
 type TaskRow = { id: number; params: string; kind?: string };
 const one = <T>(sql: string, ...args: (string | number | null)[]) => db.prepare(sql).get(...args) as T;
@@ -999,7 +1044,7 @@ function submit(miner: string, body: any) {
 
   if (status === "pending" && disputed(a.task)) audit(a.task, true);
   else if (status === "pending") {
-    const jobsToday = count("select count(*) as n from assignments where day = ? and miner = ?", day, miner);
+    const jobsToday = count("select coalesce(sum(accepted + pending + rejected), 0) as n from day_credit where day = ? and miner = ?", day, miner);
     if (Math.random() < AUDITS / (jobsToday + AUDITS)) audit(a.task);
   }
   return { status: "received" };
@@ -1014,16 +1059,13 @@ function standingOf(r: DayRow) {
   return { jobs, checked: r.accepted + r.rejected, rejected: r.rejected, units: r.units, credited: standing === "ok" ? r.units : 0, standing };
 }
 
-const DAY_SUMS = `sum(case when a.status in ('accepted', 'pending')
-    then t.units * (case when t.kind = 'connectome' then 1 else ${PROGRAM_BONUS} end) else 0 end) as units,
-  coalesce(sum(a.status = 'accepted'), 0) as accepted, coalesce(sum(a.status = 'pending'), 0) as pending,
-  coalesce(sum(a.status = 'rejected'), 0) as rejected`;
+/** A day_credit row as a DayRow (d is day_credit). */
+const DAY_SUMS = `d.units + d.program_units * ${PROGRAM_BONUS} as units, d.accepted, d.pending, d.rejected`;
 
 /** Credit for one UTC day, per miner. */
 function epoch(day: string) {
-  const rows = db.prepare(`select a.miner, m.label, m.wallet, ${DAY_SUMS}
-    from assignments a join tasks t on t.id = a.task join miners m on m.id = a.miner
-    where a.day = ? group by a.miner`).all(day) as unknown as (DayRow & { miner: string; label: string | null; wallet: string | null })[];
+  const rows = db.prepare(`select d.miner, m.label, m.wallet, ${DAY_SUMS}
+    from day_credit d join miners m on m.id = d.miner where d.day = ?`).all(day) as unknown as (DayRow & { miner: string; label: string | null; wallet: string | null })[];
   const miners = rows.map((r) => ({ miner: r.miner, label: r.label, wallet: r.wallet, ...standingOf(r) }));
   const total = miners.reduce((s, m) => s + m.credited, 0);
   return { day, total_credited: total, miners: miners.map((m) => ({ ...m, share: total ? m.credited / total : 0 })) };
@@ -1048,9 +1090,8 @@ function monthBounds(month: string): [string, string] {
  */
 function monthPoints(month: string) {
   const bounds = monthBounds(month);
-  const rows = db.prepare(`select a.day, a.miner, m.wallet, ${DAY_SUMS}
-    from assignments a join tasks t on t.id = a.task join miners m on m.id = a.miner
-    where a.day >= ? and a.day < ? group by a.day, a.miner`).all(...bounds) as unknown as (DayRow & { day: string; miner: string; wallet: string | null })[];
+  const rows = db.prepare(`select d.day, d.miner, m.wallet, ${DAY_SUMS}
+    from day_credit d join miners m on m.id = d.miner where d.day >= ? and d.day < ?`).all(...bounds) as unknown as (DayRow & { day: string; miner: string; wallet: string | null })[];
   const samples = new Map((db.prepare("select wallet, day, staked_wei from stake_samples where day >= ? and day < ?").all(...bounds) as
     { wallet: string; day: string; staked_wei: string }[]).map((s) => [`${s.wallet} ${s.day}`, BigInt(s.staked_wei)]));
   const wallets = new Map<string, number>();
@@ -1290,11 +1331,11 @@ function monthStanding(wallet: string | null) {
 
 function me(miner: string) {
   const day = today();
-  const mine = standingOf(one<DayRow>(`select ${DAY_SUMS} from assignments a join tasks t on t.id = a.task
-    where a.day = ? and a.miner = ?`, day, miner));
+  const mine = standingOf(one<DayRow | undefined>(`select ${DAY_SUMS} from day_credit d where d.day = ? and d.miner = ?`, day, miner)
+    ?? { units: 0, accepted: 0, pending: 0, rejected: 0 });
   const total = Math.max(dayTotal(day), mine.credited);
-  const life = one<{ jobs: number; rejected: number | null }>(`select count(*) as jobs, sum(status = 'rejected') as rejected
-    from assignments where miner = ? and status in ('accepted', 'pending', 'rejected')`, miner);
+  const life = one<{ jobs: number; rejected: number | null }>(`select coalesce(sum(accepted + pending + rejected), 0) as jobs, sum(rejected) as rejected
+    from day_credit where miner = ?`, miner);
   const { label, wallet } = one<{ label: string | null; wallet: string | null }>("select label, wallet from miners where id = ?", miner);
   // this month: the wallet's points across all its miners, or this miner's own until it links one
   const m = monthPointsCached(thisMonth());
@@ -1310,7 +1351,7 @@ function me(miner: string) {
 
 const stats = cached(10_000, (_: null) => ({
   miners_online: count("select count(*) as n from miners where last_seen > ?", Date.now() - 10 * 60_000),
-  jobs_today: count("select count(*) as n from assignments where day = ?", today()),
+  jobs_today: count("select coalesce(sum(accepted + pending + rejected), 0) as n from day_credit where day = ?", today()),
   tasks: count("select count(*) as n from tasks"),
   tasks_done: count("select count(*) as n from tasks where state = 'done'"),
   tasks_checked: count("select count(*) as n from tasks where truth is not null"),
@@ -2751,7 +2792,21 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     if (p === "/api/submit") {
       const miner = minerOf(req);
       loaded();
-      return send(res, 200, submit(miner, await readJson(req, Math.ceil(MAX_OUTPUT_BYTES * 1.4) + 4096)));
+      const body = await readJson(req, (Math.ceil(MAX_OUTPUT_BYTES * 1.4) + 4096) * (MAX_JOBS + 1));
+      // a whole GPU batch in one request: 32 round trips over the Atlantic cost more than the work itself
+      if (Array.isArray(body.results)) {
+        if (body.results.length > MAX_JOBS) throw new HttpError(400, `results holds at most ${MAX_JOBS} answers`);
+        return send(res, 200, {
+          results: body.results.map((r: any) => {
+            try {
+              return { job: String(r?.job ?? ""), ...submit(miner, r) };
+            } catch (err) {
+              return { job: String(r?.job ?? ""), status: "error", error: err instanceof HttpError ? err.message : "failed", code: err instanceof HttpError ? err.status : 500 };
+            }
+          }),
+        });
+      }
+      return send(res, 200, submit(miner, body));
     }
   }
   throw new HttpError(404, "not found");

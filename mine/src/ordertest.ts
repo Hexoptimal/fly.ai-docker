@@ -475,7 +475,30 @@ try {
   server?.kill();
   anvil.kill();
   await sleep(300);
+  try {
+    const drift = creditDrift(DB);
+    check("day_credit matches the assignments", !drift.length, drift.slice(0, 3).join(", "));
+  } catch (err) {
+    check("day_credit matches the assignments", false, String(err));
+  }
   for (const suffix of ["", "-wal", "-shm"]) rmSync(DB + suffix, { force: true });
 }
 console.log(failed ? `${failed} FAILED` : "paid order checks passed");
 process.exit(failed ? 1 : 0);
+
+/** day_credit (kept by triggers) must equal a full count over the assignments. */
+function creditDrift(path: string): string[] {
+  const db = new DatabaseSync(path);
+  const bad = db.prepare(`select coalesce(x.day, d.day) as day, coalesce(x.miner, d.miner) as miner from (
+      select a.day, a.miner, coalesce(sum(case when a.status in ('accepted', 'pending') and t.kind = 'connectome' then t.units end), 0) as units,
+        coalesce(sum(case when a.status in ('accepted', 'pending') and t.kind != 'connectome' then t.units end), 0) as program_units,
+        coalesce(sum(a.status = 'accepted'), 0) as accepted, coalesce(sum(a.status = 'pending'), 0) as pending, coalesce(sum(a.status = 'rejected'), 0) as rejected
+      from assignments a join tasks t on t.id = a.task where a.day is not null group by a.day, a.miner) x
+    full outer join day_credit d on d.day = x.day and d.miner = x.miner
+    where abs(coalesce(x.units, 0) - coalesce(d.units, 0)) > 1e-6 or abs(coalesce(x.program_units, 0) - coalesce(d.program_units, 0)) > 1e-6
+      or coalesce(x.accepted, 0) != coalesce(d.accepted, 0) or coalesce(x.pending, 0) != coalesce(d.pending, 0) or coalesce(x.rejected, 0) != coalesce(d.rejected, 0)`)
+    .all() as { day: string; miner: string }[];
+  const rows = (db.prepare("select count(*) as n from day_credit").get() as { n: number }).n;
+  db.close();
+  return bad.length ? bad.map((b) => `${b.day} ${b.miner}`) : rows ? [] : ["day_credit is empty"];
+}

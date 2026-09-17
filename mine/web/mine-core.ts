@@ -293,6 +293,19 @@ export class Miner {
     });
   }
 
+  /** A whole batch's answers in one request, so a GPU batch isn't 32 round trips to the server. */
+  private async submitMany(jobs: { job: string }[], results: unknown[]): Promise<void> {
+    const h = this.hooks;
+    const body = { results: jobs.map((j, k) => ({ job: j.job, result: results[k] })) };
+    const send = () => api(h.server, "/api/submit", h.getToken(), body);
+    await send().catch((err) => {
+      if (err instanceof ApiError) throw err;
+      return sleep(2_000).then(send); // one retry on a dropped connection, so finished work isn't thrown away
+    }).finally(() => {
+      for (const j of jobs) this.held.delete(j.job);
+    });
+  }
+
   private async submit(job: { job: string }, result: unknown): Promise<void> {
     const h = this.hooks;
     // one retry on a dropped connection, so a finished job isn't thrown away
@@ -324,10 +337,10 @@ export class Miner {
         if (jobs.length) {
           const results = await lane.run(jobs);
           if (gen !== this.generation) return;
-          for (let k = 0; k < jobs.length; k++) {
-            await this.submit(jobs[k], results[k]);
+          await this.submitMany(jobs, results);
+          for (const job of jobs) {
             this.session.jobs++;
-            this.session.units += jobs[k].units ?? jobs[k].params.steps / 100;
+            this.session.units += job.units ?? job.params.steps / 100;
           }
         }
         for (const job of probes) {
