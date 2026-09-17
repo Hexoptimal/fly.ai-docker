@@ -1,8 +1,9 @@
 //! Proof-of-work nonce search: double SHA-256 over an 80-byte block header (Bitcoin's scheme), across a nonce range.
 //! Split a nonce space into ranges, one job each, and the network searches them in parallel.
 //!
-//! Jobs have no network: this finds nonces, and your own server submits them wherever they're needed. Another coin
-//! needs its own hash function compiled here instead of SHA-256d (RandomX for Monero, for example).
+//! Jobs have no network: this finds nonces, and your own server submits them wherever they're needed (see
+//! ../btc-pool for a bridge to a Bitcoin mining pool). Another coin needs its own hash function compiled here
+//! instead of SHA-256d (RandomX for Monero, for example).
 //!
 //! Input, 116 bytes:
 //!   76 bytes  the header without its nonce (version, previous hash, merkle root, time, bits), as serialized
@@ -10,6 +11,9 @@
 //!   u32 LE    how many nonces to try
 //!   32 bytes  target, big-endian: a hash (in display order, reversed) at or below it is a hit
 //! Output: u32 LE number of hits (at most 64), then for each: u32 LE nonce + 32-byte hash in display order.
+//!
+//! Speed: the header's first 64 bytes never change within a job, so their SHA-256 state (the midstate) is computed
+//! once; each nonce then costs two compressions with fixed padding and no allocation.
 //!
 //!   cargo build --release --target wasm32-unknown-unknown
 
@@ -31,11 +35,10 @@ const K: [u32; 64] = [
 ];
 const H0: [u32; 8] = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
 
-fn compress(h: &mut [u32; 8], block: &[u8]) {
+/// One SHA-256 compression of a 16-word block into the state.
+fn compress(h: &mut [u32; 8], block: &[u32; 16]) {
     let mut w = [0u32; 64];
-    for i in 0..16 {
-        w[i] = u32::from_be_bytes(block[i * 4..i * 4 + 4].try_into().unwrap());
-    }
+    w[..16].copy_from_slice(block);
     for i in 16..64 {
         let x = w[i - 15];
         w[i] = w[i - 16].wrapping_add(x.rotate_right(7) ^ x.rotate_right(18) ^ (x >> 3))
@@ -63,23 +66,8 @@ fn compress(h: &mut [u32; 8], block: &[u8]) {
     }
 }
 
-fn sha256(data: &[u8]) -> [u8; 32] {
-    let mut h = H0;
-    let mut msg = data.to_vec();
-    let bits = (data.len() as u64) * 8;
-    msg.push(0x80);
-    while msg.len() % 64 != 56 {
-        msg.push(0);
-    }
-    msg.extend_from_slice(&bits.to_be_bytes());
-    for block in msg.chunks(64) {
-        compress(&mut h, block);
-    }
-    let mut out = [0u8; 32];
-    for (i, x) in h.iter().enumerate() {
-        out[i * 4..i * 4 + 4].copy_from_slice(&x.to_be_bytes());
-    }
-    out
+fn word(bytes: &[u8], at: usize) -> u32 {
+    u32::from_be_bytes(bytes[at..at + 4].try_into().unwrap())
 }
 
 #[no_mangle]
@@ -90,16 +78,47 @@ pub extern "C" fn run() {
     let start = u32::from_le_bytes(input[76..80].try_into().unwrap());
     let count = u32::from_le_bytes(input[80..84].try_into().unwrap());
     let target: [u8; 32] = input[84..116].try_into().unwrap();
+    let target_top = word(&target, 0);
 
-    let mut header = [0u8; 80];
-    header[..76].copy_from_slice(&input[..76]);
+    // header bytes 0..64: the midstate
+    let mut first = [0u32; 16];
+    for (i, w) in first.iter_mut().enumerate() {
+        *w = word(&input, i * 4);
+    }
+    let mut mid = H0;
+    compress(&mut mid, &first);
+
+    // header bytes 64..80 (end of the merkle root, time, bits, nonce), then SHA-256 padding for 80 bytes
+    let mut tail = [0u32; 16];
+    tail[0] = word(&input, 64);
+    tail[1] = word(&input, 68);
+    tail[2] = word(&input, 72);
+    tail[4] = 0x8000_0000;
+    tail[15] = 80 * 8;
+    // the second hash: 32 bytes of digest, then padding for 32 bytes
+    let mut second = [0u32; 16];
+    second[8] = 0x8000_0000;
+    second[15] = 32 * 8;
+
     let mut hits: Vec<u8> = Vec::new();
     let mut found = 0u32;
     for k in 0..count {
         let nonce = start.wrapping_add(k);
-        header[76..80].copy_from_slice(&nonce.to_le_bytes());
-        let mut hash = sha256(&sha256(&header));
-        hash.reverse(); // display order
+        tail[3] = nonce.swap_bytes(); // the nonce is little-endian in the header; SHA-256 reads big-endian words
+        let mut h1 = mid;
+        compress(&mut h1, &tail);
+        second[..8].copy_from_slice(&h1);
+        let mut h2 = H0;
+        compress(&mut h2, &second);
+        // display order is the digest reversed, so its first word is the digest's last word byte-swapped
+        if h2[7].swap_bytes() > target_top {
+            continue;
+        }
+        let mut hash = [0u8; 32];
+        for (i, x) in h2.iter().enumerate() {
+            hash[i * 4..i * 4 + 4].copy_from_slice(&x.to_be_bytes());
+        }
+        hash.reverse();
         if hash <= target {
             hits.extend_from_slice(&nonce.to_le_bytes());
             hits.extend_from_slice(&hash);

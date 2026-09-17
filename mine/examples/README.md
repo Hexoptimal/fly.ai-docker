@@ -12,6 +12,7 @@ read outputs where it needs one.
 |---|---|---|---|
 | [`pi-rust`](pi-rust) | Monte Carlo pi, integers only | `count: N`: each job is a seed | 8 bytes: hits |
 | [`hash-search`](hash-search) | proof-of-work nonce search, double SHA-256 over a block header (Bitcoin's scheme) | one input per nonce range | the nonces that meet the target |
+| [`btc-pool`](btc-pool) | a bridge from a Bitcoin mining pool (Stratum) to a keep-open hash-search order: jobs out, shares back to the pool | added by the bridge | shares submitted to your pool account |
 | [`mandelbrot-tiles`](mandelbrot-tiles) | a 2048 × 2048 image rendered as 64 tiles, then stitched | `count: 64`: each job is a tile | 256 × 256 iteration counts |
 | [`tsp-search`](tsp-search) | travelling salesman by random restarts: keep the best tour | `count: N`: each job is a restart | tour length + city order |
 | [`wordcount-wasi`](wordcount-wasi) | an ordinary program: stdin in, stdout out (WASI) | one input per text file | lines of "count word" |
@@ -85,7 +86,7 @@ node examples/order.ts create --wallet 0x… --program examples/hash-search/hash
 Each input is a header, a nonce range and a target. Each output lists the nonces whose double SHA-256 meets
 the target. This is the pattern for proof-of-work mining, and for any "search a huge space in chunks" job.
 
-- **No pool connection:** jobs have no network, so your own server takes the found nonces and submits them.
+- **No pool connection:** jobs have no network, so your own server takes the found nonces and submits them. [`btc-pool`](btc-pool) is that server for a Bitcoin pool.
 - **CPU speed:** a CPU won't compete on Bitcoin itself. It's there to show the pattern and to test with.
 - **Other coins:** compile their hash function in place of SHA-256d, for example RandomX for Monero.
 - **Size jobs to your time limit:** measure with `run-local.ts` and aim for roughly half of it.

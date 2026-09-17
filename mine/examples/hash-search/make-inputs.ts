@@ -5,7 +5,7 @@
  *        --target <64 hex, big-endian> --start 0 --total 4294967296 --per-job 2000000 --out inputs/
  *
  * Then: node examples/order.ts create --program examples/hash-search/hash_search.wasm --inputs inputs/ --wallet 0x...
- * Each output is: u32 hits, then per hit u32 nonce + 32-byte hash (display order). `found.ts` lists them.
+ * Each output is: u32 hits, then per hit u32 nonce + 32-byte hash (display order). `order.ts watch` downloads them.
  * With no arguments it writes a 4-job demo around Bitcoin's genesis block, whose winning nonce is 2083236893.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
