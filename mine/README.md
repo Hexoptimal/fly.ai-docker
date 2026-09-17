@@ -154,6 +154,44 @@ until `PAY_TO` is set. The code is in `src/orders.ts` and the "paid orders" part
 | `ORDER_TTL_MIN` | 60 | how long an unpaid order holds its tag |
 | `ORDER_REDUNDANCY` | 2 | agreeing miners that settle a paid job |
 
+### Paying with a card: USDC on Base (schema 11)
+
+People without $FLYAI can pay in USDC on Base, which they buy with a card in an app like Coinbase or through
+an onramp link. The order is still run and charged in $FLYAI, so miners, charges and the pool are unchanged.
+
+- **Price:** `POST /api/orders/:id/usdc` quotes the budget in USDC at the live $FLYAI price. The price is the lower
+  of GeckoTerminal and DexScreener, with no margin, cached for a minute (`GET /api/price`). The quote holds for
+  `USDC_QUOTE_MIN`, and its amount ends in a tag under a tenth of a cent, so a transfer matches one order.
+- **Paying:** either an exact USDC transfer (`POST /api/orders/:id/pay {tx, chain: "base"}`), or, with `RELAYER_KEY`
+  set, **gasless**: the buyer signs an EIP-3009 `transferWithAuthorization` for free and
+  `POST /api/orders/:id/usdc/authorize` sends it from the relayer wallet, which pays the gas. The relayer
+  simulates every transfer first, so a bad signature or too little USDC costs nothing. The signed authorization
+  names the payer, `PAY_TO` and the amount, so the relayer can't move anything else. It holds only gas money.
+- **Credit:** the USDC's $FLYAI value at the quoted price goes into the wallet's balance and funds the order. Paid
+  after the quote expired, the price at that moment is used, and if it no longer covers the budget it waits in the
+  balance.
+- **The pool:** 80% of each charge joins the month's pool as with any order, so the pages show it at once.
+  `GET /api/month` adds `usdc_received` and `buyer_pool_from_usdc` (the part of the buyers' pool from
+  USDC-paid orders), and the Leaderboard shows the breakdown. The USDC lands in the dev wallet, and the
+  operator buys the $FLYAI to fund the pool by hand.
+- **Getting USDC:** `USDC_ONRAMP_URL` is an onramp provider's buy link, with `{wallet}` and `{amount}` filled in.
+  Transak, MoonPay and Coinbase all need an account for such a link. Without one, the page tells buyers to buy
+  USDC in an app and send it on Base to their address, and shows the address.
+
+| Env | Default | |
+|---|---|---|
+| `USDC_PAYMENTS` | 1 | 0 turns USDC payments off |
+| `USDC_RPC`, `USDC_TOKEN`, `USDC_CHAIN_ID` | Base mainnet, native USDC `0x8335…2913`, 8453 | |
+| `USDC_QUOTE_MIN` | 30 | how long a USDC price holds |
+| `RELAYER_KEY` | none | the gasless relayer's key (a fly secret); keep a few dollars of ETH on Base in it. `GET /api/admin/relayer` shows its address and gas |
+| `USDC_ONRAMP_URL` | none | a provider's buy link template |
+| `FLYAI_USD_PRICE` | none | tests only: a fixed price |
+
+Tests: `npm run test:orders` covers quotes, exact transfers, replays, the month's USDC totals and gasless payments
+(a mock USDC with EIP-3009 in `contracts/test/MockUSDC.sol`, on anvil). Headless Chrome covered the card-buyer
+flow: no USDC gives directions and the address; with USDC it's one free signature and no transaction from the
+buyer; the Leaderboard shows the USDC part of the pool.
+
 **Other kinds of work later:** specs carry `kind` (only `connectome-sweep` exists). A new kind needs three
 things: its expansion in `orders.ts`, a runner the verifiers can re-run, and an engine in `web/`. It must stay
 deterministic across GPUs, which is what makes answers checkable. For work that can't be bit-exact (float ML

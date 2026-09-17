@@ -7,7 +7,7 @@
  * payment sent before a reload is remembered in this browser, so the order still gets funded.
  */
 import { API } from "./config.ts";
-import { errorText, mined, mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, transact } from "./account.ts";
+import { errorText, mined, mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, signTyped, transact } from "./account.ts";
 import { api } from "./mine-core.ts";
 import { shortAddress } from "./wallet.ts";
 interface Config {
@@ -16,11 +16,18 @@ interface Config {
   market: { live_orders: number; top_bid: string | null; median_bid: string | null };
   channels: string[]; steps: number; dt: number | null;
   chain_id: number; chain_name: string; rpc: string; explorer: string; token_symbol: string;
+  /** card buyers: USDC on Base, credited in $FLYAI at the live price */
+  usdc: { chain_id: number; chain_name: string; rpc: string; explorer: string; token: string; decimals: number; pay_to: string; gasless: boolean; onramp_url: string | null } | null;
+}
+interface UsdcQuote {
+  order: string; usdc: string; units: string; flyai: string; flyai_usd: number; expires_at: number; pay_to: string;
+  gasless: { domain: { name: string; version: string; chainId: number; verifyingContract: string } } | null;
 }
 interface Order {
   id: string; wallet: string; status: "unpaid" | "expired" | "live" | "done" | "ended"; end_reason: string | null;
   jobs: number; taken_on: number; out: number; settled: number; bid: string; budget: string; budget_wei: string; spent: string; returned: string | null;
   hours: number | null; created_at: number; ends_at: number | null; tx: string | null; webhook_secret?: string | null; order_key?: string | null; kind?: string;
+  usdc_payment?: { tx: string; usdc: string; flyai: string; explorer: string } | null;
   webhook: { url: string; delivered_seq: number; done: boolean; failures: number; error: string | null } | null;
   spec: { channels: string[]; sides: string[]; amounts: number[]; gains: number[]; tonics: number[]; seeds: number[]; warm: number };
 }
@@ -63,10 +70,10 @@ const fmt = (tokens: string | number) => `${Number(tokens).toLocaleString("en-US
 const count = (n: number) => n.toLocaleString("en-US");
 const numbers = (id: string) => input(id).value.split(",").map((x) => x.trim()).filter(Boolean).map(Number);
 const store = {
-  get: (): { order: string; tx: string } | null => {
+  get: (): { order: string; tx: string; chain?: "base" } | null => {
     try { return JSON.parse(localStorage.getItem(PENDING) ?? "null"); } catch { return null; }
   },
-  set: (v: { order: string; tx: string } | null) => {
+  set: (v: { order: string; tx: string; chain?: "base" } | null) => {
     try { v ? localStorage.setItem(PENDING, JSON.stringify(v)) : localStorage.removeItem(PENDING); } catch { /* private window */ }
   },
 };
@@ -202,6 +209,8 @@ const terms = () => ({
 function setButtons(): void {
   const ready = !!spec && config.open && fullCost > 0 && !!input("bid").value.trim();
   $<HTMLButtonElement>("buy").disabled = !ready;
+  $<HTMLButtonElement>("buy-usdc").disabled = !ready;
+  $("buy-usdc").hidden = !config.usdc;
   const useBalance = $<HTMLButtonElement>("use-balance");
   useBalance.hidden = !account || balance <= 0;
   useBalance.disabled = !ready || balance < Number(terms().budget);
@@ -233,7 +242,7 @@ async function requote(): Promise<void> {
         `<b>${count(q.jobs)} jobs</b> of your ${upload.program.kind === "wasm" ? "WebAssembly program" : "GPU shader"} at ${fmt(q.bid)} each (the lowest is ${fmt(q.min_bid)} for a ${input("timeout").value} s limit).`,
         budget && Number(budget) < fullCost ? `It stops after spending <b>${fmt(budget)}</b>.` : `It costs at most <b>${fmt(q.full_cost)}</b>, and ${fmt(q.full_to_pool)} goes straight to the miners who run it.`,
         input("keep-open").checked ? "It stays open for more jobs from code until the budget, a time limit or Stop." : "",
-      ].filter(Boolean).join(" ");
+      ].filter(Boolean).join(" ") + dollars(fullCost);
       $("note").textContent = "";
       setButtons();
       return;
@@ -257,7 +266,7 @@ async function requote(): Promise<void> {
       hours ? `It stops after ${hours} hours if it isn't done.` : "",
     ];
     // numbers and names here come from the server's normalized spec or our own constants
-    $("summary").innerHTML = parts.filter(Boolean).join(" ");
+    $("summary").innerHTML = parts.filter(Boolean).join(" ") + dollars(fullCost);
     $("note").textContent = "";
   } catch (err) {
     if (n !== quoting) return;
@@ -280,10 +289,10 @@ async function rpc(method: string, params: unknown[]): Promise<any> {
 const word = (v: bigint | string) => (typeof v === "string" ? v.replace(/^0x/, "").toLowerCase().padStart(64, "0") : v.toString(16).padStart(64, "0"));
 
 /** Hand the transaction to the server until the chain it reads has it too. */
-async function confirmPayment(order: string, tx: string): Promise<Order> {
+async function confirmPayment(order: string, tx: string, chain?: "base"): Promise<Order> {
   for (let i = 0; ; i++) {
     try {
-      const o = await api(API, `/api/orders/${order}/pay`, null, { tx });
+      const o = await api(API, `/api/orders/${order}/pay`, null, { tx, chain });
       store.set(null);
       return o;
     } catch (err) {
@@ -307,8 +316,9 @@ async function signed(order: string, action: "fund" | "stop"): Promise<Order> {
 const started = (o: Order) =>
   o.status === "done" ? "Done ✓ Your results are below." : o.status === "ended" ? `Ended (${o.end_reason}).` : "Running ✓ Miners are on it; results fill in below.";
 
-async function order(fromBalance: boolean): Promise<void> {
-  const buttons = [$<HTMLButtonElement>("buy"), $<HTMLButtonElement>("use-balance")];
+async function order(method: "flyai" | "usdc" | "balance"): Promise<void> {
+  const buttons = [$<HTMLButtonElement>("buy"), $<HTMLButtonElement>("buy-usdc"), $<HTMLButtonElement>("use-balance")];
+  $("usdc-help").hidden = true;
   buttons.forEach((b) => { b.disabled = true; });
   $("tx").removeAttribute("data-standing");
   try {
@@ -328,8 +338,10 @@ async function order(fromBalance: boolean): Promise<void> {
       $("key").hidden = false;
     }
     let result: Order;
-    if (fromBalance) {
+    if (method === "balance") {
       result = await signed(created.id, "fund");
+    } else if (method === "usdc") {
+      result = await payWithUsdc(created, (text) => { $("tx").textContent = text; }, $("usdc-help"));
     } else {
       const amount = BigInt(created.budget_wei);
       const held = BigInt(await rpc("eth_call", [{ to: config.token, data: `0x70a08231${word(account)}` }, "latest"]));
@@ -342,6 +354,7 @@ async function order(fromBalance: boolean): Promise<void> {
       await mined(tx).catch(() => {}); // the server's own read of the chain decides
       result = await confirmPayment(created.id, tx);
     }
+    if (result.status === "unpaid" || result.status === "expired") throw new Error("the USDC arrived, but at today's price it no longer covers the order; it's in your balance, so pay from the balance or add a little more");
     $("tx").dataset.standing = "ok";
     $("tx").textContent = started(result);
   } catch (err) {
@@ -351,6 +364,89 @@ async function order(fromBalance: boolean): Promise<void> {
     await listOrders().catch(() => {});
     setButtons();
   }
+}
+
+// ---- USDC (card buyers) --------------------------------------------------------------------------------------
+let flyaiUsd = 0;
+const usd = (n: number) => (n >= 1 ? `$${n.toFixed(2)}` : `$${n.toPrecision(2)}`);
+/** " (about $X)" after a $FLYAI amount, once the price is known */
+const dollars = (tokens: number) => (flyaiUsd && tokens ? ` That's about <b>${usd(tokens * flyaiUsd)}</b>${config.usdc ? ", payable in USDC" : ""}.` : "");
+
+async function rpcOn(url: string, method: string, params: unknown[]): Promise<any> {
+  const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+  const body = await res.json();
+  if (body.error) throw new Error(body.error.message ?? "RPC error");
+  return body.result;
+}
+
+/** Where to get USDC: the configured onramp, or plain directions, with the address to send it to. */
+function usdcHelp(box: HTMLElement, wallet: string, amount: string): void {
+  const u = config.usdc!;
+  box.replaceChildren();
+  const lead = document.createElement("b");
+  lead.textContent = `You need ${amount} USDC on ${u.chain_name} in your wallet.`;
+  box.append(lead, " ");
+  if (u.onramp_url) {
+    const a = document.createElement("a");
+    a.href = u.onramp_url.replaceAll("{wallet}", wallet).replaceAll("{amount}", String(Math.ceil(Number(amount) * 100) / 100));
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.className = "btn sm";
+    a.textContent = "Buy USDC with a card";
+    box.append(a, " Then come back and pay again.");
+  } else {
+    box.append(`Buy USDC with a card in an app like Coinbase or an exchange, and send (withdraw) it on the ${u.chain_name} network to your wallet address below. Then press Pay with USDC again. You don't need ETH for fees: we pay them.`);
+  }
+  const row = document.createElement("div");
+  row.className = "ca";
+  const code = document.createElement("code");
+  code.textContent = wallet;
+  const copy = document.createElement("button");
+  copy.type = "button";
+  copy.className = "btn sm";
+  copy.textContent = "Copy";
+  copy.addEventListener("click", () => void navigator.clipboard.writeText(wallet).then(() => { copy.textContent = "Copied"; }));
+  row.append(code, copy);
+  box.append(row);
+  box.hidden = false;
+}
+
+/**
+ * Pay an order in USDC: a price quote, then (when the server relays) a free signature that the server sends and pays
+ * the gas for, or else an ordinary USDC transfer. Credited in $FLYAI at the quoted price.
+ */
+async function payWithUsdc(o: Order, say: (text: string) => void, help: HTMLElement): Promise<Order> {
+  const u = config.usdc!;
+  const wallet = account!;
+  say("getting the USDC price…");
+  const q: UsdcQuote = await api(API, `/api/orders/${o.id}/usdc`, null, {});
+  const held = BigInt(await rpcOn(u.rpc, "eth_call", [{ to: u.token, data: `0x70a08231${word(wallet)}` }, "latest"]));
+  if (held < BigInt(q.units)) {
+    usdcHelp(help, wallet, q.usdc);
+    throw new Error(`this wallet has ${(Number(held) / 1e6).toFixed(2)} USDC on ${u.chain_name}; the order needs ${q.usdc}. Your order is saved: pay it once the USDC arrives.`);
+  }
+  if (q.gasless) {
+    const validBefore = Math.floor(q.expires_at / 1000);
+    const nonce = `0x${Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, "0")).join("")}`;
+    const signature = await signTyped({
+      domain: q.gasless.domain,
+      types: {
+        TransferWithAuthorization: [
+          { name: "from", type: "address" }, { name: "to", type: "address" }, { name: "value", type: "uint256" },
+          { name: "validAfter", type: "uint256" }, { name: "validBefore", type: "uint256" }, { name: "nonce", type: "bytes32" },
+        ],
+      },
+      primaryType: "TransferWithAuthorization",
+      message: { from: wallet, to: q.pay_to, value: BigInt(q.units), validAfter: 0n, validBefore: BigInt(validBefore), nonce },
+    }, (text) => say(`Pay ${q.usdc} USDC: ${text}`));
+    say("sending your USDC (we pay the network fee)…");
+    return api(API, `/api/orders/${o.id}/usdc/authorize`, null, { from: wallet, value: q.units, valid_after: 0, valid_before: validBefore, nonce, signature });
+  }
+  const tx = await transact(u.token, config.transfer_selector + word(u.pay_to) + word(BigInt(q.units)), (text) => say(`Pay ${q.usdc} USDC: ${text}`), u.chain_id);
+  store.set({ order: o.id, tx, chain: "base" });
+  say("Payment sent, waiting for the chain…");
+  await mined(tx, u.chain_id).catch(() => {});
+  return confirmPayment(o.id, tx, "base");
 }
 
 /** An order someone made from code, waiting to be paid: one button, the exact transfer, then it starts. */
@@ -371,19 +467,47 @@ async function showPayCard(id: string): Promise<void> {
   card.scrollIntoView({ block: "start" });
   $("pay-title").textContent = `Pay ${fmt(o.budget)}`;
   $("pay-text").textContent = `For order ${o.id}: ${describe(o)}. Pay from ${shortAddress(o.wallet)}, the wallet it was made for. Runs that don't happen come back to your balance.`;
+  const usdcButton = $<HTMLButtonElement>("pay-usdc");
   const paid = () => {
     button.hidden = true;
+    usdcButton.hidden = true;
+    $("pay-usdc-help").hidden = true;
     status.dataset.standing = "ok";
     status.textContent = `Paid ✓ ${started(o)} You can go back to the program that made the order.`;
   };
   if (o.status !== "unpaid" && o.status !== "expired") return paid();
+  /** signed in as the order's wallet, or an error saying how to get there */
+  const orderWallet = async () => {
+    const wallet = await requireWallet();
+    if (wallet && wallet.toLowerCase() !== o.wallet.toLowerCase()) throw new Error(`you're signed in as ${shortAddress(wallet)}, but this order is for ${shortAddress(o.wallet)}: sign out and in with that wallet`);
+    return wallet;
+  };
+  if (config.usdc) {
+    usdcButton.hidden = false;
+    usdcButton.addEventListener("click", () => void (async () => {
+      usdcButton.disabled = true;
+      delete status.dataset.standing;
+      try {
+        account = await orderWallet();
+        if (!account) return;
+        o = await payWithUsdc(o, (text) => { status.textContent = text; }, $("pay-usdc-help"));
+        if (o.status === "unpaid" || o.status === "expired") throw new Error("the USDC arrived, but at today's price it no longer covers the order; it's in your balance");
+        paid();
+        await listOrders().catch(() => {});
+      } catch (err) {
+        status.dataset.standing = "zeroed";
+        status.textContent = errorText(err);
+      } finally {
+        usdcButton.disabled = false;
+      }
+    })());
+  }
   button.addEventListener("click", () => void (async () => {
     button.disabled = true;
     delete status.dataset.standing;
     try {
-      const wallet = await requireWallet();
+      const wallet = await orderWallet();
       if (!wallet) return;
-      if (wallet.toLowerCase() !== o.wallet.toLowerCase()) throw new Error(`you're signed in as ${shortAddress(wallet)}, but this order is for ${shortAddress(o.wallet)}: sign out and in with that wallet`);
       const amount = BigInt(o.budget_wei);
       const held = BigInt(await rpc("eth_call", [{ to: config.token, data: `0x70a08231${word(wallet)}` }, "latest"]));
       if (held < amount) throw new Error(`this wallet holds ${fmt(Number(held / 10n ** 14n) / 10_000)}; the order needs ${fmt(o.budget)}`);
@@ -480,6 +604,7 @@ async function listOrders(): Promise<void> {
       state.append(hook);
     }
     if (o.tx) state.append(link(`${config.explorer}/tx/${o.tx}`, "payment"));
+    if (o.usdc_payment) state.append(link(`${o.usdc_payment.explorer}/tx/${o.usdc_payment.tx}`, `paid ${o.usdc_payment.usdc} USDC`));
     return row;
   }));
   if (shown.some((o) => o.status === "live")) polling = setTimeout(() => void listOrders().catch(() => {}), 15_000);
@@ -541,7 +666,9 @@ async function boot(): Promise<void> {
     }
   });
   $("connect").addEventListener("click", () => void (account ? listOrders() : requireWallet()).catch((err) => { $("note").textContent = errorText(err); }));
-  $("buy").addEventListener("click", () => void order(false));
+  $("buy").addEventListener("click", () => void order("flyai"));
+  $("buy-usdc").addEventListener("click", () => void order("usdc"));
+  if (config.usdc) void api(API, "/api/price", null).then((p) => { flyaiUsd = p.flyai_usd; changed(); }, () => {});
   $("key-copy").addEventListener("click", () => void navigator.clipboard.writeText($("key-value").textContent ?? "").then(() => { $("key-copy").textContent = "Copied"; }));
 
   // your own program
@@ -589,7 +716,7 @@ async function boot(): Promise<void> {
   input("timeout").addEventListener("input", speedLabels);
   for (const id of ["count", "timeout", "redundancy", "dispatch-x", "dispatch-y", "dispatch-z", "output-bytes", "tolerance", "keep-open"]) $(id).addEventListener("input", changed);
   $("secret-copy").addEventListener("click", () => void navigator.clipboard.writeText($("secret-value").textContent ?? "").then(() => { $("secret-copy").textContent = "Copied"; }));
-  $("use-balance").addEventListener("click", () => void order(true));
+  $("use-balance").addEventListener("click", () => void order("balance"));
 
   press("modes", "brain");
   pickPreset("escape");
@@ -604,7 +731,7 @@ async function boot(): Promise<void> {
   const pending = store.get();
   if (pending) {
     $("tx").textContent = "Finishing a payment sent earlier…";
-    confirmPayment(pending.order, pending.tx).then(
+    confirmPayment(pending.order, pending.tx, pending.chain).then(
       (o) => { $("tx").dataset.standing = "ok"; $("tx").textContent = `Earlier payment confirmed. ${started(o)}`; },
       (err) => { store.set(null); $("tx").dataset.standing = "zeroed"; $("tx").textContent = `An earlier payment couldn't be matched: ${errorText(err)}`; },
     );

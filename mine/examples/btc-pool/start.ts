@@ -139,7 +139,7 @@ function openingInput(): Buffer {
 async function waitForPayment(setup: Setup): Promise<void> {
   const url = `${SITE}/compute/jobs?pay=${setup.order}`;
   say(bold("\n4. Pay"));
-  say("Opening the payment page in your browser. Sign in with the wallet above and press Pay.");
+  say("Opening the payment page in your browser. Sign in with the wallet above and press Pay: with $FLYAI, or with USDC on Base if you bought it with a card.");
   say(`If it doesn't open, copy this link into your browser:\n  ${url}`);
   openInBrowser(url);
   say("\nWaiting for the payment… (leave this window open)");

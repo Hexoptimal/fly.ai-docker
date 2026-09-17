@@ -20,8 +20,8 @@ header counts only there, and changing the coinbase changes the header.
 
 ## Easy setup (no coding)
 
-You need a computer that stays on while mining, a Bitcoin address or a pool account, and a wallet on Robinhood
-Chain (MetaMask or Rabby) with some $FLYAI in it.
+You need a computer that stays on while mining, a Bitcoin address or a pool account, and a wallet (MetaMask or
+Rabby) with some $FLYAI on Robinhood Chain, or USDC on Base bought with a card.
 
 1. **Install Node.js:** download the LTS version from [nodejs.org](https://nodejs.org) and install it.
 2. **Download this example:** on [the GitHub page](https://github.com/alextitonis/fly.ai), press **Code → Download
@@ -37,8 +37,8 @@ Chain (MetaMask or Rabby) with some $FLYAI in it.
    - **Jobs:** how many to buy. It shows the price per job first.
 
    It checks that the pool answers before anything costs money.
-5. **Pay:** your browser opens the payment page. Press **Pay**, sign in with the same wallet, and confirm in the
-   wallet. The window notices the payment and starts mining.
+5. **Pay:** your browser opens the payment page. Press **Pay with $FLYAI** or **Pay with USDC**, sign in with the
+   same wallet, and confirm in the wallet. With USDC it's a free signature: no gas needed. The window notices the payment and starts mining.
 6. **Keep the window open:** shares found and accepted show up there. Close it or press Ctrl+C to stop.
 
 Start it again later and it picks up the same order. When the order runs out, it offers to make a new one. What

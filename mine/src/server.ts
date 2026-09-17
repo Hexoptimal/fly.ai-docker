@@ -45,6 +45,7 @@ import {
   f32Agree, HASH as BLOB_HASH, houseJob, houseSpec, houseUnits, INDEX_INPUT, isOpenKind, isProgramKind, MAX_OUTPUT_BYTES, openMinBid, openSpec, type OpenSpec,
 } from "./orders.ts";
 import { inspectWasm, inspectWgsl, WasmError } from "./wasmcheck.ts";
+import { Relayer, tokenDomain, transferWithAuthorizationData } from "./relay.ts";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const WORLD_SRC = fileURLToPath(new URL("../../world/src/", import.meta.url));
@@ -95,6 +96,29 @@ const BLOB_TTL_MS = Number(env("BLOB_TTL_DAYS", "14")) * 86_400_000;
 const WEBHOOK_ALLOW_INTERNAL = !!process.env.WEBHOOK_ALLOW_INTERNAL;
 /** Paid orders (src/orders.ts): off until PAY_TO is set. */
 const ORDERS = orderConfig(process.env, STAKING.token);
+/**
+ * Paying for orders in USDC on Base, for buyers who start from a card (an onramp sells them USDC). The USDC goes to
+ * PAY_TO on Base; the order is credited the $FLYAI it buys at the live price (the lower of GeckoTerminal and
+ * DexScreener, no margin), so charges, the pool and miners' pay stay in $FLYAI. The operator funds the pool by hand.
+ */
+const USDC = {
+  enabled: env("USDC_PAYMENTS", "1") !== "0",
+  chain_id: Number(env("USDC_CHAIN_ID", "8453")),
+  chain_name: env("USDC_CHAIN_NAME", "Base"),
+  rpc: env("USDC_RPC", "https://mainnet.base.org"),
+  explorer: env("USDC_EXPLORER", "https://basescan.org"),
+  token: env("USDC_TOKEN", "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"),
+  quoteMs: Number(env("USDC_QUOTE_MIN", "30")) * 60_000,
+  /** tests: a fixed $FLYAI price in USD instead of the live feeds */
+  fixedPrice: process.env.FLYAI_USD_PRICE ?? null,
+  /**
+   * A link where a card buyer gets USDC on this chain ({wallet} and {amount} are filled in), from an onramp provider's
+   * dashboard. Without it the page explains where to buy USDC and which address to send it to.
+   */
+  onrampUrl: process.env.USDC_ONRAMP_URL ?? null,
+};
+/** Gasless USDC (src/relay.ts): with RELAYER_KEY set, buyers sign and this wallet sends the transfer and pays gas. */
+const relayer = process.env.RELAYER_KEY ? new Relayer(process.env.RELAYER_KEY, USDC.rpc) : null;
 
 // ---- the job grid ------------------------------------------------------------------------------------
 // A sensory -> motor screen: each visual/touch channel on each side at four strengths, across global gain
@@ -123,7 +147,7 @@ function round(r: number): TaskParams[] {
 }
 
 // ---- storage -----------------------------------------------------------------------------------------
-const SCHEMA = 10; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions; created below for new and old databases alike
+const SCHEMA = 11; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions, 11 USDC payments; created below for new and old databases alike
 mkdirSync(dirname(DB_PATH), { recursive: true });
 const db = new DatabaseSync(DB_PATH);
 const version = (db.prepare("pragma user_version").get() as { user_version: number }).user_version;
@@ -225,6 +249,25 @@ db.exec(`
     created_at integer not null,
     expires_at integer not null
   );
+  -- USDC on Base: an order's price in USDC, fixed for USDC_QUOTE_MIN; units end in a tag so a transfer matches one quote
+  create table if not exists usdc_quotes (
+    order_id text primary key,
+    units text not null,              -- micro-USDC (6 decimals)
+    price_e18 text not null,          -- USD per $FLYAI, times 1e18
+    created_at integer not null,
+    expires_at integer not null
+  );
+  create table if not exists usdc_payments (
+    tx text primary key,              -- on Base
+    order_id text not null,
+    wallet text not null,
+    units text not null,
+    price_e18 text not null,          -- the price the $FLYAI credit used
+    flyai_wei text not null,          -- credited to the wallet's balance, then (usually) the order
+    month text not null,
+    at integer not null
+  );
+  create index if not exists usdc_payments_by_month on usdc_payments (month);
   -- a closed month's payout: the pool the operator chose, split by points, committed to by a Merkle root
   create table if not exists snapshots (
     month text primary key,           -- YYYY-MM
@@ -1038,6 +1081,7 @@ function month(m: string) {
     ends_at: ends.toISOString(), days_left: closed ? 0 : Math.max(0, Math.ceil((ends.getTime() - Date.now()) / 86_400_000)),
     announced_pool: announcedPool(m),
     buyer_pool: fromWei(buyerPoolWei(m)),
+    ...usdcMonth(m),
     wallets: ranking(m),
     snapshot: snap ? { pool: fromWei(BigInt(snap.pool_wei)), root: snap.root, created_at: snap.created_at } : null,
   };
@@ -1368,6 +1412,11 @@ function orderConfigView() {
     kinds: ["connectome-sweep", "wasm", "wgsl"],
     programs: { blob_max_bytes: BLOB_MAX_BYTES, max_timeout_s: 600, max_output_bytes: MAX_OUTPUT_BYTES, max_redundancy: 5, blob_ttl_days: BLOB_TTL_MS / 86_400_000 },
     chain_id: CLAIMS.chain_id, chain_name: CLAIMS.chain_name, rpc: CLAIMS.rpc, explorer: CLAIMS.explorer, token_symbol: CLAIMS.token_symbol,
+    // card buyers: USDC on Base through an onramp, credited in $FLYAI at the live price (POST /api/orders/:id/usdc)
+    usdc: USDC.enabled && ORDERS.payTo
+      ? { chain_id: USDC.chain_id, chain_name: USDC.chain_name, rpc: USDC.rpc, explorer: USDC.explorer, token: USDC.token, decimals: 6, pay_to: ORDERS.payTo,
+        gasless: !!relayer, onramp_url: USDC.onrampUrl }
+      : null,
   };
 }
 
@@ -1577,6 +1626,10 @@ function order(id: string) {
     returned: o.status === "done" || o.status === "ended" ? fromWei(budget - spent) : null,
     max_parallel: o.max_parallel, hours: o.hours,
     pay_to: ORDERS.payTo, token: ORDERS.token, tx: o.tx,
+    usdc_payment: (() => {
+      const u = one<{ tx: string; units: string; flyai_wei: string } | undefined>("select tx, units, flyai_wei from usdc_payments where order_id = ? order by at limit 1", id);
+      return u ? { tx: u.tx, usdc: usdcText(BigInt(u.units)), flyai: fromWei(BigInt(u.flyai_wei)), explorer: USDC.explorer } : null;
+    })(),
     created_at: o.created_at, expires_at: o.expires_at, funded_at: o.funded_at, ends_at: o.ends_at, closed_at: o.closed_at,
     last_seq: one<{ s: number | null }>("select max(seq) as s from order_tasks where order_id = ? and state = 2", id).s ?? 0,
     kind: JSON.parse(o.spec).kind as string,
@@ -1594,6 +1647,8 @@ async function payOrder(id: string, body: any) {
   ordersOn();
   const tx = String(body.tx ?? "").toLowerCase();
   if (!/^0x[0-9a-f]{64}$/.test(tx)) throw new HttpError(400, "tx is a transaction hash");
+  if (body.chain === "base") return payUsdc(id, tx);
+  if (body.chain !== undefined && body.chain !== "robinhood") throw new HttpError(400, "chain is robinhood ($FLYAI) or base (USDC)");
   const o = orderRow(id);
   if (!o) throw new HttpError(404, "no such order");
   const used = one<{ order_id: string | null } | undefined>("select order_id from ledger where tx = ?", tx);
@@ -1625,8 +1680,181 @@ async function payOrder(id: string, body: any) {
   return order(id);
 }
 
+// ---- USDC on Base -------------------------------------------------------------------------------------------
+const usdcOn = () => {
+  ordersOn();
+  if (!USDC.enabled) throw new HttpError(503, "USDC payments are off");
+};
+const E30 = 10n ** 30n;
+let priceCache: { e18: bigint; usd: number; at: number } | null = null;
+
+/** $FLYAI in USD: the lower of GeckoTerminal and DexScreener (whichever answer), cached a minute. */
+async function flyaiPrice(): Promise<{ e18: bigint; usd: number }> {
+  if (USDC.fixedPrice) return { usd: Number(USDC.fixedPrice), e18: BigInt(Math.round(Number(USDC.fixedPrice) * 1e18)) };
+  if (priceCache && Date.now() - priceCache.at < 60_000) return priceCache;
+  const token = STAKING.token.toLowerCase();
+  const get = (url: string) => fetch(url, { signal: AbortSignal.timeout(8_000), headers: { accept: "application/json" } }).then((r) => r.json());
+  const feeds = await Promise.allSettled([
+    get(`https://api.geckoterminal.com/api/v2/simple/networks/robinhood/token_price/${token}`)
+      .then((j) => Number(j.data.attributes.token_prices[token])),
+    get(`https://api.dexscreener.com/tokens/v1/robinhood/${token}`)
+      .then((pairs: { baseToken: { address: string }; priceUsd?: string; liquidity?: { usd?: number } }[]) => {
+        // the most liquid pair where $FLYAI is the priced token
+        const best = pairs.filter((p) => p.baseToken.address.toLowerCase() === token && p.priceUsd)
+          .sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0))[0];
+        return Number(best?.priceUsd);
+      }),
+  ]);
+  const prices = feeds.flatMap((f) => (f.status === "fulfilled" && Number.isFinite(f.value) && f.value > 0 ? [f.value] : []));
+  if (!prices.length) throw new HttpError(503, "couldn't read the $FLYAI price just now; try again in a minute");
+  const usd = Math.min(...prices);
+  priceCache = { usd, e18: BigInt(Math.round(usd * 1e18)), at: Date.now() };
+  return priceCache;
+}
+
+const usdcText = (units: bigint) => `${units / 1_000_000n}.${(units % 1_000_000n).toString().padStart(6, "0")}`;
+
+/** POST /api/orders/:id/usdc: the order's budget in USDC at today's price, held for USDC_QUOTE_MIN. */
+async function usdcQuote(id: string) {
+  usdcOn();
+  const o = orderRow(id);
+  if (!o) throw new HttpError(404, "no such order");
+  if (o.status !== "unpaid" && o.status !== "expired") throw new HttpError(409, `the order is already ${o.status}`);
+  const price = await flyaiPrice();
+  const base = (BigInt(o.budget_wei) * price.e18 + E30 - 1n) / E30; // micro-USDC, rounded up
+  const now = Date.now();
+  const taken = new Set((db.prepare("select units from usdc_quotes where expires_at > ? and order_id <> ?").all(now, id) as { units: string }[]).map((q) => q.units));
+  let units = 0n;
+  for (let i = 0; i < 50; i++) {
+    const candidate = base + BigInt(1 + Math.floor(Math.random() * 999)); // under a tenth of a cent
+    if (!taken.has(candidate.toString())) { units = candidate; break; }
+  }
+  if (!units) throw new HttpError(503, "too many USDC payments waiting; try again in a minute");
+  db.prepare(`insert into usdc_quotes (order_id, units, price_e18, created_at, expires_at) values (?, ?, ?, ?, ?)
+    on conflict (order_id) do update set units = excluded.units, price_e18 = excluded.price_e18, created_at = excluded.created_at, expires_at = excluded.expires_at`)
+    .run(id, units.toString(), price.e18.toString(), now, now + USDC.quoteMs);
+  return {
+    order: id, usdc: usdcText(units), units: units.toString(), flyai: fromWei(BigInt(o.budget_wei)), flyai_usd: price.usd,
+    expires_at: now + USDC.quoteMs, pay_to: ORDERS.payTo, token: USDC.token, chain_id: USDC.chain_id, chain_name: USDC.chain_name,
+    // gasless: sign TransferWithAuthorization with this EIP-712 domain, then POST it to /api/orders/:id/usdc/authorize
+    gasless: relayer ? { domain: { ...(await usdcDomain()), chainId: USDC.chain_id, verifyingContract: USDC.token } } : null,
+  };
+}
+
+let domainCache: { name: string; version: string } | null = null;
+async function usdcDomain() {
+  domainCache ??= await tokenDomain(USDC.rpc, USDC.token).catch((err) => {
+    throw new HttpError(502, `couldn't read the USDC contract: ${err instanceof Error ? err.message : err}`);
+  });
+  return domainCache;
+}
+
+const relaying = new Set<string>();
+
+/**
+ * POST /api/orders/:id/usdc/authorize {from, value, valid_after, valid_before, nonce, signature}: the buyer's signed
+ * EIP-3009 authorization for the quoted USDC. The relayer sends it (paying the gas), then it's matched like any
+ * USDC payment. It's simulated first, so a bad signature or too little USDC costs nothing.
+ */
+async function authorizeUsdc(id: string, body: any) {
+  usdcOn();
+  if (!relayer) throw new HttpError(503, "gasless USDC payments are off; send the USDC transfer yourself");
+  const o = orderRow(id);
+  if (!o) throw new HttpError(404, "no such order");
+  if (o.status !== "unpaid" && o.status !== "expired") return order(id);
+  const q = one<{ units: string } | undefined>("select units from usdc_quotes where order_id = ?", id);
+  if (!q) throw new HttpError(409, "ask for a USDC price first (POST /api/orders/:id/usdc)");
+  const from = typeof body.from === "string" && ADDRESS.test(body.from) ? checksumAddress(body.from) : "";
+  const now = Math.floor(Date.now() / 1000);
+  const validAfter = Number(body.valid_after);
+  const validBefore = Number(body.valid_before);
+  if (from !== o.wallet) throw new HttpError(400, "the authorization must come from the order's wallet");
+  if (String(body.value) !== q.units) throw new HttpError(400, `the authorization must be for exactly ${usdcText(BigInt(q.units))} USDC`);
+  if (!Number.isSafeInteger(validAfter) || validAfter < 0 || validAfter >= now) throw new HttpError(400, "valid_after must be in the past (0 is fine)");
+  if (!Number.isSafeInteger(validBefore) || validBefore < now + 120 || validBefore > now + 86_400) throw new HttpError(400, "valid_before is 2 minutes to a day from now");
+  if (typeof body.nonce !== "string" || !/^0x[0-9a-fA-F]{64}$/.test(body.nonce)) throw new HttpError(400, "nonce is 32 bytes of hex");
+  if (typeof body.signature !== "string" || !/^0x[0-9a-fA-F]{130}$/.test(body.signature)) throw new HttpError(400, "signature is 65 bytes of hex");
+  if (relaying.has(id)) throw new HttpError(409, "a payment for this order is already being sent; wait a moment");
+  relaying.add(id);
+  try {
+    const data = transferWithAuthorizationData({
+      from, to: ORDERS.payTo!, value: BigInt(q.units), validAfter: BigInt(validAfter), validBefore: BigInt(validBefore), nonce: body.nonce, signature: body.signature,
+    });
+    let hash: string;
+    try {
+      hash = await relayer.send(USDC.token, data);
+    } catch (err) {
+      const reverted = (err as { reverted?: boolean }).reverted;
+      throw new HttpError(reverted ? 400 : 502, reverted
+        ? `the USDC transfer wouldn't go through: check the wallet holds ${usdcText(BigInt(q.units))} USDC on ${USDC.chain_name} and sign again`
+        : `couldn't send the transfer: ${err instanceof Error ? err.message : err}`);
+    }
+    return await payUsdc(id, hash.toLowerCase());
+  } finally {
+    relaying.delete(id);
+  }
+}
+
+/**
+ * POST /api/orders/:id/pay {tx, chain: "base"}: a USDC transfer of exactly the quoted amount, from the order's wallet
+ * to PAY_TO, sent after the quote. Its $FLYAI goes to the wallet's balance and funds the order. Paid after the quote
+ * ran out, the credit uses the price at that moment instead, and if that no longer covers the budget it waits in
+ * the balance.
+ */
+async function payUsdc(id: string, tx: string) {
+  usdcOn();
+  const o = orderRow(id);
+  if (!o) throw new HttpError(404, "no such order");
+  const ledgerTx = `base:${tx}`;
+  const used = one<{ order_id: string } | undefined>("select order_id from usdc_payments where tx = ?", tx);
+  if (used) {
+    if (used.order_id === id) return order(id);
+    throw new HttpError(409, "that transaction already paid another order");
+  }
+  const q = one<{ units: string; price_e18: string; created_at: number; expires_at: number } | undefined>("select * from usdc_quotes where order_id = ?", id);
+  if (!q) throw new HttpError(409, "ask for a USDC price first (POST /api/orders/:id/usdc)");
+  let transfers;
+  try {
+    transfers = await transfersIn(USDC.rpc, tx, USDC.token, ORDERS.payTo!);
+  } catch (err) {
+    throw new HttpError(502, `couldn't read ${USDC.chain_name}: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  if (!transfers) throw new HttpError(409, "that transaction isn't mined yet; try again in a few seconds");
+  const units = BigInt(q.units);
+  const match = transfers.find((t) => t.from === o.wallet && t.value === units && t.at >= q.created_at - 120_000);
+  if (!match) {
+    throw new HttpError(402, transfers.length
+      ? `that transaction doesn't pay exactly ${usdcText(units)} USDC from ${o.wallet}`
+      : `that transaction sends no USDC to ${ORDERS.payTo} on ${USDC.chain_name}`);
+  }
+  const priceE18 = match.at <= q.expires_at ? BigInt(q.price_e18) : (await flyaiPrice()).e18;
+  const wei = (units * E30) / priceE18;
+  transaction(() => {
+    if (one("select 1 from usdc_payments where tx = ?", tx)) throw new HttpError(409, "that transaction was just used");
+    book(o.wallet, id, "deposit", wei, { tx: ledgerTx });
+    db.prepare("insert into usdc_payments (tx, order_id, wallet, units, price_e18, flyai_wei, month, at) values (?, ?, ?, ?, ?, ?, ?, ?)")
+      .run(tx, id, o.wallet, units.toString(), priceE18.toString(), wei.toString(), thisMonth(), Date.now());
+    db.prepare("delete from usdc_quotes where order_id = ?").run(id);
+    const now = orderRow(id)!;
+    const budget = BigInt(now.budget_wei);
+    if ((now.status !== "unpaid" && now.status !== "expired") || balanceOf(now.wallet) < budget) return; // kept as balance
+    book(now.wallet, id, "fund", budget);
+    start(now, null);
+  });
+  console.log(`order ${id.slice(0, 8)}: ${usdcText(units)} USDC on ${USDC.chain_name} -> ${fromWei(wei)} FLYAI`);
+  return order(id);
+}
+
+/** A month's USDC: what came in, and the part of the buyers' pool that came from USDC-paid orders. */
+function usdcMonth(m: string) {
+  const received = (db.prepare("select units from usdc_payments where month = ?").all(m) as { units: string }[]).reduce((s, r) => s + BigInt(r.units), 0n);
+  const pool = (db.prepare(`select l.pool_wei from ledger l where l.kind = 'charge' and l.month = ?
+    and l.order_id in (select order_id from usdc_payments)`).all(m) as { pool_wei: string }[]).reduce((s, r) => s + BigInt(r.pool_wei), 0n);
+  return { usdc_received: usdcText(received), buyer_pool_from_usdc: fromWei(pool) };
+}
+
 // wallet signatures for spending a balance or stopping an order
-const intents = new Map<string, { order: string; action: "fund" | "stop"; message: string; expires: number }>();
+const intents =new Map<string, { order: string; action: "fund" | "stop"; message: string; expires: number }>();
 
 function intent(id: string, body: any) {
   const o = orderRow(id);
@@ -2274,6 +2502,7 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     }
     if (p === "/api/claims") return send(res, 200, claimsFor(url.searchParams.get("wallet") ?? ""));
     if (p === "/api/orders/config") return send(res, 200, orderConfigView());
+    if (p === "/api/price") return send(res, 200, { flyai_usd: (await flyaiPrice()).usd, sources: USDC.fixedPrice ? "fixed" : "lower of GeckoTerminal and DexScreener" });
     if ((m = /^\/api\/blobs\/([0-9a-f]{64})$/.exec(p))) return serveBlob(res, m[1]);
     if (p === "/api/balance") return send(res, 200, balanceView(url.searchParams.get("wallet") ?? ""));
     if (p === "/api/orders") return send(res, 200, ordersOf(url.searchParams.get("wallet") ?? ""));
@@ -2293,6 +2522,10 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     if (p === "/api/admin/orders") {
       adminOnly(req);
       return send(res, 200, adminOrders());
+    }
+    if (p === "/api/admin/relayer") {
+      adminOnly(req);
+      return send(res, 200, relayer ? { address: relayer.address, chain: USDC.chain_name, gas_wei: (await relayer.balance()).toString() } : { address: null });
     }
     if (p === "/api/house") return send(res, 200, houseOrdersView());
     if ((m = /^\/connectome\/(brain\.json|meta\.bin|weights\.\d+\.bin)$/.exec(p))) return serveFile(res, join(CONNECTOME_DIR, m[1]), 3600);
@@ -2314,6 +2547,8 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     if (p === "/api/orders/quote") return send(res, 200, quote(await readJson(req, 4_000_000)));
     if (p === "/api/orders") return send(res, 200, await createOrder(req, await readJson(req, 4_000_000)));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/pay$/.exec(p))) return send(res, 200, await payOrder(m[1], await readJson(req)));
+    if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/usdc$/.exec(p))) return send(res, 200, await usdcQuote(m[1]));
+    if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/usdc\/authorize$/.exec(p))) return send(res, 200, await authorizeUsdc(m[1], await readJson(req)));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/intent$/.exec(p))) return send(res, 200, intent(m[1], await readJson(req)));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/(fund|stop)$/.exec(p))) return send(res, 200, signedAction(m[1], m[2] as "fund" | "stop", await readJson(req), req));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/jobs$/.exec(p))) return send(res, 200, appendJobs(req, m[1], await readJson(req, 4_000_000)));

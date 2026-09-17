@@ -35,6 +35,18 @@ async function load(): Promise<void> {
   $("days-label").textContent = data.closed ? new Date(data.ends_at).toLocaleDateString("en-US", { timeZone: "UTC" }) : "days left";
   const pool = data.snapshot?.pool ?? data.announced_pool;
   $("pool").textContent = pool ? fmt(Number(pool), 0) : "not set";
+  // before the snapshot the pool is the announcement plus the buyers' part, which grows as orders are charged
+  const buyers = Number(data.buyer_pool ?? 0);
+  $("pool-parts").hidden = !!data.snapshot || buyers <= 0;
+  if (!data.snapshot && buyers > 0) {
+    const announced = Number(data.announced_pool ?? 0) - buyers;
+    const fromUsdc = Number(data.buyer_pool_from_usdc ?? 0);
+    $("pool-parts").textContent = [
+      `Pool: ${announced > 0 ? `${fmt(announced, 0)} announced + ` : ""}${fmt(buyers, 0)} from buyers' orders`,
+      fromUsdc > 0 ? ` (${fmt(fromUsdc, 0)} of it from orders paid in USDC, ${Number(data.usdc_received).toLocaleString("en-US", { maximumFractionDigits: Number(data.usdc_received) < 1 ? 6 : 2 })} USDC received)` : "",
+      ". It grows as orders run.",
+    ].join("");
+  }
 
   let mine: string | null = signedIn();
   try {
@@ -70,3 +82,5 @@ async function load(): Promise<void> {
 
 mountAccount();
 void load();
+// the pool grows as buyers' orders are charged: keep this month's numbers current
+setInterval(() => { if (!document.hidden) void load().catch(() => {}); }, 60_000);

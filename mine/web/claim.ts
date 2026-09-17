@@ -46,16 +46,7 @@ async function load(): Promise<void> {
     link.href = `${claims.explorer}/address/${claims.contract}#code`;
     link.textContent = claims.contract;
   }
-  const mine = current.wallets.find((w: { wallet: string }) => w.wallet.toLowerCase() === account!.toLowerCase());
-  const ends = `ends in ${current.days_left} day${current.days_left === 1 ? "" : "s"}`;
-  $("this-month").textContent = mine
-    ? [
-      `${fmt(mine.points)} points · ${(mine.share * 100).toFixed(2)}%`,
-      `#${mine.rank} of ${current.wallets.length}`,
-      current.announced_pool ? `≈ ${fmt(Number(current.announced_pool) * mine.share)} $FLYAI at this share` : null,
-      ends,
-    ].filter(Boolean).join(" · ")
-    : `no points in ${current.month} yet · ${ends}`;
+  showMonth(current);
 
   if (!claims.claims.length) {
     $("note").textContent = "Nothing to claim yet. A month becomes claimable after it ends and its pool is set.";
@@ -73,6 +64,20 @@ async function load(): Promise<void> {
     void showState(c, row.querySelector(".state") as HTMLElement);
     return row;
   }));
+}
+
+/** The running month for this wallet: points, rank, and its share of the pool as it stands (buyers' orders grow it). */
+function showMonth(current: { month: string; days_left: number; announced_pool: string | null; wallets: { wallet: string; points: number; share: number; rank: number }[] }): void {
+  const mine = current.wallets.find((w) => w.wallet.toLowerCase() === account!.toLowerCase());
+  const ends = `ends in ${current.days_left} day${current.days_left === 1 ? "" : "s"}`;
+  $("this-month").textContent = mine
+    ? [
+      `${fmt(mine.points)} points · ${(mine.share * 100).toFixed(2)}%`,
+      `#${mine.rank} of ${current.wallets.length}`,
+      current.announced_pool ? `≈ ${fmt(Number(current.announced_pool) * mine.share)} $FLYAI at this share` : null,
+      ends,
+    ].filter(Boolean).join(" · ")
+    : `no points in ${current.month} yet · ${ends}`;
 }
 
 async function showState(c: Claim, el: HTMLElement): Promise<void> {
@@ -142,3 +147,5 @@ onAccount((wallet) => {
   }
 });
 $("connect").addEventListener("click", () => void (account ? load() : requireWallet()));
+// this month's pool grows as buyers' orders are charged
+setInterval(() => { if (account && !document.hidden) void api(API, "/api/month", null).then(showMonth, () => {}); }, 60_000);

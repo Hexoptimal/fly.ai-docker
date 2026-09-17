@@ -152,6 +152,32 @@ Payment errors:
 - **402:** the transaction doesn't send exactly `budget_wei` from the order's wallet to `pay_to`.
 - **409:** the transaction isn't mined yet, or it already paid another order.
 
+## Paying in USDC on Base
+
+For buyers who start from a card: buy USDC on Base (any app or exchange), then pay the order with it. The
+order still runs in $FLYAI: the USDC is credited at the live $FLYAI price.
+
+```ts
+const q = await post(`/api/orders/${id}/usdc`, {});   // {usdc, units, expires_at, pay_to, token, gasless}
+// a) gasless (when q.gasless is set): sign, and the server sends the transfer and pays the gas
+const validBefore = Math.floor(q.expires_at / 1000);
+const nonce = `0x${crypto.randomBytes(32).toString("hex")}`;
+const signature = await wallet.signTypedData({
+  domain: q.gasless.domain,
+  types: { TransferWithAuthorization: [
+    { name: "from", type: "address" }, { name: "to", type: "address" }, { name: "value", type: "uint256" },
+    { name: "validAfter", type: "uint256" }, { name: "validBefore", type: "uint256" }, { name: "nonce", type: "bytes32" }] },
+  primaryType: "TransferWithAuthorization",
+  message: { from: wallet.account.address, to: q.pay_to, value: BigInt(q.units), validAfter: 0n, validBefore: BigInt(validBefore), nonce },
+});
+await post(`/api/orders/${id}/usdc/authorize`, { from: wallet.account.address, value: q.units, valid_after: 0, valid_before: validBefore, nonce, signature });
+// b) or send exactly q.units of USDC (6 decimals) to q.pay_to on Base yourself, then:
+await post(`/api/orders/${id}/pay`, { tx, chain: "base" });
+```
+
+The price holds until `expires_at`. Paid later, the price at that moment is used. `GET /api/price` shows the
+current $FLYAI price in USD.
+
 ## Paying from your balance, or stopping an order
 
 Both take a free signature from the order's wallet over a message the server writes. (Signed in on the
@@ -672,7 +698,10 @@ A result row for a program:
 | `GET /api/orders/config` | prices, limits, pay-to, token, live market, channels, outputs |
 | `POST /api/orders/quote {spec, bid?}` | runs, how many are already done, what the whole experiment costs at the bid |
 | `POST /api/orders {wallet, spec, bid, budget, hours?, max_parallel?, webhook?}` | a new unpaid order (with `webhook_secret` once) |
-| `POST /api/orders/:id/pay {tx}` | match the transfer and start the order |
+| `POST /api/orders/:id/pay {tx, chain?}` | match the transfer and start the order (`chain: "base"` for USDC) |
+| `POST /api/orders/:id/usdc` | the budget in USDC at the live price, held until `expires_at` |
+| `POST /api/orders/:id/usdc/authorize {from, value, valid_after, valid_before, nonce, signature}` | gasless USDC: the server sends your signed transfer |
+| `GET /api/price` | $FLYAI in USD (the lower of GeckoTerminal and DexScreener) |
 | `POST /api/orders/:id/intent {action}` | the message to sign for `fund` or `stop` |
 | `POST /api/orders/:id/fund {nonce, signature}` | pay from the wallet's balance |
 | `POST /api/orders/:id/stop {nonce, signature}` | stop; what's unspent returns to the balance |

@@ -44,7 +44,7 @@
   <div class="wrap">
     <p class="eyebrow">fly.ai compute · buy compute</p>
     <h1 id="headline">Run an experiment on the fly brain</h1>
-    <p class="lede" id="lede">Choose what the fly senses. The network plays it into the full connectome, 166,700 neurons, over and over, and hands back what its muscles and escape neurons do. You pay in $FLYAI only for runs that finish, and <span id="pool-share">most</span> of it goes to the miners.</p>
+    <p class="lede" id="lede">Choose what the fly senses. The network plays it into the full connectome, 166,700 neurons, over and over, and hands back what its muscles and escape neurons do. You pay in $FLYAI, or in USDC bought with a card, only for runs that finish, and <span id="pool-share">most</span> of it goes to the miners.</p>
     <div class="tabs">
       <a href="/compute/">Mine</a>
       <a class="on" href="/compute/jobs">Buy compute</a>
@@ -61,7 +61,8 @@
       <span class="num">PAY FOR AN ORDER</span>
       <h3 id="pay-title">Your order</h3>
       <p id="pay-text"></p>
-      <div class="cta" style="margin-top:14px"><button id="pay-btn" class="btn red" type="button">Pay</button></div>
+      <div class="cta" style="margin-top:14px"><button id="pay-btn" class="btn red" type="button">Pay with $FLYAI</button><button id="pay-usdc" class="btn red" type="button" hidden>Pay with USDC (card)</button></div>
+      <div id="pay-usdc-help" class="hint" hidden></div>
       <p id="pay-status" class="codeline" style="margin-top:14px"></p>
     </div>
     <div class="card pad">
@@ -131,9 +132,11 @@
       <div class="row"><span class="k">Wallet</span><span class="v rowbtn"><span id="account">not signed in</span><button id="connect" class="btn sm" type="button">Sign in</button></span></div>
       <div class="row" id="balance-row" hidden><span class="k">Balance</span><span class="v" id="balance">—</span></div>
       <div class="cta" style="margin-top:16px">
-        <button id="buy" class="btn red" type="button" disabled>Pay and run</button>
+        <button id="buy" class="btn red" type="button" disabled>Pay with $FLYAI</button>
+        <button id="buy-usdc" class="btn red" type="button" disabled hidden>Pay with USDC (card)</button>
         <button id="use-balance" class="btn" type="button" hidden>Pay from balance</button>
       </div>
+      <div id="usdc-help" class="hint" hidden></div>
       <p id="tx" class="codeline" style="margin-top:14px"></p>
       <div id="secret" class="hint" hidden>
         <b>Your webhook secret, shown only this once.</b> Results POSTed to your URL are signed with it. Save it now:

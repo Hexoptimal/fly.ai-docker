@@ -6,7 +6,7 @@
  */
 import {
   connect as wagmiConnect, createConfig, disconnect as wagmiDisconnect, getConnectors, http, reconnect,
-  sendTransaction, signMessage, switchChain, switchConnection, waitForTransactionReceipt, watchConnection, type Connector,
+  sendTransaction, signMessage, signTypedData, switchChain, switchConnection, waitForTransactionReceipt, watchConnection, type Connector,
 } from "@wagmi/core";
 import { injected, walletConnect } from "@wagmi/connectors";
 import { defineChain, type Hex } from "viem";
@@ -17,18 +17,22 @@ export interface Connection { address: string; chainId: number | undefined; wall
 export interface ChainInfo { chain_id: number; chain_name: string; rpc: string; explorer: string }
 
 let config: ReturnType<typeof createConfig> | null = null;
+/** the main chain ($FLYAI); others (USDC on Base) are passed by id */
 let chain: ReturnType<typeof defineChain>;
 
+const toChain = (c: ChainInfo) => defineChain({
+  id: c.chain_id,
+  name: c.chain_name,
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: { default: { http: [c.rpc] } },
+  blockExplorers: { default: { name: "Explorer", url: c.explorer } },
+});
+
 /** Once per page; resolves once a wallet connected earlier is back. Without a WalletConnect project id only wallets inside this browser are offered. */
-export async function setup(opts: { chain: ChainInfo; walletConnectProjectId?: string; url: string; icon: string }): Promise<void> {
+export async function setup(opts: { chain: ChainInfo; others?: ChainInfo[]; walletConnectProjectId?: string; url: string; icon: string }): Promise<void> {
   if (config) return;
-  chain = defineChain({
-    id: opts.chain.chain_id,
-    name: opts.chain.chain_name,
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-    rpcUrls: { default: { http: [opts.chain.rpc] } },
-    blockExplorers: { default: { name: "Explorer", url: opts.chain.explorer } },
-  });
+  chain = toChain(opts.chain);
+  const others = (opts.others ?? []).filter((c) => c.chain_id !== opts.chain.chain_id).map(toChain);
   const connectors = [injected()];
   if (opts.walletConnectProjectId) {
     connectors.push(walletConnect({
@@ -38,9 +42,9 @@ export async function setup(opts: { chain: ChainInfo; walletConnectProjectId?: s
     }) as unknown as ReturnType<typeof injected>);
   }
   config = createConfig({
-    chains: [chain],
+    chains: [chain, ...others],
     connectors,
-    transports: { [chain.id]: http(undefined, { timeout: 15_000, retryCount: 1 }) },
+    transports: Object.fromEntries([chain, ...others].map((c) => [c.id, http(undefined, { timeout: 15_000, retryCount: 1 })])),
   });
   // reconnect asks each wallet in turn and waits for its answer, and a broken extension never answers (two wallet
   // extensions wrapping each other's window.ethereum recurse forever). Don't let that hold up the page.
@@ -103,14 +107,25 @@ export async function sign(message: string): Promise<string> {
   return signMessage(cfg(), { message });
 }
 
-/** One transaction on the server's chain (the wallet is switched there first, adding the chain if it must). */
-export async function send(to: string, data: string): Promise<string> {
-  if (connection()?.chainId !== chain.id) await switchChain(cfg(), { chainId: chain.id });
-  return sendTransaction(cfg(), { to: to as Hex, data: data as Hex, chainId: chain.id });
+/** The wallet on `chainId` (switching it there, adding the chain if it must). */
+async function onChain(chainId: number): Promise<void> {
+  if (connection()?.chainId !== chainId) await switchChain(cfg(), { chainId: chainId as never });
+}
+
+/** One transaction, on the main chain unless `chainId` says otherwise. */
+export async function send(to: string, data: string, chainId = chain.id): Promise<string> {
+  await onChain(chainId);
+  return sendTransaction(cfg(), { to: to as Hex, data: data as Hex, chainId: chainId as never });
+}
+
+/** EIP-712 typed data, signed on the chain its domain names (wallets refuse a domain for another chain). */
+export async function signTyped(typed: { domain: { name: string; version: string; chainId: number; verifyingContract: string }; types: Record<string, { name: string; type: string }[]>; primaryType: string; message: Record<string, unknown> }): Promise<string> {
+  await onChain(typed.domain.chainId);
+  return signTypedData(cfg(), typed as never);
 }
 
 /** Resolves when the transaction is mined; throws if it reverted. */
-export async function receipt(hash: string): Promise<void> {
-  const r = await waitForTransactionReceipt(cfg(), { hash: hash as Hex, chainId: chain.id, timeout: 240_000 });
+export async function receipt(hash: string, chainId = chain.id): Promise<void> {
+  const r = await waitForTransactionReceipt(cfg(), { hash: hash as Hex, chainId: chainId as never, timeout: 240_000 });
   if (r.status !== "success") throw new Error("the transaction failed on-chain");
 }

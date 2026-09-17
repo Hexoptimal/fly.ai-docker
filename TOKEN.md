@@ -62,8 +62,9 @@ re-runs a sample of answers, and a wrong answer zeroes that day's credit.
 * **Monthly pool.** After a month ends, the team may split a $FLYAI pool by points. A pool may be
   announced during the month. The team buys those tokens on the open market and funds the MonthlyClaims
   contract, and wallets claim their share within 90 days. Anything unclaimed after that returns to the team.
-* **Buyers.** Anyone can buy compute and pay in $FLYAI. Payments go to the dev wallet
-  (`0x625862521777E19Ad54Ce6C7ABeD9Ca54D6589ea`).
+* **Buyers.** Anyone can buy compute and pay in $FLYAI, or in USDC on Base. Payments go to the dev wallet
+  (`0x625862521777E19Ad54Ce6C7ABeD9Ca54D6589ea`). A USDC payment is credited as the $FLYAI it buys at the
+  live market price (the lower of two price feeds), and the team buys that $FLYAI to fund the pool.
   * **Charging:** a job is charged only when its result settles.
   * **The pool:** 80% of each charge joins that month's pool. For buyers' own programs, that 80% is set
     aside for the wallets whose results settled the job, and is added to their claim.

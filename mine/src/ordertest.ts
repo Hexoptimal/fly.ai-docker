@@ -48,7 +48,7 @@ const anvilKeys: string[] = await new Promise((resolve, reject) => {
   anvil.stdout!.on("data", (d) => {
     out += d;
     const keys = [...out.matchAll(/\(\d+\) 0x([0-9a-f]{64})/g)].map((m) => m[1]);
-    if (keys.length >= 3 && out.includes("Listening on")) resolve(keys);
+    if (keys.length >= 6 && out.includes("Listening on")) resolve(keys);
   });
   anvil.on("exit", () => reject(new Error("anvil exited")));
 });
@@ -103,12 +103,18 @@ try {
   const token = /Deployed to: (0x[0-9a-fA-F]{40})/.exec(out)![1];
   for (const w of [alice, bob]) await send(owner.address, token, calldata("mint(address,uint256)", w.address, 100_000n * WEI));
   const transfer = (amount: bigint) => calldata("transfer(address,uint256)", owner.address, amount);
+  // a stand-in for USDC on Base, on the same local chain
+  const usdcOut = execFileSync("forge", ["create", "test/MockUSDC.sol:MockUSDC", "--rpc-url", RPC, "--private-key", owner.key, "--broadcast"],
+    { cwd: CONTRACTS, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  const usdc = /Deployed to: (0x[0-9a-fA-F]{40})/.exec(usdcOut)![1];
+  await send(owner.address, usdc, calldata("mint(address,uint256)", bob.address, 1_000_000_000n));
 
   for (const suffix of ["", "-wal", "-shm"]) rmSync(DB + suffix, { force: true });
   server = spawn(process.execPath, ["--disable-warning=ExperimentalWarning", fileURLToPath(new URL("./server.ts", import.meta.url))], {
     env: {
       ...process.env, PORT: String(PORT), MINE_DB: DB, VERIFIERS: "1", CANARY_POOL: "0", CANARY_RATE: "0", AUDITS: "0", OPEN_TARGET: "50",
       ADMIN_TOKEN: ADMIN, TOKEN_ADDRESS: token, CLAIM_CHAIN_ID: "31337", CLAIM_CHAIN_NAME: "anvil", CLAIM_RPC: RPC, CLAIM_EXPLORER: "http://localhost",
+      USDC_RPC: RPC, USDC_TOKEN: usdc, FLYAI_USD_PRICE: "0.00007", RELAYER_KEY: `0x${anvilKeys[5]}`,
       PAY_TO: owner.address, MIN_BID: "10", CACHED_PRICE: "2", POOL_SHARE: "0.8", ORDER_MAX_JOBS: "100", ORDER_MAX_PARALLEL: "8", WEBHOOK_ALLOW_INTERNAL: "1", SEED_PAID: "0", // miners, not idle verifiers, answer the paid jobs here
     },
     stdio: ["ignore", "ignore", "inherit"],
@@ -298,6 +304,62 @@ try {
   check("a transfer for an order that's already funded is kept as balance", (await payFor(o3)).status === 200 && near(await bal(bob.address), 15));
   check("funding twice refused", (await signed(o3.id, "fund", bob)).status === 409);
 
+  // ---- USDC on Base: an order paid in USDC, credited in $FLYAI at the price (0.00007 USD here)
+  check("the config offers USDC with its chain and token", cfg.usdc?.token === usdc && cfg.usdc.chain_id === 8453 && cfg.usdc.pay_to === owner.address);
+  const ou = await create(bob.address, { spec, bid: "10", budget: "8" });
+  check("paying in USDC needs a price first", (await api(`/api/orders/${ou.id}/pay`, null, { tx: `0x${"ab".repeat(32)}`, chain: "base" })).status !== 200);
+  const quote = (await api(`/api/orders/${ou.id}/usdc`, null, {})).json;
+  const exact = (BigInt(ou.budget_wei) * 70_000_000_000_000n + 10n ** 30n - 1n) / 10n ** 30n; // budget x price, in micro-USDC, rounded up
+  check("a USDC price: the budget at the $FLYAI price, plus a tag under a tenth of a cent", BigInt(quote.units) > exact && BigInt(quote.units) - exact < 1000n && quote.flyai_usd === 0.00007,
+    `${quote.usdc} USDC for ${quote.flyai} FLYAI`);
+  const usdcTransfer = (units: bigint) => calldata("transfer(address,uint256)", owner.address, units);
+  const wrong = await send(bob.address, usdc, usdcTransfer(BigInt(quote.units) + 1n));
+  check("a USDC transfer of the wrong amount is refused", (await api(`/api/orders/${ou.id}/pay`, null, { tx: wrong, chain: "base" })).status === 402);
+  const bobBeforeUsdc = await bal(bob.address);
+  const paidTx = await send(bob.address, usdc, usdcTransfer(BigInt(quote.units)));
+  const paidU = (await api(`/api/orders/${ou.id}/pay`, null, { tx: paidTx, chain: "base" })).json;
+  check("the exact USDC amount funds the order in $FLYAI", paidU?.status === "done" && paidU.usdc_payment?.usdc === quote.usdc && paidU.spent === "8", JSON.stringify(paidU?.usdc_payment));
+  check("the credit is the USDC at the price, the tag's sliver kept as balance", Math.abs(await bal(bob.address) - bobBeforeUsdc - (Number(quote.units) / 1e6 / 0.00007 - 8)) < 0.01);
+  check("the same USDC transaction can't pay twice", (await api(`/api/orders/${o3.id}/pay`, null, { tx: paidTx, chain: "base" })).status === 409
+    && (await api(`/api/orders/${ou.id}/pay`, null, { tx: paidTx, chain: "base" })).status === 200);
+  const monthView = (await api("/api/month", null)).json;
+  check("the month counts the USDC and its orders' part of the buyers' pool", monthView.usdc_received === quote.usdc && Number(monthView.buyer_pool_from_usdc) > 0
+    && Number(monthView.buyer_pool_from_usdc) <= Number(monthView.buyer_pool) && Number(monthView.announced_pool) >= Number(monthView.buyer_pool), JSON.stringify({ u: monthView.usdc_received, p: monthView.buyer_pool_from_usdc, b: monthView.buyer_pool }));
+  check("a live order can't be priced in USDC again", (await api(`/api/orders/${ou.id}/usdc`, null, {})).status === 409);
+
+  // ---- gasless USDC: bob only signs (EIP-3009); the server's relayer sends the transfer and pays the gas
+  const og = await create(bob.address, { spec, bid: "10", budget: "8" });
+  const gq = (await api(`/api/orders/${og.id}/usdc`, null, {})).json;
+  check("the quote carries the token's EIP-712 domain for signing", gq.gasless?.domain?.name === "USD Coin" && gq.gasless.domain.version === "2" && gq.gasless.domain.chainId === 8453);
+  const bobKey = Uint8Array.from(Buffer.from(bob.key.slice(2), "hex"));
+  const k256 = (b: Uint8Array | string) => keccak_256(typeof b === "string" ? new TextEncoder().encode(b) : b);
+  const enc = (...words: (bigint | string | Uint8Array)[]) => Buffer.from(words.map((w) => (w instanceof Uint8Array ? hex(w) : word(w))).join(""), "hex");
+  const authorize = (value: bigint, nonce: string, validBefore: number, signer = bobKey) => {
+    // the mock's domain uses the chain it runs on (anvil, 31337); real USDC on Base uses 8453, as the quote says
+    const domain = k256(enc(k256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), k256("USD Coin"), k256("2"), 31337n, usdc));
+    const struct = k256(enc(k256("TransferWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)"),
+      bob.address, owner.address, value, 0n, BigInt(validBefore), nonce));
+    const digest = k256(Buffer.concat([Buffer.from([0x19, 0x01]), Buffer.from(domain), Buffer.from(struct)]));
+    const sig = secp256k1.sign(digest, signer, { prehash: false, format: "recovered" });
+    return { from: bob.address, value: value.toString(), valid_after: 0, valid_before: validBefore, nonce, signature: `0x${hex(sig.subarray(1))}${(sig[0] + 27).toString(16)}` };
+  };
+  const later = Math.floor(Date.now() / 1000) + 3600;
+  const nonceHex = () => `0x${hex(secp256k1.utils.randomSecretKey())}`;
+  const relayerBefore = BigInt(await rpc("eth_getBalance", [checksumAddress(`0x${hex(keccak_256(secp256k1.getPublicKey(Uint8Array.from(Buffer.from(anvilKeys[5], "hex")), false).subarray(1))).slice(-40)}`), "latest"]));
+  check("an authorization for another amount is refused before sending", (await api(`/api/orders/${og.id}/usdc/authorize`, null, authorize(BigInt(gq.units) + 1n, nonceHex(), later))).status === 400);
+  const forged = authorize(BigInt(gq.units), nonceHex(), later, Uint8Array.from(Buffer.from(anvilKeys[1], "hex")));
+  const forgedRes = await api(`/api/orders/${og.id}/usdc/authorize`, null, forged);
+  check("a signature from another wallet fails the simulation, costing no gas", forgedRes.status === 400 && /wouldn't go through/.test(forgedRes.json?.error ?? ""), forgedRes.json?.error);
+  const usdcBefore = BigInt(await rpc("eth_call", [{ to: usdc, data: calldata("balanceOf(address)", owner.address) }, "latest"]));
+  const gaslessPaid = (await api(`/api/orders/${og.id}/usdc/authorize`, null, authorize(BigInt(gq.units), nonceHex(), later))).json;
+  const usdcAfter = BigInt(await rpc("eth_call", [{ to: usdc, data: calldata("balanceOf(address)", owner.address) }, "latest"]));
+  check("a signed authorization: the relayer sends it and the order runs", gaslessPaid?.status === "done" && gaslessPaid.usdc_payment?.usdc === gq.usdc && usdcAfter - usdcBefore === BigInt(gq.units),
+    JSON.stringify(gaslessPaid?.usdc_payment ?? gaslessPaid));
+  const relayerAfter = BigInt(await rpc("eth_getBalance", [checksumAddress(`0x${hex(keccak_256(secp256k1.getPublicKey(Uint8Array.from(Buffer.from(anvilKeys[5], "hex")), false).subarray(1))).slice(-40)}`), "latest"]));
+  check("the relayer paid the gas, bob paid none", relayerAfter < relayerBefore);
+  const relayerView = (await api("/api/admin/relayer", ADMIN)).json;
+  check("admin sees the relayer and its gas", relayerView.address && BigInt(relayerView.gas_wei) === relayerAfter);
+
   // ---- ends: budget, stop, time
   const o4 = await create(alice.address, { spec, bid: "10", budget: "5" });
   const f4 = (await payFor(o4)).json;
@@ -333,7 +395,7 @@ try {
   check("an unpaid order past its time shows expired", (await get(o7.id)).status === "expired");
   check("a late payment still runs it", (await payFor(o7)).json?.status === "done");
   const month = new Date().toISOString().slice(0, 7);
-  const charged = 40 + 30 + 8 + 4 + 8;
+  const charged = 40 + 30 + 8 + 8 + 8 + 4 + 8; // O1, O2, O3, the two USDC orders, O4, O7
   const board = (await api(`/api/month?month=${month}`, null)).json;
   check("80% of every charge is in this month's pool", near(board.buyer_pool, charged * 0.8) && near(board.announced_pool, charged * 0.8), `${board.buyer_pool}`);
   await api("/api/admin/announce", ADMIN, { month, pool: "1000" });

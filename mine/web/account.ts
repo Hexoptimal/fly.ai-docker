@@ -63,7 +63,8 @@ let kitLoad: Promise<Kit> | null = null;
 function kit(): Promise<Kit> {
   kitLoad ??= (async () => {
     const [k, chain] = await Promise.all([import("./wallet/kit.js") as Promise<Kit>, api(API, "/api/orders/config", null)]);
-    await k.setup({ chain, walletConnectProjectId: WALLETCONNECT_PROJECT_ID || undefined, url: location.origin, icon: `${location.origin}/assets/logo.webp` });
+    // USDC payments (card buyers) happen on a second chain, Base
+    await k.setup({ chain, others: chain.usdc ? [chain.usdc] : [], walletConnectProjectId: WALLETCONNECT_PROJECT_ID || undefined, url: location.origin, icon: `${location.origin}/assets/logo.webp` });
     return k;
   })();
   kitLoad.catch(() => { kitLoad = null; });
@@ -243,17 +244,14 @@ export function sessionLost(err: unknown): boolean {
   return false;
 }
 
-/**
- * Sends one transaction from the signed-in wallet, connecting it first if this page hasn't yet. Resolves with the
- * hash once the wallet has sent it; `mined` waits for the receipt. `step` narrates.
- */
-export async function transact(to: string, data: string, step: (text: string) => void = () => {}): Promise<string> {
+/** The kit with the signed-in wallet connected (connecting it first if this page hasn't yet). */
+async function walletFor(): Promise<Kit> {
   const wallet = await requireWallet();
   if (!wallet) throw new Error("sign in first");
   const k = await kit();
   let c = k.connection();
   if (!c) {
-    const uid = await chooseWallet("Connect your wallet", `You're signed in as ${shortAddress(wallet)}. Connect that wallet to send the transaction.`);
+    const uid = await chooseWallet("Connect your wallet", `You're signed in as ${shortAddress(wallet)}. Connect that wallet to continue.`);
     if (!uid) throw new Error("cancelled");
     try {
       c = await connectWith(k, uid);
@@ -264,12 +262,28 @@ export async function transact(to: string, data: string, step: (text: string) =>
   if (c.address.toLowerCase() !== wallet.toLowerCase()) {
     throw new Error(`your wallet is on ${shortAddress(c.address)} but you're signed in as ${shortAddress(wallet)}: switch accounts in the wallet, or sign out and in again`);
   }
-  step("confirm in your wallet…");
-  return k.send(to, data);
+  return k;
 }
 
-export async function mined(hash: string): Promise<void> {
-  await (await kit()).receipt(hash);
+/**
+ * Sends one transaction from the signed-in wallet, on the main chain unless `chainId` says otherwise. Resolves with
+ * the hash once the wallet has sent it; `mined` waits for the receipt. `step` narrates.
+ */
+export async function transact(to: string, data: string, step: (text: string) => void = () => {}, chainId?: number): Promise<string> {
+  const k = await walletFor();
+  step("confirm in your wallet…");
+  return k.send(to, data, chainId);
+}
+
+export async function mined(hash: string, chainId?: number): Promise<void> {
+  await (await kit()).receipt(hash, chainId);
+}
+
+/** EIP-712 typed data signed by the signed-in wallet (free: nothing is sent). */
+export async function signTyped(typed: Parameters<Kit["signTyped"]>[0], step: (text: string) => void = () => {}): Promise<string> {
+  const k = await walletFor();
+  step("sign in your wallet (free, no gas)…");
+  return k.signTyped(typed);
 }
 
 // ---- the account button on every page ------------------------------------------------------------------------
