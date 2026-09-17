@@ -353,6 +353,55 @@ async function order(fromBalance: boolean): Promise<void> {
   }
 }
 
+/** An order someone made from code, waiting to be paid: one button, the exact transfer, then it starts. */
+async function showPayCard(id: string): Promise<void> {
+  const card = $("pay-card");
+  const status = $("pay-status");
+  const button = $<HTMLButtonElement>("pay-btn");
+  let o: Order;
+  try {
+    o = await api(API, `/api/orders/${id}`, null);
+  } catch (err) {
+    card.hidden = false;
+    $("pay-text").textContent = `Couldn't find order ${id}: ${errorText(err)}`;
+    button.hidden = true;
+    return;
+  }
+  card.hidden = false;
+  card.scrollIntoView({ block: "start" });
+  $("pay-title").textContent = `Pay ${fmt(o.budget)}`;
+  $("pay-text").textContent = `For order ${o.id}: ${describe(o)}. Pay from ${shortAddress(o.wallet)}, the wallet it was made for. Runs that don't happen come back to your balance.`;
+  const paid = () => {
+    button.hidden = true;
+    status.dataset.standing = "ok";
+    status.textContent = `Paid ✓ ${started(o)} You can go back to the program that made the order.`;
+  };
+  if (o.status !== "unpaid" && o.status !== "expired") return paid();
+  button.addEventListener("click", () => void (async () => {
+    button.disabled = true;
+    delete status.dataset.standing;
+    try {
+      const wallet = await requireWallet();
+      if (!wallet) return;
+      if (wallet.toLowerCase() !== o.wallet.toLowerCase()) throw new Error(`you're signed in as ${shortAddress(wallet)}, but this order is for ${shortAddress(o.wallet)}: sign out and in with that wallet`);
+      const amount = BigInt(o.budget_wei);
+      const held = BigInt(await rpc("eth_call", [{ to: config.token, data: `0x70a08231${word(wallet)}` }, "latest"]));
+      if (held < amount) throw new Error(`this wallet holds ${fmt(Number(held / 10n ** 14n) / 10_000)}; the order needs ${fmt(o.budget)}`);
+      const tx = await transact(config.token, config.transfer_selector + word(config.pay_to!) + word(amount), (text) => { status.textContent = text; });
+      store.set({ order: o.id, tx });
+      status.textContent = "Payment sent, waiting for the chain…";
+      o = await confirmPayment(o.id, tx);
+      paid();
+      await listOrders().catch(() => {});
+    } catch (err) {
+      status.dataset.standing = "zeroed";
+      status.textContent = errorText(err);
+    } finally {
+      button.disabled = false;
+    }
+  })());
+}
+
 // ---- orders -------------------------------------------------------------------------------------------------
 function describe(o: Order): string {
   const s = o.spec;
@@ -546,6 +595,10 @@ async function boot(): Promise<void> {
   pickPreset("escape");
   pickRepeats("10");
   pickSpeed("1");
+
+  // /compute/jobs?pay=<order id>: an order made elsewhere (a script, the btc-pool setup), paid here with the wallet
+  const payFor = new URLSearchParams(location.search).get("pay");
+  if (payFor && /^[0-9a-f-]{36}$/.test(payFor)) void showPayCard(payFor);
 
   // a payment sent before a reload
   const pending = store.get();

@@ -128,7 +128,9 @@ async function chooseWallet(title: string, text: string, problem = ""): Promise<
   settle?.(null);
   const chosen = new Promise<string | null>((resolve) => { settle = resolve; });
   try {
-    const k = await kit();
+    const slow = setTimeout(() => say("Still looking. A wallet extension may be stuck: turn off wallet extensions you don't use and reload.", true), 8_000);
+    const k = await kit().finally(() => clearTimeout(slow));
+    say(problem, !!problem);
     await new Promise((r) => setTimeout(r, 150)); // wallets announce themselves (EIP-6963) just after load
     const options = k.wallets();
     const rows: HTMLElement[] = options.map((w) => {
@@ -183,26 +185,41 @@ async function connectWith(k: Kit, uid: string) {
  */
 export async function signIn(): Promise<string | null> {
   let text = "Connect a wallet and sign one message. It's free and sends no transaction, and it keeps you signed in on every compute page for 30 days.";
-  let problem = "";
+  let uid = await chooseWallet("Sign in", text);
   for (;;) {
-    const uid = await chooseWallet("Sign in", text, problem);
     if (!uid) return null;
+    // the list stays usable while a wallet is asked: a wallet extension that never answers (they can break each
+    // other) mustn't trap the person, who can pick another wallet or close
+    const repick = new Promise<string | null>((resolve) => { settle = resolve; });
+    const slow = setTimeout(() => say("No answer from that wallet yet. If no wallet window opened, pick another wallet above, or turn off wallet extensions you don't use and reload.", true), 15_000);
     try {
-      const k = await kit();
-      const c = await connectWith(k, uid);
-      say("sign the message in your wallet (free, no transaction)");
-      const { nonce, message } = await api(API, "/api/session/nonce", null, { address: c.address });
-      const signature = await k.sign(message);
-      say("checking the signature");
-      const s = await api(API, "/api/session", null, { nonce, signature }) as { session: string; wallet: string; expires_at: number };
-      save({ token: s.session, wallet: s.wallet, expires_at: s.expires_at });
-      picker().root.hidden = true;
-      return s.wallet;
+      const outcome = await Promise.race([signInWith(uid).then((wallet) => ({ wallet })), repick.then((next) => ({ next }))]);
+      if ("wallet" in outcome) {
+        settle = null;
+        picker().root.hidden = true;
+        return outcome.wallet;
+      }
+      uid = outcome.next;
     } catch (err) {
+      clearTimeout(slow);
       text = "Pick a wallet to try again.";
-      problem = errorText(err);
+      uid = await chooseWallet("Sign in", text, errorText(err));
+    } finally {
+      clearTimeout(slow);
     }
   }
+}
+
+async function signInWith(uid: string): Promise<string> {
+  const k = await kit();
+  const c = await connectWith(k, uid);
+  say("sign the message in your wallet (free, no transaction)");
+  const { nonce, message } = await api(API, "/api/session/nonce", null, { address: c.address });
+  const signature = await k.sign(message);
+  say("checking the signature");
+  const s = await api(API, "/api/session", null, { nonce, signature }) as { session: string; wallet: string; expires_at: number };
+  save({ token: s.session, wallet: s.wallet, expires_at: s.expires_at });
+  return s.wallet;
 }
 
 export async function signOut(): Promise<void> {

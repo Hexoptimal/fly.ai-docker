@@ -19,7 +19,7 @@
  * but it can hide one; redundancy 2 stops that at twice the price):
  *   node examples/hash-search/make-inputs.ts --out first/     # one small demo job to open the order with
  *   node examples/order.ts create --wallet 0x... --program examples/hash-search/hash_search.wasm --inputs first/ \
- *        --keep-open --redundancy 1 --timeout 120 --bid 40 --budget 20000
+ *        --keep-open --redundancy 1 --timeout 240 --budget 20000
  *   node examples/order.ts pay --order ID --tx 0x...
  *
  * Sizing: a browser does very roughly 2-3 million hashes a second per thread, so --per-job 200000000 is about a

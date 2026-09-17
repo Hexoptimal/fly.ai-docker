@@ -112,3 +112,6 @@ details.advanced[open] summary { margin-bottom: 12px; }
   .acct-sheet { align-items: flex-end; padding: 0; }
   .acct-panel { width: 100%; border-radius: 16px 16px 0 0; max-height: 85dvh; }
 }
+
+/* buy compute: paying for an order made elsewhere (?pay=) */
+#pay-card { scroll-margin-top: 80px; }

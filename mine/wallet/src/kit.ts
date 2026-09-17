@@ -5,8 +5,8 @@
  * connected on one is still connected on the other.
  */
 import {
-  connect as wagmiConnect, createConfig, disconnect as wagmiDisconnect, getConnection, getConnectors, http, reconnect,
-  sendTransaction, signMessage, switchChain, waitForTransactionReceipt, watchConnection, type Connector,
+  connect as wagmiConnect, createConfig, disconnect as wagmiDisconnect, getConnectors, http, reconnect,
+  sendTransaction, signMessage, switchChain, switchConnection, waitForTransactionReceipt, watchConnection, type Connector,
 } from "@wagmi/core";
 import { injected, walletConnect } from "@wagmi/connectors";
 import { defineChain, type Hex } from "viem";
@@ -42,7 +42,9 @@ export async function setup(opts: { chain: ChainInfo; walletConnectProjectId?: s
     connectors,
     transports: { [chain.id]: http(undefined, { timeout: 15_000, retryCount: 1 }) },
   });
-  await reconnect(config);
+  // reconnect asks each wallet in turn and waits for its answer, and a broken extension never answers (two wallet
+  // extensions wrapping each other's window.ethereum recurse forever). Don't let that hold up the page.
+  await Promise.race([reconnect(config).catch(() => {}), new Promise((r) => setTimeout(r, 2500))]);
 }
 
 const cfg = () => {
@@ -63,9 +65,14 @@ export function wallets(): WalletOption[] {
 
 const hasInjected = () => typeof window !== "undefined" && !!(window as unknown as { ethereum?: unknown }).ethereum;
 
+/**
+ * The wallet in use. Read from the connections themselves, not wagmi's status: a wallet extension that never answers
+ * leaves the status at "connecting" forever, even while another wallet is connected and working.
+ */
 export function connection(): Connection | null {
-  const c = getConnection(cfg());
-  return c.status === "connected" && c.address ? { address: c.address, chainId: c.chainId, wallet: c.connector?.name ?? "wallet" } : null;
+  const { current, connections } = cfg().state;
+  const c = current ? connections.get(current) : undefined;
+  return c?.accounts[0] ? { address: c.accounts[0], chainId: c.chainId, wallet: c.connector.name } : null;
 }
 
 export function onConnection(fn: (c: Connection | null) => void): () => void {
@@ -76,9 +83,11 @@ export function onConnection(fn: (c: Connection | null) => void): () => void {
 export async function connect(uid: string): Promise<Connection> {
   const connector = getConnectors(cfg()).find((c: Connector) => c.uid === uid);
   if (!connector) throw new Error("that wallet isn't available any more; reload the page");
-  const now = getConnection(cfg());
-  if (!(now.status === "connected" && now.connector?.uid === uid)) {
-    if (now.status === "connected") await wagmiDisconnect(cfg());
+  const { current, connections } = cfg().state;
+  // already connected (maybe by reconnect): use it; wagmi refuses to connect a connector twice
+  if (connections.has(uid)) {
+    if (current !== uid) await switchConnection(cfg(), { connector });
+  } else {
     await wagmiConnect(cfg(), { connector, chainId: chain.id });
   }
   const c = connection();
@@ -87,7 +96,7 @@ export async function connect(uid: string): Promise<Connection> {
 }
 
 export async function disconnect(): Promise<void> {
-  if (getConnection(cfg()).status === "connected") await wagmiDisconnect(cfg());
+  if (connection()) await wagmiDisconnect(cfg());
 }
 
 export async function sign(message: string): Promise<string> {
@@ -96,8 +105,7 @@ export async function sign(message: string): Promise<string> {
 
 /** One transaction on the server's chain (the wallet is switched there first, adding the chain if it must). */
 export async function send(to: string, data: string): Promise<string> {
-  const c = getConnection(cfg());
-  if (c.chainId !== chain.id) await switchChain(cfg(), { chainId: chain.id });
+  if (connection()?.chainId !== chain.id) await switchChain(cfg(), { chainId: chain.id });
   return sendTransaction(cfg(), { to: to as Hex, data: data as Hex, chainId: chain.id });
 }
 

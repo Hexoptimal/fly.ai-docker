@@ -4,12 +4,13 @@
  *
  * Byte orders, which is where Stratum code usually goes wrong:
  *   - a header is serialized little-endian: version, prevhash, merkle root, time, bits, nonce
- *   - `prevhash` in mining.notify is already in header byte order
+ *   - `prevhash` in mining.notify has each 4-byte word byte-swapped, so it's swapped back word by word (checked
+ *     against a live pool and the chain tip on 2026-09-17: see vectors.ts)
  *   - `version`, `nbits` and `ntime` in mining.notify are big-endian hex, so they're reversed into the header
  *   - the coinbase is coinb1 + extranonce1 + extranonce2 + coinb2; its double SHA-256, folded with the merkle
  *     branch (each step sha256d(root || branch)), is the merkle root exactly as the header holds it
  *   - a block hash is shown reversed ("display order"), and that reversed number is compared to the target
- * test.ts checks all of this against Bitcoin's genesis block and block 1.
+ * test.ts checks all of this against Bitcoin's genesis block, block 1, and a live pool's prevhash.
  */
 import { createHash } from "node:crypto";
 import { EventEmitter } from "node:events";
@@ -18,6 +19,12 @@ import { connect, type Socket } from "node:net";
 export const sha256d = (b: Uint8Array): Buffer => createHash("sha256").update(createHash("sha256").update(b).digest()).digest();
 const hex = (s: string) => Buffer.from(s, "hex");
 const reversed = (s: string) => Buffer.from(s, "hex").reverse();
+/** Stratum's prevhash to header byte order: each 32-bit word byte-swapped. */
+export const prevhashBytes = (s: string) => {
+  const b = hex(s);
+  for (let i = 0; i + 4 <= b.length; i += 4) b.subarray(i, i + 4).reverse();
+  return b;
+};
 
 /** mining.notify, named. */
 export interface PoolJob {
@@ -45,7 +52,7 @@ export function merkleRoot(coinbase: Buffer, branch: string[]): Buffer {
 /** The first 76 bytes of the header (everything but the nonce) for one extranonce2. */
 export function headerPrefix(job: PoolJob, extranonce1: string, extranonce2: string): Buffer {
   const coinbase = hex(job.coinb1 + extranonce1 + extranonce2 + job.coinb2);
-  return Buffer.concat([reversed(job.version), hex(job.prevhash), merkleRoot(coinbase, job.branch), reversed(job.ntime), reversed(job.nbits)]);
+  return Buffer.concat([reversed(job.version), prevhashBytes(job.prevhash), merkleRoot(coinbase, job.branch), reversed(job.ntime), reversed(job.nbits)]);
 }
 
 /** A header's hash in display order (the number compared with targets). */

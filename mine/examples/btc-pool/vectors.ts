@@ -29,6 +29,15 @@ export const GENESIS_JOB: PoolJob = {
   ntime: "495fab29",
 };
 
+/**
+ * A live pool's prevhash (public-pool.io, 2026-09-17) and the chain tip at that moment (mempool.space). The pool sends
+ * each 32-bit word byte-swapped; undoing that and reversing gives the block hash as explorers show it.
+ */
+export const LIVE_PREVHASH = {
+  stratum: "4fc607296d2fc53284dc4f4443df34175eda4e240000a7040000000000000000",
+  tip: "00000000000000000000a7045eda4e2443df341784dc4f446d2fc5324fc60729",
+};
+
 /** Block 1: its merkle root (display order) and header fields, to pin down prevhash's byte order. */
 export const BLOCK1 = {
   merkleDisplay: "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
