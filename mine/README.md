@@ -87,7 +87,7 @@ For example, driving the left LPLC2 raises DNp01 (the giant-fiber escape neuron)
 
 What the UI's job counts mean:
 
-- **Session:** jobs, units and jobs/min since Start on this page. It resets when the page reloads.
+- **Session:** jobs, units and units/min since Start on this page (units/min, because a world run is one job worth several brain jobs). It resets when the page reloads.
 - **Jobs today / units:** your jobs accepted today, and the credit left after checks. Points = units × stake multiplier.
 - **Standing today:** `ok` if every checked answer matched, `zeroed` after a wrong one.
 - **Fleet line:**
@@ -274,8 +274,9 @@ limits and ideas is `web/compute-api.md`, downloadable at `/compute/compute-api.
 
 Work we queue for ourselves, created with the admin token. It needs no payment, charges nothing and adds nothing
 to the pool. It runs after every paid order and before the free screen. Brain sweeps earn their usual points;
-other house jobs earn `units` points per settled job, by default sized to the work. Everything they upload or
-produce is kept for good (`blobs.keep`).
+other house jobs earn `units` points per settled job, by default sized to the work, times `PROGRAM_BONUS` (1.25) so
+that switching on "also run programs" pays more than leaving it off. On a GPU miner these CPU jobs run in a lane of
+their own beside the batch. Everything they upload or produce is kept for good (`blobs.keep`).
 
 - **Kinds:**
   - **Any buyer kind:** `connectome-sweep`, `wasm`, `wgsl`.

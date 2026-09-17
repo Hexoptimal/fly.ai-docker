@@ -41,7 +41,7 @@ export interface MinerState {
   /** the engine actually running, which is the CPU if the GPU turned out unusable */
   engine: "gpu" | "cpu" | null;
   lanes: { name: string; text: string; progress: number }[];
-  session: { jobs: number; units: number; perMinute: number } | null;
+  session: { jobs: number; units: number; perMinute: number; unitsPerMinute?: number } | null;
   /** what the background miner's WebGPU sees, which can differ from the popup's */
   probe: GpuProbe | null;
 }

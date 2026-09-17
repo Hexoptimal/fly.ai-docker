@@ -53,7 +53,7 @@ const miner = new Miner({
   },
   job: (text) => { $("job").textContent = text; },
   session: (s) => {
-    $("session").textContent = `${s.jobs} jobs · ${s.units.toFixed(1)} units · ${s.perMinute.toFixed(1)} jobs/min`;
+    $("session").textContent = `${s.jobs} jobs · ${s.units.toFixed(1)} units · ${s.unitsPerMinute.toFixed(1)} units/min`;
   },
 });
 

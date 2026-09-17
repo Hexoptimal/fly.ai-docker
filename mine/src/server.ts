@@ -63,6 +63,12 @@ const OPEN_TARGET = Number(env("OPEN_TARGET", "3000"));
 const CANARY_POOL = Number(env("CANARY_POOL", "100000")); // idle verifiers stop adding known answers here
 /** idle verifiers also work open paid brain jobs (a second answer can be slow with few miners); 0 leaves them to miners */
 const SEED_PAID = env("SEED_PAID", "1") !== "0";
+/**
+ * Points multiplier for jobs miners opt into with "also run programs" (world runs, probes, WASM, shaders). They are
+ * priced at about a brain job's points per CPU second, but need a second agreeing miner and hold a lane for longer,
+ * so without extra the toggle paid less than leaving it off.
+ */
+const PROGRAM_BONUS = Number(env("PROGRAM_BONUS", "1.25"));
 const MAX_JOBS = Number(env("MAX_JOBS", "64")); // a GPU miner holds a whole batch (up to 32) at once
 const JOB_TTL_MS = Number(env("JOB_TTL_MIN", "20")) * 60_000;
 const TRUST_PROXY = !!process.env.TRUST_PROXY;
@@ -948,7 +954,7 @@ function claim(miner: string, want: number, kinds: string[] = ["connectome"], op
       }
       const id = randomUUID();
       issue.run(id, miner, task.id, now, now + JOB_TTL_MS);
-      const units = one<{ units: number }>("select units from tasks where id = ?", task.id).units;
+      const units = one<{ units: number }>("select units from tasks where id = ?", task.id).units * (kind === "connectome" ? 1 : PROGRAM_BONUS);
       jobs.push(kind === "connectome"
         ? { job: id, kind, params: JSON.parse(task.params) as TaskParams, units, expires_at: now + JOB_TTL_MS }
         : { job: id, kind, params: openJob(task.params, kind), units, expires_at: now + JOB_TTL_MS });
@@ -1008,7 +1014,8 @@ function standingOf(r: DayRow) {
   return { jobs, checked: r.accepted + r.rejected, rejected: r.rejected, units: r.units, credited: standing === "ok" ? r.units : 0, standing };
 }
 
-const DAY_SUMS = `sum(case when a.status in ('accepted', 'pending') then t.units else 0 end) as units,
+const DAY_SUMS = `sum(case when a.status in ('accepted', 'pending')
+    then t.units * (case when t.kind = 'connectome' then 1 else ${PROGRAM_BONUS} end) else 0 end) as units,
   coalesce(sum(a.status = 'accepted'), 0) as accepted, coalesce(sum(a.status = 'pending'), 0) as pending,
   coalesce(sum(a.status = 'rejected'), 0) as rejected`;
 

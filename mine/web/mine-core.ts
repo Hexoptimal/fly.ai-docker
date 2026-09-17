@@ -3,7 +3,8 @@
  * through hooks. The website (web/app.ts) and the browser extension (extension/offscreen.ts) both drive it.
  *
  * With `programs` on, lanes also take buyers' programs: WASM on any lane, WGSL shaders on the GPU lane. Each one
- * runs in its own fresh worker (web/open.worker.ts), which is terminated at the job's time limit.
+ * runs in its own fresh worker (web/open.worker.ts), which is terminated at the job's time limit. On the GPU, the
+ * CPU programs (WASM, world runs) get a lane of their own, so a 30-second world run never leaves the GPU idle.
  */
 import type { Fixed } from "../src/fixed.ts";
 import type { TaskParams, TaskResult } from "../src/runner.ts";
@@ -33,7 +34,8 @@ export interface MinerHooks {
   lanes(names: string[]): void;
   lane(index: number, text: string, progress?: number): void;
   job(text: string): void;
-  session(s: { jobs: number; units: number; perMinute: number }): void;
+  /** perMinute is jobs; unitsPerMinute is the fairer rate, since a world run is one job worth several brain jobs */
+  session(s: { jobs: number; units: number; perMinute: number; unitsPerMinute: number }): void;
 }
 
 export class ApiError extends Error {
@@ -133,7 +135,8 @@ function runProgram(server: string, job: ProgramClaim): Promise<{ output: string
 }
 
 interface Lane {
-  worker: Worker;
+  /** none for the GPU miner's program lane: each program brings its own worker */
+  worker?: Worker;
   size: number;
   index: number;
   /** job kinds this lane asks for, and how many programs a claim may include */
@@ -192,10 +195,14 @@ export class Miner {
       const { fixed } = await fetchModelInfo(h.server);
       if (gen !== this.generation) return;
       if (s.engine === "gpu") {
-        h.lanes(["GPU"]);
+        h.lanes(s.programs !== false ? ["GPU", "programs (CPU)"] : ["GPU"]);
         h.status("loading the connectome onto the GPU (57 MB download, once)");
         this.lanes = [await this.spawn("gpu", 0, fixed, s.batch, gen)];
-        if (s.programs !== false) Object.assign(this.lanes[0], { kinds: ["connectome", "wgsl", "wasm", "world"], openMax: 2 });
+        if (s.programs !== false) {
+          // shaders share the GPU with the batch; CPU programs run beside it instead of after it
+          Object.assign(this.lanes[0], { kinds: ["connectome", "wgsl"], openMax: 1 });
+          this.lanes.push({ size: 1, index: 1, kinds: ["wasm", "world"], openMax: 1, run: async () => [] });
+        }
       } else {
         const n = Math.max(1, s.threads);
         h.lanes(Array.from({ length: n }, (_, i) => `thread ${i + 1}`));
@@ -223,7 +230,7 @@ export class Miner {
     this.generation++;
     void this.release([...this.held]);
     this.starting = false;
-    for (const lane of this.lanes) lane.worker.terminate();
+    for (const lane of this.lanes) lane.worker?.terminate();
     this.lanes = [];
     this.hooks.lanes([]);
     this.hooks.job("—");
@@ -345,7 +352,7 @@ export class Miner {
           this.session.units += job.units ?? 0;
         }
         const minutes = (performance.now() - this.session.since) / 60_000;
-        h.session({ jobs: this.session.jobs, units: this.session.units, perMinute: this.session.jobs / Math.max(minutes, 1e-9) });
+        h.session({ jobs: this.session.jobs, units: this.session.units, perMinute: this.session.jobs / Math.max(minutes, 1e-9), unitsPerMinute: this.session.units / Math.max(minutes, 1e-9) });
         h.lane(lane.index, "", 0);
       } catch (err) {
         if (gen !== this.generation) return;

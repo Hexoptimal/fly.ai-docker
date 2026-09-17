@@ -43,7 +43,7 @@ function showState(s: MinerState): void {
   $("status").textContent = settings.enabled ? s.status : "off";
   $("job").textContent = s.job;
   $("session").textContent = s.session
-    ? `${s.session.jobs} jobs · ${s.session.units.toFixed(1)} units · ${s.session.perMinute.toFixed(1)} jobs/min`
+    ? `${s.session.jobs} jobs · ${s.session.units.toFixed(1)} units · ${(s.session.unitsPerMinute ?? 0).toFixed(1)} units/min`
     : "—";
   const rows = s.lanes.map((lane) => {
     const row = document.createElement("div");
