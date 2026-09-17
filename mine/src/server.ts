@@ -933,14 +933,29 @@ const openJobOf = db.prepare(`select t.id, t.params, t.kind from order_tasks ot 
  * miner hasn't answered (a second answer must come from someone else). With no paid work, a house order, each
  * equally likely; only then does the miner get the screen.
  */
-function pickPaid(miner: string, kinds: string[]): TaskRow | undefined {
-  return pickOrder(miner, kinds, 0) ?? pickOrder(miner, kinds, 1);
+/**
+ * One claim's view of the live orders: a batch of 32 jobs would otherwise list them 64 times over, which with a
+ * dozen orders was seconds of work per claim. Orders that run out drop from the list as the batch fills.
+ */
+function paidPicker(): (miner: string, kinds: string[]) => TaskRow | undefined {
+  const lists = new Map<string, { id: string; weight: number }[]>();
+  return (miner, kinds) => {
+    const k = JSON.stringify(kinds);
+    for (const house of [0, 1] as const) {
+      let orders = lists.get(house + k);
+      if (!orders) {
+        orders = (liveOrdersWithWork.all(house, k) as { id: string; bid_wei: string }[])
+          .map((o) => ({ id: o.id, weight: house ? 1 : Number(BigInt(o.bid_wei) / 10n ** 12n) }));
+        lists.set(house + k, orders);
+      }
+      const row = pickOrder(miner, k, orders);
+      if (row) return row;
+    }
+    return undefined;
+  };
 }
 
-function pickOrder(miner: string, kinds: string[], house: 0 | 1): TaskRow | undefined {
-  const k = JSON.stringify(kinds);
-  const orders = (liveOrdersWithWork.all(house, k) as { id: string; bid_wei: string }[])
-    .map((o) => ({ id: o.id, weight: house ? 1 : Number(BigInt(o.bid_wei) / 10n ** 12n) }));
+function pickOrder(miner: string, k: string, orders: { id: string; weight: number }[]): TaskRow | undefined {
   while (orders.length) {
     let x = Math.random() * orders.reduce((sum, o) => sum + o.weight, 0);
     let i = 0;
@@ -971,6 +986,7 @@ function openJob(params: string, kind: string) {
 
 function claim(miner: string, want: number, kinds: string[] = ["connectome"], openMax = 1) {
   const now = Date.now();
+  const pickPaid = paidPicker();
   // overdue jobs count for nothing even before the sweep marks them
   const live = count("select count(*) as n from assignments where miner = ? and status = 'issued' and expires_at >= ?", miner, now);
   const room = Math.min(want, MAX_JOBS - live);
@@ -1309,12 +1325,21 @@ function stakeConfig() {
 }
 
 /** A wallet's place in the running month: rank, days left, and an estimate if a pool is announced. */
-function monthStanding(wallet: string | null) {
+function monthStanding(wallet: string | null, points = 0) {
   const m = thisMonth();
   const ranks = ranking(m);
   const mine = wallet ? ranks.find((r) => r.wallet === wallet) : undefined;
   const pool = announcedPool(m);
+  const { total } = monthPointsCached(m);
+  const paid = earningsOf(m);
+  // program jobs already paid their part to wallets, so points share what's left of the pool
+  const forPoints = pool === null ? null : Number(pool) - Number(fromWei([...paid.values()].reduce((sum, x) => sum + x, 0n)));
+  // an unlinked miner sees what its points would be worth if it linked a wallet now
+  const share = wallet ? mine?.share ?? 0 : total + points ? points / (total + points) : 0;
   return {
+    month_total_points: total,
+    month_pool_for_points: forPoints,
+    month_estimate_share: share,
     month_rank: mine?.rank ?? null,
     month_wallets: ranks.length,
     month_ends_at: monthEnd(m).toISOString(),
@@ -1323,9 +1348,7 @@ function monthStanding(wallet: string | null) {
     // an estimate at the current share; it moves as everyone mines, and the month's snapshot decides. Program jobs
     // paid their part to wallets directly, so points share the rest.
     month_program_pay: wallet ? fromWei(earningsOf(m).get(wallet) ?? 0n) : "0",
-    month_estimate: pool && mine
-      ? (Number(pool) - Number(fromWei([...earningsOf(m).values()].reduce((sum, x) => sum + x, 0n)))) * mine.share + Number(fromWei(earningsOf(m).get(wallet!) ?? 0n))
-      : null,
+    month_estimate: forPoints === null ? null : forPoints * share + Number(fromWei(paid.get(wallet ?? "") ?? 0n)),
   };
 }
 
@@ -1345,7 +1368,7 @@ function me(miner: string) {
     lifetime_jobs: life.jobs, lifetime_rejected: life.rejected ?? 0,
     month: thisMonth(), month_points: monthPts, month_share: wallet && m.total ? monthPts / m.total : 0,
     stake: wallet ? stakeOf(wallet) : null,
-    ...monthStanding(wallet),
+    ...monthStanding(wallet, monthPts),
   };
 }
 

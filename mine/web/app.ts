@@ -125,14 +125,24 @@ async function refresh(): Promise<void> {
     $("stake").textContent = me.stake
       ? `${Number(me.stake.staked).toLocaleString("en-US")} FLYAI · ${me.stake.tier ?? "no tier"} · ${me.stake.multiplier}× points today${me.stake.tomorrow ? ` (${me.stake.tomorrow.multiplier}× from tomorrow)` : ""}`
       : me.wallet ? "staking isn't live yet: 1× points" : "link a wallet first";
+    const days = `ends in ${me.month_days_left} day${me.month_days_left === 1 ? "" : "s"}`;
     $("month").textContent = me.wallet
       ? [
         `${me.month_points.toFixed(1)} points · ${(me.month_share * 100).toFixed(2)}%`,
         me.month_rank ? `#${me.month_rank} of ${me.month_wallets}` : null,
-        me.month_estimate !== null ? `≈ ${Math.round(me.month_estimate).toLocaleString("en-US")} $FLYAI at this share` : null,
-        `ends in ${me.month_days_left} day${me.month_days_left === 1 ? "" : "s"}`,
+        days,
       ].filter(Boolean).join(" · ")
-      : `${me.month_points.toFixed(1)} points: link a wallet to claim them`;
+      : `${me.month_points.toFixed(1)} points · ${days} · link a wallet to keep them`;
+    // what those points are worth at today's pool: an estimate that moves as everyone mines
+    const pool = me.month_announced_pool;
+    $("share-estimate").textContent = pool === null
+      ? "the month's pool isn't announced yet"
+      : [
+        `≈ ${Math.round(me.month_estimate).toLocaleString("en-US")} $FLYAI`,
+        `${(me.month_estimate_share * 100).toFixed(2)}% of a ${Number(pool).toLocaleString("en-US")} pool`,
+        Number(me.month_program_pay) > 0 ? `incl. ${Math.round(Number(me.month_program_pay)).toLocaleString("en-US")} already earned from buyers` : null,
+        me.wallet ? null : "if you link a wallet",
+      ].filter(Boolean).join(" · ");
     $("today-jobs").textContent = String(me.jobs);
     $("today-checked").textContent = String(me.checked);
     $("today-units").textContent = me.credited.toFixed(1);

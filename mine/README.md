@@ -90,6 +90,9 @@ What the UI's job counts mean:
 - **Session:** jobs, units and units/min since Start on this page (units/min, because a world run is one job worth several brain jobs). It resets when the page reloads.
 - **Jobs today / units:** your jobs accepted today, and the credit left after checks. Points = units × stake multiplier.
 - **Standing today:** `ok` if every checked answer matched, `zeroed` after a wrong one.
+- **Your share:** what this month's points would be worth at today's pool, and the share they are. An unlinked miner
+  sees what it would get if it linked a wallet now; program jobs already paid to wallets are added on top. It is an
+  estimate: it moves as everyone mines, and the month's snapshot decides.
 - **Fleet line:**
   - **online:** miners active now.
   - **jobs today:** all miners' jobs today.

@@ -68,7 +68,7 @@
           <label>Engine <select id="engine"><option value="cpu">CPU</option></select></label>
           <label id="batch-field" hidden>Batch <select id="batch"><option>8</option><option>16</option><option selected>32</option></select></label>
           <label id="threads-field">Threads <select id="threads"></select></label>
-          <label class="chip" title="Buyers' WebAssembly programs and GPU shaders, each in a sandboxed worker with a time limit. They pay you directly."><input id="programs" type="checkbox" checked> Also run buyers' programs</label>
+          <label class="chip" title="Our own world simulations and brain probes, plus buyers' WebAssembly and GPU programs. Each runs in a sandboxed worker with a time limit; on the GPU they get a lane of their own, so the batch never waits. They earn 1.25x points, and a buyer's paid program pays your wallet on top."><input id="programs" type="checkbox" checked> Also run programs (1.25x points)</label>
           <button id="toggle" class="btn red" type="button">Start mining</button>
         </div>
         <div class="row"><span class="k">Status</span><span class="v" id="status">idle</span></div>
@@ -100,6 +100,7 @@
       <span class="num">THIS MONTH</span>
       <div class="row"><span class="k">Standing today</span><span class="v" id="today-standing">no jobs yet today</span></div>
       <div class="row"><span class="k">This month</span><span class="v" id="month">—</span></div>
+      <div class="row"><span class="k">Your share</span><span class="v" id="share-estimate">—</span></div>
       <div class="row"><span class="k">Stake</span><span class="v" id="stake">—</span></div>
       <div class="cta" style="margin-top:18px">
         <a class="btn sm" href="/compute/leaderboard">Leaderboard</a>

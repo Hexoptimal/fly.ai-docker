@@ -16,6 +16,7 @@
  *   demo/*       example programs (mine/examples) running on real miners: pi, Mandelbrot tiles, TSP restarts
  */
 import { readFileSync } from "node:fs";
+import { CHANNELS } from "../src/model.ts";
 
 const arg = (name: string) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -83,6 +84,34 @@ const ORDERS: { label: string; spec: () => Promise<object> | object; max_paralle
   { label: "demo/montecarlo-pi", spec: async () => ({ kind: "wasm", program: await upload("../examples/pi-rust/pi.wasm"), count: 2000, timeout_s: 30, redundancy: 2 }), units: 2 },
   { label: "demo/mandelbrot", spec: async () => ({ kind: "wasm", program: await upload("../examples/mandelbrot-tiles/mandelbrot_tiles.wasm"), count: 64, timeout_s: 60, redundancy: 2 }), units: 3 },
   { label: "demo/tsp", spec: async () => ({ kind: "wasm", program: await upload("../examples/tsp-search/tsp_search.wasm"), count: 1000, timeout_s: 30, redundancy: 2 }), units: 1 },
+
+  // ---- round 2 (2026-09-17): the first eleven all finished, so "also run programs" had nothing to run ----
+  // wider sweeps, longer and denser worlds, finer stimulus levels, and more of the example programs
+  { label: "tuning/all-channels", spec: () => tuning([...CHANNELS]) },
+  { label: "world/life-long", spec: () => ({ kind: "world", seeds: 300, seed_base: 20000, flies: 24, seconds: 1200, genes: "vary", sample_s: 10 }) },
+  { label: "world/crowd", spec: () => ({ kind: "world", seeds: 200, seed_base: 30000, flies: 48, seconds: 600, genes: "vary", sample_s: 10 }) },
+  { label: "world/learning-on-2", spec: () => ({ kind: "world", seeds: 300, seed_base: 40000, flies: 24, seconds: 900, genes: "vary", learning: { hebbian: true, reward: true, mb: true }, sample_s: 10 }) },
+  { label: "world/learning-off-2", spec: () => ({ kind: "world", seeds: 300, seed_base: 40000, flies: 24, seconds: 900, genes: "vary", learning: { hebbian: false, reward: false, mb: false }, sample_s: 10 }) },
+  {
+    // every word at four strengths: how the motor read-out grows with the drive, for Flybook's translator
+    label: "encoding/words-graded",
+    spec: () => probe([{ name: "nothing", stimuli: [] },
+      ...words.flatMap((w) => [0.3, 0.6, 0.9, 1.2].map((a) => ({ name: `${w}-${String(a).replace(".", "_")}`, stimuli: [on(w, a)] })))], 200),
+  },
+  {
+    // the market's drives paired with reward, and two senses at once: what the reader has to tell apart
+    label: "encoding/market-pairs",
+    spec: () => probe([{ name: "nothing", stimuli: [] },
+      ...["mate", "threat", "wind"].flatMap((sense) => [0.4, 0.8, 1.2].flatMap((a) => [
+        { name: `${sense === "mate" ? "target" : sense}-${String(a).replace(".", "_")}`, stimuli: [on(sense, a)] },
+        { name: `${sense === "mate" ? "target" : sense}-${String(a).replace(".", "_")}-reward`, stimuli: [on(sense, a), on("reward", REWARD)] },
+      ])),
+      { name: "target-threat", stimuli: [on("mate", 0.8), on("threat", 0.8)] },
+      { name: "wind-threat", stimuli: [on("wind", 0.8), on("threat", 0.8)] }], 150),
+  },
+  { label: "demo/montecarlo-pi-2", spec: async () => ({ kind: "wasm", program: await upload("../examples/pi-rust/pi.wasm"), count: 8000, timeout_s: 30, redundancy: 2 }), units: 2 },
+  { label: "demo/mandelbrot-2", spec: async () => ({ kind: "wasm", program: await upload("../examples/mandelbrot-tiles/mandelbrot_tiles.wasm"), count: 256, timeout_s: 60, redundancy: 2 }), units: 3 },
+  { label: "demo/tsp-2", spec: async () => ({ kind: "wasm", program: await upload("../examples/tsp-search/tsp_search.wasm"), count: 4000, timeout_s: 30, redundancy: 2 }), units: 1 },
 ];
 
 const existing = new Set(((await (await fetch(`${SERVER}/api/house`)).json()).orders as { label: string }[]).map((o) => o.label));
