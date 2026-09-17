@@ -174,9 +174,16 @@ an onramp link. The order is still run and charged in $FLYAI, so miners, charges
   `GET /api/month` adds `usdc_received` and `buyer_pool_from_usdc` (the part of the buyers' pool from
   USDC-paid orders), and the Leaderboard shows the breakdown. The USDC lands in the dev wallet, and the
   operator buys the $FLYAI to fund the pool by hand.
-- **Getting USDC:** `USDC_ONRAMP_URL` is an onramp provider's buy link, with `{wallet}` and `{amount}` filled in.
-  Transak, MoonPay and Coinbase all need an account for such a link. Without one, the page tells buyers to buy
-  USDC in an app and send it on Base to their address, and shows the address.
+- **Getting USDC with a card (Coinbase Onramp):** with `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET` set (a Coinbase
+  Developer Platform secret key, Ed25519, with Onramp enabled for its project), a wallet short of USDC gets
+  **Buy it with a card (Coinbase)**. `POST /api/orders/:id/card` creates a single-use Coinbase checkout
+  (`src/cdp.ts`) for the order's USDC, at least `CARD_MIN_USD`, delivered on Base to the order's wallet. The page
+  watches the wallet and, once the USDC lands, takes the free signature and starts the order. Coinbase sends the
+  buyer back to `/compute/jobs?pay=<id>&card=1`, which does the same. The sandbox run opened Coinbase's guest card
+  checkout; whether a buyer needs a Coinbase account depends on Coinbase (country, amount). `CDP_SANDBOX=1` marks
+  checkouts as tests.
+- **Other onramps:** `USDC_ONRAMP_URL` is another provider's buy link, with `{wallet}` and `{amount}` filled in. With
+  neither, the page tells buyers to buy USDC in an app and send it on Base to their address, and shows the address.
 
 | Env | Default | |
 |---|---|---|
@@ -184,7 +191,10 @@ an onramp link. The order is still run and charged in $FLYAI, so miners, charges
 | `USDC_RPC`, `USDC_TOKEN`, `USDC_CHAIN_ID` | Base mainnet, native USDC `0x8335…2913`, 8453 | |
 | `USDC_QUOTE_MIN` | 30 | how long a USDC price holds |
 | `RELAYER_KEY` | none | the gasless relayer's key (a fly secret); keep a few dollars of ETH on Base in it. `GET /api/admin/relayer` shows its address and gas |
-| `USDC_ONRAMP_URL` | none | a provider's buy link template |
+| `CDP_API_KEY_ID`, `CDP_API_KEY_SECRET` | none | Coinbase Onramp card checkout (fly secrets) |
+| `CARD_MIN_USD` | 2 | the smallest card purchase |
+| `CDP_SANDBOX` | off | 1: card checkouts are marked as tests |
+| `USDC_ONRAMP_URL` | none | another provider's buy link template |
 | `FLYAI_USD_PRICE` | none | tests only: a fixed price |
 
 Tests: `npm run test:orders` covers quotes, exact transfers, replays, the month's USDC totals and gasless payments

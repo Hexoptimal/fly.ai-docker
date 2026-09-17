@@ -701,6 +701,7 @@ A result row for a program:
 | `POST /api/orders/:id/pay {tx, chain?}` | match the transfer and start the order (`chain: "base"` for USDC) |
 | `POST /api/orders/:id/usdc` | the budget in USDC at the live price, held until `expires_at` |
 | `POST /api/orders/:id/usdc/authorize {from, value, valid_after, valid_before, nonce, signature}` | gasless USDC: the server sends your signed transfer |
+| `POST /api/orders/:id/card` | a single-use Coinbase card checkout for the order's USDC, delivered on Base to its wallet → `{url, usdc}` |
 | `GET /api/price` | $FLYAI in USD (the lower of GeckoTerminal and DexScreener) |
 | `POST /api/orders/:id/intent {action}` | the message to sign for `fund` or `stop` |
 | `POST /api/orders/:id/fund {nonce, signature}` | pay from the wallet's balance |

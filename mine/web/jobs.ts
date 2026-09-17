@@ -17,7 +17,7 @@ interface Config {
   channels: string[]; steps: number; dt: number | null;
   chain_id: number; chain_name: string; rpc: string; explorer: string; token_symbol: string;
   /** card buyers: USDC on Base, credited in $FLYAI at the live price */
-  usdc: { chain_id: number; chain_name: string; rpc: string; explorer: string; token: string; decimals: number; pay_to: string; gasless: boolean; onramp_url: string | null } | null;
+  usdc: { chain_id: number; chain_name: string; rpc: string; explorer: string; token: string; decimals: number; pay_to: string; gasless: boolean; onramp_url: string | null; card: boolean } | null;
 }
 interface UsdcQuote {
   order: string; usdc: string; units: string; flyai: string; flyai_usd: number; expires_at: number; pay_to: string;
@@ -218,6 +218,7 @@ function setButtons(): void {
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 function changed(): void {
+  awaitingUsdc = null;
   clearTimeout(timer);
   timer = setTimeout(() => void requote(), 250);
 }
@@ -325,7 +326,8 @@ async function order(method: "flyai" | "usdc" | "balance"): Promise<void> {
     account = await requireWallet();
     if (!account || !spec) return;
     const t = terms();
-    const created: Order = await api(API, "/api/orders", null, {
+    // an order already made and waiting for its USDC is paid, not made again
+    const created: Order = method === "usdc" && awaitingUsdc && awaitingUsdc.wallet.toLowerCase() === account.toLowerCase() ? awaitingUsdc : await api(API, "/api/orders", null, {
       wallet: account, spec, bid: t.bid, budget: t.budget, hours: t.hours || undefined, max_parallel: t.max_parallel || undefined,
       webhook: t.webhook || undefined,
     });
@@ -341,7 +343,9 @@ async function order(method: "flyai" | "usdc" | "balance"): Promise<void> {
     if (method === "balance") {
       result = await signed(created.id, "fund");
     } else if (method === "usdc") {
-      result = await payWithUsdc(created, (text) => { $("tx").textContent = text; }, $("usdc-help"));
+      awaitingUsdc = created;
+      result = await payWithUsdc(created, (text) => { delete $("tx").dataset.standing; $("tx").textContent = text; }, $("usdc-help"), () => order("usdc"));
+      awaitingUsdc = null;
     } else {
       const amount = BigInt(created.budget_wei);
       const held = BigInt(await rpc("eth_call", [{ to: config.token, data: `0x70a08231${word(account)}` }, "latest"]));
@@ -368,6 +372,8 @@ async function order(method: "flyai" | "usdc" | "balance"): Promise<void> {
 
 // ---- USDC (card buyers) --------------------------------------------------------------------------------------
 let flyaiUsd = 0;
+/** an order made for USDC the wallet doesn't have yet: paying again reuses it */
+let awaitingUsdc: Order | null = null;
 const usd = (n: number) => (n >= 1 ? `$${n.toFixed(2)}` : `$${n.toPrecision(2)}`);
 /** " (about $X)" after a $FLYAI amount, once the price is known */
 const dollars = (tokens: number) => (flyaiUsd && tokens ? ` That's about <b>${usd(tokens * flyaiUsd)}</b>${config.usdc ? ", payable in USDC" : ""}.` : "");
@@ -379,14 +385,54 @@ async function rpcOn(url: string, method: string, params: unknown[]): Promise<an
   return body.result;
 }
 
-/** Where to get USDC: the configured onramp, or plain directions, with the address to send it to. */
-function usdcHelp(box: HTMLElement, wallet: string, amount: string): void {
+/** Checks the wallet's USDC every few seconds until it holds `units`, for up to half an hour. */
+async function waitForUsdc(wallet: string, units: bigint, say: (text: string) => void): Promise<boolean> {
+  const u = config.usdc!;
+  for (let i = 0; i < 360; i++) {
+    const held = BigInt(await rpcOn(u.rpc, "eth_call", [{ to: u.token, data: `0x70a08231${word(wallet)}` }, "latest"]).catch(() => "0x0"));
+    if (held >= units) return true;
+    say(`Waiting for your USDC to arrive in ${shortAddress(wallet)} (${(Number(held) / 1e6).toFixed(2)} of ${(Number(units) / 1e6).toFixed(2)} so far). This page carries on by itself.`);
+    await new Promise((r) => setTimeout(r, 5000));
+  }
+  return false;
+}
+
+/**
+ * Where to get USDC: a card checkout (Coinbase) that delivers it to this wallet and then carries on by itself, the
+ * configured onramp link, or plain directions, with the address to send it to.
+ */
+function usdcHelp(box: HTMLElement, wallet: string, amount: string, units: bigint, orderId: string, say: (text: string) => void, ready: () => void): void {
   const u = config.usdc!;
   box.replaceChildren();
   const lead = document.createElement("b");
   lead.textContent = `You need ${amount} USDC on ${u.chain_name} in your wallet.`;
   box.append(lead, " ");
-  if (u.onramp_url) {
+  if (u.card) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn red sm";
+    b.textContent = "Buy it with a card (Coinbase)";
+    b.addEventListener("click", () => void (async () => {
+      b.disabled = true;
+      // open the tab now, while the click still counts, then point it at the checkout
+      const tab = window.open("about:blank", "_blank");
+      try {
+        const c = await api(API, `/api/orders/${orderId}/card`, null, {});
+        if (tab) tab.location.href = c.url;
+        else location.href = c.url; // pop-ups blocked: go there; Coinbase brings the buyer back to this order
+        if (await waitForUsdc(wallet, units, say)) {
+          box.hidden = true;
+          ready();
+        }
+      } catch (err) {
+        tab?.close();
+        say(errorText(err));
+      } finally {
+        b.disabled = false;
+      }
+    })());
+    box.append(b, ` Pay with a card or Apple Pay (Coinbase may ask you to sign in or verify your ID). Coinbase sends the USDC to your wallet, and this page finishes the order when it arrives. Small orders buy a couple of dollars' worth; the rest stays in your wallet for next time. No ETH needed for fees.`);
+  } else if (u.onramp_url) {
     const a = document.createElement("a");
     a.href = u.onramp_url.replaceAll("{wallet}", wallet).replaceAll("{amount}", String(Math.ceil(Number(amount) * 100) / 100));
     a.target = "_blank";
@@ -415,14 +461,14 @@ function usdcHelp(box: HTMLElement, wallet: string, amount: string): void {
  * Pay an order in USDC: a price quote, then (when the server relays) a free signature that the server sends and pays
  * the gas for, or else an ordinary USDC transfer. Credited in $FLYAI at the quoted price.
  */
-async function payWithUsdc(o: Order, say: (text: string) => void, help: HTMLElement): Promise<Order> {
+async function payWithUsdc(o: Order, say: (text: string) => void, help: HTMLElement, retry: () => void | Promise<void>): Promise<Order> {
   const u = config.usdc!;
   const wallet = account!;
   say("getting the USDC price…");
   const q: UsdcQuote = await api(API, `/api/orders/${o.id}/usdc`, null, {});
   const held = BigInt(await rpcOn(u.rpc, "eth_call", [{ to: u.token, data: `0x70a08231${word(wallet)}` }, "latest"]));
   if (held < BigInt(q.units)) {
-    usdcHelp(help, wallet, q.usdc);
+    usdcHelp(help, wallet, q.usdc, BigInt(q.units), o.id, say, () => void retry());
     throw new Error(`this wallet has ${(Number(held) / 1e6).toFixed(2)} USDC on ${u.chain_name}; the order needs ${q.usdc}. Your order is saved: pay it once the USDC arrives.`);
   }
   if (q.gasless) {
@@ -482,6 +528,13 @@ async function showPayCard(id: string): Promise<void> {
     if (wallet && wallet.toLowerCase() !== o.wallet.toLowerCase()) throw new Error(`you're signed in as ${shortAddress(wallet)}, but this order is for ${shortAddress(o.wallet)}: sign out and in with that wallet`);
     return wallet;
   };
+  if (config.usdc && new URLSearchParams(location.search).get("card") === "1") {
+    // back from the card checkout: wait for the USDC, then pay
+    void (async () => {
+      const q: UsdcQuote = await api(API, `/api/orders/${o.id}/usdc`, null, {});
+      if (await waitForUsdc(o.wallet, BigInt(q.units), (text) => { status.textContent = text; })) usdcButton.click();
+    })().catch((err) => { status.textContent = errorText(err); });
+  }
   if (config.usdc) {
     usdcButton.hidden = false;
     usdcButton.addEventListener("click", () => void (async () => {
@@ -490,7 +543,7 @@ async function showPayCard(id: string): Promise<void> {
       try {
         account = await orderWallet();
         if (!account) return;
-        o = await payWithUsdc(o, (text) => { status.textContent = text; }, $("pay-usdc-help"));
+        o = await payWithUsdc(o, (text) => { delete status.dataset.standing; status.textContent = text; }, $("pay-usdc-help"), () => usdcButton.click());
         if (o.status === "unpaid" || o.status === "expired") throw new Error("the USDC arrived, but at today's price it no longer covers the order; it's in your balance");
         paid();
         await listOrders().catch(() => {});

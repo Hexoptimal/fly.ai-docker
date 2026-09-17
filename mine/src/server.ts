@@ -46,6 +46,7 @@ import {
 } from "./orders.ts";
 import { inspectWasm, inspectWgsl, WasmError } from "./wasmcheck.ts";
 import { Relayer, tokenDomain, transferWithAuthorizationData } from "./relay.ts";
+import { Cdp } from "./cdp.ts";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const WORLD_SRC = fileURLToPath(new URL("../../world/src/", import.meta.url));
@@ -119,6 +120,12 @@ const USDC = {
 };
 /** Gasless USDC (src/relay.ts): with RELAYER_KEY set, buyers sign and this wallet sends the transfer and pays gas. */
 const relayer = process.env.RELAYER_KEY ? new Relayer(process.env.RELAYER_KEY, USDC.rpc) : null;
+/** Card checkout (src/cdp.ts): Coinbase Onramp sells the buyer the order's USDC on Base, into their own wallet. */
+const cdp = process.env.CDP_API_KEY_ID && process.env.CDP_API_KEY_SECRET ? new Cdp(process.env.CDP_API_KEY_ID, process.env.CDP_API_KEY_SECRET) : null;
+/** CDP_SANDBOX=1: checkouts are marked as tests (partnerUserRef "sandbox-…") */
+const CDP_SANDBOX = process.env.CDP_SANDBOX === "1";
+/** the smallest card purchase, in USD: card checkouts have a minimum, and what's bought beyond the order stays in the buyer's wallet */
+const CARD_MIN_CENTS = BigInt(Math.round(Number(env("CARD_MIN_USD", "2")) * 100));
 
 // ---- the job grid ------------------------------------------------------------------------------------
 // A sensory -> motor screen: each visual/touch channel on each side at four strengths, across global gain
@@ -1415,7 +1422,7 @@ function orderConfigView() {
     // card buyers: USDC on Base through an onramp, credited in $FLYAI at the live price (POST /api/orders/:id/usdc)
     usdc: USDC.enabled && ORDERS.payTo
       ? { chain_id: USDC.chain_id, chain_name: USDC.chain_name, rpc: USDC.rpc, explorer: USDC.explorer, token: USDC.token, decimals: 6, pay_to: ORDERS.payTo,
-        gasless: !!relayer, onramp_url: USDC.onrampUrl }
+        gasless: !!relayer, onramp_url: USDC.onrampUrl, card: !!cdp }
       : null,
   };
 }
@@ -1853,8 +1860,47 @@ function usdcMonth(m: string) {
   return { usdc_received: usdcText(received), buyer_pool_from_usdc: fromWei(pool) };
 }
 
+const cardSessions = new Map<string, number[]>();
+
+/**
+ * POST /api/orders/:id/card: a single-use Coinbase checkout that buys the order's USDC (rounded up to the cent) with a
+ * card, delivered on Base to the order's wallet. Afterwards the buyer pays the order with that USDC as usual.
+ */
+async function cardCheckout(req: IncomingMessage, id: string) {
+  usdcOn();
+  if (!cdp) throw new HttpError(503, "card payments aren't set up");
+  const o = orderRow(id);
+  if (!o) throw new HttpError(404, "no such order");
+  if (o.status !== "unpaid" && o.status !== "expired") throw new HttpError(409, `the order is already ${o.status}`);
+  const ip = clientIp(req);
+  const now = Date.now();
+  const recent = (cardSessions.get(ip) ?? []).filter((t) => now - t < 3_600_000);
+  if (recent.length >= 20) throw new HttpError(429, "too many card checkouts from this address; try again later");
+  cardSessions.set(ip, [...recent, now]);
+  let q = one<{ units: string; expires_at: number } | undefined>("select units, expires_at from usdc_quotes where order_id = ?", id);
+  if (!q || q.expires_at < now + 5 * 60_000) {
+    await usdcQuote(id);
+    q = one<{ units: string; expires_at: number }>("select units, expires_at from usdc_quotes where order_id = ?", id);
+  }
+  const needed = (BigInt(q.units) + 9_999n) / 10_000n; // micro-USDC up to whole cents
+  const cents = needed > CARD_MIN_CENTS ? needed : CARD_MIN_CENTS;
+  const usdc = `${cents / 100n}.${(cents % 100n).toString().padStart(2, "0")}`;
+  try {
+    const session = await cdp.onramp({
+      wallet: o.wallet, usdc, network: "base",
+      redirectUrl: PUBLIC_ORIGIN ? `${PUBLIC_ORIGIN}/compute/jobs?pay=${id}&card=1` : undefined,
+      // Coinbase refuses private addresses (a local server sees 127.0.0.1)
+      clientIp: /^[0-9a-f.:]+$/i.test(ip) && !/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|::1$|::ffff:127\.|f[cd]|fe80)/i.test(ip) ? ip : undefined,
+      partnerUserRef: `${CDP_SANDBOX ? "sandbox-" : ""}${o.wallet.toLowerCase()}`,
+    });
+    return { url: session.url, usdc, wallet: o.wallet };
+  } catch (err) {
+    throw new HttpError(502, `couldn't open the card checkout: ${err instanceof Error ? err.message : err}`);
+  }
+}
+
 // wallet signatures for spending a balance or stopping an order
-const intents =new Map<string, { order: string; action: "fund" | "stop"; message: string; expires: number }>();
+const intents = new Map<string, { order: string; action: "fund" | "stop"; message: string; expires: number }>();
 
 function intent(id: string, body: any) {
   const o = orderRow(id);
@@ -2548,6 +2594,7 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     if (p === "/api/orders") return send(res, 200, await createOrder(req, await readJson(req, 4_000_000)));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/pay$/.exec(p))) return send(res, 200, await payOrder(m[1], await readJson(req)));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/usdc$/.exec(p))) return send(res, 200, await usdcQuote(m[1]));
+    if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/card$/.exec(p))) return send(res, 200, await cardCheckout(req, m[1]));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/usdc\/authorize$/.exec(p))) return send(res, 200, await authorizeUsdc(m[1], await readJson(req)));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/intent$/.exec(p))) return send(res, 200, intent(m[1], await readJson(req)));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/(fund|stop)$/.exec(p))) return send(res, 200, signedAction(m[1], m[2] as "fund" | "stop", await readJson(req), req));
