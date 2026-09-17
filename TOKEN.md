@@ -62,6 +62,12 @@ re-runs a sample of answers, and a wrong answer zeroes that day's credit.
 * **Monthly pool.** After a month ends, the team may split a $FLYAI pool by points. A pool may be
   announced during the month. The team buys those tokens on the open market and funds the MonthlyClaims
   contract, and wallets claim their share within 90 days. Anything unclaimed after that returns to the team.
+* **Mining for the project.** Since 18 September 2026 the network also mines for the project itself: a yespower
+  coin on miners' CPU threads and Kaspa on their GPUs, paid to wallets the team holds. Miners earn their usual
+  points for those jobs, priced at what the brain job they displace would have paid, and the switch that runs them
+  stays opt-in. It is small money - roughly $0.02 per machine-day on the CPU side and a rounding error on the GPU -
+  and nothing has been promised about what the coins are used for. If they are ever used to buy $FLYAI for a pool,
+  this document will say so before it happens.
 * **Buyers.** Anyone can buy compute and pay in $FLYAI, or in USDC on Base. Payments go to the dev wallet
   (`0x625862521777E19Ad54Ce6C7ABeD9Ca54D6589ea`). A USDC payment is credited as the $FLYAI it buys at the
   live market price (the lower of two price feeds), and the team buys that $FLYAI to fund the pool.

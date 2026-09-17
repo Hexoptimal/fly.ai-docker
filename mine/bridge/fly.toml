@@ -11,9 +11,11 @@ primary_region = "cdg"
   YESPOWER_COIN = "yescrypt"
   YESPOWER_PER_JOB = "20000"   # about a minute and a half of one browser thread
   YESPOWER_AHEAD = "16"
-  KASPA_GROUPS = "1024"        # 4.2 M nonces a job: a few seconds of a desktop GPU
+  YESPOWER_UNITS = "84"        # 82 s of a browser thread, priced like the brain jobs it displaces
+  KASPA_GROUPS = "4096"        # 16.8 M nonces a job: about 1.5 s of a desktop GPU
   KASPA_PER_THREAD = "64"
   KASPA_AHEAD = "8"
+  KASPA_UNITS = "39"           # priced like the brain batch it displaces
 
 [http_service]
   internal_port = 8080

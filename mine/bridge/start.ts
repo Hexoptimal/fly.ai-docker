@@ -16,6 +16,10 @@
  *   KASPA_POOL        stratum URL, e.g. stratum+tcp://kas.kryptex.network:7011 ("" turns this bridge off)
  *   KASPA_USER        kaspa:address[.worker]
  *   KASPA_PASS        pool options (default x)
+ *   YESPOWER_UNITS / KASPA_UNITS
+ *     points a settled mining job earns. They are set so that a mining job pays what the brain job it displaces
+ *     would have paid for the same seconds of the miner's machine (times PROGRAM_BONUS on top), which is why they
+ *     look large: a yespower job is 82 s of one thread, a Kaspa job about 1.5 s of a desktop GPU.
  */
 import { spawn, type ChildProcess } from "node:child_process";
 import { createServer } from "node:http";
@@ -41,7 +45,7 @@ if (env("YESPOWER_POOL") && env("YESPOWER_USER")) {
     script: fileURLToPath(new URL("../examples/yespower-pool/bridge.ts", import.meta.url)),
     args: ["--pool", env("YESPOWER_POOL"), "--user", env("YESPOWER_USER"), "--pass", env("YESPOWER_PASS", "x"),
       "--coin", env("YESPOWER_COIN", "yescrypt"), "--server", SERVER, "--per-job", env("YESPOWER_PER_JOB", "20000"),
-      "--ahead", env("YESPOWER_AHEAD", "16")],
+      "--ahead", env("YESPOWER_AHEAD", "16"), "--units", env("YESPOWER_UNITS", "84")],
     restarts: 0, startedAt: 0,
   });
 }
@@ -51,7 +55,7 @@ if (env("KASPA_POOL") && env("KASPA_USER")) {
     script: fileURLToPath(new URL("../examples/kaspa/bridge.ts", import.meta.url)),
     args: ["--pool", env("KASPA_POOL"), "--user", env("KASPA_USER"), "--pass", env("KASPA_PASS", "x"),
       "--server", SERVER, "--groups", env("KASPA_GROUPS", "1024"), "--per-thread", env("KASPA_PER_THREAD", "64"),
-      "--ahead", env("KASPA_AHEAD", "8")],
+      "--ahead", env("KASPA_AHEAD", "8"), "--units", env("KASPA_UNITS", "39")],
     restarts: 0, startedAt: 0,
   });
 }

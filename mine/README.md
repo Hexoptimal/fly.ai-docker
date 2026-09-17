@@ -29,11 +29,14 @@ orders: brain tuning, world simulations and encoding data.
   /compute/compute-api.md.
 - **Contracts:** deployed and verified on Robinhood Chain.
 - **Pool:** September 2026 announced at 5,250,000 $FLYAI; not yet snapshotted or funded (after 1 October).
-- **House work:** 11 orders queued, about 11,000 jobs (see *House orders*).
+- **House work:** the research orders (tuning, world, encoding, demo) were stopped on 18 September so the fleet
+  mines instead; their results up to that point are still readable with `npm run pull:house`. The only house work
+  now is `mining/yescrypt` and `mining/kaspa`.
 - **Examples:** `examples/`, published on GitHub, including `btc-pool`: a bridge from a Bitcoin pool to a
   hash-search order, with a guided setup for non-coders (checked against live pools, no real share yet).
-- **Mining for the project:** yespower on the CPU (~$0.02 per machine-day) and Kaspa on the GPU (a rounding
-  error, but it proves the path) are built and tested; see *Mining for the project*.
+- **Mining for the project: LIVE** since 18 September. The bridges run on their own Fly app (`flyai-bridge`) and
+  feed two house orders: yespower on the CPU (~$0.02 per machine-day) and Kaspa on the GPU (a rounding error, but
+  it proves the path). No pool has accepted a share yet; see *Mining for the project*.
 - **Extension:** built, not yet on the Chrome Web Store. It takes brain jobs only (no programs, world or probe
   jobs yet).
 
@@ -400,41 +403,80 @@ at phone size (layout, limits, wake lock, jobs submitted), not on a real phone y
 
 ## Mining for the project
 
-Our own mining, so the network earns something without needing buyers: the coins go to a project address, and the
-miners running it still get their usual points. Built and tested, not yet pointed at a real pool.
+Our own mining, so the network earns something without needing buyers: the coins go to the project's wallets, and
+the miners running it still get their usual points. **Live since 18 September 2026.**
 
+### What runs where
+
+- **The bridges** live on their own Fly app, `flyai-bridge` (Treasure org, `cdg`, one shared-cpu-1x machine, no
+  volume): [`mine/bridge/start.ts`](bridge/start.ts) keeps both pool bridges running, restarts either one with a
+  backoff if it dies, and serves a status page at **https://flyai-bridge.fly.dev/**. Deploy with
+  `bash mine/bridge/deploy.sh`; its pools, addresses and the admin token are Fly secrets.
 - **CPU: yespower** ([`examples/yespower`](examples/yespower), [`examples/yespower-pool`](examples/yespower-pool)).
-  A pure-Rust port of the reference implementation, matching all fourteen of its published vectors, plus a Stratum
-  bridge that runs the coin's work as a keep-open house order. `npm run test:yespower` covers the hasher, the
-  search, the bridge against a mock pool, and the whole path end to end.
-- **What it earns:** 243 H/s per browser thread at yescrypt's parameters, which is **about $0.02 per 8-thread
-  machine-day** at September 2026 pool rates. Roughly five times what browser Monero would make, and the reason
-  RandomX was dropped: it needs a runtime JIT and a 2 GB dataset, so a browser pays 30x over native.
-- **To start it:** a payout address, a pool (zpool and zergpool take a wallet address as the login, no account),
-  then run the bridge with the server's `ADMIN_TOKEN`. See [the bridge's README](examples/yespower-pool).
-
+  A pure-Rust port of the reference implementation, matching all fourteen of its published vectors. Mining
+  `yescrypt` at zpool, paid in BTC. **243 H/s per browser thread, about $0.02 per 8-thread machine-day.**
 - **GPU: Kaspa** ([`examples/kaspa`](examples/kaspa)). kHeavyHash as a WebGPU shader, checked against
-  rusty-kaspa's own test vectors and against the reference implementation nonce for nonce on a real GPU, plus a
-  Stratum bridge that runs it as a house order. `npm run test:kaspa` covers all of it, including a share accepted
-  by a mock pool.
-- **What it earns: almost nothing.** 11.2 MH/s on an RTX 4060, about 2% of native (WGSL has no 64-bit integers, so
-  keccak is emulated), against an ASIC-dominated network - a fraction of a cent a year per browser. It exists
-  because it is the only GPU proof-of-work with a published specification *and* vectors, so it proves the whole
-  path with a shader that can be swapped when a worthwhile coin turns up.
+  rusty-kaspa's own vectors and against the reference implementation nonce for nonce on a real GPU. Mining at
+  HeroMiners. **11.2 MH/s on an RTX 4060, about 2% of native** - a fraction of a cent a year, because the network
+  is ASIC-dominated. It is here because it is the only GPU proof-of-work with a published specification *and*
+  vectors, so the whole path is proven with a shader that can be swapped when a worthwhile coin appears.
 
-**The GPU coin that would be worth it is Pearl**, whose proof-of-work is an integer matrix multiply. A hand-written
-WGSL kernel on the 4060 reached 9.7 TOPS - 6% of what the card's tensor cores do natively, since WebGPU cannot
-reach them - so about **$0.05 per machine-day**. Their miner is a vLLM plugin built on CUTLASS kernels, so a
-browser version is a from-scratch reimplementation that must match their hashing bit-exactly. Worth starting only
-at several hundred concurrent miners.
+### What a mining job pays
 
-**Everything else was measured and rejected:** Monero (~$0.004 per machine-day: RandomX needs a runtime JIT and a
-2 GB dataset, so a browser pays 30x over native), Bitcoin (~$0, ASICs), Ergo, Chia, Gridcoin and the folding coins
-(either untradeable or impossible in a browser). The honest summary: donated browser compute is worth cents a day per machine whatever it mines, and far
-more than that when a buyer pays for it.
+A mining job is priced at what the brain job it displaces would have paid for the same seconds of the miner's
+machine, so switching the fleet to mining costs nobody points:
 
-**Disclosure:** the Mine page and TOKEN.md should say what mining earns and where it goes before this is switched
-on for anyone but us. In-browser mining can get a site flagged as cryptojacking, which is why it stays opt-in.
+| Job | Work | Points | Rate | Brain jobs |
+|---|---|---|---|---|
+| `mining/yescrypt` | 20,000 nonces, about 82 s of one browser thread | 105 | 1.28 units/s | 1.27 units/s |
+| `mining/kaspa` | 16.8 M nonces, about 1.5 s of a desktop GPU | 48.75 | 32.5 units/s | 32.3 units/s |
+
+`YESPOWER_UNITS` and `KASPA_UNITS` set them (the values above already include `PROGRAM_BONUS`). Re-price them
+whenever the job sizes change, or the toggle quietly starts paying less than the screen - which is exactly what a
+miner told us in September, and how these numbers were arrived at.
+
+Both run as keep-open house orders (`mining/yescrypt`, `mining/kaspa`) at redundancy 1. That costs nothing in
+trust: the bridge re-hashes every hit before submitting, so a miner can hide a share but never invent one, and
+nobody can redirect the reward because the header commits to the pool's coinbase.
+
+### Wallets
+
+`mine/.wallets/` (git-ignored, with a copy outside OneDrive) holds the seed phrases. Treat both as hot wallets:
+their phrases have been through a chat transcript. Generate fresh ones before anything worth keeping accumulates.
+
+| Coin | Address | Pool |
+|---|---|---|
+| Kaspa | `kaspa:qq798wcm...jjkm92unupn6n4` | `kaspa.herominers.com:1206` |
+| Bitcoin | `bc1qqhaz05wl8ll8z50237rd845fjms3h0nce7vekr` | `yescrypt.mine.zpool.ca:6233`, paid in BTC |
+
+### What the pools taught us
+
+- **zpool states yescrypt difficulty the way Bitcoin does**, not cpuminer's `diff / 65536`. Submitting on the
+  cpuminer convention earns "Invalid share". `--diff-divisor` exists for pools that differ; we run it at 1.
+- **zpool's floor is around 0.02-0.25** even when the password asks for less (`d=0.0005`), so a single browser
+  would take days per share. The fleet together is what makes it work.
+- **Kryptex's Kaspa floor is 4096** - about 18 days per share for a browser GPU. HeroMiners' port 1206 gives
+  difficulty 4, roughly 26 minutes per GPU, which is why we are there.
+- **Kaspa runs at ten blocks a second**, so the pool pushes a new job every half-second. The matrix is built
+  lazily for jobs we actually cut work from, and many shares will still land stale: that is the pipeline's
+  latency, not the hashrate.
+
+### Still open
+
+- **No pool has accepted a share yet.** Jobs flow and every hit is verified locally, but the first accepted share
+  is what confirms the target conventions end to end. Watch `fly logs -a flyai-bridge` for `share ... accepted`.
+- **The GPU coin worth real money is Pearl**, whose proof-of-work is an integer matrix multiply. A hand-written
+  WGSL kernel on a 4060 reached 9.7 TOPS - 6% of what the card's tensor cores do natively, since WebGPU cannot
+  reach them - so about **$0.05 per machine-day**. Their miner is a vLLM plugin built on CUTLASS kernels, so a
+  browser version is a from-scratch reimplementation that must match their hashing bit-exactly. Worth starting
+  only at several hundred concurrent miners.
+- **Everything else was measured and rejected:** Monero (~$0.004 per machine-day: RandomX needs a runtime JIT and
+  a 2 GB dataset, so a browser pays 30x over native), Bitcoin (~$0, ASICs), Ergo, Chia, Gridcoin and the folding
+  coins (either untradeable or impossible in a browser). Donated browser compute is worth cents a day per machine
+  whatever it mines, and far more than that when a buyer pays for it.
+- **Disclosure:** the Mine page and TOKEN.md should say what mining earns and where it goes before this is
+  presented to miners as a reason to join. In-browser mining can get a site flagged as cryptojacking, which is
+  why the switch stays opt-in.
 
 ## Browser extension
 
