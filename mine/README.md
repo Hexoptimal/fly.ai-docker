@@ -10,21 +10,30 @@ Anyone can also buy compute:
 - **Brain experiments.**
 - **Their own programs:** WebAssembly or GPU shaders.
 
-Buyers pay in $FLYAI per finished job, and 80% goes to miners. We queue our own work as house orders: brain
-tuning, world simulations and encoding data.
+Buyers pay in $FLYAI (or USDC on Base) per finished job, and 80% goes to miners. We queue our own work as house
+orders: brain tuning, world simulations and encoding data.
 
 **Status (2026-09-17):**
-- **API:** live at https://flyai-mine.fly.dev (database schema 9), with:
-  - wallet sign-in, stake tiers, monthly points and claims;
+- **API:** live at https://flyai-mine.fly.dev (database schema 12), with:
+  - wallet sign-in, once for every page (30-day sessions), stake tiers, monthly points and claims;
   - paid orders with bids, budgets and balances, and results by webhook, stream or pull;
   - buyers' programs (WASM and WGSL);
-  - house orders.
-- **Website:** live at www.flyaiworld.com/compute/: Mine, Buy compute, Stake, Claims and Leaderboard. The API
-  guide is at /compute/compute-api.md.
+  - house orders;
+  - paying in USDC on Base at the live $FLYAI price, gasless through the server's relayer;
+  - miners giving back jobs they hold (`/api/release`), so a reloaded page doesn't sit on 64 jobs.
+- **Card payments:** built (Coinbase Onramp, guest orders with no wallet) but **switched off**: the Coinbase keys
+  were removed from the server secrets while Coinbase's verification is pending. Setting `CDP_API_KEY_ID` and
+  `CDP_API_KEY_SECRET` again turns them back on (see *Paying with a card*).
+- **Website:** live at www.flyaiworld.com/compute/: Mine, Buy compute, Stake, Claims and Leaderboard, with wagmi
+  wallets (browser wallets and WalletConnect for phones) and mining on phones. The API guide is at
+  /compute/compute-api.md.
 - **Contracts:** deployed and verified on Robinhood Chain.
 - **Pool:** September 2026 announced at 5,250,000 $FLYAI; not yet snapshotted or funded (after 1 October).
 - **House work:** 11 orders queued, about 11,000 jobs (see *House orders*).
-- **Examples:** `examples/`, published on GitHub.
+- **Examples:** `examples/`, published on GitHub, including `btc-pool`: a bridge from a Bitcoin pool to a
+  hash-search order, with a guided setup for non-coders (checked against live pools, no real share yet).
+- **Next:** opt-in Monero mining for the project (RandomX in the browser, a pool bridge, a switch on the Mine
+  page); see *Monero (planned)*.
 - **Extension:** built, not yet on the Chrome Web Store. It takes brain jobs only (no programs, world or probe
   jobs yet).
 
@@ -174,7 +183,7 @@ an onramp link. The order is still run and charged in $FLYAI, so miners, charges
   `GET /api/month` adds `usdc_received` and `buyer_pool_from_usdc` (the part of the buyers' pool from
   USDC-paid orders), and the Leaderboard shows the breakdown. The USDC lands in the dev wallet, and the
   operator buys the $FLYAI to fund the pool by hand.
-- **Paying by card, no wallet (Coinbase Onramp, schema 12):** with `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET` set (a
+- **Paying by card, no wallet (Coinbase Onramp, schema 12; currently off):** with `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET` set (a
   Coinbase Developer Platform secret key, Ed25519, with Onramp enabled for its project), **Pay with card** needs no
   sign-in:
   1. **Order:** `POST /api/orders {guest: true, ...}` makes a guest order held by `PAY_TO`, and returns its key once.
@@ -384,6 +393,25 @@ at phone size (layout, limits, wake lock, jobs submitted), not on a real phone y
 **Laptops with two GPUs:** Chrome on Windows starts on the integrated GPU and ignores WebGPU's
 `powerPreference`. To mine on the discrete GPU, set Chrome to "High performance" in Windows Settings
 → System → Display → Graphics. For testing, launch Chrome with `--force_high_performance_gpu`.
+
+## Monero (planned)
+
+Opt-in mining that earns Monero for the project, not for the miner's wallet: miners still earn points for the jobs.
+Nothing is built yet.
+
+1. **RandomX in the browser:** compile a pure-Rust RandomX (`rustdom-x`, GPL-3.0, kept in its own folder with its
+   license) to WebAssembly, checked against RandomX's official test vectors. It needs a C linker on the build
+   machine (Rust's GNU toolchain or Visual Studio Build Tools); this PC has neither yet.
+2. **Measure:** hashes per second in Chrome (light mode, about 256 MB per thread), then estimate earnings before
+   going further.
+3. **Bridge and switch:** a Monero pool bridge like `examples/btc-pool` (SupportXMR, paying the project's Monero
+   wallet) as a house job kind with its own worker, and an off-by-default "Also mine Monero for fly.ai" switch
+   on the Mine page. Not in the extension (the Chrome Web Store bans mining).
+4. **Disclosure:** the Mine page and TOKEN.md say what opted-in mining earns and how it's used.
+
+**Waiting on:** the project's Monero wallet address (created in Monero GUI or Feather, seed kept offline), and the
+build toolchain. **Risks:** browser RandomX is slow (likely cents to a dollar a day per 1,000 threads), and
+in-browser mining can get a site flagged as cryptojacking, which is why it's opt-in and measured first.
 
 ## Browser extension
 
