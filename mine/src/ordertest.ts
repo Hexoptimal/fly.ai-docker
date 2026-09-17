@@ -41,6 +41,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const hex = (b: Uint8Array) => Buffer.from(b).toString("hex");
 /** equal to within the order tags (under 1e-12 of a token each) */
 const near = (x: unknown, y: number) => Math.abs(Number(x) - y) < 1e-9;
+const FAKE_CDP_PORT = 8798;
 
 const anvil = spawn("anvil", ["--port", "8547"], { stdio: ["ignore", "pipe", "ignore"] });
 const anvilKeys: string[] = await new Promise((resolve, reject) => {
@@ -104,6 +105,25 @@ try {
   for (const w of [alice, bob]) await send(owner.address, token, calldata("mint(address,uint256)", w.address, 100_000n * WEI));
   const transfer = (amount: bigint) => calldata("transfer(address,uint256)", owner.address, amount);
   // a stand-in for USDC on Base, on the same local chain
+  // a stand-in for Coinbase Onramp: checkout sessions, and the transactions filed under each partnerUserRef
+  const fakeCdp = { sessions: [] as { ref: string; body: any }[], transactions: new Map<string, object[]>() };
+  const cdpServer = createServer((req, res) => {
+    let raw = "";
+    req.on("data", (d) => { raw += d; });
+    req.on("end", () => {
+      const json = (code: number, body: unknown) => { res.writeHead(code, { "content-type": "application/json" }); res.end(JSON.stringify(body)); };
+      if (!/^Bearer [\w-]+\.[\w-]+\.[\w-]+$/.test(req.headers.authorization ?? "")) return json(401, {});
+      if (req.method === "POST" && req.url === "/platform/v2/onramp/sessions") {
+        const body = JSON.parse(raw);
+        fakeCdp.sessions.push({ ref: body.partnerUserRef, body });
+        return json(200, { session: { onrampUrl: `https://pay.coinbase.com/buy?test=${encodeURIComponent(body.partnerUserRef)}` } });
+      }
+      const m = /^\/onramp\/v1\/buy\/user\/([^/]+)\/transactions/.exec(req.url ?? "");
+      if (req.method === "GET" && m) return json(200, { transactions: fakeCdp.transactions.get(decodeURIComponent(m[1])) ?? [] });
+      json(404, {});
+    });
+  });
+  await new Promise<void>((resolve) => cdpServer.listen(FAKE_CDP_PORT, "127.0.0.1", resolve));
   const usdcOut = execFileSync("forge", ["create", "test/MockUSDC.sol:MockUSDC", "--rpc-url", RPC, "--private-key", owner.key, "--broadcast"],
     { cwd: CONTRACTS, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   const usdc = /Deployed to: (0x[0-9a-fA-F]{40})/.exec(usdcOut)![1];
@@ -115,6 +135,8 @@ try {
       ...process.env, PORT: String(PORT), MINE_DB: DB, VERIFIERS: "1", CANARY_POOL: "0", CANARY_RATE: "0", AUDITS: "0", OPEN_TARGET: "50",
       ADMIN_TOKEN: ADMIN, TOKEN_ADDRESS: token, CLAIM_CHAIN_ID: "31337", CLAIM_CHAIN_NAME: "anvil", CLAIM_RPC: RPC, CLAIM_EXPLORER: "http://localhost",
       USDC_RPC: RPC, USDC_TOKEN: usdc, FLYAI_USD_PRICE: "0.00007", RELAYER_KEY: `0x${anvilKeys[5]}`,
+      // card checkouts against a stand-in for Coinbase (below), with a throwaway Ed25519 key
+      CDP_API_BASE: `http://127.0.0.1:${FAKE_CDP_PORT}`, CDP_API_KEY_ID: "test-key", CDP_API_KEY_SECRET: Buffer.alloc(64, 7).toString("base64"),
       PAY_TO: owner.address, MIN_BID: "10", CACHED_PRICE: "2", POOL_SHARE: "0.8", ORDER_MAX_JOBS: "100", ORDER_MAX_PARALLEL: "8", WEBHOOK_ALLOW_INTERNAL: "1", SEED_PAID: "0", // miners, not idle verifiers, answer the paid jobs here
     },
     stdio: ["ignore", "ignore", "inherit"],
@@ -360,6 +382,36 @@ try {
   const relayerView = (await api("/api/admin/relayer", ADMIN)).json;
   check("admin sees the relayer and its gas", relayerView.address && BigInt(relayerView.gas_wei) === relayerAfter);
 
+  // ---- guests pay by card: no wallet, no signature; Coinbase pays PAY_TO and the server confirms it
+  const guestRes = await api("/api/orders", null, { guest: true, spec, bid: "10", budget: "8" });
+  const guestOrder = guestRes.json;
+  check("a guest order needs no wallet: PAY_TO holds it, and the buyer gets its key", guestRes.status === 200 && guestOrder.guest === true
+    && guestOrder.wallet === owner.address && /^[0-9a-f]{48}$/.test(guestOrder.order_key ?? ""), JSON.stringify(guestRes.json).slice(0, 160));
+  const checkout = (await api(`/api/orders/${guestOrder.id}/card`, null, {})).json;
+  const session = fakeCdp.sessions.at(-1)!;
+  check("the card checkout sells at least CARD_MIN_USD of USDC on Base, paid to PAY_TO, filed under the order", checkout?.url?.startsWith("https://pay.coinbase.com/")
+    && checkout.usdc === "2.00" && session.body.destinationAddress === owner.address && session.body.destinationNetwork === "base"
+    && session.body.purchaseCurrency === "USDC" && session.ref === `order-${guestOrder.id}`, JSON.stringify(session?.body));
+  const waiting = (await fetch(`${BASE}/api/orders/${guestOrder.id}/card`).then((r) => r.json()));
+  check("before Coinbase reports the payment, the order waits", waiting.status === "unpaid" && waiting.card?.state === "open");
+  // Coinbase's purchase lands: 2 USDC to PAY_TO on Base
+  const landed = await send(owner.address, usdc, calldata("mint(address,uint256)", owner.address, 2_000_000n));
+  fakeCdp.transactions.set(session.ref, [{ status: "ONRAMP_TRANSACTION_STATUS_SUCCESS", tx_hash: landed, wallet_address: owner.address.toLowerCase(), purchase_currency: "USDC", purchase_network: "base" }]);
+  await sleep(4_500); // the server checks a checkout at most every 4 s
+  const paidGuest = await fetch(`${BASE}/api/orders/${guestOrder.id}/card`).then((r) => r.json());
+  check("once Coinbase reports it and the USDC is on Base, the order runs on everything paid", (paidGuest.status === "done" || paidGuest.status === "live")
+    && paidGuest.card?.state === "paid" && paidGuest.usdc_payment?.usdc === "2.000000" && Math.abs(Number(paidGuest.budget) - 2 / 0.00007) < 0.01, JSON.stringify({ s: paidGuest.status, b: paidGuest.budget, u: paidGuest.usdc_payment, c: paidGuest.card }));
+  await sleep(4_500);
+  const again = await fetch(`${BASE}/api/orders/${guestOrder.id}/card`).then((r) => r.json());
+  check("checking again doesn't pay twice", again.budget === paidGuest.budget && (await api("/api/month", null)).json.usdc_received.startsWith("2."));
+  check("a guest's order key stops it (or it's already done)", paidGuest.status === "done"
+    || (await fetch(`${BASE}/api/orders/${guestOrder.id}/stop`, { method: "POST", headers: { authorization: `Bearer ${guestOrder.order_key}` } })).status === 200);
+  const failedOrder = (await api("/api/orders", null, { guest: true, spec, bid: "10", budget: "8" })).json;
+  await api(`/api/orders/${failedOrder.id}/card`, null, {});
+  fakeCdp.transactions.set(`order-${failedOrder.id}`, [{ status: "ONRAMP_TRANSACTION_STATUS_FAILED", failure_reason: "card declined" }]);
+  const declined = await fetch(`${BASE}/api/orders/${failedOrder.id}/card`).then((r) => r.json());
+  check("a declined card shows as failed, and the order stays unpaid", declined.status === "unpaid" && declined.card?.state === "failed" && declined.card.reason === "card declined");
+
   // ---- ends: budget, stop, time
   const o4 = await create(alice.address, { spec, bid: "10", budget: "5" });
   const f4 = (await payFor(o4)).json;
@@ -395,14 +447,15 @@ try {
   check("an unpaid order past its time shows expired", (await get(o7.id)).status === "expired");
   check("a late payment still runs it", (await payFor(o7)).json?.status === "done");
   const month = new Date().toISOString().slice(0, 7);
-  const charged = 40 + 30 + 8 + 8 + 8 + 4 + 8; // O1, O2, O3, the two USDC orders, O4, O7
+  const charged = 40 + 30 + 8 + 8 + 8 + 8 + 4 + 8; // O1, O2, O3, the two USDC orders, the guest card order, O4, O7
   const board = (await api(`/api/month?month=${month}`, null)).json;
   check("80% of every charge is in this month's pool", near(board.buyer_pool, charged * 0.8) && near(board.announced_pool, charged * 0.8), `${board.buyer_pool}`);
   await api("/api/admin/announce", ADMIN, { month, pool: "1000" });
   check("an announcement adds to the buyers' part", near((await api(`/api/month?month=${month}`, null)).json.announced_pool, 1000 + charged * 0.8));
   check("admin totals need the token", (await api("/api/admin/orders", "nope")).status === 403);
   const admin = (await api("/api/admin/orders", ADMIN)).json;
-  check("admin totals: charged, pool, treasury, balances", near(admin.months[0]?.charged, charged) && near(admin.months[0].treasury, charged * 0.2) && admin.balances.length === 2, JSON.stringify(admin.months));
+  check("admin totals: charged, pool, treasury, balances", near(admin.months[0]?.charged, charged) && near(admin.months[0].treasury, charged * 0.2) && admin.balances.length === 3, // alice, bob, and PAY_TO holding what guest orders left
+    JSON.stringify(admin.months));
   const bobNow = (await api(`/api/balance?wallet=${bob.address}`, null)).json.balance;
   check("withdrawing more than the balance refused", (await api("/api/admin/withdraw", ADMIN, { wallet: bob.address, amount: String(Number(bobNow) + 1), tx: `0x${"cd".repeat(32)}` })).status === 409);
   const w = (await api("/api/admin/withdraw", ADMIN, { wallet: bob.address, amount: bobNow, tx: `0x${"cd".repeat(32)}` })).json;

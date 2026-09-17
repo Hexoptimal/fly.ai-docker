@@ -154,7 +154,7 @@ function round(r: number): TaskParams[] {
 }
 
 // ---- storage -----------------------------------------------------------------------------------------
-const SCHEMA = 11; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions, 11 USDC payments; created below for new and old databases alike
+const SCHEMA = 12; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions, 11 USDC payments, 12 guest card orders; created below for new and old databases alike
 mkdirSync(dirname(DB_PATH), { recursive: true });
 const db = new DatabaseSync(DB_PATH);
 const version = (db.prepare("pragma user_version").get() as { user_version: number }).user_version;
@@ -197,6 +197,11 @@ if (hasTables && version < 8) {
   `);
   if (version >= 6) db.exec("alter table orders add column order_key_hash text");
   console.log("database upgraded to schema 8 (buyers' programs)");
+}
+if (hasTables && version >= 6 && version < 12) {
+  // 12: orders paid by card with no wallet (the dev wallet holds them)
+  db.exec("alter table orders add column guest integer not null default 0");
+  console.log("database upgraded to schema 12 (guest card orders)");
 }
 if (hasTables && version < 9) {
   // 9: house orders (our own work, unpaid) and results kept for good
@@ -275,6 +280,15 @@ db.exec(`
     at integer not null
   );
   create index if not exists usdc_payments_by_month on usdc_payments (month);
+  -- a card checkout opened for an order (Coinbase Onramp, paying PAY_TO); checked until Coinbase reports it done
+  create table if not exists card_checkouts (
+    order_id text primary key,
+    ref text not null,                -- the partnerUserRef Coinbase files its transactions under
+    usdc text not null,               -- what the checkout sells, in dollars
+    created_at integer not null,
+    state text not null default 'open', -- open, paid, failed
+    reason text
+  );
   -- a closed month's payout: the pool the operator chose, split by points, committed to by a Merkle root
   create table if not exists snapshots (
     month text primary key,           -- YYYY-MM
@@ -340,7 +354,8 @@ db.exec(`
     order_key_hash text,              -- programs: sha256 of the key that adds jobs or stops the order from code
     house integer not null default 0, -- 1: our own work, created by the operator, unpaid; runs after paid orders, before the screen
     label text,                       -- house: what it is, e.g. "tuning/sshfighter"
-    house_units real                  -- house programs: points per settled job (brain sweeps earn their usual units)
+    house_units real,                 -- house programs: points per settled job (brain sweeps earn their usual units)
+    guest integer not null default 0  -- 1: paid by card with no wallet; its wallet is PAY_TO and its key is the buyer's
   );
   create index if not exists orders_by_wallet on orders (wallet, created_at);
   create index if not exists orders_live on orders (status) where status = 'live';
@@ -1361,7 +1376,7 @@ const taskByParams = db.prepare("select id from tasks where params = ?");
 
 type OrderRow = {
   webhook: string | null; webhook_secret: string | null; webhook_seq: number; webhook_final: number; webhook_fails: number;
-  webhook_next_at: number | null; webhook_error: string | null; order_key_hash: string | null; house: number; label: string | null; house_units: number | null;
+  webhook_next_at: number | null; webhook_error: string | null; order_key_hash: string | null; house: number; label: string | null; house_units: number | null; guest: number;
   id: string; wallet: string; spec: string; jobs: number; bid_wei: string; budget_wei: string; tag: number; max_parallel: number;
   hours: number | null; status: "unpaid" | "expired" | "live" | "done" | "ended"; end_reason: string | null; cursor: number;
   spent_wei: string; tx: string | null; created_at: number; expires_at: number; funded_at: number | null; ends_at: number | null; closed_at: number | null;
@@ -1422,7 +1437,7 @@ function orderConfigView() {
     // card buyers: USDC on Base through an onramp, credited in $FLYAI at the live price (POST /api/orders/:id/usdc)
     usdc: USDC.enabled && ORDERS.payTo
       ? { chain_id: USDC.chain_id, chain_name: USDC.chain_name, rpc: USDC.rpc, explorer: USDC.explorer, token: USDC.token, decimals: 6, pay_to: ORDERS.payTo,
-        gasless: !!relayer, onramp_url: USDC.onrampUrl, card: !!cdp }
+        gasless: !!relayer, onramp_url: USDC.onrampUrl, card: !!cdp, card_min_usd: Number(CARD_MIN_CENTS) / 100 }
       : null,
   };
 }
@@ -1439,7 +1454,10 @@ async function createOrder(req: IncomingMessage, body: any) {
     }
   }
   const webhookSecret = webhook ? randomBytes(24).toString("hex") : null;
-  if (typeof body.wallet !== "string" || !ADDRESS.test(body.wallet)) throw new HttpError(400, "wallet must be 0x followed by 40 hex digits");
+  // a guest pays by card with no wallet: the order is held by PAY_TO, and its key (shown once) is the buyer's
+  const guest = body.guest === true;
+  if (guest && !cdp) throw new HttpError(503, "card payments aren't set up");
+  if (!guest && (typeof body.wallet !== "string" || !ADDRESS.test(body.wallet))) throw new HttpError(400, "wallet must be 0x followed by 40 hex digits");
   let open: OpenSpec | null = null;
   let spec: object;
   let jobCount: number;
@@ -1458,7 +1476,7 @@ async function createOrder(req: IncomingMessage, body: any) {
     jobCount = sweep.jobs.length;
     terms = asked(() => orderTerms(ORDERS, body));
   }
-  const orderKey = open ? randomBytes(24).toString("hex") : null;
+  const orderKey = open || guest ? randomBytes(24).toString("hex") : null;
   const ip = clientIp(req);
   const hourAgo = Date.now() - 3_600_000;
   const recent = (orderCreations.get(ip) ?? []).filter((t) => t > hourAgo);
@@ -1470,10 +1488,10 @@ async function createOrder(req: IncomingMessage, body: any) {
     const tag = 1 + Math.floor(Math.random() * (TAG_MAX - 1));
     try {
       transaction(() => {
-        db.prepare(`insert into orders (id, wallet, spec, jobs, bid_wei, budget_wei, tag, max_parallel, hours, status, created_at, expires_at, webhook, webhook_secret, order_key_hash)
-          values (?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', ?, ?, ?, ?, ?)`)
-          .run(id, checksumAddress(body.wallet), JSON.stringify(spec), jobCount, terms.bid.toString(), (terms.budget + BigInt(tag)).toString(),
-            tag, terms.maxParallel, terms.hours, now, now + ORDERS.ttlMin * 60_000, webhook, webhookSecret, orderKey ? sha256(orderKey) : null);
+        db.prepare(`insert into orders (id, wallet, spec, jobs, bid_wei, budget_wei, tag, max_parallel, hours, status, created_at, expires_at, webhook, webhook_secret, order_key_hash, guest)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', ?, ?, ?, ?, ?, ?)`)
+          .run(id, guest ? ORDERS.payTo! : checksumAddress(body.wallet), JSON.stringify(spec), jobCount, terms.bid.toString(), (terms.budget + BigInt(tag)).toString(),
+            tag, terms.maxParallel, terms.hours, now, now + ORDERS.ttlMin * 60_000, webhook, webhookSecret, orderKey ? sha256(orderKey) : null, guest ? 1 : 0);
         if (open) addInputs(id, 0, open.inputs);
       });
       break;
@@ -1640,7 +1658,8 @@ function order(id: string) {
     created_at: o.created_at, expires_at: o.expires_at, funded_at: o.funded_at, ends_at: o.ends_at, closed_at: o.closed_at,
     last_seq: one<{ s: number | null }>("select max(seq) as s from order_tasks where order_id = ? and state = 2", id).s ?? 0,
     kind: JSON.parse(o.spec).kind as string,
-    house: !!o.house, label: o.label,
+    house: !!o.house, label: o.label, guest: !!o.guest,
+    card: one<{ state: string; usdc: string; reason: string | null } | undefined>("select state, usdc, reason from card_checkouts where order_id = ?", id) ?? null,
     webhook: o.webhook ? { url: o.webhook, delivered_seq: o.webhook_seq, done: !!o.webhook_final, failures: o.webhook_fails, error: o.webhook_error } : null,
   };
 }
@@ -1863,8 +1882,9 @@ function usdcMonth(m: string) {
 const cardSessions = new Map<string, number[]>();
 
 /**
- * POST /api/orders/:id/card: a single-use Coinbase checkout that buys the order's USDC (rounded up to the cent) with a
- * card, delivered on Base to the order's wallet. Afterwards the buyer pays the order with that USDC as usual.
+ * POST /api/orders/:id/card: a single-use Coinbase checkout that sells the order's price in USDC (at least
+ * CARD_MIN_USD) to whoever holds the link, paid straight to PAY_TO. No wallet or signature on the buyer's side: the
+ * server confirms the purchase with Coinbase (checkCard) and funds the order with the $FLYAI it buys.
  */
 async function cardCheckout(req: IncomingMessage, id: string) {
   usdcOn();
@@ -1877,26 +1897,89 @@ async function cardCheckout(req: IncomingMessage, id: string) {
   const recent = (cardSessions.get(ip) ?? []).filter((t) => now - t < 3_600_000);
   if (recent.length >= 20) throw new HttpError(429, "too many card checkouts from this address; try again later");
   cardSessions.set(ip, [...recent, now]);
-  let q = one<{ units: string; expires_at: number } | undefined>("select units, expires_at from usdc_quotes where order_id = ?", id);
-  if (!q || q.expires_at < now + 5 * 60_000) {
-    await usdcQuote(id);
-    q = one<{ units: string; expires_at: number }>("select units, expires_at from usdc_quotes where order_id = ?", id);
-  }
+  // price the order now; the purchase is credited at this price if it completes while the quote holds
+  await usdcQuote(id);
+  const q = one<{ units: string }>("select units from usdc_quotes where order_id = ?", id);
   const needed = (BigInt(q.units) + 9_999n) / 10_000n; // micro-USDC up to whole cents
   const cents = needed > CARD_MIN_CENTS ? needed : CARD_MIN_CENTS;
   const usdc = `${cents / 100n}.${(cents % 100n).toString().padStart(2, "0")}`;
+  const ref = `${CDP_SANDBOX ? "sandbox-" : ""}order-${id}`;
+  let session;
   try {
-    const session = await cdp.onramp({
-      wallet: o.wallet, usdc, network: "base",
-      redirectUrl: PUBLIC_ORIGIN ? `${PUBLIC_ORIGIN}/compute/jobs?pay=${id}&card=1` : undefined,
+    session = await cdp.onramp({
+      wallet: ORDERS.payTo!, usdc, network: "base",
+      redirectUrl: PUBLIC_ORIGIN ? `${PUBLIC_ORIGIN}/compute/jobs?order=${id}` : undefined,
       // Coinbase refuses private addresses (a local server sees 127.0.0.1)
       clientIp: /^[0-9a-f.:]+$/i.test(ip) && !/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|::1$|::ffff:127\.|f[cd]|fe80)/i.test(ip) ? ip : undefined,
-      partnerUserRef: `${CDP_SANDBOX ? "sandbox-" : ""}${o.wallet.toLowerCase()}`,
+      partnerUserRef: ref,
     });
-    return { url: session.url, usdc, wallet: o.wallet };
   } catch (err) {
     throw new HttpError(502, `couldn't open the card checkout: ${err instanceof Error ? err.message : err}`);
   }
+  db.prepare(`insert into card_checkouts (order_id, ref, usdc, created_at, state) values (?, ?, ?, ?, 'open')
+    on conflict (order_id) do update set ref = excluded.ref, usdc = excluded.usdc, created_at = excluded.created_at, state = 'open', reason = null`)
+    .run(id, ref, usdc, now);
+  return { url: session.url, usdc };
+}
+
+const cardChecked = new Map<string, number>();
+
+/**
+ * Asks Coinbase whether an order's card checkout went through. A successful purchase is checked on Base (USDC to
+ * PAY_TO in its transaction), credited in $FLYAI to the order's wallet (PAY_TO for guests) and funds the order: a
+ * guest's whole payment goes into its budget, anyone else's extra stays in their balance.
+ */
+async function checkCard(id: string): Promise<void> {
+  const c = one<{ ref: string; state: string } | undefined>("select ref, state from card_checkouts where order_id = ?", id);
+  if (!c || c.state !== "open" || !cdp) return;
+  if (Date.now() - (cardChecked.get(id) ?? 0) < 4_000) return;
+  cardChecked.set(id, Date.now());
+  const txs = await cdp.transactions(c.ref);
+  const failed = txs.find((t) => t.status === "ONRAMP_TRANSACTION_STATUS_FAILED");
+  const done = txs.find((t) => t.status === "ONRAMP_TRANSACTION_STATUS_SUCCESS" && t.tx_hash
+    && t.wallet_address?.toLowerCase() === ORDERS.payTo!.toLowerCase() && (t.purchase_currency ?? "").toUpperCase() === "USDC");
+  if (!done) {
+    if (failed && !txs.some((t) => t.status !== "ONRAMP_TRANSACTION_STATUS_FAILED")) {
+      db.prepare("update card_checkouts set state = 'failed', reason = ? where order_id = ?").run(failed.failure_reason ?? "the card payment didn't go through", id);
+    }
+    return;
+  }
+  const tx = done.tx_hash!.toLowerCase();
+  if (one("select 1 from usdc_payments where tx = ?", tx)) return;
+  const transfers = await transfersIn(USDC.rpc, tx, USDC.token, ORDERS.payTo!);
+  if (!transfers?.length) return; // not visible on Base yet
+  const units = transfers.reduce((sum, t) => sum + t.value, 0n);
+  const q = one<{ price_e18: string; expires_at: number } | undefined>("select price_e18, expires_at from usdc_quotes where order_id = ?", id);
+  const at = transfers[0].at;
+  const priceE18 = q && at <= q.expires_at ? BigInt(q.price_e18) : (await flyaiPrice()).e18;
+  const wei = (units * E30) / priceE18;
+  transaction(() => {
+    if (one("select 1 from usdc_payments where tx = ?", tx)) return;
+    const o = orderRow(id)!;
+    book(o.wallet, id, "deposit", wei, { tx: `base:${tx}` });
+    db.prepare("insert into usdc_payments (tx, order_id, wallet, units, price_e18, flyai_wei, month, at) values (?, ?, ?, ?, ?, ?, ?, ?)")
+      .run(tx, id, o.wallet, units.toString(), priceE18.toString(), wei.toString(), thisMonth(), Date.now());
+    db.prepare("update card_checkouts set state = 'paid' where order_id = ?").run(id);
+    db.prepare("delete from usdc_quotes where order_id = ?").run(id);
+    if (o.status !== "unpaid" && o.status !== "expired") return;
+    if (o.guest) {
+      // everything a guest paid runs their order; what it doesn't spend returns to PAY_TO's balance
+      db.prepare("update orders set budget_wei = ? where id = ?").run(wei.toString(), id);
+      book(o.wallet, id, "fund", wei);
+      start(orderRow(id)!, null);
+    } else if (balanceOf(o.wallet) >= BigInt(o.budget_wei)) {
+      book(o.wallet, id, "fund", BigInt(o.budget_wei));
+      start(o, null);
+    }
+  });
+  console.log(`order ${id.slice(0, 8)}: paid by card, ${usdcText(units)} USDC -> ${fromWei(wei)} FLYAI`);
+}
+
+/** GET /api/orders/:id/card: the order, after checking its card checkout with Coinbase. */
+async function cardStatus(id: string) {
+  if (!orderRow(id)) throw new HttpError(404, "no such order");
+  await checkCard(id).catch((err) => console.log(`card check ${id.slice(0, 8)}: ${err instanceof Error ? err.message : err}`));
+  return order(id);
 }
 
 // wallet signatures for spending a balance or stopping an order
@@ -2553,6 +2636,7 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     if (p === "/api/balance") return send(res, 200, balanceView(url.searchParams.get("wallet") ?? ""));
     if (p === "/api/orders") return send(res, 200, ordersOf(url.searchParams.get("wallet") ?? ""));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})$/.exec(p))) return send(res, 200, order(m[1]));
+    if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/card$/.exec(p))) return send(res, 200, await cardStatus(m[1]));
     if ((m = /^\/api\/orders\/([0-9a-f-]{36})\/results$/.exec(p))) {
       if (url.searchParams.get("format") === "csv") return orderCsv(res, m[1]);
       const after = Number(url.searchParams.get("after") ?? 0);
@@ -2670,6 +2754,12 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
 db.prepare(`update tasks set state = 'open' where state = 'out' and truth is null
   and not exists (select 1 from assignments where task = tasks.id and status = 'issued')`).run();
 topUp();
+// card checkouts still open from the last three hours: a buyer who closed the tab still gets their order started
+setInterval(() => {
+  if (!cdp) return;
+  const open = db.prepare("select order_id from card_checkouts where state = 'open' and created_at > ?").all(Date.now() - 3 * 3_600_000) as { order_id: string }[];
+  void (async () => { for (const { order_id } of open) await checkCard(order_id).catch(() => {}); })();
+}, 30_000).unref();
 setInterval(() => {
   expire();
   topUp();

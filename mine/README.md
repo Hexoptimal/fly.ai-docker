@@ -174,14 +174,24 @@ an onramp link. The order is still run and charged in $FLYAI, so miners, charges
   `GET /api/month` adds `usdc_received` and `buyer_pool_from_usdc` (the part of the buyers' pool from
   USDC-paid orders), and the Leaderboard shows the breakdown. The USDC lands in the dev wallet, and the
   operator buys the $FLYAI to fund the pool by hand.
-- **Getting USDC with a card (Coinbase Onramp):** with `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET` set (a Coinbase
-  Developer Platform secret key, Ed25519, with Onramp enabled for its project), a wallet short of USDC gets
-  **Buy it with a card (Coinbase)**. `POST /api/orders/:id/card` creates a single-use Coinbase checkout
-  (`src/cdp.ts`) for the order's USDC, at least `CARD_MIN_USD`, delivered on Base to the order's wallet. The page
-  watches the wallet and, once the USDC lands, takes the free signature and starts the order. Coinbase sends the
-  buyer back to `/compute/jobs?pay=<id>&card=1`, which does the same. The sandbox run opened Coinbase's guest card
-  checkout; whether a buyer needs a Coinbase account depends on Coinbase (country, amount). `CDP_SANDBOX=1` marks
-  checkouts as tests.
+- **Paying by card, no wallet (Coinbase Onramp, schema 12):** with `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET` set (a
+  Coinbase Developer Platform secret key, Ed25519, with Onramp enabled for its project), **Pay with card** needs no
+  sign-in:
+  1. **Order:** `POST /api/orders {guest: true, ...}` makes a guest order held by `PAY_TO`, and returns its key once.
+     The page keeps the id and key in the browser.
+  2. **Checkout:** `POST /api/orders/:id/card` opens a single-use Coinbase checkout (`src/cdp.ts`) selling the order's
+     price in USDC, at least `CARD_MIN_USD`, paid on Base straight to `PAY_TO` and filed under `order-<id>`.
+  3. **Confirm:** `GET /api/orders/:id/card` asks Coinbase for that reference's transactions. A successful purchase
+     to `PAY_TO` is checked on Base, credited in $FLYAI at the quoted price, and funds the order: everything a guest
+     paid becomes its budget, and what the runs don't use returns to `PAY_TO`'s balance. A 30-second background check
+     does the same, so an order starts even if the buyer closes the page. A declined card shows as failed.
+  4. **After:** the order is listed in that browser, with a link (`/compute/jobs?order=<id>`, where Coinbase sends the
+     buyer back), results, and a Stop that uses the key.
+
+  Orders with a wallet (for example from the Bitcoin pool setup's pay link) can be paid the same way; their extra
+  stays in their balance. Coinbase's docs don't say whether a purchase may go to a wallet other than the buyer's, so
+  this may not fit Onramp's intended use. `CDP_SANDBOX=1` marks checkouts as tests, and `CDP_API_BASE` points at a
+  stand-in in tests.
 - **Other onramps:** `USDC_ONRAMP_URL` is another provider's buy link, with `{wallet}` and `{amount}` filled in. With
   neither, the page tells buyers to buy USDC in an app and send it on Base to their address, and shows the address.
 

@@ -7,7 +7,7 @@
  * payment sent before a reload is remembered in this browser, so the order still gets funded.
  */
 import { API } from "./config.ts";
-import { errorText, mined, mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, signTyped, transact } from "./account.ts";
+import { errorText, mined, mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, transact } from "./account.ts";
 import { api } from "./mine-core.ts";
 import { shortAddress } from "./wallet.ts";
 interface Config {
@@ -17,17 +17,14 @@ interface Config {
   channels: string[]; steps: number; dt: number | null;
   chain_id: number; chain_name: string; rpc: string; explorer: string; token_symbol: string;
   /** card buyers: USDC on Base, credited in $FLYAI at the live price */
-  usdc: { chain_id: number; chain_name: string; rpc: string; explorer: string; token: string; decimals: number; pay_to: string; gasless: boolean; onramp_url: string | null; card: boolean } | null;
-}
-interface UsdcQuote {
-  order: string; usdc: string; units: string; flyai: string; flyai_usd: number; expires_at: number; pay_to: string;
-  gasless: { domain: { name: string; version: string; chainId: number; verifyingContract: string } } | null;
+  usdc: { chain_id: number; chain_name: string; rpc: string; explorer: string; token: string; decimals: number; pay_to: string; gasless: boolean; onramp_url: string | null; card: boolean; card_min_usd?: number } | null;
 }
 interface Order {
   id: string; wallet: string; status: "unpaid" | "expired" | "live" | "done" | "ended"; end_reason: string | null;
   jobs: number; taken_on: number; out: number; settled: number; bid: string; budget: string; budget_wei: string; spent: string; returned: string | null;
   hours: number | null; created_at: number; ends_at: number | null; tx: string | null; webhook_secret?: string | null; order_key?: string | null; kind?: string;
   usdc_payment?: { tx: string; usdc: string; flyai: string; explorer: string } | null;
+  guest?: boolean; card?: { state: "open" | "paid" | "failed"; usdc: string; reason: string | null } | null;
   webhook: { url: string; delivered_seq: number; done: boolean; failures: number; error: string | null } | null;
   spec: { channels: string[]; sides: string[]; amounts: number[]; gains: number[]; tonics: number[]; seeds: number[]; warm: number };
 }
@@ -210,7 +207,7 @@ function setButtons(): void {
   const ready = !!spec && config.open && fullCost > 0 && !!input("bid").value.trim();
   $<HTMLButtonElement>("buy").disabled = !ready;
   $<HTMLButtonElement>("buy-usdc").disabled = !ready;
-  $("buy-usdc").hidden = !config.usdc;
+  $("buy-usdc").hidden = !config.usdc?.card;
   const useBalance = $<HTMLButtonElement>("use-balance");
   useBalance.hidden = !account || balance <= 0;
   useBalance.disabled = !ready || balance < Number(terms().budget);
@@ -218,7 +215,6 @@ function setButtons(): void {
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 function changed(): void {
-  awaitingUsdc = null;
   clearTimeout(timer);
   timer = setTimeout(() => void requote(), 250);
 }
@@ -317,38 +313,42 @@ async function signed(order: string, action: "fund" | "stop"): Promise<Order> {
 const started = (o: Order) =>
   o.status === "done" ? "Done ✓ Your results are below." : o.status === "ended" ? `Ended (${o.end_reason}).` : "Running ✓ Miners are on it; results fill in below.";
 
-async function order(method: "flyai" | "usdc" | "balance"): Promise<void> {
+async function order(method: "flyai" | "card" | "balance", tab: Window | null = null): Promise<void> {
   const buttons = [$<HTMLButtonElement>("buy"), $<HTMLButtonElement>("buy-usdc"), $<HTMLButtonElement>("use-balance")];
-  $("usdc-help").hidden = true;
   buttons.forEach((b) => { b.disabled = true; });
   $("tx").removeAttribute("data-standing");
+  const say = (text: string) => { delete $("tx").dataset.standing; $("tx").textContent = text; };
   try {
-    account = await requireWallet();
-    if (!account || !spec) return;
+    // paying by card needs no wallet at all: the order is a guest's, kept in this browser
+    if (method !== "card") {
+      account = await requireWallet();
+      if (!account) return;
+    }
+    if (!spec) throw new Error("pick what to run first");
     const t = terms();
-    // an order already made and waiting for its USDC is paid, not made again
-    const created: Order = method === "usdc" && awaitingUsdc && awaitingUsdc.wallet.toLowerCase() === account.toLowerCase() ? awaitingUsdc : await api(API, "/api/orders", null, {
-      wallet: account, spec, bid: t.bid, budget: t.budget, hours: t.hours || undefined, max_parallel: t.max_parallel || undefined,
+    const created: Order = await api(API, "/api/orders", null, {
+      ...(method === "card" ? { guest: true } : { wallet: account }),
+      spec, bid: t.bid, budget: t.budget, hours: t.hours || undefined, max_parallel: t.max_parallel || undefined,
       webhook: t.webhook || undefined,
     });
     if (created.webhook_secret) {
       $("secret-value").textContent = created.webhook_secret;
       $("secret").hidden = false;
     }
-    if (created.order_key) {
+    if (created.order_key && method !== "card") {
       $("key-value").textContent = created.order_key;
       $("key").hidden = false;
     }
     let result: Order;
     if (method === "balance") {
       result = await signed(created.id, "fund");
-    } else if (method === "usdc") {
-      awaitingUsdc = created;
-      result = await payWithUsdc(created, (text) => { delete $("tx").dataset.standing; $("tx").textContent = text; }, $("usdc-help"), () => order("usdc"));
-      awaitingUsdc = null;
+    } else if (method === "card") {
+      cardOrders.add(created.id, created.order_key ?? null);
+      void listOrders();
+      result = await payByCard(created.id, tab, say);
     } else {
       const amount = BigInt(created.budget_wei);
-      const held = BigInt(await rpc("eth_call", [{ to: config.token, data: `0x70a08231${word(account)}` }, "latest"]));
+      const held = BigInt(await rpc("eth_call", [{ to: config.token, data: `0x70a08231${word(account!)}` }, "latest"]));
       if (held < amount) throw new Error(`this wallet holds ${fmt(Number(held / 10n ** 14n) / 10_000)}; the order needs ${fmt(created.budget)}`);
       const tx = await transact(config.token, config.transfer_selector + word(config.pay_to!) + word(amount), (text) => {
         $("tx").textContent = `Pay ${fmt(created.budget)}: ${text}`;
@@ -358,10 +358,10 @@ async function order(method: "flyai" | "usdc" | "balance"): Promise<void> {
       await mined(tx).catch(() => {}); // the server's own read of the chain decides
       result = await confirmPayment(created.id, tx);
     }
-    if (result.status === "unpaid" || result.status === "expired") throw new Error("the USDC arrived, but at today's price it no longer covers the order; it's in your balance, so pay from the balance or add a little more");
     $("tx").dataset.standing = "ok";
-    $("tx").textContent = started(result);
+    $("tx").textContent = method === "card" ? `Paid ✓ ${started(result)} Your order is saved in this browser, under Your orders.` : started(result);
   } catch (err) {
+    tab?.close();
     $("tx").dataset.standing = "zeroed";
     $("tx").textContent = errorText(err);
   } finally {
@@ -372,127 +372,52 @@ async function order(method: "flyai" | "usdc" | "balance"): Promise<void> {
 
 // ---- USDC (card buyers) --------------------------------------------------------------------------------------
 let flyaiUsd = 0;
-/** an order made for USDC the wallet doesn't have yet: paying again reuses it */
-let awaitingUsdc: Order | null = null;
 const usd = (n: number) => (n >= 1 ? `$${n.toFixed(2)}` : `$${n.toPrecision(2)}`);
 /** " (about $X)" after a $FLYAI amount, once the price is known */
-const dollars = (tokens: number) => (flyaiUsd && tokens ? ` That's about <b>${usd(tokens * flyaiUsd)}</b>${config.usdc ? ", payable in USDC" : ""}.` : "");
+const dollars = (tokens: number) => (flyaiUsd && tokens ? ` That's about <b>${usd(tokens * flyaiUsd)}</b>${config.usdc ? ", and you can pay by card" : ""}.` : "");
 
-async function rpcOn(url: string, method: string, params: unknown[]): Promise<any> {
-  const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
-  const body = await res.json();
-  if (body.error) throw new Error(body.error.message ?? "RPC error");
-  return body.result;
+/** Card orders made in this browser (a guest has no wallet to list them by), newest first, with their keys. */
+const CARD_ORDERS = "flyai-compute-card-orders";
+const cardOrders = {
+  all(): { id: string; key: string | null }[] {
+    try { return JSON.parse(localStorage.getItem(CARD_ORDERS) ?? "[]"); } catch { return []; }
+  },
+  add(id: string, key: string | null): void {
+    const list = cardOrders.all();
+    const known = list.find((g) => g.id === id);
+    const next = [{ id, key: key ?? known?.key ?? null }, ...list.filter((g) => g.id !== id)].slice(0, 50);
+    try { localStorage.setItem(CARD_ORDERS, JSON.stringify(next)); } catch { /* private window: this visit only */ }
+  },
+};
+
+/**
+ * Pay for an order by card: a secure Coinbase checkout (in `tab`, opened during the click so it isn't blocked), then
+ * wait for the server to see the payment. No wallet or signature.
+ */
+async function payByCard(orderId: string, tab: Window | null, say: (text: string) => void): Promise<Order> {
+  say("Opening the secure checkout…");
+  const c = await api(API, `/api/orders/${orderId}/card`, null, {});
+  if (!tab) {
+    location.href = c.url; // pop-ups blocked: go to the checkout; it brings the buyer back to this order
+    return new Promise(() => {});
+  }
+  tab.location.href = c.url;
+  say(`Pay $${c.usdc} in the checkout tab, by card or Apple Pay. This page continues by itself when the payment arrives.`);
+  return waitForCard(orderId, say);
 }
 
-/** Checks the wallet's USDC every few seconds until it holds `units`, for up to half an hour. */
-async function waitForUsdc(wallet: string, units: bigint, say: (text: string) => void): Promise<boolean> {
-  const u = config.usdc!;
-  for (let i = 0; i < 360; i++) {
-    const held = BigInt(await rpcOn(u.rpc, "eth_call", [{ to: u.token, data: `0x70a08231${word(wallet)}` }, "latest"]).catch(() => "0x0"));
-    if (held >= units) return true;
-    say(`Waiting for your USDC to arrive in ${shortAddress(wallet)} (${(Number(held) / 1e6).toFixed(2)} of ${(Number(units) / 1e6).toFixed(2)} so far). This page carries on by itself.`);
+/** Checks the order's card payment every 5 seconds (the server asks Coinbase) until it starts or fails. */
+async function waitForCard(orderId: string, say: (text: string) => void): Promise<Order> {
+  for (let i = 0; i < 2160; i++) {
+    const o: Order | null = await api(API, `/api/orders/${orderId}/card`, null).catch(() => null);
+    if (o) {
+      if (o.status !== "unpaid" && o.status !== "expired") return o;
+      if (o.card?.state === "failed") throw new Error(`The card payment didn't go through${o.card.reason ? ` (${o.card.reason})` : ""}. You can try again.`);
+      if (i === 36) say("Still waiting for the payment. It can take a few minutes after you pay; you can leave this page open or come back later.");
+    }
     await new Promise((r) => setTimeout(r, 5000));
   }
-  return false;
-}
-
-/**
- * Where to get USDC: a card checkout (Coinbase) that delivers it to this wallet and then carries on by itself, the
- * configured onramp link, or plain directions, with the address to send it to.
- */
-function usdcHelp(box: HTMLElement, wallet: string, amount: string, units: bigint, orderId: string, say: (text: string) => void, ready: () => void): void {
-  const u = config.usdc!;
-  box.replaceChildren();
-  const lead = document.createElement("b");
-  lead.textContent = `You need ${amount} USDC on ${u.chain_name} in your wallet.`;
-  box.append(lead, " ");
-  if (u.card) {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "btn red sm";
-    b.textContent = "Buy it with a card (Coinbase)";
-    b.addEventListener("click", () => void (async () => {
-      b.disabled = true;
-      // open the tab now, while the click still counts, then point it at the checkout
-      const tab = window.open("about:blank", "_blank");
-      try {
-        const c = await api(API, `/api/orders/${orderId}/card`, null, {});
-        if (tab) tab.location.href = c.url;
-        else location.href = c.url; // pop-ups blocked: go there; Coinbase brings the buyer back to this order
-        if (await waitForUsdc(wallet, units, say)) {
-          box.hidden = true;
-          ready();
-        }
-      } catch (err) {
-        tab?.close();
-        say(errorText(err));
-      } finally {
-        b.disabled = false;
-      }
-    })());
-    box.append(b, ` Pay with a card or Apple Pay (Coinbase may ask you to sign in or verify your ID). Coinbase sends the USDC to your wallet, and this page finishes the order when it arrives. Small orders buy a couple of dollars' worth; the rest stays in your wallet for next time. No ETH needed for fees.`);
-  } else if (u.onramp_url) {
-    const a = document.createElement("a");
-    a.href = u.onramp_url.replaceAll("{wallet}", wallet).replaceAll("{amount}", String(Math.ceil(Number(amount) * 100) / 100));
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.className = "btn sm";
-    a.textContent = "Buy USDC with a card";
-    box.append(a, " Then come back and pay again.");
-  } else {
-    box.append(`Buy USDC with a card in an app like Coinbase or an exchange, and send (withdraw) it on the ${u.chain_name} network to your wallet address below. Then press Pay with USDC again. You don't need ETH for fees: we pay them.`);
-  }
-  const row = document.createElement("div");
-  row.className = "ca";
-  const code = document.createElement("code");
-  code.textContent = wallet;
-  const copy = document.createElement("button");
-  copy.type = "button";
-  copy.className = "btn sm";
-  copy.textContent = "Copy";
-  copy.addEventListener("click", () => void navigator.clipboard.writeText(wallet).then(() => { copy.textContent = "Copied"; }));
-  row.append(code, copy);
-  box.append(row);
-  box.hidden = false;
-}
-
-/**
- * Pay an order in USDC: a price quote, then (when the server relays) a free signature that the server sends and pays
- * the gas for, or else an ordinary USDC transfer. Credited in $FLYAI at the quoted price.
- */
-async function payWithUsdc(o: Order, say: (text: string) => void, help: HTMLElement, retry: () => void | Promise<void>): Promise<Order> {
-  const u = config.usdc!;
-  const wallet = account!;
-  say("getting the USDC price…");
-  const q: UsdcQuote = await api(API, `/api/orders/${o.id}/usdc`, null, {});
-  const held = BigInt(await rpcOn(u.rpc, "eth_call", [{ to: u.token, data: `0x70a08231${word(wallet)}` }, "latest"]));
-  if (held < BigInt(q.units)) {
-    usdcHelp(help, wallet, q.usdc, BigInt(q.units), o.id, say, () => void retry());
-    throw new Error(`this wallet has ${(Number(held) / 1e6).toFixed(2)} USDC on ${u.chain_name}; the order needs ${q.usdc}. Your order is saved: pay it once the USDC arrives.`);
-  }
-  if (q.gasless) {
-    const validBefore = Math.floor(q.expires_at / 1000);
-    const nonce = `0x${Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, "0")).join("")}`;
-    const signature = await signTyped({
-      domain: q.gasless.domain,
-      types: {
-        TransferWithAuthorization: [
-          { name: "from", type: "address" }, { name: "to", type: "address" }, { name: "value", type: "uint256" },
-          { name: "validAfter", type: "uint256" }, { name: "validBefore", type: "uint256" }, { name: "nonce", type: "bytes32" },
-        ],
-      },
-      primaryType: "TransferWithAuthorization",
-      message: { from: wallet, to: q.pay_to, value: BigInt(q.units), validAfter: 0n, validBefore: BigInt(validBefore), nonce },
-    }, (text) => say(`Pay ${q.usdc} USDC: ${text}`));
-    say("sending your USDC (we pay the network fee)…");
-    return api(API, `/api/orders/${o.id}/usdc/authorize`, null, { from: wallet, value: q.units, valid_after: 0, valid_before: validBefore, nonce, signature });
-  }
-  const tx = await transact(u.token, config.transfer_selector + word(u.pay_to) + word(BigInt(q.units)), (text) => say(`Pay ${q.usdc} USDC: ${text}`), u.chain_id);
-  store.set({ order: o.id, tx, chain: "base" });
-  say("Payment sent, waiting for the chain…");
-  await mined(tx, u.chain_id).catch(() => {});
-  return confirmPayment(o.id, tx, "base");
+  throw new Error("No payment has arrived yet. If you paid, your order still starts: check back on this page.");
 }
 
 /** An order someone made from code, waiting to be paid: one button, the exact transfer, then it starts. */
@@ -512,12 +437,11 @@ async function showPayCard(id: string): Promise<void> {
   card.hidden = false;
   card.scrollIntoView({ block: "start" });
   $("pay-title").textContent = `Pay ${fmt(o.budget)}`;
-  $("pay-text").textContent = `For order ${o.id}: ${describe(o)}. Pay from ${shortAddress(o.wallet)}, the wallet it was made for. Runs that don't happen come back to your balance.`;
+  $("pay-text").textContent = `For order ${o.id}: ${describe(o)}. Pay by card, or with $FLYAI from ${shortAddress(o.wallet)}, the wallet it was made for.`;
   const usdcButton = $<HTMLButtonElement>("pay-usdc");
   const paid = () => {
     button.hidden = true;
     usdcButton.hidden = true;
-    $("pay-usdc-help").hidden = true;
     status.dataset.standing = "ok";
     status.textContent = `Paid ✓ ${started(o)} You can go back to the program that made the order.`;
   };
@@ -528,32 +452,26 @@ async function showPayCard(id: string): Promise<void> {
     if (wallet && wallet.toLowerCase() !== o.wallet.toLowerCase()) throw new Error(`you're signed in as ${shortAddress(wallet)}, but this order is for ${shortAddress(o.wallet)}: sign out and in with that wallet`);
     return wallet;
   };
-  if (config.usdc && new URLSearchParams(location.search).get("card") === "1") {
-    // back from the card checkout: wait for the USDC, then pay
-    void (async () => {
-      const q: UsdcQuote = await api(API, `/api/orders/${o.id}/usdc`, null, {});
-      if (await waitForUsdc(o.wallet, BigInt(q.units), (text) => { status.textContent = text; })) usdcButton.click();
-    })().catch((err) => { status.textContent = errorText(err); });
-  }
-  if (config.usdc) {
+  if (config.usdc?.card) {
     usdcButton.hidden = false;
-    usdcButton.addEventListener("click", () => void (async () => {
-      usdcButton.disabled = true;
-      delete status.dataset.standing;
-      try {
-        account = await orderWallet();
-        if (!account) return;
-        o = await payWithUsdc(o, (text) => { delete status.dataset.standing; status.textContent = text; }, $("pay-usdc-help"), () => usdcButton.click());
-        if (o.status === "unpaid" || o.status === "expired") throw new Error("the USDC arrived, but at today's price it no longer covers the order; it's in your balance");
-        paid();
-        await listOrders().catch(() => {});
-      } catch (err) {
-        status.dataset.standing = "zeroed";
-        status.textContent = errorText(err);
-      } finally {
-        usdcButton.disabled = false;
-      }
-    })());
+    usdcButton.addEventListener("click", () => {
+      const tab = window.open("about:blank", "_blank");
+      void (async () => {
+        usdcButton.disabled = true;
+        try {
+          cardOrders.add(o.id, null);
+          o = await payByCard(o.id, tab, (text) => { delete status.dataset.standing; status.textContent = text; });
+          paid();
+          await listOrders().catch(() => {});
+        } catch (err) {
+          tab?.close();
+          status.dataset.standing = "zeroed";
+          status.textContent = errorText(err);
+        } finally {
+          usdcButton.disabled = false;
+        }
+      })();
+    });
   }
   button.addEventListener("click", () => void (async () => {
     button.disabled = true;
@@ -599,17 +517,30 @@ const link = (href: string, text: string, className = "") => {
 
 let polling: ReturnType<typeof setTimeout> | null = null;
 async function listOrders(): Promise<void> {
-  if (!account) return;
   if (polling) clearTimeout(polling);
-  const data = await api(API, `/api/orders?wallet=${account}`, null) as { balance: string; orders: Order[] };
-  balance = Number(data.balance);
-  $("balance-row").hidden = balance <= 0;
-  $("balance").textContent = fmt(data.balance);
+  const local = cardOrders.all();
+  const [mine, cards] = await Promise.all([
+    account ? api(API, `/api/orders?wallet=${account}`, null) as Promise<{ balance: string; orders: Order[] }> : Promise.resolve(null),
+    Promise.all(local.map((g) => api(API, `/api/orders/${g.id}`, null).catch(() => null) as Promise<Order | null>)),
+  ]);
+  if (mine) {
+    balance = Number(mine.balance);
+    $("balance-row").hidden = balance <= 0;
+    $("balance").textContent = fmt(mine.balance);
+  } else {
+    balance = 0;
+    $("balance-row").hidden = true;
+  }
   setButtons();
-  const shown = data.orders.filter((o) => o.status !== "expired" && o.status !== "unpaid");
+  const keys = new Map(local.map((g) => [g.id, g.key]));
+  const byId = new Map<string, Order>();
+  for (const o of [...(mine?.orders ?? []), ...cards.filter((o): o is Order => !!o)]) byId.set(o.id, o);
+  const shown = [...byId.values()]
+    .filter((o) => (o.status !== "expired" && o.status !== "unpaid") || o.card?.state === "open")
+    .sort((a, b) => b.created_at - a.created_at);
   const list = $("orders");
   if (!shown.length) {
-    list.innerHTML = `<p class="caption">No orders from this wallet yet.</p>`;
+    list.innerHTML = `<p class="caption">${account ? "No orders from this wallet yet." : "Orders you pay for show up here."}</p>`;
     return;
   }
   list.replaceChildren(...shown.map((o) => {
@@ -618,11 +549,17 @@ async function listOrders(): Promise<void> {
     row.innerHTML = `<div><b class="what"></b><div class="meta"></div></div><div class="amount"></div><div class="state"></div>`;
     (row.querySelector(".what") as HTMLElement).textContent = `${count(o.settled)} of ${count(o.jobs)} runs done`;
     (row.querySelector(".meta") as HTMLElement).textContent = `${new Date(o.created_at).toLocaleString()} · ${describe(o)} · ${fmt(o.bid)} per run · order ${o.id}`;
-    (row.querySelector(".amount") as HTMLElement).textContent = `${fmt(o.spent)} of ${fmt(o.budget)}`;
+    // a card order in dollars: the share of what was paid that the runs have used
+    const paidUsd = o.card?.state === "paid" ? Number(o.card.usdc) : 0;
+    (row.querySelector(".amount") as HTMLElement).textContent = paidUsd
+      ? `$${(paidUsd * Number(o.spent) / Math.max(Number(o.budget), 1e-18)).toFixed(2)} of $${paidUsd.toFixed(2)} used`
+      : `${fmt(o.spent)} of ${fmt(o.budget)}`;
     const state = row.querySelector(".state") as HTMLElement;
     const status = document.createElement("span");
     status.dataset.standing = o.status === "live" ? "unchecked" : o.status === "done" ? "ok" : "";
-    status.textContent = o.status === "live"
+    status.textContent = o.status === "unpaid" || o.status === "expired"
+      ? "waiting for the card payment"
+      : o.status === "live"
       ? `running · ${o.out} with miners now${o.ends_at ? ` · stops ${new Date(o.ends_at).toLocaleString()}` : ""}`
       : `${o.status === "done" ? "done ✓" : `ended: ${o.end_reason === "budget" ? "budget spent" : o.end_reason === "time" ? "time's up" : "stopped"}`}${o.returned && Number(o.returned) > 0 ? ` · ${fmt(o.returned)} back to balance` : ""}`;
     state.append(status);
@@ -630,7 +567,7 @@ async function listOrders(): Promise<void> {
       const partial = o.status === "live" ? " so far" : "";
       state.append(link(`${API}/api/orders/${o.id}/results?format=csv`, `CSV${partial}`, "btn sm"), link(`${API}/api/orders/${o.id}/results`, `JSON${partial}`, "btn sm"));
     }
-    if (o.status === "live") {
+    if (o.status === "live" && (!o.guest || keys.get(o.id))) {
       const stop = document.createElement("button");
       stop.type = "button";
       stop.className = "btn sm";
@@ -639,7 +576,12 @@ async function listOrders(): Promise<void> {
         if (!confirm("Stop this order? Runs with miners now are dropped, and what it hasn't spent goes back to your balance.")) return;
         stop.disabled = true;
         try {
-          await signed(o.id, "stop");
+          if (o.guest) {
+            const res = await fetch(`${API}/api/orders/${o.id}/stop`, { method: "POST", headers: { authorization: `Bearer ${keys.get(o.id)}` } });
+            if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}`);
+          } else {
+            await signed(o.id, "stop");
+          }
           $("tx").dataset.standing = "ok";
           $("tx").textContent = "Stopped ✓";
         } catch (err) {
@@ -657,10 +599,12 @@ async function listOrders(): Promise<void> {
       state.append(hook);
     }
     if (o.tx) state.append(link(`${config.explorer}/tx/${o.tx}`, "payment"));
-    if (o.usdc_payment) state.append(link(`${o.usdc_payment.explorer}/tx/${o.usdc_payment.tx}`, `paid ${o.usdc_payment.usdc} USDC`));
+    if (o.card?.state === "paid") state.append(Object.assign(document.createElement("span"), { textContent: `paid $${o.card.usdc} by card` }));
+    else if (o.usdc_payment) state.append(link(`${o.usdc_payment.explorer}/tx/${o.usdc_payment.tx}`, `paid ${o.usdc_payment.usdc} USDC`));
+    if (o.guest) state.append(link(`${location.pathname}?order=${o.id}`, "link to this order"));
     return row;
   }));
-  if (shown.some((o) => o.status === "live")) polling = setTimeout(() => void listOrders().catch(() => {}), 15_000);
+  if (shown.some((o) => o.status === "live" || o.card?.state === "open")) polling = setTimeout(() => void listOrders().catch(() => {}), 15_000);
 }
 
 // ---- boot ---------------------------------------------------------------------------------------------------
@@ -711,16 +655,16 @@ async function boot(): Promise<void> {
     $("account").textContent = wallet ? shortAddress(wallet) : "not signed in";
     $("account").title = wallet ?? "";
     $("connect").textContent = wallet ? "Refresh" : "Sign in";
-    if (wallet) void listOrders().catch((err) => { $("note").textContent = errorText(err); });
-    else {
-      balance = 0;
-      $("balance-row").hidden = true;
-      $("orders").innerHTML = `<p class="caption">Sign in to see your orders.</p>`;
-    }
+    // signed in or not, the list shows this browser's card orders too
+    void listOrders().catch((err) => { $("note").textContent = errorText(err); });
   });
   $("connect").addEventListener("click", () => void (account ? listOrders() : requireWallet()).catch((err) => { $("note").textContent = errorText(err); }));
   $("buy").addEventListener("click", () => void order("flyai"));
-  $("buy-usdc").addEventListener("click", () => void order("usdc"));
+  $("buy-usdc").addEventListener("click", () => {
+    // open the checkout tab during the click, or the browser blocks it
+    const tab = window.open("about:blank", "_blank");
+    void order("card", tab);
+  });
   if (config.usdc) void api(API, "/api/price", null).then((p) => { flyaiUsd = p.flyai_usd; changed(); }, () => {});
   $("key-copy").addEventListener("click", () => void navigator.clipboard.writeText($("key-value").textContent ?? "").then(() => { $("key-copy").textContent = "Copied"; }));
 
@@ -775,6 +719,19 @@ async function boot(): Promise<void> {
   pickPreset("escape");
   pickRepeats("10");
   pickSpeed("1");
+
+  // /compute/jobs?order=<id>: back from the card checkout, or a saved link to a card order
+  const saved = new URLSearchParams(location.search).get("order");
+  if (saved && /^[0-9a-f-]{36}$/.test(saved)) {
+    cardOrders.add(saved, null);
+    $("orders").scrollIntoView({ block: "start" });
+    void api(API, `/api/orders/${saved}/card`, null).then((o: Order) => {
+      if (o.card?.state !== "open" || (o.status !== "unpaid" && o.status !== "expired")) return;
+      const say = (text: string) => { delete $("tx").dataset.standing; $("tx").textContent = text; };
+      say("Checking your card payment…");
+      return waitForCard(saved, say).then((paidOrder) => { $("tx").dataset.standing = "ok"; $("tx").textContent = `Paid ✓ ${started(paidOrder)}`; });
+    }).catch((err) => { $("tx").dataset.standing = "zeroed"; $("tx").textContent = errorText(err); }).finally(() => void listOrders().catch(() => {}));
+  }
 
   // /compute/jobs?pay=<order id>: an order made elsewhere (a script, the btc-pool setup), paid here with the wallet
   const payFor = new URLSearchParams(location.search).get("pay");
