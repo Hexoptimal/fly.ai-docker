@@ -1,6 +1,7 @@
 /**
  * The Data card: what the world has recorded, as small charts, plus CSV downloads and the printable report.
- * Everything here reads world.log / world.social; nothing writes back into a fly.
+ * Everything here reads world.log / world.social; nothing writes back into a fly. Watching the shared world (live.ts),
+ * the downloads and the report come from the server, which holds the whole record, and learning is the server's to set.
  */
 import { toCsv, type Row } from "./datalog.ts";
 import { openReport, regression, TRAITS } from "./report.ts";
@@ -86,6 +87,9 @@ export class DataPanel {
   private herit = canvas("chartHerit");
   private trait = TRAITS[0].key;
 
+  /** the live world's server, when the page is watching it instead of running its own */
+  remote: string | null = null;
+
   constructor(private world: World) {
     const style = document.createElement("style");
     style.textContent = STYLE;
@@ -96,30 +100,41 @@ export class DataPanel {
     reward.checked = world.learning.reward;
     hebb.checked = world.learning.hebbian;
     mb.checked = world.learning.mb;
-    reward.addEventListener("change", () => (world.learning.reward = reward.checked));
-    hebb.addEventListener("change", () => (world.learning.hebbian = hebb.checked));
-    mb.addEventListener("change", () => (world.learning.mb = mb.checked));
+    reward.addEventListener("change", () => { if (!this.remote) world.learning.reward = reward.checked; });
+    hebb.addEventListener("change", () => { if (!this.remote) world.learning.hebbian = hebb.checked; });
+    mb.addEventListener("change", () => { if (!this.remote) world.learning.mb = mb.checked; });
 
     const pick = $<HTMLSelectElement>("traitPick");
     for (const t of TRAITS) pick.add(new Option(t.label, t.key));
     pick.addEventListener("change", () => { this.trait = pick.value; this.update(); });
 
     const stamp = () => `t${Math.round(world.time)}s`;
-    const csv: Record<string, () => void> = {
-      csvWorld: () => download(`fly-world-${stamp()}.csv`, world.log.world.rows),
-      csvFlies: () => download(`fly-flies-${stamp()}.csv`, world.log.flies.rows),
-      csvLineage: () => download(`fly-lineage-${stamp()}.csv`, [...world.log.lineage.values()]),
-      csvBrood: () => download(`fly-eggs-${stamp()}.csv`, [...world.log.brood.values()]),
-      csvPairs: () => download(`fly-relationships-${stamp()}.csv`, world.relationshipRows()),
-      csvBlocks: () => download(`fly-brain-blocks-${stamp()}.csv`, world.driftByBlock()),
-      csvEvents: () => download(`fly-events-${stamp()}.csv`, world.log.events.rows),
+    // button -> [the server's export, the local download]
+    const csv: Record<string, [string, () => void]> = {
+      csvWorld: ["world.csv", () => download(`fly-world-${stamp()}.csv`, world.log.world.rows)],
+      csvFlies: ["flies.csv", () => download(`fly-flies-${stamp()}.csv`, world.log.flies.rows)],
+      csvLineage: ["lineage.csv", () => download(`fly-lineage-${stamp()}.csv`, [...world.log.lineage.values()])],
+      csvBrood: ["eggs.csv", () => download(`fly-eggs-${stamp()}.csv`, [...world.log.brood.values()])],
+      csvPairs: ["relationships.csv", () => download(`fly-relationships-${stamp()}.csv`, world.relationshipRows())],
+      csvBlocks: ["blocks.csv", () => download(`fly-brain-blocks-${stamp()}.csv`, world.driftByBlock())],
+      csvEvents: ["events.csv", () => download(`fly-events-${stamp()}.csv`, world.log.events.rows)],
     };
-    for (const [id, fn] of Object.entries(csv)) $(id).addEventListener("click", fn);
-    $("report").addEventListener("click", () => openReport(world));
+    for (const [id, [file, fn]] of Object.entries(csv)) {
+      $(id).addEventListener("click", () => (this.remote ? location.assign(`${this.remote}/export/${file}`) : fn()));
+    }
+    $("report").addEventListener("click", () => (this.remote ? window.open(`${this.remote}/report`, "_blank") : openReport(world)));
   }
 
   update(): void {
     const w = this.world;
+    if (this.remote) {
+      // the server's switches, shown read-only
+      for (const [id, on] of [["learnReward", w.learning.reward], ["learnHebb", w.learning.hebbian], ["learnMemory", w.learning.mb]] as const) {
+        const box = $<HTMLInputElement>(id);
+        box.checked = on;
+        box.disabled = true;
+      }
+    }
     const rows = w.log.world.rows.slice(-600);
     const col = (k: string) => rows.map((r) => Number(r[k]));
 

@@ -374,7 +374,7 @@ async function order(method: "flyai" | "card" | "balance", tab: Window | null = 
 let flyaiUsd = 0;
 const usd = (n: number) => (n >= 1 ? `$${n.toFixed(2)}` : `$${n.toPrecision(2)}`);
 /** " (about $X)" after a $FLYAI amount, once the price is known */
-const dollars = (tokens: number) => (flyaiUsd && tokens ? ` That's about <b>${usd(tokens * flyaiUsd)}</b>${config.usdc ? ", and you can pay by card" : ""}.` : "");
+const dollars = (tokens: number) => (flyaiUsd && tokens ? ` That's about <b>${usd(tokens * flyaiUsd)}</b>${config.usdc?.card ? ", and you can pay by card" : ""}.` : "");
 
 /** Card orders made in this browser (a guest has no wallet to list them by), newest first, with their keys. */
 const CARD_ORDERS = "flyai-compute-card-orders";

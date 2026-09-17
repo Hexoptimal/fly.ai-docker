@@ -109,7 +109,7 @@ export interface Prop {
   brood?: Brood;
 }
 
-const NAMES = [
+export const NAMES = [
   "Buzz", "Maggie", "Grub", "Vinnie", "Pupa", "Nibbles", "Zipper", "Whiff", "Gus", "Blot",
   "Speck", "Twitch", "Compound", "Larva", "Scuttle", "Drizzle", "Ferment", "Wobble", "Titch", "Grease",
   "Bristle", "Mould", "Sticky", "Pong", "Squirm", "Flitter", "Crumb", "Dizzy", "Hover", "Splat",

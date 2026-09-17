@@ -9,19 +9,21 @@
 //   * every CHECKPOINT_EVERY_S saves the whole world (gzipped) and forgets what only the past needs, so it can run for
 //     months and carry on after a restart or deploy. SIGTERM saves one last checkpoint.
 //   * keeps the population above MIN_FLIES with newcomers (World.addImmigrant), logged as "arrive" events.
-//   * HTTP: /health, /state (JSON), /report (the printable report, Save as PDF), /export/<table>.csv (recent rows kept
+//   * streams the world live to every visitor of the page (server/live.ts, src/live.ts): one shared field, not a copy each.
+//   * HTTP: /live (Server-Sent Events), /data (the Data card), /health, /state (JSON), /report (the printable report, Save as PDF), /export/<table>.csv (recent rows kept
 //     in memory; the full history is in the database).
 //
 // Environment (all optional): PORT 8080, WORLD_SINK supabase|files (supabase if SUPABASE_URL is set), WORLD_DATA_DIR
 // (files sink, default ./world-data), SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, WORLD_SEED 1234, WORLD_START_FLIES 24,
 // WORLD_MIN_FLIES 8, WORLD_MAX_FLIES 40, WORLD_EVERY_S 10, FLY_EVERY_S 60, REL_EVERY_S 300, CHECKPOINT_EVERY_S 600,
 // FORGET_AFTER_S 3600, WORLD_RESET=1 (ignore the last checkpoint and start a new run), WORLD_ORIGINS (CORS),
-// WORLD_STOP_AFTER_S (stop after this many simulated seconds; for tests), WORLD_SPEED (1 = real time; tests only), GIT_SHA.
+// WORLD_STOP_AFTER_S (stop after this many simulated seconds; for tests), WORLD_SPEED (1 = real time; tests only), LIVE_MAX_CLIENTS 300, GIT_SHA.
 import { createServer } from "node:http";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { World, type WorldCheckpoint } from "../src/sim.ts";
 import { toCsv, type Row, type Table } from "../src/datalog.ts";
 import { buildReport } from "../src/report.ts";
+import { LiveHub, sendData } from "./live.ts";
 import { FileSink, SupabaseSink, type DbRow, type Sink, type TableName } from "./sink.ts";
 
 const env = process.env;
@@ -40,6 +42,7 @@ const CFG = {
   flushS: 10,
   stopAfterS: num("WORLD_STOP_AFTER_S", 0),
   speed: num("WORLD_SPEED", 1),
+  maxClients: num("LIVE_MAX_CLIENTS", 300),
   origins: (env.WORLD_ORIGINS ?? "https://flyaiworld.com,https://www.flyaiworld.com,http://localhost:5173").split(","),
 };
 const STEP_HZ = 50;
@@ -85,6 +88,7 @@ world.maxFlies = CFG.maxFlies;
 Object.assign(world.log.world, { cap: 3600 });
 Object.assign(world.log.flies, { cap: 20_000 });
 Object.assign(world.log.events, { cap: 5_000 });
+const hub = new LiveHub(() => world, CFG.maxClients);
 
 // ---- recording ----------------------------------------------------------------------------------------------------
 const seen = { world: world.log.world.dropped + world.log.world.rows.length, flies: world.log.flies.dropped + world.log.flies.rows.length, events: world.log.events.dropped + world.log.events.rows.length };
@@ -197,6 +201,7 @@ function loop(): void {
   const until = now + 30;
   while (owed >= 1 && performance.now() < until) {
     world.step();
+    hub.afterStep();
     owed--;
     rate.steps++;
     if (world.steps % STEP_HZ === 0 && world.flies.length < CFG.minFlies && world.time - lastImmigrant > 20) {
@@ -222,6 +227,7 @@ const TABLES: Record<string, () => Row[]> = {
   "lineage.csv": () => [...world.log.lineage.values()],
   "eggs.csv": () => [...world.log.brood.values()],
   "relationships.csv": () => world.relationshipRows(),
+  "blocks.csv": () => world.driftByBlock(),
 };
 
 function summary(): Record<string, unknown> {
@@ -231,7 +237,7 @@ function summary(): Record<string, unknown> {
     matings: world.matings, eggs_laid: world.eggsLaid, hatched: world.hatched, emerged: world.emerged,
     deaths: world.deaths, immigrants: status.immigrants, groups: world.latest.groups, in_groups: world.latest.inGroups,
     aggregation: Number.isFinite(world.latest.aggregation) ? Math.round(world.latest.aggregation * 1000) / 1000 : null,
-    realtime_ratio: Math.round(rate.ratio * 100) / 100, sink: sink.kind, rows_sent: status.rowsSent,
+    realtime_ratio: Math.round(rate.ratio * 100) / 100, viewers: hub.count, sink: sink.kind, rows_sent: status.rowsSent,
     last_flush_ok: status.lastFlushOk, last_error: status.lastError || null, last_checkpoint_t: Math.round(status.lastCheckpointT),
   };
 }
@@ -240,6 +246,8 @@ const server = createServer((req, res) => {
   const origin = req.headers.origin;
   if (origin && CFG.origins.includes(origin)) res.setHeader("Access-Control-Allow-Origin", origin);
   const path = (req.url ?? "/").split("?")[0];
+  if (path === "/live") return hub.connect(req, res, new URL(req.url ?? "/", "http://x"));
+  if (path === "/data") return sendData(req, res, world);
   const send = (code: number, type: string, body: string) => { res.writeHead(code, { "Content-Type": type }); res.end(body); };
   if (path === "/health") return send(200, "application/json", JSON.stringify(summary()));
   if (path === "/state") {

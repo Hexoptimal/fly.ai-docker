@@ -1,6 +1,10 @@
 /**
  * Wiring of the page: fixed-timestep simulation, rendering, and the overlay.
  *
+ * By default the page watches the shared world that runs on the server (live.ts): every visitor sees the same flies,
+ * and nothing is simulated here. ?local runs a private field in this tab instead, with the sliders; so does a page that
+ * cannot reach the server.
+ *
  * The simulation runs at a fixed 50 Hz (flybrain.dt = 20 ms) in its own
  * accumulator loop, so the network step is decoupled from the frame rate.
  * Every label and bar on screen is a readout of population firing rates.
@@ -15,6 +19,7 @@ import { Wiz } from "./wiz.ts";
 import { WizView } from "./wizview.ts";
 import { PuppeteerView } from "./puppeteer.ts";
 import { DataPanel } from "./datapanel.ts";
+import { LIVE_URL, LiveWorld } from "./live.ts";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -27,6 +32,33 @@ const renderer = new Renderer($<HTMLCanvasElement>("view"), world);
 const wiz = new Wiz(world);
 const wizView = new WizView(renderer.scene, `${import.meta.env.BASE_URL}models/wiz.glb`);
 const puppeteer = new PuppeteerView(renderer.scene);
+
+// ---- shared world or a private one ---------------------------------------------------------------------------------
+let live: LiveWorld | null = null;
+const LIVE_ONLY = ["sliders", "threat", "gust", "reset"];         // world-changing controls, hidden while watching
+if (!new URLSearchParams(location.search).has("local")) {
+  world.flies.length = 0;                                         // nothing until the server's flies arrive
+  live = new LiveWorld(world, () => dataPanel.update());
+  dataPanel.remote = LIVE_URL;
+  for (const id of LIVE_ONLY) $(id).style.display = "none";
+  const note = document.createElement("p");
+  note.className = "note";
+  note.textContent = "This field is shared: everyone on this page watches the same flies, live from the server. " +
+    "Wiz is yours alone: he walks on your screen, and the shared flies do not see him.";
+  $("wizbars").before(note);
+  setTimeout(() => {
+    if (!live || live.status !== "connecting") return;
+    // the server is unreachable: run a private field here rather than show an empty one
+    live.close();
+    live = null;
+    dataPanel.remote = null;
+    for (const id of LIVE_ONLY) $(id).style.display = "";
+    note.textContent = "The shared world could not be reached, so this is a private field running in your browser.";
+    for (const id of ["learnReward", "learnHebb", "learnMemory"]) $<HTMLInputElement>(id).disabled = false;
+    world.setFlyCount(START_FLIES);
+  }, 10_000);
+}
+const replay = { fired: new Int32Array(world.wiring.n), firedCount: 0 };
 let wizCam = false;
 let wizFrame = 0;
 const brainView = new BrainView($<HTMLCanvasElement>("brain"), world.wiring, $<HTMLCanvasElement>("raster"));
@@ -252,10 +284,30 @@ function tick(now: number): void {
   last = now;
   fps += ((1 / Math.max(wall, 1e-4)) - fps) * 0.08;
 
-  acc += wall * world.speedScale;
+  acc += wall * (live ? 1 : world.speedScale);
   let steps = 0;
   const t0 = performance.now();
-  while (acc >= DT && steps < 6) {
+  if (live) {
+    // watching: the server stepped the flies; replay the watched fly's spikes at 50 a second, and step Wiz locally
+    live.update(wall);
+    if (world.selected !== lastSelected) {
+      brainView.clear();
+      lastSelected = world.selected;
+    }
+    if (live.spikes.length > 10) live.spikes.splice(0, live.spikes.length - 10);
+    while (acc >= DT && steps < 6) {
+      wiz.step(world, DT);
+      const fired = live.spikes.shift();
+      if (fired) {
+        replay.fired.set(fired);
+        replay.firedCount = fired.length;
+        brainView.record(replay as unknown as Fly["brain"]);
+      }
+      acc -= DT;
+      steps++;
+    }
+  }
+  while (!live && acc >= DT && steps < 6) {
     world.step();
     wiz.step(world, DT);
     const sel = world.flies[world.selected];
@@ -270,7 +322,7 @@ function tick(now: number): void {
     steps++;
   }
   if (acc > DT * 8) acc = 0;
-  if (steps) simMs += ((performance.now() - t0) / steps - simMs) * 0.1;
+  if (steps && !live) simMs += ((performance.now() - t0) / steps - simMs) * 0.1;
 
   // drama cam: whoever is panicking hardest, else whoever has eaten most
   dramaTimer -= wall;
@@ -379,6 +431,7 @@ const set = (b: HTMLElement, v: number) => (b.style.width = Math.max(0, Math.min
 function updatePanel(): void {
   const fly = world.flies[world.selected];
   const n = frame++; // read once: checking frame after the ++ only ever saw odd numbers
+  if (!fly && live && n % 30 === 0) $("stats").textContent = live.status === "live" ? "live · the field is empty" : "connecting to the live world…";
   if (!fly || n % 2) return;
 
   const d = fly.vision.drive;
@@ -430,9 +483,12 @@ function updatePanel(): void {
     `${fly.name} ${fly.sex} · gen ${fly.generation}${parents} · ${fly.age.toFixed(0)}s old${fly.mated ? " · mated" : ""}` +
     ` · brain changed ${(fly.brain.drift() * 100).toFixed(1)}%` +
     `${fly.courting > 4 ? " · P1 " + fly.courting.toFixed(0) + " Hz" : ""}`;
+  const where = live
+    ? `${live.status === "live" ? "live" : live.status + "…"} · ${live.viewers} watching · `
+    : `private field · brain step ${simMs.toFixed(2)} ms · `;
   $("stats").textContent =
     `${world.clock} ${PHASE(world.timeOfDay)} · ${world.flies.length} flies × ${world.wiring.n} neurons (${world.wiring.nnz} synapses each) · ` +
-    `${fps.toFixed(0)} fps · brain step ${simMs.toFixed(2)} ms · ${world.field.puffCount} odour puffs · ` +
+    `${fps.toFixed(0)} fps · ${where}${live ? live.puffs : world.field.puffCount} odour puffs · ` +
     `wind ${world.wind.strength.toFixed(1)} m/s · ${world.matings} matings, ${world.eggsLaid} eggs, ` +
     `${world.hatched} hatched · deaths: ${world.deaths.age} old, ${world.deaths.starved} starved, ` +
     `${world.deaths.eaten} eaten, ${world.deaths.swatted} swatted`;

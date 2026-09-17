@@ -32,8 +32,13 @@ npm run preview
 
 ## Deploy to Vercel
 
-Static Vite site, no backend. Import the repository, set the root directory to
+Static Vite site. Import the repository, set the root directory to
 `world/`, and `vercel.json` does the rest. Or `cd world && vercel deploy --prod`.
+
+The page shows the **shared world** from the always-on server (below): every visitor watches the same flies, and
+nothing is simulated in the browser. `?local` runs a private field in the tab instead, with the sliders, SWAT and
+gust; the page also falls back to that if it cannot reach the server within 10 s. `VITE_WORLD_SERVER` points a build
+at another server (default `https://fly-world-sim.fly.dev`).
 
 ## The brain
 
@@ -387,7 +392,8 @@ real time. On fly.io the app is `fly-world-sim` in org `treasure-403`, and the r
 | restarts | a gzipped checkpoint every 10 min and on SIGTERM (flies, genes, learned synapses, eggs, lineage, relationships, counters); a deploy or crash resumes the same run. If the wiring changed, genes carry over by name and learned synapses reset |
 | never empty | below `WORLD_MIN_FLIES` (8) a newcomer flies in every 20 s: an `arrive` event, `immigrant` in the lineage |
 | bounded | records of flies dead more than an hour are dropped from memory once saved; the in-memory tables keep the last hour |
-| HTTP | `/health`, `/state` (counters, every fly, recent events), `/report` (the printable report; Save as PDF), `/export/{world,flies,events,lineage,eggs,relationships}.csv` (recent, from memory; the full history is in the database) |
+| shared page | `/live?fly=<id>` streams the world to the page as Server-Sent Events, gzipped (about 7 KB/s a viewer): a full frame on connect, then 10 frames a second of fly positions and states, changed props, new events and the watched fly's brain (rates, sense drives, every step's spikes as a bitset). The page interpolates between frames (`src/live.ts`, `server/live.ts`). `/data` feeds the Data card. `LIVE_MAX_CLIENTS` (300) caps viewers, and `fly.toml` raises fly's connection limit to match |
+| HTTP | `/live`, `/data`, `/health` (includes `viewers`), `/state` (counters, every fly, recent events), `/report` (the printable report; Save as PDF), `/export/{world,flies,events,lineage,eggs,relationships,blocks}.csv` (recent, from memory; the full history is in the database) |
 
 Run it locally without the database: `WORLD_SINK=files WORLD_DATA_DIR=world-data node --experimental-strip-types server/run.ts`
 (add `WORLD_SPEED=10 WORLD_STOP_AFTER_S=600` for a quick test). Every setting is listed at the top of `server/run.ts`.

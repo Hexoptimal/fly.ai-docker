@@ -30,6 +30,12 @@ primary_region = "cdg"
   auto_start_machines = true
   min_machines_running = 1
 
+  # every visitor of the page holds one /live stream open; fly's default of 25 connections would turn the 26th away
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 250
+    hard_limit = 300
+
   [[http_service.checks]]
     interval = "30s"
     timeout = "5s"
