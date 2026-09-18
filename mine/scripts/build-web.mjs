@@ -33,10 +33,10 @@ const SCRIPTS = [
   "world/src/connectome.ts", "world/src/rng.ts", "world/src/sim.ts", "world/src/brain.ts", "world/src/eyes.ts", "world/src/senses.ts", "world/src/wiring.ts", "world/src/genome.ts", "world/src/social.ts", "world/src/datalog.ts",
   "mine/src/model.ts", "mine/src/runner.ts", "mine/src/fixed.ts", "mine/src/wasmcheck.ts", "mine/src/probe.ts",
   "mine/web/mine-core.ts", "mine/web/download.ts", "mine/web/wallet.ts", "mine/web/account.ts", "mine/web/gpu.ts",
-  "mine/web/gpu.worker.ts", "mine/web/miner.worker.ts", "mine/web/openjob.ts", "mine/web/open.worker.ts", "mine/web/worldjob.ts",
-  "mine/web/app.ts", "mine/web/jobs.ts", "mine/web/stake.ts", "mine/web/claim.ts", "mine/web/leaderboard.ts", "mine/web/connect.ts", "mine/web/bench.ts",
+  "mine/web/gpu.worker.ts", "mine/web/miner.worker.ts", "mine/web/openjob.ts", "mine/web/open.worker.ts", "mine/web/embed.worker.ts", "mine/web/worldjob.ts",
+  "mine/web/app.ts", "mine/web/jobs.ts", "mine/web/stake.ts", "mine/web/claim.ts", "mine/web/leaderboard.ts", "mine/web/results.ts", "mine/web/connect.ts", "mine/web/bench.ts",
 ];
-const PAGES = ["index", "jobs", "stake", "claim", "leaderboard", "connect", "bench"];
+const PAGES = ["index", "jobs", "stake", "claim", "leaderboard", "results", "connect", "bench"];
 const RELATIVE_TS = /(["'])(\.{1,2}\/[^"'\n]*?)\.ts\1/g;
 
 const write = (to, data) => {

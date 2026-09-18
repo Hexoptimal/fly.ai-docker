@@ -42,9 +42,13 @@ import {
 } from "./orders.ts";
 import { backoffMs, checkWebhook, sign, WEBHOOK_BATCH, WEBHOOK_MAX_FAILS } from "./webhooks.ts";
 import {
-  f32Agree, HASH as BLOB_HASH, houseJob, houseSpec, houseUnits, INDEX_INPUT, isOpenKind, isProgramKind, MAX_OUTPUT_BYTES, openMinBid, openSpec, type OpenSpec,
+  cosineAgree, EMBED_LIMITS, EMBED_MODELS, embedTexts, f32Agree, HASH as BLOB_HASH, houseJob, houseSpec, houseUnits, INDEX_INPUT, isOpenKind, isProgramKind, MAX_OUTPUT_BYTES, openMinBid, openSpec, type OpenSpec,
 } from "./orders.ts";
 import { inspectWasm, inspectWgsl, WasmError } from "./wasmcheck.ts";
+import {
+  encodingSummary, learningSummary, piSummary, tilesSummary, tspSummary, tuningSummary, worldSummary,
+  type ProbeRun, type Summary, type SweepRow, type WorldRun,
+} from "./experiments.ts";
 import { Relayer, tokenDomain, transferWithAuthorizationData } from "./relay.ts";
 import { Cdp } from "./cdp.ts";
 
@@ -531,6 +535,8 @@ interface Reference {
   outputs: string[];
   outputSizes: number[];
   dt: number;
+  /** neurons in each probe record set (src/probe.ts), to read probe outputs */
+  recordSizes: Record<string, number>;
 }
 let reference: Reference | null = null;
 
@@ -551,7 +557,7 @@ const pool: Verifier[] = Array.from({ length: VERIFIERS }, () => {
             w20: Buffer.from(w20.buffer, w20.byteOffset, w20.byteLength).toString("base64"),
             decay: msg.fixed.decay, noise_thresh: msg.fixed.noiseThresh, noise_amp: msg.fixed.noiseAmp, outputs: msg.outputs,
           },
-          outputs: msg.outputs, outputSizes: msg.outputSizes, dt: msg.dt,
+          outputs: msg.outputs, outputSizes: msg.outputSizes, dt: msg.dt, recordSizes: msg.recordSizes,
         };
         console.log(`connectome loaded, ${reference.outputs.length} motor groups; serving on http://localhost:${PORT}`);
       }
@@ -968,7 +974,7 @@ function pickOrder(miner: string, k: string, orders: { id: string; weight: numbe
 }
 
 /** What miners know how to run; a client that doesn't say is an older one and gets only the brain. */
-const KINDS = ["connectome", "wasm", "wgsl", "world", "probe"];
+const KINDS = ["connectome", "wasm", "wgsl", "world", "probe", "embed"];
 
 /** A claimed program job: where to fetch it and its limits. */
 function openJob(params: string, kind: string) {
@@ -976,6 +982,14 @@ function openJob(params: string, kind: string) {
   // our own code: the miner already has it, only the job's parameters travel
   if (kind === "world" || kind === "probe") return { kind, index: p.index, timeout_s: p.timeout_s, max_output: MAX_OUTPUT_BYTES, ...p.job };
   const blob = (h: string) => `/api/blobs/${h}`;
+  if (kind === "embed") {
+    // the model comes from its own hub at a pinned revision; only the texts travel through us
+    const m = EMBED_MODELS[p.program];
+    return {
+      kind, model: p.program, repo: m.repo, revision: m.revision, pooling: m.pooling, dim: m.dim, mb: m.mb,
+      index: p.index, input: p.input, input_url: blob(p.input), timeout_s: p.timeout_s, output_bytes: p.output_bytes,
+    };
+  }
   return {
     kind, program: p.program, program_url: blob(p.program), index: p.index,
     // an index input needs no download: the miner makes the 4 bytes itself
@@ -1502,7 +1516,11 @@ function orderConfigView() {
     // what a new order competes with for miners
     market: { live_orders: bids.length, top_bid: bids.length ? fromWei(bids[0]) : null, median_bid: bids.length ? fromWei(bids[bids.length >> 1]) : null },
     channels: [...CHANNELS, "none"], steps: STEPS, dt: reference?.dt ?? null, outputs: reference?.outputs ?? null,
-    kinds: ["connectome-sweep", "wasm", "wgsl"],
+    kinds: ["connectome-sweep", "wasm", "wgsl", "embed"],
+    embed: {
+      models: Object.fromEntries(Object.entries(EMBED_MODELS).map(([id, m]) => [id, { dim: m.dim, pooling: m.pooling, repo: m.repo, revision: m.revision, about: m.about }])),
+      max_texts: EMBED_LIMITS.texts, max_text_chars: EMBED_LIMITS.chars, max_input_bytes: EMBED_LIMITS.bytes, default_cosine: 0.9999,
+    },
     programs: { blob_max_bytes: BLOB_MAX_BYTES, max_timeout_s: 600, max_output_bytes: MAX_OUTPUT_BYTES, max_redundancy: 5, blob_ttl_days: BLOB_TTL_MS / 86_400_000 },
     chain_id: CLAIMS.chain_id, chain_name: CLAIMS.chain_name, rpc: CLAIMS.rpc, explorer: CLAIMS.explorer, token_symbol: CLAIMS.token_symbol,
     // card buyers: USDC on Base through an onramp, credited in $FLYAI at the live price (POST /api/orders/:id/usdc)
@@ -1536,7 +1554,7 @@ async function createOrder(req: IncomingMessage, body: any) {
   if (isOpenKind(body.spec?.kind)) {
     open = asked(() => openSpec(body.spec, ORDERS.maxJobs));
     open.program = checkProgram(open);
-    for (const h of new Set(open.inputs)) if (h !== INDEX_INPUT) needBlob(h);
+    checkInputs(open.kind, open.inputs);
     const minBid = openMinBid(ORDERS, open);
     terms = asked(() => orderTerms(ORDERS, body, minBid));
     spec = { ...open, inputs: undefined };
@@ -1630,10 +1648,15 @@ function refill(id: string): void {
   const want = db.prepare("update tasks set priority = 1, state = case when state = 'done' then 'open' else state end where id = ?");
   for (; cursor < total && out < o.max_parallel; cursor++) {
     // a program job is unique to its order and index; it earns no points (its miners are paid from the charge)
+    const input = program ? (inputAt.get(id, cursor) as { input: string }).input : "";
+    // an embed answer is exactly one vector per text; the model's size goes with the compare rule
+    const embed = program && spec.kind === "embed"
+      ? { output_bytes: textCount(input) * EMBED_MODELS[spec.program].dim * 4, compare: { ...spec.compare, dim: EMBED_MODELS[spec.program].dim } }
+      : {};
     const params = program
-      ? JSON.stringify({ kind: spec.kind, order: id, index: cursor, program: spec.program, input: (inputAt.get(id, cursor) as { input: string }).input,
+      ? JSON.stringify({ kind: spec.kind, order: id, index: cursor, program: spec.program, input,
         timeout_s: spec.timeout_s, redundancy: spec.redundancy, compare: spec.compare, dispatch: spec.dispatch, output_bytes: spec.output_bytes,
-        ...(spec.kind === "world" || spec.kind === "probe" ? { job: houseJob(spec, cursor) } : {}) })
+        ...embed, ...(spec.kind === "world" || spec.kind === "probe" ? { job: houseJob(spec, cursor) } : {}) })
       : JSON.stringify(sweep![cursor]);
     if (program && left - BigInt(out + 1) * bid < 0n) break;
     // house programs earn points (o.house_units); paid programs pay their miners from the charge instead
@@ -2352,6 +2375,7 @@ function needBlob(hash: string): Uint8Array {
  * capped (src/wasmcheck.ts), stored as its own upload; for WGSL the shader as given.
  */
 function checkProgram(spec: OpenSpec): string {
+  if (spec.kind === "embed") return spec.program; // a model id, checked against EMBED_MODELS by openSpec
   const bytes = needBlob(spec.program);
   try {
     if (spec.kind === "wgsl") {
@@ -2363,6 +2387,27 @@ function checkProgram(spec: OpenSpec): string {
     if (err instanceof WasmError) throw new HttpError(400, `program refused: ${err.message}`);
     throw err;
   }
+}
+
+/** Every input must be uploaded; an embed input must also be a valid batch of texts. */
+function checkInputs(kind: string, inputs: string[]): void {
+  for (const h of new Set(inputs)) {
+    if (h === INDEX_INPUT) continue;
+    const bytes = needBlob(h);
+    if (kind === "embed") asked(() => embedTexts(bytes));
+  }
+}
+
+/** How many texts an embed input holds (checked when it was ordered), remembered by hash. */
+const textCounts = new Map<string, number>();
+function textCount(hash: string): number {
+  let n = textCounts.get(hash);
+  if (n === undefined) {
+    n = embedTexts(readFileSync(blobPath(hash))).length;
+    if (textCounts.size > 50_000) textCounts.clear();
+    textCounts.set(hash, n);
+  }
+  return n;
 }
 
 const uploads = new Map<string, { at: number; bytes: number }[]>();
@@ -2447,12 +2492,14 @@ function appendJobs(req: IncomingMessage, id: string, body: any) {
   if (o.status === "done" || o.status === "ended") throw new HttpError(409, `the order has ${o.status === "done" ? "finished" : "ended"}; create a new one`);
   const count = body.count === undefined ? null : Number(body.count);
   if (count !== null && !(Number.isInteger(count) && count >= 1 && count <= 50_000)) throw new HttpError(400, "count is 1..50000");
+  const kind = JSON.parse(o.spec).kind;
+  if (kind === "embed" && count !== null) throw new HttpError(400, "embed jobs need inputs: upload JSON arrays of texts");
   const inputs: string[] = count !== null ? Array.from({ length: count }, () => INDEX_INPUT) : body.inputs;
   if (count === null && (!Array.isArray(inputs) || !inputs.length || inputs.length > 50_000 || inputs.some((h) => typeof h !== "string" || !BLOB_HASH.test(h)))) {
     throw new HttpError(400, "send inputs (1..50000 upload sha256s) or count (jobs given their index)");
   }
   if (o.jobs + inputs.length > 1_000_000) throw new HttpError(409, "an order holds at most 1,000,000 jobs");
-  for (const h of new Set(inputs)) if (h !== INDEX_INPUT) needBlob(h);
+  checkInputs(kind, inputs);
   transaction(() => {
     const now = orderRow(id)!;
     addInputs(id, now.jobs, inputs);
@@ -2464,6 +2511,8 @@ function appendJobs(req: IncomingMessage, id: string, body: any) {
 
 /** A miner's answer to a program job: an output (stored as an upload) or the error the program hit. */
 function programAnswer(raw: any, params: any): string {
+  // an embed input was checked when it was ordered, so a model can't fail on it: an error there is a miner's problem
+  if (params.kind === "embed" && raw && typeof raw.error === "string") throw new HttpError(400, "embed jobs answer with vectors; release the job if this machine can't run it");
   if (raw && typeof raw.error === "string") {
     return JSON.stringify({ error: raw.error.replace(/[^\x20-\x7e]/g, "?").slice(0, 200) });
   }
@@ -2476,12 +2525,13 @@ function programAnswer(raw: any, params: any): string {
   return JSON.stringify({ output: hash, size: bytes.length });
 }
 
-function answersAgree(a: string, b: string, compare: OpenSpec["compare"]): boolean {
+function answersAgree(a: string, b: string, compare: OpenSpec["compare"] | { cosine: number; dim: number }): boolean {
   if (a === b) return true;
   if (compare === "exact") return false;
   const x = JSON.parse(a);
   const y = JSON.parse(b);
   if (!x.output || !y.output || x.size !== y.size) return false;
+  if ("cosine" in compare) return cosineAgree(readFileSync(blobPath(x.output)), readFileSync(blobPath(y.output)), (compare as { dim: number }).dim, compare.cosine);
   return f32Agree(readFileSync(blobPath(x.output)), readFileSync(blobPath(y.output)), compare.f32_tolerance);
 }
 
@@ -2556,7 +2606,7 @@ function createHouse(body: any) {
   } else if (isOpenKind(body.spec?.kind)) {
     open = asked(() => openSpec(body.spec, 1_000_000));
     open.program = checkProgram(open);
-    for (const h of new Set(open.inputs)) if (h !== INDEX_INPUT) needBlob(h);
+    checkInputs(open.kind, open.inputs);
     spec = { ...open, inputs: undefined };
     jobCount = open.inputs.length;
   } else {
@@ -2628,6 +2678,69 @@ const houseOrders = cached(10_000, (_: null) => ({
 }));
 function houseOrdersView() {
   return houseOrders(null);
+}
+
+/**
+ * GET /api/experiments: what our own research orders found, one summary each (src/experiments.ts). Worked out in the
+ * background every 30 minutes from the settled results, reading a sample of the big ones, so a page view costs nothing.
+ */
+const SAMPLE = { world: 400, probe: 300 };
+let experiments: { at: number; summaries: Summary[] } | null = null;
+function computeExperiments(): void {
+  const ref = reference;
+  if (!ref) return;
+  const orders = houseOrders(null).orders.filter((o) => o.label && !o.label.startsWith("mining/"))
+    .sort((a, b) => a.created_at - b.created_at);
+  const outputOf = (row: any): Buffer | null => (row.output?.hash && existsSync(blobPath(row.output.hash)) ? readFileSync(blobPath(row.output.hash)) : null);
+  const worldRuns = (id: string) => orderResults(id, 0, SAMPLE.world).rows.map(outputOf).filter(Boolean).map((b) => JSON.parse(b!.toString()) as WorldRun);
+  const summaries: Summary[] = [];
+  const byLabel = new Map(orders.map((o) => [o.label, o]));
+  for (const o of orders) {
+    const before = summaries.length;
+    try {
+      const label = o.label as string;
+      if (/learning-off/.test(label)) continue; // summarized with its learning-on twin
+      if (o.kind === "connectome-sweep" || o.kind === "connectome") {
+        const rows = orderResults(o.id).rows as unknown as SweepRow[];
+        summaries.push(tuningSummary(label, rows, ref.outputs, ref.outputSizes, ref.dt));
+      } else if (o.kind === "world" && /learning-on/.test(label)) {
+        const twin = byLabel.get(label.replace("learning-on", "learning-off"));
+        if (twin) {
+          summaries.push(learningSummary(label.replace("learning-on", "learning"), worldRuns(o.id), worldRuns(twin.id)));
+          // progress over both halves of the pair
+          Object.assign(summaries[summaries.length - 1], { status: o.status === twin.status ? o.status : "live", jobs: o.jobs + twin.jobs, settled: o.settled + twin.settled, order: o.id });
+          continue;
+        }
+      } else if (o.kind === "world") {
+        summaries.push(worldSummary(label, worldRuns(o.id)));
+      } else if (o.kind === "probe") {
+        const spec = JSON.parse(orderRow(o.id)!.spec);
+        const columns = (spec.params.record as string[]).map((set) => ref.recordSizes[set] ?? 0);
+        const runs: ProbeRun[] = [];
+        for (const row of orderResults(o.id, 0, SAMPLE.probe).rows as any[]) {
+          const b = outputOf(row);
+          if (!b) continue;
+          runs.push({ condition: houseJob(spec, row.index).condition as string, steps: spec.params.steps, counts: new Uint16Array(b.buffer, b.byteOffset, b.length >> 1) });
+        }
+        summaries.push(encodingSummary(label, runs, columns, ref.dt));
+      } else if (o.kind === "wasm" && /pi/.test(label)) {
+        summaries.push(piSummary(label, orderResults(o.id).rows.map(outputOf).filter((b) => b?.length === 8).map((b) => b!.readBigUInt64LE(0))));
+      } else if (o.kind === "wasm" && /tsp/.test(label)) {
+        summaries.push(tspSummary(label, orderResults(o.id).rows.map(outputOf).filter((b) => b && b.length >= 4).map((b) => b!.readUInt32LE(0))));
+      } else if (o.kind === "wasm" && /mandelbrot/.test(label)) {
+        summaries.push(tilesSummary(label, o.settled, o.jobs));
+      }
+      // progress of the order the summary came from (for a learning pair, the learning-on half)
+      if (summaries.length > before) Object.assign(summaries[summaries.length - 1], { status: o.status, jobs: o.jobs, settled: o.settled, order: o.id });
+    } catch (err) {
+      console.error(`experiment summary for ${o.label} failed:`, err);
+    }
+  }
+  experiments = { at: Date.now(), summaries };
+}
+function experimentsView() {
+  if (!experiments) computeExperiments();
+  return { updated_at: experiments ? new Date(experiments.at).toISOString() : null, experiments: experiments?.summaries ?? [] };
 }
 
 /**
@@ -2717,13 +2830,13 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     return void res.end();
   }
   if (req.method === "GET") {
-    const oldPage = /^\/(stake|claim|leaderboard|connect|bench|jobs)$/.exec(p);
+    const oldPage = /^\/(stake|claim|leaderboard|results|connect|bench|jobs)$/.exec(p);
     if (p === "/" || p === "/compute" || oldPage) {
       res.writeHead(302, { location: `/compute/${oldPage?.[1] ?? ""}` });
       return void res.end();
     }
     if (p === "/compute/") return serveFile(res, join(ROOT, "web", "index.html"));
-    if ((m = /^\/compute\/(stake|claim|leaderboard|connect|bench|jobs)$/.exec(p))) return serveFile(res, join(ROOT, "web", `${m[1]}.html`));
+    if ((m = /^\/compute\/(stake|claim|leaderboard|results|connect|bench|jobs)$/.exec(p))) return serveFile(res, join(ROOT, "web", `${m[1]}.html`));
     if (p === "/compute/mine/web/compute.css") return serveFile(res, join(ROOT, "web", "compute.css"));
     if (p === "/compute/compute-api.md") return serveFile(res, join(ROOT, "web", "compute-api.md"));
     if ((m = /^\/compute\/mine\/web\/([\w-]+(?:\.worker)?)\.js$/.exec(p))) return serveFile(res, join(ROOT, "web", `${m[1]}.ts`));
@@ -2769,6 +2882,7 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     }
     if (p === "/api/house") return send(res, 200, houseOrdersView());
     if (p === "/api/mining") return send(res, 200, await miningView());
+    if (p === "/api/experiments") return send(res, 200, experimentsView());
     if ((m = /^\/connectome\/(brain\.json|meta\.bin|weights\.\d+\.bin)$/.exec(p))) return serveFile(res, join(CONNECTOME_DIR, m[1]), 3600);
     if (p === "/api/model") return send(res, 200, loaded().model);
     if (p === "/api/me") return send(res, 200, me(minerOf(req)));
@@ -2899,6 +3013,9 @@ setInterval(() => void deliverWebhooks().catch((err) => console.error("webhooks:
 if (STAKING.contract) {
   void sampleActiveStakes();
   setInterval(() => void sampleActiveStakes(), STAKING.sampleMs).unref();
+  // the research summaries: once the connectome is loaded, then every half hour
+  setTimeout(() => computeExperiments(), 90_000).unref();
+  setInterval(() => computeExperiments(), 30 * 60_000).unref();
 }
 
 const server = createServer(async (req, res) => {

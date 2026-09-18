@@ -427,6 +427,57 @@ try {
   const gr = (await api(`/api/orders/${gpu.id}/results`)).json;
   check("two GPUs within the tolerance agree", gr.rows[0]?.checked_by === "agreement" && gr.status === "done", JSON.stringify(gr.rows[0]?.checked_by));
 
+  // an embed order: texts in, vectors out, answers agree by cosine similarity
+  const texts = (xs: unknown) => upload(new TextEncoder().encode(JSON.stringify(xs)));
+  const batchA = await texts(["the fly smells vinegar", "a looming shadow"]);
+  const batchB = await texts(["wind on the antennae"]);
+  const embedOrder = (spec: Record<string, unknown>) => api("/api/orders", { wallet: buyer.address, bid: "40", budget: "120", spec: { kind: "embed", model: "minilm-l6", ...spec } });
+  check("embed: an unknown model is refused", (await embedOrder({ model: "gpt-9", inputs: [batchA] })).status === 400);
+  check("embed: count is refused (texts are inputs)", (await embedOrder({ inputs: undefined, count: 3 })).status === 400);
+  check("embed: an input that isn't a JSON array of texts is refused", (await embedOrder({ inputs: [floats] })).status === 400
+    && (await embedOrder({ inputs: [await texts([])] })).status === 400 && (await embedOrder({ inputs: [await texts(["ok", 7])] })).status === 400
+    && (await embedOrder({ inputs: [await texts(Array.from({ length: 257 }, (_, i) => `t${i}`))] })).status === 400);
+  check("embed: a cosine bar under 0.9 is refused", (await embedOrder({ inputs: [batchA], compare: { cosine: 0.5 } })).status === 400);
+  const cfg = (await api("/api/orders/config")).json;
+  check("embed: the config lists the kind and its models", cfg.kinds.includes("embed") && cfg.embed?.models?.["minilm-l6"]?.dim === 384);
+  const emb = (await embedOrder({ inputs: [batchA, batchB] })).json;
+  await pay(emb);
+  check("embed: a claim without the kind gets no embed jobs", !((await api("/api/claim", { count: 4, kinds: ["wasm", "wgsl"], open_max: 4 }, tc)).json?.jobs ?? []).some((j: any) => j.kind === "embed"));
+  const DIM = 384;
+  // a unit vector per text, from a seed; "noisy" nudges it the way another GPU's rounding would
+  const vectors = (rows: number, seed: number, noise = 0) => {
+    const v = new Float32Array(rows * DIM);
+    for (let r = 0; r < rows; r++) {
+      let n = 0;
+      for (let k = 0; k < DIM; k++) {
+        v[r * DIM + k] = Math.sin(seed * 131 + r * 17 + k * 0.37) + (noise ? Math.sin(k * 7.1 + r) * noise : 0);
+        n += v[r * DIM + k] ** 2;
+      }
+      for (let k = 0; k < DIM; k++) v[r * DIM + k] /= Math.sqrt(n);
+    }
+    return Buffer.from(v.buffer).toString("base64");
+  };
+  const e1 = ((await api("/api/claim", { count: 4, kinds: ["embed"], open_max: 4 }, ta)).json?.jobs ?? []) as any[];
+  const byIndex = (js: any[], i: number) => js.find((j) => j.params.index === i);
+  const j0 = byIndex(e1, 0);
+  check("embed: a claimed job names the pinned model and the exact output size", e1.length === 2 && j0?.params.repo === "Xenova/all-MiniLM-L6-v2"
+    && /^[0-9a-f]{40}$/.test(j0?.params.revision) && j0?.params.output_bytes === 2 * DIM * 4 && byIndex(e1, 1)?.params.output_bytes === DIM * 4, JSON.stringify(j0?.params));
+  check("embed: an error answer is refused", (await api("/api/submit", { job: j0.job, result: { error: "out of memory" } }, ta)).status === 400);
+  check("embed: a wrong-size answer is refused", (await api("/api/submit", { job: j0.job, result: { output: vectors(1, 1) } }, ta)).status === 400);
+  await api("/api/submit", { job: j0.job, result: { output: vectors(2, 1) } }, ta);
+  await api("/api/submit", { job: byIndex(e1, 1).job, result: { output: vectors(1, 2) } }, ta);
+  const e2 = ((await api("/api/claim", { count: 4, kinds: ["embed"], open_max: 4 }, tb)).json?.jobs ?? []) as any[];
+  await api("/api/submit", { job: byIndex(e2, 0).job, result: { output: vectors(2, 1, 0.003) } }, tb); // cosine ~0.99999: agrees
+  await api("/api/submit", { job: byIndex(e2, 1).job, result: { output: vectors(1, 99) } }, tb); // made up: doesn't
+  let er = (await api(`/api/orders/${emb.id}/results`)).json;
+  check("embed: vectors within the cosine bar agree; a made-up vector doesn't", er.rows.length === 1 && er.rows[0].index === 0 && er.rows[0].checked_by === "agreement",
+    JSON.stringify(er.rows.map((r: any) => [r.index, r.checked_by])));
+  const e3 = ((await api("/api/claim", { count: 4, kinds: ["embed"], open_max: 4 }, tc)).json?.jobs ?? []) as any[];
+  await api("/api/submit", { job: byIndex(e3, 1).job, result: { output: vectors(1, 2, 0.001) } }, tc);
+  er = (await api(`/api/orders/${emb.id}/results`)).json;
+  check("embed: a third honest miner settles the job the liar held up", er.status === "done" && er.rows.length === 2 && er.rows.every((r: any) => r.checked_by === "agreement" && r.output.size > 0),
+    JSON.stringify([er.status, er.rows.map((r: any) => r.checked_by)]));
+
   // the month's claims pay program earnings on top of points
   earnings.prepare("update earnings set month = '2026-08'").run();
   earnings.prepare("update ledger set month = '2026-08' where kind = 'charge'").run();

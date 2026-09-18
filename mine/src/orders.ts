@@ -248,16 +248,17 @@ export const MAX_TIMEOUT_S = 600;
 export const MAX_OUTPUT_BYTES = 4 * 1024 * 1024;
 
 export interface OpenSpec {
-  kind: "wasm" | "wgsl";
-  /** sha256 of the uploaded module or shader */
+  kind: "wasm" | "wgsl" | "embed";
+  /** sha256 of the uploaded module or shader; for embed, the model's id in EMBED_MODELS */
   program: string;
   /** sha256 of each job's input, one job per entry in order; or INDEX_INPUT, where the job's input is its index */
   inputs: string[];
   timeout_s: number;
   /** clean miners that must return the same answer before a job settles (1 trusts the first) */
   redundancy: number;
-  /** "exact", or for shaders a tolerance: outputs read as f32 that differ by at most this still agree */
-  compare: "exact" | { f32_tolerance: number };
+  /** "exact", or for shaders a tolerance: outputs read as f32 that differ by at most this still agree; for
+   *  embeddings the lowest cosine similarity at which two answers' vectors (row by row) still agree */
+  compare: "exact" | { f32_tolerance: number } | { cosine: number };
   dispatch: [number, number, number] | null;
   output_bytes: number | null;
   /** the order stays live when its jobs are all done, waiting for more (POST /api/orders/:id/jobs) */
@@ -267,7 +268,64 @@ export interface OpenSpec {
 /** An input that is just the job's index, 4 bytes little-endian: `count` jobs need no uploads. */
 export const INDEX_INPUT = "#index";
 
-export const isOpenKind = (kind: unknown): kind is "wasm" | "wgsl" => kind === "wasm" || kind === "wgsl";
+export const isOpenKind = (kind: unknown): kind is "wasm" | "wgsl" | "embed" => kind === "wasm" || kind === "wgsl" || kind === "embed";
+
+// ---- embeddings: text in, vectors out, on the miner's GPU (or CPU) -------------------------------------------------
+/**
+ * The models an embed order may ask for, each pinned to one revision so every miner runs the same weights. Miners
+ * run them with transformers.js in fp32; measured on an RTX 4060 vs the WASM CPU backend, the lowest cosine between
+ * the two was 0.9999995, so the default 0.9999 agreement bar passes honest hardware and fails anything made up.
+ */
+export const EMBED_MODELS: Record<string, { repo: string; revision: string; dim: number; pooling: "mean" | "cls"; mb: number; about: string }> = {
+  "minilm-l6": {
+    repo: "Xenova/all-MiniLM-L6-v2", revision: "751bff37182d3f1213fa05d7196b954e230abad9", dim: 384, pooling: "mean", mb: 90,
+    about: "all-MiniLM-L6-v2: fast general-purpose English sentence embeddings (256 tokens)",
+  },
+  "bge-small-en": {
+    repo: "Xenova/bge-small-en-v1.5", revision: "ea104dacec62c0de699686887e3f920caeb4f3e3", dim: 384, pooling: "cls", mb: 133,
+    about: "bge-small-en-v1.5: stronger English retrieval embeddings (512 tokens)",
+  },
+};
+/** texts in one embed job, the longest text, and the input's size */
+export const EMBED_LIMITS = { texts: 256, chars: 8_000, bytes: 1_000_000 };
+export const EMBED_COSINE = 0.9999;
+
+/** An embed job's input: a JSON array of 1..256 strings. Returns the texts, or throws SpecError saying what's wrong. */
+export function embedTexts(bytes: Uint8Array): string[] {
+  if (bytes.length > EMBED_LIMITS.bytes) throw new SpecError(`an embed input is at most ${EMBED_LIMITS.bytes.toLocaleString("en-US")} bytes`);
+  let texts: unknown;
+  try {
+    texts = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch {
+    throw new SpecError("an embed input is a UTF-8 JSON array of strings");
+  }
+  if (!Array.isArray(texts) || !texts.length || texts.length > EMBED_LIMITS.texts) throw new SpecError(`an embed input is a JSON array of 1 to ${EMBED_LIMITS.texts} strings`);
+  for (const t of texts) {
+    if (typeof t !== "string" || !t.trim()) throw new SpecError("every text in an embed input is a non-empty string");
+    if (t.length > EMBED_LIMITS.chars) throw new SpecError(`texts are at most ${EMBED_LIMITS.chars.toLocaleString("en-US")} characters (the models read the first 256-512 tokens anyway)`);
+  }
+  return texts as string[];
+}
+
+/** Whether two embed answers agree: same shape, and every row's vectors at least `min` cosine-similar. */
+export function cosineAgree(a: Uint8Array, b: Uint8Array, dim: number, min: number): boolean {
+  if (a.length !== b.length || a.length % (dim * 4)) return false;
+  const x = new Float32Array(a.buffer.slice(a.byteOffset, a.byteOffset + a.length));
+  const y = new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.length));
+  for (let row = 0; row < x.length; row += dim) {
+    let dot = 0;
+    let nx = 0;
+    let ny = 0;
+    for (let k = row; k < row + dim; k++) {
+      dot += x[k] * y[k];
+      nx += x[k] * x[k];
+      ny += y[k] * y[k];
+    }
+    const cos = dot / Math.sqrt(nx * ny);
+    if (!(cos >= min)) return false; // NaN and zero vectors fail
+  }
+  return true;
+}
 /** Every kind settled by miners agreeing, with outputs stored as uploads: buyers' programs and our own house kinds. */
 export const isProgramKind = (kind: unknown): boolean => isOpenKind(kind) || kind === "world" || kind === "probe";
 
@@ -279,7 +337,8 @@ export const isProgramKind = (kind: unknown): boolean => isOpenKind(kind) || kin
  *   { kind: "wgsl", program, inputs, dispatch: [64, 1, 1], output_bytes: 4096, compare: { f32_tolerance: 1e-5 }, ... }
  */
 export function openSpec(spec: any, maxJobs: number): OpenSpec {
-  if (!spec || typeof spec !== "object" || !isOpenKind(spec.kind)) throw new SpecError("kind is connectome-sweep, wasm or wgsl");
+  if (!spec || typeof spec !== "object" || !isOpenKind(spec.kind)) throw new SpecError("kind is connectome-sweep, wasm, wgsl or embed");
+  if (spec.kind === "embed") return embedSpec(spec, maxJobs);
   if (typeof spec.program !== "string" || !HASH.test(spec.program)) throw new SpecError("program is the sha256 of an upload (POST /api/blobs)");
   if (spec.count !== undefined && spec.inputs !== undefined) throw new SpecError("give inputs or count, not both");
   const inputs = spec.count !== undefined ? Array.from({ length: int(spec.count, "count", 1, maxJobs) }, () => INDEX_INPUT) : spec.inputs ?? [];
@@ -307,6 +366,33 @@ export function openSpec(spec: any, maxJobs: number): OpenSpec {
     throw new SpecError("wasm jobs compare exactly");
   }
   return { kind: spec.kind, program: spec.program, inputs, timeout_s: timeout, redundancy, compare, dispatch, output_bytes: outputBytes, keep_open: keepOpen };
+}
+
+/**
+ * An embed spec, normalized: { kind: "embed", model: "minilm-l6", inputs: ["<sha256 of a JSON array of texts>", ...],
+ * timeout_s?, redundancy?, compare?: { cosine: 0.9999 }, keep_open? }. Each input is checked by the server (embedTexts).
+ */
+function embedSpec(spec: any, maxJobs: number): OpenSpec {
+  const model = spec.model;
+  if (typeof model !== "string" || !Object.hasOwn(EMBED_MODELS, model)) throw new SpecError(`model is one of ${Object.keys(EMBED_MODELS).join(", ")}`);
+  if (spec.count !== undefined) throw new SpecError("embed jobs need inputs: upload JSON arrays of texts");
+  const inputs = spec.inputs ?? [];
+  if (!Array.isArray(inputs) || inputs.some((h) => typeof h !== "string" || !HASH.test(h))) throw new SpecError("inputs is a list of upload sha256s (each a JSON array of texts)");
+  if (inputs.length > maxJobs) throw new SpecError(`one order holds at most ${maxJobs.toLocaleString("en-US")} jobs at a time`);
+  const keepOpen = spec.keep_open === true;
+  if (!inputs.length && !keepOpen) throw new SpecError("inputs is empty; give inputs, or keep_open to add jobs later");
+  let cosine = EMBED_COSINE;
+  if (spec.compare !== undefined) {
+    const c = spec.compare?.cosine;
+    if (typeof c !== "number" || !(c >= 0.9 && c <= 1)) throw new SpecError('compare for embed is {"cosine": 0.9 to 1}');
+    cosine = c;
+  }
+  return {
+    kind: "embed", program: model, inputs,
+    timeout_s: spec.timeout_s === undefined ? 60 : int(spec.timeout_s, "timeout_s", 5, MAX_TIMEOUT_S),
+    redundancy: spec.redundancy === undefined ? 2 : int(spec.redundancy, "redundancy", 1, 5),
+    compare: { cosine }, dispatch: null, output_bytes: null, keep_open: keepOpen,
+  };
 }
 
 // ---- house kinds: our own code, shipped with the miner --------------------------------------------------------
