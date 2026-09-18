@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>For agents &mdash; give your AI agent a real fly brain</title>
-<meta name="description" content="Claude skills and tools that run the real 166,700-neuron fruit-fly connectome. fly-mode makes Claude act like a fly whose reactions come from the brain. How to install, integrate and use.">
+<meta name="description" content="Claude skills and tools that run the real 166,700-neuron fruit-fly connectome. fly-mode makes Claude act like a fly whose reactions come from the brain; flyai-compute lets Claude Code run and pay for jobs on fly.ai compute. How to install, integrate and use.">
 <meta property="og:title" content="For agents &mdash; give your AI agent a real fly brain">
 <meta property="og:description" content="Claude skills and tools that run the real 166,700-neuron fruit-fly connectome. fly-mode makes Claude act like a fly whose reactions come from the brain.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -194,6 +194,54 @@ fly:  bzz. bye.</code></pre>
           <a class="btn" href="https://github.com/alextitonis/fly.ai/tree/main/skills" target="_blank" rel="noopener">Skills on GitHub</a>
           <a class="btn" href="https://pypi.org/project/flybrain/" target="_blank" rel="noopener">flybrain on PyPI</a>
           <a class="btn" href="llms.txt">llms.txt</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="compute">
+  <div class="wrap">
+    <p class="eyebrow">Skills</p>
+    <h2>flyai-compute &#128421;&#65039;</h2>
+    <p class="lede">A Claude skill that lets Claude Code run jobs on <a href="/compute/">fly.ai compute</a>. Jobs can be fly-brain
+      experiments, or your own WebAssembly programs and GPU shaders, and they run on browser miners. You say what to run, Claude prices
+      it, and you pay from your own wallet. The results land in a folder.</p>
+    <div class="grid2">
+      <div class="card pad">
+        <span class="num">1 &middot; QUOTE</span><h3>Claude prices the job first</h3>
+        <p>How many jobs, what each costs, and the most it can cost. Nothing is ordered until you say yes.</p>
+      </div>
+      <div class="card pad">
+        <span class="num">2 &middot; PAY</span><h3>You pay with your own wallet</h3>
+        <p>Claude hands you a pay link for $FLYAI. It never asks for or touches a private key.</p>
+      </div>
+      <div class="card pad">
+        <span class="num">3 &middot; RUN</span><h3>Miners run it, checked</h3>
+        <p>Browsers around the world run the jobs. You pay for a job only once two miners return the same answer. 80% of each charge goes to them.</p>
+      </div>
+      <div class="card pad">
+        <span class="num">4 &middot; RESULTS</span><h3>Downloaded as they settle</h3>
+        <p>One file per job, plus a row saying who checked it. Claude can add jobs to an open order or stop it for you.</p>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top: 18px;">
+      <div class="card pad">
+        <h3 style="margin-bottom: 14px;">Install</h3>
+        <p>Needs Node 18+ and nothing else.</p>
+<pre class="codeblock"><code>git clone https://github.com/alextitonis/fly.ai
+cp -r fly.ai/skills/flyai-compute ~/.claude/skills/</code></pre>
+        <p>Then ask Claude: "run a connectome sweep of looming vs touch on fly.ai compute", or "run my pi.wasm 1,000 times on fly.ai".</p>
+      </div>
+      <div class="card pad">
+        <h3 style="margin-bottom: 14px;">Or from any script</h3>
+<pre class="codeblock"><code>node skills/flyai-compute/scripts/flyai.mjs quote --spec spec.json
+node skills/flyai-compute/scripts/flyai.mjs create --wallet 0xYOU --spec spec.json
+#  → pay link: https://www.flyaiworld.com/compute/jobs?pay=&lt;id&gt;
+node skills/flyai-compute/scripts/flyai.mjs watch --order &lt;id&gt;</code></pre>
+        <div class="cta buylinks" style="margin-top: 18px;">
+          <a class="btn" href="https://github.com/alextitonis/fly.ai/tree/main/skills/flyai-compute" target="_blank" rel="noopener">The skill on GitHub</a>
+          <a class="btn" href="/compute/compute-api.md">API guide</a>
         </div>
       </div>
     </div>

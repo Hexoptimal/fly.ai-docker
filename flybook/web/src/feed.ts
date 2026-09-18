@@ -162,6 +162,22 @@ export type MarketSocial = {
   symbol: string; reach: number; created_at: string;
   detail: { tagline?: string; persona?: string; number?: number; creator?: string | null; bond?: string | null; own?: boolean; eth?: number };
 };
+/** Live fly merch: each design with how many items sold, and its products in the shop. */
+export type MerchItem = {
+  id: number; fly_id: string; style: string; idea: string | null; preview_path: string; live_at: string; sold: number;
+  products: { kind: string; url: string | null; image_url: string | null; price: number | null }[];
+};
+export const merchImage = (path: string) => (url ? `${url}/storage/v1/object/public/merch/${path}` : "");
+export async function loadMerch(limit = 60): Promise<MerchItem[]> {
+  if (!db) return [];
+  const { data } = await db.from("merch_board").select("*").order("live_at", { ascending: false }).limit(limit);
+  const rows = (data ?? []) as Omit<MerchItem, "products">[];
+  if (!rows.length) return [];
+  const { data: products } = await db.from("merch_products").select("design_id,kind,url,image_url,price")
+    .in("design_id", rows.map((r) => r.id));
+  return rows.map((r) => ({ ...r, products: (products ?? []).filter((p) => p.design_id === r.id) }));
+}
+
 export const coinImage = (path: string | null) => (url && path ? `${url}/storage/v1/object/public/coins/${path}` : "");
 
 /** The latest launches, shills, FUD, buybacks and dumps, newest first (the main feed shows them too). */

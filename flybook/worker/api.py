@@ -26,6 +26,11 @@
     DELETE /memes/<id>        your own meme
     POST   /memes/<id>/like   like a meme (only holders' likes count on the board); DELETE removes it
     POST   /memes/<id>/report {reason?}: report a meme; enough reports hide it
+    GET    /merch/quota        fee, owner share, styles, designs left today (fly merch, worker/merch.py)
+    POST   /merch/designs      {fly_id, style, idea?, show_name?}: draw a merch design of your fly (holders, a few a day)
+    POST   /merch/designs/<id>/pay {tx_hash}: the $FLYAI fee was sent; checked on chain, then the products get made
+    DELETE /merch/designs/<id> an unpaid draft
+    GET    /merch/mine         your designs, their products, items sold, earnings and payouts
 
 Accounts (2026-09-14): a session from Supabase's Web3 login (Sign in with Ethereum, so the wallet is proven by a
 signature) or from an email magic link (a confirmed email). Holders ($FLYAI at or above the minimum, checked on
@@ -37,6 +42,7 @@ FLYBOOK_MAX_FLIES, ROBINHOOD_RPC, PORT.
 """
 from __future__ import annotations
 
+import datetime as dt
 import json
 import os
 import random
@@ -50,6 +56,7 @@ import requests
 
 import chain
 import memes
+import merch
 import minds
 import settings as fly_settings
 from duels import KINDS as DUEL_KINDS
@@ -577,6 +584,130 @@ def report_meme(user: dict, wallet: str | None, meme_id: int, body: dict) -> dic
     return {"reported": True}
 
 
+_merch_locks: dict[str, threading.Lock] = {}
+
+
+def merch_quota(user: dict, wallet: str | None) -> dict:
+    holder = is_holder(wallet)
+    since = quote(utc_midnight())
+    used = count(f"merch_designs?select=id&user_id=eq.{user['id']}&created_at=gte.{since}")
+    everyone = count(f"merch_designs?select=id&created_at=gte.{since}")
+    return {"holder": holder, "wallet": wallet, "left_today": max(0, merch.DRAFTS_PER_DAY - used) if holder else 0,
+            "per_day": merch.DRAFTS_PER_DAY, "global_left": max(0, merch.DAILY_CAP - everyone), "idea_max": memes.IDEA_MAX,
+            "fee_tokens": float(merch.FEE_TOKENS), "fee_wei": str(merch.FEE_WEI), "treasury": merch.TREASURY,
+            "share": merch.SHARE, "styles": [{"key": k, "label": v[0]} for k, v in merch.STYLES.items()],
+            "products": [{"kind": p["kind"], "label": p["label"]} for p in merch.PRODUCTS]}
+
+
+def create_design(user: dict, wallet: str | None, body: dict, ip: str) -> dict:
+    """Draw a merch design of one of your flies (a draft until it's paid for)."""
+    limit(f"merch-burst:{user['id']}", 3, 60)
+    style = str(body.get("style", ""))
+    if style not in merch.STYLES:
+        raise ApiError(400, f"style must be one of {', '.join(merch.STYLES)}")
+    if not wallet:
+        raise ApiError(403, "sign in with your wallet to make merch; the fee is paid in $FLYAI")
+    if not is_holder(wallet):
+        raise ApiError(403, "hold $FLYAI to make merch")
+    fly_id = str(body.get("fly_id", ""))
+    rows = rest("GET", f"flies?select=id,name,color,owner,temperament,dials,senses&id=eq.{quote(fly_id)}")
+    if not rows or rows[0]["owner"] != user["id"]:
+        raise ApiError(403, "make merch of your own flies")
+    lock = _merch_locks.setdefault(user["id"], threading.Lock())
+    if not lock.acquire(blocking=False):
+        raise ApiError(429, "your design is already being drawn")
+    try:
+        quota = merch_quota(user, wallet)
+        if quota["left_today"] < 1:
+            raise ApiError(429, f"{merch.DRAFTS_PER_DAY} designs a day; more at 00:00 UTC")
+        if quota["global_left"] < 1:
+            raise ApiError(429, "the merch studio is out of ink for today; back at 00:00 UTC")
+        idea = memes.clean_idea(body.get("idea"))
+        if idea:
+            memes.check_idea(idea)
+        limit(f"merch-ip:{ip}", merch.DRAFTS_PER_DAY * 2, 86400, "too many designs from this network today")
+        return merch.draw_design(user["id"], rows[0], style, idea, body.get("show_name", True) is not False)
+    except (memes.MemeError, merch.MerchError) as e:
+        raise ApiError(e.status, str(e))
+    finally:
+        lock.release()
+
+
+def pay_design(user: dict, wallet: str | None, design_id: int, body: dict) -> dict:
+    """The owner paid the $FLYAI fee: check the transfer on chain, then the merch worker makes the products."""
+    tx = str(body.get("tx_hash", "")).strip().lower()
+    if not chain.TX_HASH.match(tx):
+        raise ApiError(400, "send the payment's transaction hash")
+    if not wallet:
+        raise ApiError(403, "sign in with the wallet that paid")
+    rows = rest("GET", f"merch_designs?select=id,user_id,status,tx_hash,created_at&id=eq.{design_id}")
+    if not rows or rows[0]["user_id"] != user["id"]:
+        raise ApiError(404, "that design doesn't exist")
+    design = rows[0]
+    if design["tx_hash"] == tx:
+        return {"id": design_id, "status": design["status"]}      # sent twice: already counted
+    if design["status"] != "draft":
+        raise ApiError(409, "that design is already paid for")
+    limit(f"merch-pay:{user['id']}", 20, 600)
+    try:
+        found = chain.paid(tx, wallet, merch.TREASURY)
+    except ValueError as e:
+        raise ApiError(400, str(e))
+    except Exception as e:
+        raise ApiError(502, f"couldn't read the transaction ({type(e).__name__}); try again")
+    if found is None:
+        raise ApiError(425, "the payment isn't confirmed yet; try again in a few seconds")
+    sent, when = found
+    if sent < merch.FEE_WEI:
+        raise ApiError(400, f"the fee is {merch.FEE_TOKENS:f} $FLYAI and that transaction sent {chain.tokens(sent):,.0f}")
+    made = dt.datetime.fromisoformat(design["created_at"].replace("Z", "+00:00")).timestamp()
+    if when < made - 300:
+        raise ApiError(400, "that payment was sent before this design was drawn")
+    updated = rest("PATCH", f"merch_designs?id=eq.{design_id}&status=eq.draft", "return=representation",
+                   conflict="that transaction already paid for another design",
+                   json={"status": "paid", "tx_hash": tx, "wallet": wallet, "fee_wei": str(sent),
+                         "paid_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+    if not updated:
+        raise ApiError(409, "that design is already paid for")
+    return {"id": design_id, "status": "paid"}
+
+
+def delete_design(user: dict, design_id: int) -> dict:
+    rows = rest("GET", f"merch_designs?select=id,user_id,status,print_path,preview_path&id=eq.{design_id}")
+    if not rows or rows[0]["user_id"] != user["id"]:
+        raise ApiError(404, "that design doesn't exist")
+    if rows[0]["status"] != "draft":
+        raise ApiError(409, "only unpaid drafts can be deleted")
+    rest("DELETE", f"merch_designs?id=eq.{design_id}")
+    merch.unstore(rows[0]["print_path"], rows[0]["preview_path"])
+    return {"deleted": design_id}
+
+
+def my_merch(user: dict) -> dict:
+    """Your designs with their products, items sold and earnings, and your payouts."""
+    designs = rest("GET", f"merch_designs?select=id,fly_id,style,idea,preview_path,status,error,created_at,live_at,"
+                          f"merch_products(kind,url,image_url,price)&user_id=eq.{user['id']}&status=neq.removed"
+                          "&order=created_at.desc&limit=60")
+    sales = rest("GET", f"merch_sales?select=design_id,quantity,owner_cut,status,payout_id&owner=eq.{user['id']}")
+    payouts = rest("GET", f"merch_payouts?select=id,usd,tokens,tx_hash,paid_at&owner=eq.{user['id']}&order=paid_at.desc")
+    by_design: dict[int, dict] = {}
+    for s in sales:
+        if s["status"] == "CANCELLED":
+            continue
+        d = by_design.setdefault(s["design_id"], {"sold": 0, "earned": 0.0})
+        d["sold"] += s["quantity"]
+        d["earned"] += float(s["owner_cut"])
+    for d in designs:
+        d["preview_url"] = merch.public_url(d["preview_path"])
+        d.update(by_design.get(d["id"], {"sold": 0, "earned": 0.0}))
+    earned = sum(d["earned"] for d in by_design.values())
+    paid = sum(float(p["usd"]) for p in payouts)
+    return {"designs": designs, "earned": round(earned, 2), "paid": round(paid, 2), "unpaid": round(earned - paid, 2),
+            "share": merch.SHARE, "payouts": payouts}
+
+
+MERCH_DESIGN_PATH = re.compile(r"^/merch/designs/(\d+)$")
+MERCH_PAY_PATH = re.compile(r"^/merch/designs/(\d+)/pay$")
 MEME_PATH = re.compile(r"^/memes/(\d+)$")
 MEME_LIKE_PATH = re.compile(r"^/memes/(\d+)/like$")
 MEME_REPORT_PATH = re.compile(r"^/memes/(\d+)/report$")
@@ -643,7 +774,8 @@ class Handler(BaseHTTPRequestHandler):
             if method == "GET" and path == "/config":
                 return self._send(200, {"token": chain.TOKEN, "chain_id": chain.CHAIN_ID,
                                         "min_tokens": float(chain.MIN_TOKENS), "max_flies": MAX_FLIES,
-                                        "free_max_flies": FREE_FLIES, "settings": fly_settings.public_spec()})
+                                        "free_max_flies": FREE_FLIES, "settings": fly_settings.public_spec(),
+                                        "merch": {"fee_tokens": float(merch.FEE_TOKENS), "share": merch.SHARE}})
             balance_match = BALANCE_PATH.match(path)
             if method == "GET" and balance_match:
                 limit(f"balance:{ip}", 20, 60)
@@ -673,6 +805,22 @@ class Handler(BaseHTTPRequestHandler):
             if method == "POST" and path == "/memes":
                 user, wallet = authed(self)
                 return self._send(201, create_meme(user, wallet, self._body(), ip))
+            if method == "GET" and path == "/merch/quota":
+                return self._send(200, merch_quota(*authed(self)))
+            if method == "GET" and path == "/merch/mine":
+                user, _ = authed(self)
+                return self._send(200, my_merch(user))
+            if method == "POST" and path == "/merch/designs":
+                user, wallet = authed(self)
+                return self._send(201, create_design(user, wallet, self._body(), ip))
+            merch_pay = MERCH_PAY_PATH.match(path)
+            if merch_pay and method == "POST":
+                user, wallet = authed(self)
+                return self._send(200, pay_design(user, wallet, int(merch_pay.group(1)), self._body()))
+            merch_design = MERCH_DESIGN_PATH.match(path)
+            if merch_design and method == "DELETE":
+                user, _ = authed(self)
+                return self._send(200, delete_design(user, int(merch_design.group(1))))
             meme = MEME_PATH.match(path)
             if meme and method == "DELETE":
                 user, _ = authed(self)

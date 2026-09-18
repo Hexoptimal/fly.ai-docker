@@ -6,6 +6,7 @@ import Leaderboard from "./Leaderboard";
 import { MemeCard, MemeGallery, MemeMaker } from "./Memes";
 import Missions from "./Missions";
 import Market from "./Market";
+import Merch from "./Merch";
 import MyFlies from "./MyFlies";
 import PatchView from "./PatchView";
 import Relationships from "./Relationships";
@@ -23,7 +24,7 @@ import { POKES, WORDS, actionText, causeText, joinActions, line, ordinal, pick, 
 
 const SCIENCE_URL = "/research/flybook";
 const SITE_URL = "/";
-type View = "feed" | "board" | "arena" | "mine" | "market" | "friends";
+type View = "feed" | "board" | "arena" | "mine" | "market" | "friends" | "merch";
 
 function ago(iso: string, now: number): string {
   const s = Math.max(0, (now - Date.parse(iso)) / 1000);
@@ -36,7 +37,7 @@ function ago(iso: string, now: number): string {
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const viewOf = (hash: string): View =>
-  hash === "#leaderboard" ? "board" : hash === "#arena" ? "arena" : hash === "#mine" ? "mine" : hash === "#market" ? "market" : hash === "#friends" ? "friends" : "feed";
+  hash === "#leaderboard" ? "board" : hash === "#arena" ? "arena" : hash === "#mine" ? "mine" : hash === "#market" ? "market" : hash === "#friends" ? "friends" : hash === "#merch" ? "merch" : "feed";
 
 /** Extra context about a post from the rest of the feed: the same word several times in a row, a round-number post. */
 type PostContext = { streak: number; number?: number };
@@ -150,7 +151,7 @@ export default function App() {
       if (post) {
         setView("feed");
         setFocus(Number(post[1]));
-      } else if (["#leaderboard", "#arena", "#feed", "#mine", "#market", "#friends"].includes(location.hash)) setView(viewOf(location.hash));
+      } else if (["#leaderboard", "#arena", "#feed", "#mine", "#market", "#friends", "#merch"].includes(location.hash)) setView(viewOf(location.hash));
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
@@ -470,11 +471,13 @@ export default function App() {
               <a href="#friends" role="tab" aria-selected={view === "friends"} className={view === "friends" ? "on" : ""}>🕸 Friends</a>
             )}
             <a href="#market" role="tab" aria-selected={view === "market"} className={view === "market" ? "on" : ""}>Market</a>
+            <a href="#merch" role="tab" aria-selected={view === "merch"} className={view === "merch" ? "on" : ""}>Merch</a>
             <a href="#leaderboard" role="tab" aria-selected={view === "board"} className={view === "board" ? "on" : ""}>Leaderboard</a>
             {viewer && (
               <a href="#mine" role="tab" aria-selected={view === "mine"} className={view === "mine" ? "on" : ""}>My flies</a>
             )}
           </div>
+          {view === "merch" && <Merch flies={snap.flies} viewer={viewer} onFly={(id) => { setFlyId(id); location.hash = "feed"; }} />}
           {view === "market" && <Market viewer={viewer} onFly={(id) => { setFlyId(id); location.hash = "feed"; }} />}
           {view === "mine" && (
             <MyFlies allFlies={snap.flies} patches={patches} viewer={viewer} now={now} memeTick={memeTick}

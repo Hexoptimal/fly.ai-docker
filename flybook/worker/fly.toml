@@ -1,7 +1,9 @@
 # Flybook on fly.io: one app, two process groups.
 #   tick  the brain loop (CPU, no ports), one tick every 15 min
 #   api   holder-gated fly creation, https://flybook-worker.fly.dev (stops when idle)
-# Deploy with flybook/worker/deploy.sh. Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
+#   merch fly merch (merch.py run): turns paid designs into Fourthwall products, reads the shop's orders
+# Deploy with flybook/worker/deploy.sh. Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OPENROUTER_API_KEY,
+# FOURTHWALL_USER, FOURTHWALL_PASSWORD.
 app = "flybook-worker"
 primary_region = "cdg"
 
@@ -13,10 +15,13 @@ primary_region = "cdg"
   FLYBOOK_ORIGINS = "https://flyaiworld.com,https://www.flyaiworld.com,http://localhost:5173"
   FLYBOOK_MIN_TOKENS = "1"
   FLYBOOK_MAX_FLIES = "3"
+  FLYBOOK_MERCH_FEE = "50000"       # $FLYAI per merch design
+  FLYBOOK_MERCH_SHARE = "0.4"       # owners' share of each sale's profit
 
 [processes]
   tick = "python flybook/worker/tick.py --every 120 --poke-poll 10 --market-every 600"
   api = "python flybook/worker/api.py"
+  merch = "python flybook/worker/merch.py run"
 
 [http_service]
   internal_port = 8080
@@ -44,3 +49,9 @@ primary_region = "cdg"
   cpu_kind = "shared"
   cpus = 1
   memory = "512mb"
+
+[[vm]]
+  processes = ["merch"]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "256mb"

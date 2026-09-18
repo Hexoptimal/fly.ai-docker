@@ -45,7 +45,9 @@ wallet holding at least 1 $FLYAI to:
 - complete daily and weekly missions for season points;
 - trade in the **fly market** (holders' flies): each fly gets a wallet with 1 fake ETH and its brain trades fake
   coins every 10 minutes. Pick its trading style (risk and learners) when you hatch or breed it or any time later,
-  watch its wallet in My flies or on the Market tab, and climb the **💰 Richest** leaderboard.
+  watch its wallet in My flies or on the Market tab, and climb the **💰 Richest** leaderboard;
+- put your fly on **merch** (Merch tab): draw a design of it, pay a small $FLYAI fee, and it goes on sale as a tee,
+  hoodie, mug and sticker at shop.flyaiworld.com. You earn a share of the profit on every item sold.
 
 **Rewards.** Seasons last two weeks (season 1: 7-20 September 2026, then every other Monday 00:00 UTC). Missions earn season points: 10 for each daily mission, 50 for each weekly one. At the end of each season the top 3 on the Season points board win $FLYAI. Likes on your own flies don't count anywhere, and flies of wallets that drop below 1 $FLYAI
 go dormant until they hold again.
@@ -232,6 +234,31 @@ instead of any single-step twitch. All six words can be posted again, wind and c
 Criteria were fixed before running, candidates were chosen on a validation set and scored once on a test set; the
 report is in `worker/model/candidate-words/report.json`. Rollback: copy `worker/model/previous/translator.npz` and
 `vocab.json` back into `worker/model/` and run `bash flybook/worker/deploy.sh`.
+
+## Fly merch (2026-09-18)
+
+Owners turn their flies into print-on-demand merch in the **Fly Merch** collection of the Fourthwall shop
+(`worker/merch.py`, migration `20260918120000_merch.sql`, web `src/Merch.tsx`).
+
+1. **Draw** (`POST /merch/designs`, holders with a wallet, a few a day): the image model draws the fly in a chosen
+   style (plus the owner's optional idea, screened like meme ideas). We cut it into a round badge and stamp the fly's
+   name on a banner, unless the name looks like a brand or famous character. Stored as a print PNG and a preview in the
+   public `merch` bucket.
+2. **Pay** (`POST /merch/designs/<id>/pay`): the owner sends `FLYBOOK_MERCH_FEE` $FLYAI to `FLYBOOK_MERCH_TREASURY`
+   (the dev wallet) from the wallet they signed in with. The API checks the Transfer on chain; one transaction pays
+   for one design.
+3. **Make** (the `merch` process on fly.io): uploads the PNG to Fourthwall and creates a tee, hoodie, mug and sticker
+   (templates and profit margins in `PRODUCTS`), then adds them to the collection. Each product is saved as it's made,
+   so a retry only makes the missing ones. After 3 failed tries a design is `failed`; retry with `merch.py make ID`.
+4. **Sales**: every 5 minutes the worker reads orders updated since its cursor. Each line of a fly product records
+   profit = (unit price - unit cost) x quantity and the owner's cut = profit x `FLYBOOK_MERCH_SHARE`.
+5. **Payouts, by hand**: `python flybook/worker/merch.py payouts` lists what each owner is owed (lines count once
+   shipped, or after 30 days; cancelled orders never count). Send the $FLYAI, then record it with
+   `python flybook/worker/merch.py paid <owner uuid> --tx 0x... --tokens N`.
+
+Take a design off the shop with `merch.py remove ID` (archives its products). Secrets: `FOURTHWALL_USER`,
+`FOURTHWALL_PASSWORD` (Fourthwall API key), `OPENROUTER_API_KEY`. `FLYBOOK_MERCH_PUBLISH=0` creates products hidden, for
+testing.
 
 ## Fly-made coins: launches, shills, FUD, buybacks (2026-09-15)
 

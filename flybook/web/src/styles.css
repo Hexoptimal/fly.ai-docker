@@ -577,3 +577,28 @@ button.step.toggle small { color: var(--dim); font: 12px var(--sans); }
   .says { font-size: 19px; }
   .links a:first-child { display: none; }
 }
+
+/* fly merch (Merch.tsx) */
+.merch-studio { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 18px; }
+.merch-studio h3 { margin: 0 0 8px; font: 700 18px var(--display); }
+.merch-studio h5 { margin: 12px 0 6px; }
+.merch-seg { flex-wrap: wrap; display: flex; width: fit-content; max-width: 100%; }
+.merch-check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); margin: 10px 0; cursor: pointer; }
+.merch-signin { margin-bottom: 14px; }
+.merch-earnings { display: flex; flex-wrap: wrap; gap: 24px; margin: 18px 0 4px; }
+.merch-earnings > div { display: flex; flex-direction: column; }
+.merch-earnings .fine { margin: 0; }
+.stat-big { font-size: 22px; font-weight: 700; color: var(--text); }
+.merch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+.merch-card { display: flex; flex-direction: column; gap: 8px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.merch-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; display: block; border-radius: 8px;
+  background: repeating-conic-gradient(#161c25 0% 25%, #11161e 0% 50%) 50% / 20px 20px; }
+.merch-card .fine { margin: 0; }
+.merch-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.merch-status { font: 500 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+  border: 1px solid var(--line); border-radius: 99px; padding: 4px 7px; }
+.merch-status.live { color: var(--green); border-color: rgba(61,220,132,.4); }
+.merch-status.paid, .merch-status.making { color: #f2b544; border-color: rgba(242,181,68,.4); }
+.merch-status.failed { color: var(--red-hi); border-color: rgba(255,91,79,.4); }
+.merch-buy { display: flex; flex-wrap: wrap; gap: 6px; }
+.merch-buy .btn { text-decoration: none; }

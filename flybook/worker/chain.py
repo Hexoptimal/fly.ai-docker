@@ -41,3 +41,38 @@ def is_holder(balance_wei: int) -> bool:
 
 def tokens(balance_wei: int) -> float:
     return balance_wei / 10**DECIMALS
+
+
+TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"   # Transfer(address,address,uint256)
+TX_HASH = re.compile(r"^0x[0-9a-fA-F]{64}$")
+
+
+def rpc(method: str, params: list, timeout: float = 15):
+    r = requests.post(RPC, timeout=timeout, json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params})
+    r.raise_for_status()
+    body = r.json()
+    if "error" in body:
+        raise RuntimeError(f"rpc error: {body['error']}")
+    return body["result"]
+
+
+def paid(tx_hash: str, sender: str, to: str) -> tuple[int, int] | None:
+    """$FLYAI that `sender` sent to `to` in this transaction, in wei, and the block's unix time.
+    None while the transaction isn't mined yet. Raises ValueError for a failed or unrelated transaction."""
+    if not TX_HASH.match(tx_hash):
+        raise ValueError("that isn't a transaction hash")
+    receipt = rpc("eth_getTransactionReceipt", [tx_hash])
+    if receipt is None:
+        return None
+    if int(receipt.get("status", "0x0"), 16) != 1:
+        raise ValueError("that transaction failed on chain")
+    sent = 0
+    for log in receipt.get("logs") or []:
+        topics = log.get("topics") or []
+        if (log.get("address", "").lower() == TOKEN.lower() and len(topics) == 3 and topics[0].lower() == TRANSFER_TOPIC
+                and "0x" + topics[1][-40:].lower() == sender.lower() and "0x" + topics[2][-40:].lower() == to.lower()):
+            sent += int(log.get("data") or "0x0", 16)
+    if not sent:
+        raise ValueError("that transaction sends no $FLYAI from your wallet to Flybook")
+    block = rpc("eth_getBlockByNumber", [receipt["blockNumber"], False])
+    return sent, int(block["timestamp"], 16)

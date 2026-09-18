@@ -26,7 +26,10 @@ export type Spec = {
   dial_levels: string[];
   presets: (Item & { settings: Partial<FlySettings> })[];
 };
-export type Config = { token: string; chain_id: number; min_tokens: number; max_flies: number; free_max_flies: number; settings: Spec };
+export type Config = {
+  token: string; chain_id: number; min_tokens: number; max_flies: number; free_max_flies: number; settings: Spec;
+  merch?: { fee_tokens: number; share: number };
+};
 
 async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   const session = db ? (await db.auth.getSession()).data.session : null;
@@ -85,3 +88,28 @@ export const setMemeLike = (id: number, liked: boolean) =>
   call<{ meme_id: number; liked: boolean; likes: number }>(`/memes/${id}/like`, { method: liked ? "POST" : "DELETE" });
 export const reportMeme = (id: number, reason: string) =>
   call<{ reported: boolean }>(`/memes/${id}/report`, { method: "POST", body: JSON.stringify({ reason }) });
+
+/** Fly merch (worker/merch.py): draw a design of your fly, pay the $FLYAI fee, it goes on sale in the shop. */
+export type MerchQuota = {
+  holder: boolean; wallet: string | null; left_today: number; per_day: number; global_left: number; idea_max: number;
+  fee_tokens: number; fee_wei: string; treasury: `0x${string}`; share: number;
+  styles: { key: string; label: string }[]; products: { kind: string; label: string }[];
+};
+export type MerchProduct = { kind: string; url: string | null; image_url: string | null; price: number | null };
+export type MerchDesign = {
+  id: number; fly_id: string; style: string; idea: string | null; preview_url: string;
+  status: "draft" | "paid" | "making" | "live" | "failed" | "removed"; error?: string | null;
+  created_at: string; live_at?: string | null; merch_products?: MerchProduct[]; sold?: number; earned?: number;
+  name_printed?: boolean;
+};
+export type MyMerch = {
+  designs: MerchDesign[]; earned: number; paid: number; unpaid: number; share: number;
+  payouts: { id: number; usd: number; tokens: number | null; tx_hash: string | null; paid_at: string }[];
+};
+export const getMerchQuota = () => call<MerchQuota>("/merch/quota");
+export const getMyMerch = () => call<MyMerch>("/merch/mine");
+export const drawDesign = (req: { fly_id: string; style: string; idea?: string; show_name: boolean }) =>
+  call<MerchDesign>("/merch/designs", { method: "POST", body: JSON.stringify(req) });
+export const payDesign = (id: number, txHash: string) =>
+  call<{ id: number; status: string }>(`/merch/designs/${id}/pay`, { method: "POST", body: JSON.stringify({ tx_hash: txHash }) });
+export const deleteDesign = (id: number) => call<{ deleted: number }>(`/merch/designs/${id}`, { method: "DELETE" });
