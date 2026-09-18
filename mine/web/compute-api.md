@@ -1,7 +1,7 @@
 # fly.ai compute API: running experiments from code
 
-Run experiments on the full fly connectome (166,700 neurons, 25 million synapses), or your own WebAssembly
-programs and GPU shaders, on the fly.ai compute network from your own code.
+Run experiments on the full fly connectome (166,700 neurons, 25 million synapses), your own WebAssembly
+programs and GPU shaders, or text embeddings, on the fly.ai compute network from your own code.
 You pay in $FLYAI per finished run. Results reach you as miners settle them: pull them in pages, keep
 a live stream open, or have them POSTed to your server.
 
@@ -335,6 +335,49 @@ def flyai():
         handle(row, page["outputs"])  # de-duplicate by row["seq"]
     return "", 204
 ```
+
+## Embeddings: text in, vectors out
+
+Send texts and get back one vector per text, for search, clustering, deduplication or RAG. Miners run the model
+on their GPUs with WebGPU, or on the CPU when they have no GPU. You pay per batch, only for batches that settle.
+
+| model | vectors | about |
+|---|---|---|
+| `minilm-l6` | 384 | all-MiniLM-L6-v2: fast general-purpose English sentence embeddings (reads 256 tokens) |
+| `bge-small-en` | 384 | bge-small-en-v1.5: stronger English retrieval embeddings (reads 512 tokens) |
+
+Every miner loads the same weights: each model is pinned to one Hugging Face revision and runs in fp32. The
+vectors are normalized to length 1, so a dot product is the cosine similarity. `GET /api/orders/config` lists the models
+under `embed`.
+
+```sh
+# one job = one upload: a JSON array of 1 to 256 texts (each up to 8,000 characters)
+H1=$(curl -s -X POST $API/api/blobs --data-binary '["the fly smells vinegar", "a shadow looms overhead"]' | jq -r .hash)
+H2=$(curl -s -X POST $API/api/blobs --data-binary '["wind on the antennae"]' | jq -r .hash)
+
+curl -s -X POST $API/api/orders/quote -H 'content-type: application/json' \
+  -d "{\"spec\":{\"kind\":\"embed\",\"model\":\"minilm-l6\",\"inputs\":[\"$H1\",\"$H2\"]}}"
+# create it the same way (wallet, spec, bid, budget), then pay budget_wei as with any order
+```
+
+| field | | |
+|---|---|---|
+| `kind` | `"embed"` | |
+| `model` | one of the models above | |
+| `inputs` | uploads, each a JSON array of 1 to 256 texts | checked when you order: a batch that isn't valid is refused up front |
+| `redundancy` | 1 to 5, default 2 | how many different wallets must return matching vectors |
+| `compare` | default `{"cosine": 0.9999}`, from 0.9 to 1 | two answers match when every text's two vectors are at least this cosine-similar |
+| `timeout_s` | 5 to 600, default 60 | prices the job like any program: `min_bid` for each started 30 seconds |
+| `keep_open` | default false | add batches later with `POST /api/orders/:id/jobs {inputs}` |
+
+**Results:** each settled row's `output` is the batch's vectors in the order of its texts: float32 little-endian,
+`texts × 384` numbers. In Python: `numpy.frombuffer(data, "<f4").reshape(-1, 384)`.
+
+**Why 0.9999:** measured on an RTX 4060, the lowest cosine between the GPU (WebGPU) and the CPU (WASM) vectors for
+the same text was 0.9999995. Honest machines clear the bar easily, and a vector that wasn't computed from the text
+doesn't. There's no error answer: a miner that can't run the model gives the job back for someone else.
+
+**Anyone who takes a job can read its texts**, so don't send secrets.
 
 ## Your own programs: run anything
 

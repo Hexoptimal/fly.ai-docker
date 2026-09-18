@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Viewer } from "./Account";
 import { LEARNERS, StyleEditor, type Style } from "./TradingStyle";
-import Wallet, { Spark, ago, eth, pct } from "./FlyWallet";
+import Wallet, { Spark, ago, cash, pct } from "./FlyWallet";
 import { Drama, FlyCoins } from "./FlyCoins";
 import {
   db, loadMarket, type Coin, type FlyCoin, type FlyTrade, type Learning, type MarketControl, type MarketRound, type MarketSocial, type SocialHit,
@@ -17,7 +17,7 @@ const WHY: Record<Exclude<FlyTrade["side"], "skipped">, string> = {
   panic_sell: "saw it falling like a looming shape and jumped",
   take_profit: "felt the choppy market like wind and groomed",
   sell: "backed away from it",
-  launch: "launched its own coin and put the ETH in its pool",
+  launch: "launched its own coin and put cash in its pool",
   buyback: "watched its own coin fall and turned toward it",
   dump: "watched its own coin crash and jumped out",
 };
@@ -86,7 +86,7 @@ function Mind({ t, names, onFly, mine, onSaved }: {
       <div className="mind-col">
         <h5>Born with</h5>
         <ul className="mind-traits">
-          <li>risks <b>{Math.round((t.traits?.risk ?? 0) * 100)}%</b> of its ETH a buy</li>
+          <li>risks <b>{Math.round((t.traits?.risk ?? 0) * 100)}%</b> of its cash a buy</li>
           <li>learns at <b>{(t.traits?.lr ?? 0).toFixed(2)}</b> per dopamine hit</li>
           <li>remembers <b>{t.traits?.memory_size ?? "?"}</b> trades, compares <b>{t.traits?.k ?? "?"}</b> similar ones</li>
           <li>tubes grow <b>{(t.traits?.tube_growth ?? 0).toFixed(2)}</b>, wither <b>{Math.round((t.traits?.tube_decay ?? 0) * 100)}%</b> a round</li>
@@ -115,8 +115,9 @@ function Mind({ t, names, onFly, mine, onSaved }: {
 }
 
 /**
- * The fly market: a SIMULATED market where holders' flies trade fake coins with fake ETH. Every trade is what the
- * fly's real brain did with what the market did to its senses, shaped by what it has learned (worker/market.py, minds.py).
+ * The fly market: holders' flies paper-trade real Robinhood Chain tokens at live prices with paper USDG (nothing is
+ * bought on chain). Every trade is what the fly's real brain did with what the market did to its senses, shaped by
+ * what it has learned (worker/market.py, prices.py, minds.py).
  */
 export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: string) => void }) {
   const [coins, setCoins] = useState<Coin[] | null>(null);
@@ -184,13 +185,14 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
     <div className="market">
       <div className="feed-head">
         <h2>Fly market</h2>
-        <p>Holders' flies trade with their real brains, and learn. A pumping coin looks like a fly walking past, a crashing one
-          like a looming shape; what the fly's neurons do becomes the trade. Flies launch their own coins, shill them to their
-          friends and FUD their enemies' coins. Profit is dopamine: it tunes what the fly notices
-          and wants, its memory stops trades that hurt before, and slime-mold tubes pull it back to coins that paid. Children
-          inherit it. Owners set each fly's trading style (risk and learners) when they hatch or breed it, in My flies, or in its 🧠 mind.</p>
+        <p>Every fly trades real Robinhood Chain tokens with their real brains, and learn. A pumping token looks like a fly
+          walking past, a crashing one like a looming shape; what the fly's neurons do becomes the trade. Profit is dopamine: it
+          tunes what the fly notices and wants, its memory stops trades that hurt before, and slime-mold tubes pull it back to
+          tokens that paid. Children inherit it. Owners set each fly's trading style (risk and learners) when they hatch or breed
+          it, in My flies, or in its 🧠 mind.</p>
       </div>
-      <p className="market-warning">Simulated. Fake coins, fake prices, fake ETH. Not real trading and not advice.</p>
+      <p className="market-warning">Real prices, paper money: every fly starts with 1 ETH's worth of paper USDG and nothing is bought or sold on
+        chain. Not advice.</p>
       {control?.paused && (
         <p className="market-paused">⏸ Training paused{control.note ? `: ${control.note}` : ""}. No trades or learning until it resumes; every fly
           keeps its portfolio, memories and tubes.</p>
@@ -209,10 +211,10 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
                 <div key={c.symbol} className="coin card">
                   <div className="coin-top">
                     <b>${c.symbol}</b>
-                    <span className={`badge${c.kind === "meme" ? " meme" : ""}`}>{c.kind === "meme" ? "meme" : "sim"}</span>
+                    <span className={`badge${c.category === "meme" ? " meme" : ""}`}>{c.category ?? (c.kind === "meme" ? "meme" : "sim")}</span>
                   </div>
                   <span className="fine">{c.name}</span>
-                  <span className="mono coin-price">{eth(c.price)} ETH</span>
+                  <span className="mono coin-price">{cash(c.price)}</span>
                   <span className={`mono ${move >= 0 ? "up" : "down"}`}>{pct(move)}{c.regime !== "calm" ? ` · ${c.regime}` : ""}</span>
                   <Spark values={series} />
                 </div>
@@ -223,7 +225,7 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
             <p className="fine">Last round: {last.events.map((e) => `$${e.symbol} ${
               e.kind === "launch" ? "launched" : e.kind === "died" ? "died, its pool is empty"
                 : e.kind === "likes" ? `${pct(e.move)} from people loving its creator's posts (${e.likes ?? 0} likes, ${e.comments ?? 0} comments)`
-                : `${e.kind === "rug" ? "got rugged" : "pumped"} ${pct(e.move)}`}`).join(", ")}</p>
+                : `${e.kind === "rug" ? "got rugged" : e.kind === "dump" ? "dropped" : "pumped"} ${pct(e.move)}`}`).join(", ")}</p>
           ) : null}
           <FlyCoins coins={flyCoins} onFly={onFly} />
 
@@ -241,7 +243,7 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
           <div className="market-grid">
             <section>
               <h4>Fly traders</h4>
-              {board.length === 0 && <div className="empty">No trading flies yet. Holders' flies start with 1 fake ETH.</div>}
+              {board.length === 0 && <div className="empty">No trading flies yet. Every fly starts with 1 ETH's worth of paper USDG.</div>}
               <ol className="ranking traders">
                 {board.map((t, i) => (
                   <li key={t.fly_id} className={`${viewer && t.owner === viewer.userId ? "me" : ""}${open === t.fly_id ? " open" : ""}`}>
@@ -250,9 +252,9 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
                       <span className="dot" style={{ background: t.color }} />{t.name}
                     </button>
                     {(t.generation ?? 1) > 1 && <span className="badge">gen {t.generation}</span>}
-                    <span className="stat">{eth(t.value_eth)} ETH</span>
+                    <span className="stat">{cash(t.value_eth)}</span>
                     <span className={`sub mono ${t.pnl >= 0 ? "up" : "down"}`}>
-                      {pct(t.pnl)} · {t.trades} trades · {setupName(learningOf(t))} · holds {Object.keys(t.holdings ?? {}).map((s) => `$${s}`).join(" ") || "only ETH"}
+                      {pct(t.pnl)} · {t.trades} trades · {setupName(learningOf(t))} · holds {Object.keys(t.holdings ?? {}).map((s) => `$${s}`).join(" ") || "only cash"}
                     </span>
                     <button className="more mind-toggle" onClick={() => setWallet(wallet === t.fly_id ? null : t.fly_id)} aria-expanded={wallet === t.fly_id}>
                       {wallet === t.fly_id ? "hide wallet" : "💰 wallet"}
@@ -281,7 +283,7 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
                       </button>{" "}
                       {t.side === "skipped"
                         ? <>wanted to {WANTED[t.reason.wanted ?? ""] ?? "trade"} <b>${t.symbol}</b> but didn't</>
-                        : <>{SIDE[t.side]} <b>${t.symbol}</b> for {eth(t.eth)} ETH</>}
+                        : <>{SIDE[t.side]} <b>${t.symbol}</b> for {cash(t.eth)}</>}
                       <span className="when">{ago(t.created_at)}</span>
                       <p className="fine">
                         {t.side === "skipped" ? `${t.reason.skipped ?? "its learning stopped it"}.` : `It ${WHY[t.side]}.`}
@@ -291,7 +293,7 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
                         {fromFeed(t)}
                         {" "}Neurons: {(t.reason.did ?? []).join(", ") || "none"}.
                         {t.reason.memory ? ` Memory: ${t.reason.memory.similar} similar trades, ${pct(t.reason.memory.mean_reward)} on average.` : ""}
-                        {t.side !== "skipped" ? ` Worth ${eth(t.value_after)} ETH after.` : ""}
+                        {t.side !== "skipped" ? ` Worth ${cash(t.value_after)} after.` : ""}
                       </p>
                       {dop !== 0 && <span className={`chip ${dop > 0 ? "up" : "down"}`}>dopamine {dop > 0 ? "+" : ""}{dop.toFixed(2)}</span>}
                     </li>

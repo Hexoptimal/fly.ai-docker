@@ -40,7 +40,8 @@ function minerFor(origin: string): Miner {
       void toBackground({ type: "token", token: t });
     },
     label: () => label,
-    status: (text) => { state.status = text; report(); },
+    // the shared miner says "mining"; the extension describes what it does: running research jobs
+    status: (text) => { state.status = text === "mining" ? "running" : text; report(); },
     lanes: (names) => { state.lanes = names.map((name) => ({ name, text: "starting", progress: 0 })); report(); },
     lane: (i, text, progress) => {
       const lane = state.lanes[i];
@@ -57,7 +58,7 @@ function minerFor(origin: string): Miner {
 async function start(settings: Settings, tok: string | null): Promise<void> {
   token = tok;
   label = settings.label;
-  const key = JSON.stringify([settings.engine, settings.batch, settings.threads, settings.server]);
+  const key = JSON.stringify([settings.engine, settings.batch, settings.threads, settings.server, settings.programs]);
   if (miner?.running && key === runningKey) return;
   runningKey = key;
   miner?.stop("");
@@ -74,8 +75,10 @@ async function start(settings: Settings, tok: string | null): Promise<void> {
   state.engine = engine;
   state.session = null;
   report();
-  // buyers' programs need WebAssembly, which the extension's default content policy doesn't allow yet
-  await miner.start({ engine, batch: settings.batch, threads: settings.threads, programs: false });
+  // "programs" here are our own world runs and brain probes, which ship inside the extension. Buyers' WebAssembly
+  // and shaders, and embeddings (model code from a CDN), are downloaded code, which the store doesn't allow in an
+  // extension: those stay on the website
+  await miner.start({ engine, batch: settings.batch, threads: settings.threads, programs: settings.programs !== false, embed: false, buyerPrograms: false });
 }
 
 chrome.runtime.onMessage.addListener((msg) => {

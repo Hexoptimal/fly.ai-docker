@@ -51,6 +51,7 @@
       <a href="/compute/stake">Stake</a>
       <a href="/compute/claim">Claims</a>
       <a href="/compute/leaderboard">Leaderboard</a>
+      <a href="/compute/results">Results</a>
     </div>
   </div>
 </section>
@@ -108,6 +109,21 @@
       </div>
       <label class="chip"><input id="keep-open" type="checkbox"> Keep the order open to add jobs from code later</label>
       <p class="caption">Programs run in miners' browsers, sandboxed: no network, no files, a memory cap and your time limit. Anyone who takes a job can see the program and its input, so don't send secrets. Outputs are kept for 14 days.</p>
+    </div>
+
+    <div class="card pad" id="embed-card" hidden>
+      <span class="num">1 · YOUR TEXTS</span>
+      <h3>Upload them</h3>
+      <div class="controls">
+        <label class="grow">Texts: .txt (one per line), .json (an array) or .jsonl <input id="embed-file" type="file" accept=".txt,.json,.jsonl,.csv,.md"></label>
+      </div>
+      <p id="embed-status" class="codeline">No texts yet.</p>
+      <div class="controls">
+        <label class="grow">Model <select id="embed-model"></select></label>
+        <label>Texts per batch <select id="embed-batch"><option>64</option><option selected>128</option><option>256</option></select></label>
+        <label>Miners who must agree <select id="embed-redundancy"><option value="1">1 (trust the first)</option><option value="2" selected>2</option><option value="3">3</option></select></label>
+      </div>
+      <p class="caption">Each batch is one job. Its result is the batch's vectors, one per text, in order, as float32 numbers (384 per text; in Python: <code>numpy.frombuffer(data, "&lt;f4").reshape(-1, 384)</code>). Vectors from two miners agree when they are at least 0.9999 cosine-similar. Anyone who takes a job can read its texts, so don't send secrets.</p>
     </div>
 
     <div class="grid2">

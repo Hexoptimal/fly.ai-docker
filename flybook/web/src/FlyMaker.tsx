@@ -14,8 +14,9 @@ const fromProfile = (s: Partial<FlySettings> = {}): FlySettings => ({
  * optionally fine-tune every setting the worker can apply (the list comes from the API's /config).
  * Rendered into <body> so the sticky header and sidebar can't cover it.
  */
-export default function FlyMaker({ patches, canHatch, onClose, onCreated }: {
+export default function FlyMaker({ patches, canHatch, onClose, onCreated, claim }: {
   patches: Patch[]; canHatch: boolean; onClose: () => void; onCreated: () => void;
+  claim?: string;   // a merch thank-you code: this fly is the buyer's free gift, outside the cap
 }) {
   const [config, setConfig] = useState<Config | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +73,7 @@ export default function FlyMaker({ patches, canHatch, onClose, onCreated }: {
     setBusy(true);
     setError(null);
     try {
-      await createFly({ name: name.trim(), color, patch_id: patch, ...clean(tune), style: styleBody(trade) });
+      await createFly({ name: name.trim(), color, patch_id: patch, ...clean(tune), style: styleBody(trade), ...(claim ? { claim } : {}) });
       onCreated();
       onClose();
     } catch (err) {

@@ -110,6 +110,11 @@ try {
   check("house outputs are kept for good; nothing is charged or paid out", kept >= 4 && earned === 0 && charged === 0, JSON.stringify({ kept, earned, charged }));
   const house = (await api("/api/house")).json.orders;
   check("/api/house lists our work", house.length === 3 && house.some((o: any) => o.label === "encoding/words" && o.settled === 2));
+  const exp = (await api("/api/experiments")).json?.experiments ?? [];
+  const ew = exp.find((e: any) => e.label === "world/test");
+  const ep = exp.find((e: any) => e.label === "encoding/words");
+  check("/api/experiments summarizes each house order from its results", ew?.family === "world" && ew.runs_read === 2 && ew.settled === 2 && /colonies/.test(ew.headline)
+    && ep?.family === "encoding" && ep.runs_read === 2 && ep.table?.[1]?.[0] === "threat" && exp.some((e: any) => e.label === "tuning/threat"), JSON.stringify(exp.map((e: any) => [e.label, e.headline])));
   check("house orders can be stopped", (await api(`/api/admin/house/${sweep.id}/stop`, {}, ADMIN)).json?.status === "ended");
 
   execFileSync(process.execPath, ["--disable-warning=ExperimentalWarning", fileURLToPath(new URL("../scripts/pull-house.ts", import.meta.url)), "--server", BASE, "--out", OUT], { stdio: "ignore" });

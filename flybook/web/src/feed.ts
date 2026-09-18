@@ -13,6 +13,7 @@ export type Fly = Partial<FlySettings> & {
   elo?: number; duels?: number; wins?: number; losses?: number; draws?: number;
   parents?: string[]; generation?: number;
   auto_born?: boolean;   // born from automatic mating; doesn't count toward the owner's cap
+  gift?: boolean;        // hatched from a merch thank-you code; doesn't count toward the owner's cap
 };
 
 /** What differs from a standard fly, e.g. ["eyes 1.5x", "escape off"]. */
@@ -104,7 +105,7 @@ export async function myMemeLikes(userId: string): Promise<Set<number>> {
   return new Set((data ?? []).map((r) => r.meme_id as number));
 }
 
-const FLY_COLUMNS = "id,name,color,patch_id,owner,active,created_at,senses,temperament,dials,x,y,heading,elo,duels,wins,losses,draws,parents,generation,auto_born";
+const FLY_COLUMNS = "id,name,color,patch_id,owner,active,created_at,senses,temperament,dials,x,y,heading,elo,duels,wins,losses,draws,parents,generation,auto_born,gift";
 // every post column except the trace (fetched when someone presses play); voice_ms only says whether there is one
 const POST_COLUMNS = "id,tick_id,fly_id,patch_id,word,confidence,truth,correct,wing_hz,neurons,created_at,kind,actions,poke_id,cause,"
   + "voice_ms:trace->step_ms,likes(count),comments(count),captions(body)";
@@ -147,8 +148,11 @@ export async function load(limit = 200): Promise<Snapshot> {
   };
 }
 
-/** The simulated fly market (worker/market.py): fake coins, fake ETH. */
-export type Coin = { symbol: string; name: string; kind: "real" | "meme" | "fly"; price: number; regime: string };
+/** The fly market (worker/market.py): real Robinhood Chain token prices, paper USDG (the eth columns hold dollars). */
+export type Coin = {
+  symbol: string; name: string; kind: "real" | "meme" | "fly"; price: number; regime: string;
+  category?: "major" | "meme" | "stock" | null; address?: string | null;   // real Robinhood Chain tokens (prices.py)
+};
 /** A coin a fly launched itself (worker/launches.py): a small pool its creator seeded, moved by every buy and sell. */
 export type FlyCoin = {
   symbol: string; name: string; tagline: string | null; persona: string | null; image_path: string | null;
@@ -176,6 +180,20 @@ export async function loadMerch(limit = 60): Promise<MerchItem[]> {
   const { data: products } = await db.from("merch_products").select("design_id,kind,url,image_url,price")
     .in("design_id", rows.map((r) => r.id));
   return rows.map((r) => ({ ...r, products: (products ?? []).filter((p) => p.design_id === r.id) }));
+}
+
+/** Items sold per live design this month, and Fly of the month winners (newest first). */
+export type MerchMonthRow = { id: number; fly_id: string; preview_path: string; sold: number };
+export type MerchAward = { month: string; design_id: number; fly_id: string; sold: number; points: number };
+export async function loadMerchMonth(): Promise<MerchMonthRow[]> {
+  if (!db) return [];
+  const { data } = await db.from("merch_month").select("*").order("sold", { ascending: false }).limit(20);
+  return (data ?? []) as MerchMonthRow[];
+}
+export async function loadMerchAwards(): Promise<MerchAward[]> {
+  if (!db) return [];
+  const { data } = await db.from("merch_awards").select("month,design_id,fly_id,sold,points").order("month", { ascending: false }).limit(24);
+  return (data ?? []) as MerchAward[];
 }
 
 export const coinImage = (path: string | null) => (url && path ? `${url}/storage/v1/object/public/coins/${path}` : "");
@@ -229,7 +247,7 @@ export async function loadMarket(rounds = 48): Promise<{
   const idle: MarketControl = { paused: false, note: null, updated_at: null };
   if (!db) return { coins: [], rounds: [], traders: [], trades: [], control: idle, flyCoins: [], social: [] };
   const [coins, rs, traders, trades, control, flyCoins, social] = await Promise.all([
-    db.from("market_coins").select("symbol,name,kind,price,regime").neq("kind", "fly").order("kind").order("symbol"),
+    db.from("market_coins").select("symbol,name,kind,price,regime,category,address").neq("kind", "fly").order("category").order("symbol"),
     db.from("market_rounds").select("id,started_at,prices,events,traders,trades").order("id", { ascending: false }).limit(rounds),
     db.from("trader_board").select("*").order("value_eth", { ascending: false }).limit(100),
     db.from("fly_trades").select("*").order("id", { ascending: false }).limit(60),
@@ -251,8 +269,8 @@ export type Portfolio = {
 };
 export type Wallet = { portfolio: Portfolio | null; prices: Record<string, number>; trades: FlyTrade[]; complete: boolean };
 const WALLET_TRADES = 60;
-/** One fly's fake-ETH wallet (fly_portfolios), the latest prices and its own latest trades, newest first.
- * complete: every trade it ever made is in the list (so a value history can start from its first ETH). */
+/** One fly's paper wallet (fly_portfolios), the latest prices and its own latest trades, newest first.
+ * complete: every trade it ever made is in the list (so a value history can start from its first dollar). */
 export async function loadWallet(flyId: string): Promise<Wallet> {
   if (!db) return { portfolio: null, prices: {}, trades: [], complete: true };
   const [p, coins, trades] = await Promise.all([

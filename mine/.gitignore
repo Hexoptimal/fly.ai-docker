@@ -5,3 +5,4 @@ extension/dist/
 
 # the mining wallets: seed phrases, never committed
 .wallets/
+extension/*.zip

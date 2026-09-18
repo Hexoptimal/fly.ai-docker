@@ -37,8 +37,12 @@ orders: brain tuning, world simulations and encoding data.
 - **Mining for the project: LIVE** since 18 September. The bridges run on their own Fly app (`flyai-bridge`) and
   feed two house orders: yespower on the CPU (~$0.02 per machine-day) and Kaspa on the GPU (a rounding error, but
   it proves the path). No pool has accepted a share yet; see *Mining for the project*.
-- **Extension:** built, not yet on the Chrome Web Store. It takes brain jobs only (no programs, world or probe
-  jobs yet).
+- **Extension:** version 0.2.0 built, not yet on the Chrome Web Store. It takes brain jobs, plus our own world
+  runs and probes when "Also run world sims and probes" is on. Buyers' programs and embeddings run on the website
+  only (see *Browser extension*).
+- **Embeddings (`kind: "embed"`):** built and tested end to end (18 September): text in, one vector per text out,
+  run on miners' GPUs with transformers.js. See *Embeddings*.
+- **Results page:** `/compute/results` shows what each research order found (`GET /api/experiments`).
 
 People mine from either place, and both earn points for the linked wallet:
 - **The website's Mine page:** runs while the tab is open.
@@ -246,9 +250,9 @@ limits and ideas is `web/compute-api.md`, downloadable at `/compute/compute-api.
   - `web/open.worker.ts`: one fresh worker per job.
   - `src/server.ts`: the "buyers' programs" section.
 - **Miners:** lanes claim `kinds` (the website's CPU lanes `wasm`, the GPU lane `wgsl` and `wasm`) with
-  `open_max` programs per claim. Clients that don't send `kinds` (the deployed extension) get only brain
-  jobs. The Mine page has a switch, on by default. The extension passes `programs: false`, because
-  WebAssembly needs `wasm-unsafe-eval` in its content policy.
+  `open_max` programs per claim. Clients that don't send `kinds` (old extensions) get only brain jobs. The
+  Mine page has a switch, on by default. The extension never takes buyers' programs (`buyerPrograms: false`):
+  the Chrome Web Store forbids running downloaded code, WebAssembly included.
 - **Checking:** there's no server re-run and nobody is struck.
   - **Settles:** when `redundancy` wallets return the same output (for shaders, within an optional f32
     tolerance).
@@ -275,6 +279,36 @@ limits and ideas is `web/compute-api.md`, downloadable at `/compute/compute-api.
   - **Tested in Chrome on the RTX 4060:** WASM, WGSL, a tampered download and a broken shader.
 - **Also new:** a struck miner's pending paid brain jobs are re-run by the server at once. `SEED_PAID=0` stops
   idle verifiers working paid brain jobs (the order test uses it).
+
+## Embeddings
+
+`kind: "embed"`: a buyer uploads batches of texts (each input is a JSON array of 1 to 256 strings) and gets
+back one float32 vector per text. The models are listed in `EMBED_MODELS` (`src/orders.ts`): `minilm-l6` and
+`bge-small-en`, 384 numbers each, pinned to one Hugging Face revision and run in fp32. The buyer guide has an
+*Embeddings* section, the Buy compute page has an *Embeddings* mode (upload a .txt/.json/.jsonl file), and the
+`flyai-compute` skill takes `--embed file`.
+
+- **Miners:** `web/embed.worker.ts` loads transformers.js 4.3.0 from jsDelivr and keeps the model loaded
+  between jobs. It runs on WebGPU where there is a GPU and on the WASM CPU backend where there isn't. The GPU
+  miner's program lane takes embed jobs, and so does a CPU miner's first thread (one model in memory). A model
+  that won't load, or a job that overruns, gives the job back; an embed job has no error answer.
+- **Checking:** two answers agree when every text's vectors are at least `compare.cosine` similar (default
+  0.9999, `cosineAgree`). Measured on the RTX 4060, the lowest cosine between WebGPU and WASM vectors was
+  0.9999995 (MiniLM and bge), so any honest hardware passes and made-up vectors don't. Inputs are validated
+  when ordered, and the server checks each answer is exactly texts × 384 floats.
+- **Speed:** 64 texts in 0.07–0.12 s on the 4060 (1.6–3.4 s on one CPU thread) once the model is cached; the
+  first job downloads 90–133 MB.
+- **Tested:** `npm run test:programs` (11 embed checks), and end to end in headless Chrome: a WebGPU miner and a
+  CPU-only miner settled three batches (1, 4 and 64 texts) by agreement.
+
+## Research results
+
+`GET /api/experiments` summarizes every house order except `mining/*` (`src/experiments.ts`): the
+motor group each sense drives most (tuning), colony survival (world), learning on vs off over the same seeds,
+which conditions move the descending neurons and wings (encoding), and the demos (π, TSP, Mandelbrot). It's
+recomputed in the background every 30 minutes from the settled results, reading a sample of the big orders
+(400 world runs, 300 probes). `/compute/results` shows it, with each order's CSV. The verifier tells the
+server the probe record-set sizes, since the main thread has no connectome.
 
 ## House orders: our own work
 
@@ -505,6 +539,11 @@ How it runs:
   and reports its state to the popup through `chrome.storage.session`.
 - **Bundled code:** Chrome extensions can't load code from a server, so `extension/build.ts` bundles the
   engine (type-stripped, `.ts` imports rewritten to `.js`) and draws the icons.
+- **What it runs (0.2.0):** brain jobs, and with "Also run world sims and probes" on (the default) our own world
+  runs and brain probes, whose code ships inside the extension. It never takes buyers' WebAssembly or shaders
+  (the store counts downloaded WebAssembly as remote code) or embeddings (their model code comes from a CDN). The
+  build writes a stub `embed.worker.js`, so the package has no remote code at all, and the manifest keeps
+  Chrome's default content policy.
 
 Tested in headless Chrome 152 on the RTX 4060, loaded through the DevTools pipe (`Extensions.loadUnpacked`):
 
@@ -513,6 +552,9 @@ Tested in headless Chrome 152 on the RTX 4060, loaded through the DevTools pipe 
 - **On:** switching on mined on the GPU, 64 jobs at about 230 jobs/min, and the server received all of them.
 - **CPU:** switching to CPU mid-run kept mining.
 - **Off again:** switching off closed the offscreen document, and the server got no further jobs.
+
+0.2.0, tested the same way on 18 September against a local server: on CPU with world sims on, it took and
+settled all 3 jobs of a world order within 10 seconds while mining brain jobs, with no errors.
 
 Loading from inside the OneDrive folder failed over DevTools ("File path cannot be resolved"). A copy
 outside OneDrive loaded fine. The normal Load unpacked button wasn't tried.

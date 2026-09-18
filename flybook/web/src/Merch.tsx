@@ -4,10 +4,13 @@ import { useConnection } from "wagmi";
 import { switchChain, waitForTransactionReceipt, writeContract } from "wagmi/actions";
 import type { Viewer } from "./Account";
 import {
-  deleteDesign, drawDesign, getConfig, getMerchQuota, getMyMerch, payDesign,
-  type MerchDesign, type MerchProduct, type MerchQuota, type MyMerch,
+  deleteDesign, drawDesign, getClaim, getConfig, getMerchQuota, getMyMerch, payDesign,
+  type Claim, type MerchDesign, type MerchProduct, type MerchQuota, type MyMerch,
 } from "./api";
-import { loadMerch, merchImage, type Fly, type MerchItem } from "./feed";
+import {
+  loadFlies, loadMerch, loadMerchAwards, loadMerchMonth, merchImage,
+  type Fly, type MerchAward, type MerchItem, type MerchMonthRow,
+} from "./feed";
 import { FLYAI, erc20, robinhood, wagmiConfig } from "./wallet";
 
 const SHOP = "https://shop.flyaiworld.com";
@@ -362,11 +365,159 @@ function Studio({ mine, onLive }: { mine: Fly[]; onLive: () => void }) {
   );
 }
 
+// ---- free-fly codes from merch thank-you cards ----
+
+const CLAIM_KEY = "flybook-claim";
+const CLAIM_EVENT = "flybook-claim";
+/** Keep (or forget) a buyer's free-fly code in this browser: the email sign-in reloads the page. */
+export function setStoredClaim(code: string | null) {
+  keep(CLAIM_KEY, code);
+  window.dispatchEvent(new Event(CLAIM_EVENT));
+}
+/** The stored free-fly code, updated when it changes. */
+export function useStoredClaim(): string | null {
+  const [code, setCode] = useState(() => remember<string>(CLAIM_KEY));
+  useEffect(() => {
+    const update = () => setCode(remember<string>(CLAIM_KEY));
+    window.addEventListener(CLAIM_EVENT, update);
+    return () => window.removeEventListener(CLAIM_EVENT, update);
+  }, []);
+  return code;
+}
+
+/** Hello to a merch buyer who scanned their card: the fly on their merch, and their free fly. */
+export function ClaimWelcome({ code, onClose }: { code: string; onClose: () => void }) {
+  const [claim, setClaim] = useState<Claim | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    getClaim(code).then(setClaim).catch((e) => setError(message(e)));
+  }, [code]);
+  const start = () => {
+    onClose();
+    document.getElementById("account")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const forget = () => {
+    setStoredClaim(null);
+    onClose();
+  };
+  return createPortal(
+    <div className="modal-bg" onMouseDown={onClose}>
+      <div className="modal merch-launched" role="dialog" aria-modal="true" aria-labelledby="claim-title" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="modal-scroll">
+          {!claim && !error && <p className="fine">Checking your code…</p>}
+          {error && (
+            <>
+              <h3 id="claim-title">Hmm, that code didn't work</h3>
+              <p className="err">{error}</p>
+              <div className="row merch-actions"><button className="btn" onClick={forget}>Close</button></div>
+            </>
+          )}
+          {claim && claim.used && (
+            <>
+              <h3 id="claim-title">This code has been used</h3>
+              <p className="fine">Its free fly has already hatched. You can still sign in and make a fly for free.</p>
+              <div className="row merch-actions"><button className="btn red" onClick={() => { setStoredClaim(null); start(); }}>Make a fly</button></div>
+            </>
+          )}
+          {claim && !claim.used && (
+            <>
+              <p className="merch-kicker">🎁 Thanks for your order</p>
+              <h3 id="claim-title">Meet {claim.fly?.name ?? "the fly on your merch"}</h3>
+              {claim.preview_url && <img className="merch-hero" src={claim.preview_url} alt="" />}
+              <p className="modal-lede merch-claim-lede">
+                It's a real fruit fly brain, simulated: 166,000 neurons that sense, post, duel and trade here on Flybook.
+                Your card comes with <b>your own fly, free</b>. Sign in with your email and hatch it.
+              </p>
+              <div className="row merch-actions">
+                <button className="btn red" onClick={start}>Hatch my free fly</button>
+                {claim.fly_id && <a className="btn" href={`#feed`} onClick={onClose}>Look around first</a>}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+/** Enter a code from a merch card by hand. */
+function CodeBox({ onCode }: { onCode: (code: string) => void }) {
+  const [code, setCode] = useState("");
+  const clean = code.replace(/[\s-]/g, "").toUpperCase();
+  return (
+    <form className="merch-code" onSubmit={(e) => { e.preventDefault(); if (clean.length === 8) onCode(clean); }}>
+      <span className="fine">Got a code on a merch card?</span>
+      <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. YV45RK4X" maxLength={12} aria-label="Merch card code" />
+      <button className="btn sm" disabled={clean.length !== 8}>Claim free fly</button>
+    </form>
+  );
+}
+
+// ---- Fly of the month ----
+
+const monthName = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
+
+/** Top merch this month (items sold, live designs), with last month's Fly of the month on top. */
+export function MerchBoard({ onFly, compact = false }: { onFly: (id: string) => void; compact?: boolean }) {
+  const [rows, setRows] = useState<MerchMonthRow[] | null>(null);
+  const [awards, setAwards] = useState<MerchAward[]>([]);
+  const [flies, setFlies] = useState<Map<string, Fly>>(new Map());
+  useEffect(() => {
+    loadMerchMonth().then(setRows);
+    loadMerchAwards().then(setAwards);
+    loadFlies().then((fs) => setFlies(new Map(fs.map((f) => [f.id, f]))));
+  }, []);
+  const champ = awards[0];
+  const name = (id: string) => flies.get(id)?.name ?? "a fly";
+  const now = new Date();
+  const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  const daysLeft = Math.max(1, Math.ceil((monthEnd.getTime() - now.getTime()) / 86_400_000));
+  return (
+    <div className="merch-board">
+      {champ && (
+        <button className="merch-champ" onClick={() => onFly(champ.fly_id)}>
+          <span className="merch-champ-cup" aria-hidden>🏆</span>
+          <span>
+            <span className="fine">Fly of the month · {monthName(champ.month)}</span>
+            <b>{name(champ.fly_id)}</b>
+            <span className="fine">{champ.sold} sold · +{champ.points} season points for its owner</span>
+          </span>
+        </button>
+      )}
+      {!compact && (
+        <p className="board-note">
+          Items of each fly's merch sold this month. On the 1st, the top fly becomes Fly of the month: first in the shop, a 🏆 on
+          its profile, and season points for its owner. {daysLeft} {daysLeft === 1 ? "day" : "days"} left this month.
+        </p>
+      )}
+      {rows === null && <div className="empty">Counting sales…</div>}
+      {rows !== null && rows.length === 0 && <div className={compact ? "fine" : "empty"}>No sales yet this month. The first shirt sold takes the lead.</div>}
+      {rows && rows.length > 0 && (
+        <ol className="meme-board">
+          {rows.slice(0, compact ? 3 : 20).map((r, i) => (
+            <li key={r.id}>
+              <span className={`rank${i < 3 ? ` top${i + 1}` : ""}`}>{i + 1}</span>
+              <img src={merchImage(r.preview_path)} alt="" loading="lazy" className="merch-board-img" />
+              <button className="who" onClick={() => onFly(r.fly_id)}>
+                <span className="dot" style={{ background: flies.get(r.fly_id)?.color ?? "#888" }} />
+                {name(r.fly_id)}
+              </button>
+              <span className="stat">{r.sold} sold</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
+
 /** Merch tab: every fly's merch on sale, and (signed in) the studio to make your own. */
 export default function Merch({ flies, viewer, onFly }: { flies: Fly[]; viewer: Viewer; onFly: (id: string) => void }) {
   const [items, setItems] = useState<MerchItem[] | null>(null);
   const [share, setShare] = useState<number | null>(null);
   const [tick, setTick] = useState(0);
+  const [welcome, setWelcome] = useState<string | null>(null);
   useEffect(() => {
     loadMerch().then(setItems);
   }, [tick]);
@@ -385,8 +536,11 @@ export default function Merch({ flies, viewer, onFly }: { flies: Fly[]; viewer: 
           <a href={COLLECTION} target="_blank" rel="noreferrer">Open the shop →</a>
         </p>
       </div>
+      <MerchBoard onFly={onFly} compact />
       {viewer?.ready && <Studio mine={mine} onLive={() => setTick((n) => n + 1)} />}
       {!viewer && <p className="fine merch-signin">Sign in and hold $FLYAI to put your own fly on a shirt.</p>}
+      <CodeBox onCode={(code) => { setStoredClaim(code); setWelcome(code); }} />
+      {welcome && <ClaimWelcome code={welcome} onClose={() => setWelcome(null)} />}
       <h3 className="merch-sub">On sale now</h3>
       {items === null && <div className="empty">Unpacking the merch…</div>}
       {items !== null && items.length === 0 && <div className="empty">No fly merch yet. Be the first fly on a shirt.</div>}

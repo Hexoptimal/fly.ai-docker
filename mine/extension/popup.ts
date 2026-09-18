@@ -21,6 +21,7 @@ function showControls(): void {
   $<HTMLSelectElement>("engine").value = settings.engine;
   $<HTMLSelectElement>("batch").value = String(settings.batch);
   $<HTMLSelectElement>("threads").value = String(settings.threads);
+  $<HTMLInputElement>("programs").checked = settings.programs !== false;
   const gpu = settings.engine === "gpu";
   $("batch-field").hidden = !gpu;
   $("threads-field").hidden = gpu;
@@ -157,6 +158,7 @@ async function boot(): Promise<void> {
   $<HTMLSelectElement>("engine").addEventListener("change", (e) => void change({ engine: (e.target as HTMLSelectElement).value as "gpu" | "cpu" }));
   $<HTMLSelectElement>("batch").addEventListener("change", (e) => void change({ batch: Number((e.target as HTMLSelectElement).value) }));
   $<HTMLSelectElement>("threads").addEventListener("change", (e) => void change({ threads: Number((e.target as HTMLSelectElement).value) }));
+  $<HTMLInputElement>("programs").addEventListener("change", (e) => void change({ programs: (e.target as HTMLInputElement).checked }));
   $("connect-wallet").addEventListener("click", () => void connectWallet());
   $("save").addEventListener("click", async () => {
     const label = $<HTMLInputElement>("label").value.trim();

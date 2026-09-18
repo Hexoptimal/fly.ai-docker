@@ -49,6 +49,7 @@ MUTATION, STYLE_SWITCH = 0.2, 0.1
 # needs k agreeing memories to skip a trade and still trades anyway EXPLORE of the time.
 HORIZON = 3
 FEE_LOG = math.log(1 / (1 - 0.003))
+FEE_LOG_BY: dict[str, float] = {}      # symbols with a different fee (market.py: stablecoins)
 BIAS_RECOVER = 0.02
 EXPLORE = 0.2
 
@@ -158,7 +159,7 @@ def open_trade(mind: dict, symbol: str, price: float, action: str, drive: dict, 
 def trade_reward(trade: dict, price_now: float) -> float:
     """A buy is good if its coin went up since; a sell (of any kind) is good if its coin went down. Minus the fee."""
     move = math.log(max(price_now, 1e-18) / max(trade["price"], 1e-18))
-    return (move if trade["action"] == "buy" else -move) - FEE_LOG
+    return (move if trade["action"] == "buy" else -move) - FEE_LOG_BY.get(trade.get("symbol"), FEE_LOG)
 
 
 def learn(mind: dict, prices: dict[str, float], coin_flux: dict[str, float], learning: dict[str, bool]) -> float:

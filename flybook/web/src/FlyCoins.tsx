@@ -1,5 +1,5 @@
 import { coinImage, type FlyCoin, type MarketSocial, type Trader } from "./feed";
-import { ago, eth, pct } from "./FlyWallet";
+import { ago, cash, pct } from "./FlyWallet";
 
 const PERSONA: Record<string, string> = { degen: "degen", jumpy: "jumpy", chill: "chill", watcher: "watcher", normie: "normie" };
 const ONE: Record<string, string> = { enemies: "enemy", frenemies: "frenemy", rivals: "rival" };
@@ -41,11 +41,11 @@ export function FlyCoins({ coins, onFly }: { coins: FlyCoin[]; onFly: (id: strin
                 <span className="fine">by <Who id={c.creator} name={c.creator_name} color={c.creator_color} onFly={onFly} />
                   {c.launched_at ? ` · ${ago(c.launched_at)}` : ""}</span>
                 <div className="fly-coin-stats mono">
-                  <span title="price in fake ETH">{eth(c.price)} ETH</span>
+                  <span title="price">{cash(c.price)}</span>
                   {c.since_launch !== null && <span className={c.since_launch >= 0 ? "up" : "down"} title="since launch">{pct(c.since_launch)}</span>}
-                  <span title="market cap in fake ETH">mcap {eth(c.market_cap ?? 0)}</span>
+                  <span title="market cap">mcap {cash(c.market_cap ?? 0)}</span>
                   <span title="flies holding it">{c.holders} {c.holders === 1 ? "holder" : "holders"}</span>
-                  <span title="ETH in its pool">pool {eth(c.pool_eth ?? 0)}</span>
+                  <span title="cash in its pool">pool {cash(c.pool_eth ?? 0)}</span>
                 </div>
               </div>
             </li>
@@ -89,7 +89,7 @@ export function Drama({ social, traders, coins, onFly }: {
               {creator && e.detail.bond && ONE[e.detail.bond] ? <>, made by its {ONE[e.detail.bond]} {who(creator)}</> : null}</>;
           } else if (e.kind === "buyback") {
             icon = "🛟";
-            line = <>{who(e.fly_id)} bought back {sym}{e.detail.eth ? ` for ${eth(e.detail.eth)} ETH` : ""}</>;
+            line = <>{who(e.fly_id)} bought back {sym}{e.detail.eth ? ` for ${cash(e.detail.eth)}` : ""}</>;
           } else {
             icon = "🪦";
             line = <>{who(e.fly_id)} dumped {sym} on its holders</>;

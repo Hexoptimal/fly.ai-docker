@@ -9,6 +9,7 @@ import { BASE, db, tuning, type Fly, type Patch } from "./feed";
 import BreedDialog from "./BreedDialog";
 import Captcha, { CAPTCHA_KEY } from "./Captcha";
 import FlyMaker from "./FlyMaker";
+import { setStoredClaim, useStoredClaim } from "./Merch";
 import { BUY_URL, FLYAI, erc20, robinhood } from "./wallet";
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
@@ -56,7 +57,8 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
   const [me, setMe] = useState<Me | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [making, setMaking] = useState<null | "hatch" | "preview">(null);
+  const [making, setMaking] = useState<null | "hatch" | "preview" | "gift">(null);
+  const gift = useStoredClaim();   // a free-fly code from a merch thank-you card, kept across sign-in
   const [breeding, setBreeding] = useState(false);
   const [email, setEmail] = useState("");
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -184,6 +186,7 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
     });
 
   const created = async () => {
+    if (making === "gift") setStoredClaim(null);
     setMe(await getMe());
     onCreated();
   };
@@ -203,7 +206,7 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
   const known = balance.data ?? serverBalance ?? (me?.wallet && !wrongWallet ? BigInt(me.balance) : undefined);
   const tokens = Number(formatUnits(known ?? 0n, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 });
   const unreadable = known === undefined && balance.isError && serverFailed;
-  const made = me ? me.flies.filter((f) => !f.auto_born).length : 0; // born flies don't count toward the cap
+  const made = me ? me.flies.filter((f) => !f.auto_born && !f.gift).length : 0; // born and gift flies don't count toward the cap
   const signedIn = !!(session && me && !wrongWallet);
   const needsName = signedIn && !me!.wallet && !me!.handle;
 
@@ -241,7 +244,7 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
                       <div>
                         {f.name}
                         <span className="tune">
-                          {f.auto_born ? "born from mating · " : ""}gen {f.generation ?? 1} · Elo {f.elo ?? 1000} · {tuning(f).join(", ") || "standard"}
+                          {f.auto_born ? "born from mating · " : f.gift ? "merch gift · " : ""}gen {f.generation ?? 1} · Elo {f.elo ?? 1000} · {tuning(f).join(", ") || "standard"}
                         </span>
                       </div>
                       <span className={`state${f.active ? "" : " dormant"}`}>
@@ -261,6 +264,15 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
               )}
               {me.flies.some((f) => f.auto_born) && (
                 <p className="fine">Flies born from mating with other people's flies don't count toward your limit.</p>
+              )}
+              {gift && (
+                <div className="gift-box">
+                  <p>🎁 Your merch card came with a free fly. It doesn't count toward your limit.</p>
+                  <div className="row">
+                    <button className="btn red" onClick={() => setMaking("gift")}>Hatch your free fly</button>
+                    <button className="more" onClick={() => setStoredClaim(null)}>not now</button>
+                  </div>
+                </div>
               )}
               {made >= me.max_flies && (
                 <p className="fine">You've made {me.max_flies} {me.max_flies === 1 ? "fly" : "flies"}, your limit.</p>
@@ -285,6 +297,7 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
 
       {!session && (
         <>
+          {gift && <p className="gift-box">🎁 You have a free fly from your merch card. Sign in below (email works) to hatch it.</p>}
           <p>Sign in free to make a fly, tune its senses and neurons, like, comment and poke. $FLYAI holders make up to 3
             flies, and every 2 weeks the top 3 holders on the season board win $FLYAI.</p>
 
@@ -338,7 +351,8 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
         <BreedDialog mine={me.flies as Fly[]} house={house} patches={patches} onClose={() => setBreeding(false)} onCreated={created} />
       )}
       {making && (
-        <FlyMaker patches={patches} canHatch={making === "hatch"} onClose={() => setMaking(null)} onCreated={created} />
+        <FlyMaker patches={patches} canHatch={making === "hatch" || making === "gift"} onClose={() => setMaking(null)} onCreated={created}
+                  claim={making === "gift" ? gift ?? undefined : undefined} />
       )}
     </section>
   );

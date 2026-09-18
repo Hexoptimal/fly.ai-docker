@@ -31,6 +31,8 @@
     POST   /merch/designs/<id>/pay {tx_hash}: the $FLYAI fee was sent; checked on chain, then the products get made
     DELETE /merch/designs/<id> an unpaid draft
     GET    /merch/mine         your designs, their products, items sold, earnings and payouts
+    GET    /merch/claims/<code> a shop buyer's free-fly code: the fly on their merch, and whether it's still unused (public)
+                               (POST /flies with {claim: code} hatches the free fly, outside the cap)
 
 Accounts (2026-09-14): a session from Supabase's Web3 login (Sign in with Ethereum, so the wallet is proven by a
 signature) or from an email magic link (a confirmed email). Holders ($FLYAI at or above the minimum, checked on
@@ -191,7 +193,7 @@ def me(user: dict, wallet: str | None) -> dict:
     holder = bool(wallet) and chain.is_holder(balance)
     rest("POST", "profiles?on_conflict=id", "resolution=merge-duplicates",
          json={"id": user["id"], **({"wallet": wallet} if wallet else {})})
-    flies = rest("GET", f"flies?select=id,name,color,patch_id,active,created_at,senses,temperament,dials,elo,wins,losses,draws,generation,parents,auto_born"
+    flies = rest("GET", f"flies?select=id,name,color,patch_id,active,created_at,senses,temperament,dials,elo,wins,losses,draws,generation,parents,auto_born,gift"
                          f"&owner=eq.{user['id']}&order=created_at")
     return {"wallet": wallet, "email": None if wallet else email_of(user), "handle": handle_of(user),
             "balance": str(balance), "tokens": chain.tokens(balance), "holder": holder,
@@ -217,8 +219,9 @@ def cap_message(info: dict) -> str:
 
 
 def made_count(info: dict) -> int:
-    """Flies that count toward the cap: ones you made or bred, not ones born from automatic mating."""
-    return sum(1 for f in info["flies"] if not f.get("auto_born"))
+    """Flies that count toward the cap: ones you made or bred, not ones born from automatic mating or hatched
+    from a merch gift code."""
+    return sum(1 for f in info["flies"] if not f.get("auto_born") and not f.get("gift"))
 
 
 def create_fly(user: dict, wallet: str | None, body: dict, ip: str) -> dict:
@@ -239,18 +242,58 @@ def create_fly(user: dict, wallet: str | None, body: dict, ip: str) -> dict:
         raise ApiError(400, str(e))
     info = me(user, wallet)
     player(user, wallet)
-    if made_count(info) >= info["max_flies"]:
-        raise ApiError(403, cap_message(info))
-    if not info["holder"]:
-        limit(f"free-fly-ip:{ip}", FREE_FLIES_PER_IP_DAY, 86400, "too many new free flies from this network today")
-    row = rest("POST", "flies", "return=representation", json={
-        "owner": user["id"], "name": name, "color": color, "patch_id": patch, "seed": random.randrange(2**31),
-        "x": round(random.uniform(0.3, 0.7), 3), "y": round(random.uniform(0.3, 0.7), 3),
-        "heading": round(random.uniform(0, 6.283), 2),
-        **tuned})[0]
+    code = claim_code(body.get("claim"))
+    if code:   # a merch buyer's free fly: outside the cap. Take the code first so two tabs can't both use it.
+        taken = rest("PATCH", f"merch_claims?code=eq.{code}&claimed_by=is.null", "return=representation",
+                     json={"claimed_by": user["id"], "claimed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+        if not taken:
+            raise ApiError(409, "that code has already been used")
+    else:
+        if made_count(info) >= info["max_flies"]:
+            raise ApiError(403, cap_message(info))
+        if not info["holder"]:
+            limit(f"free-fly-ip:{ip}", FREE_FLIES_PER_IP_DAY, 86400, "too many new free flies from this network today")
+    try:
+        row = rest("POST", "flies", "return=representation", json={
+            "owner": user["id"], "name": name, "color": color, "patch_id": patch, "seed": random.randrange(2**31),
+            "x": round(random.uniform(0.3, 0.7), 3), "y": round(random.uniform(0.3, 0.7), 3),
+            "heading": round(random.uniform(0, 6.283), 2), **({"gift": True} if code else {}),
+            **tuned})[0]
+    except Exception:
+        if code:   # the fly wasn't made: give the code back
+            rest("PATCH", f"merch_claims?code=eq.{code}", json={"claimed_by": None, "claimed_at": None})
+        raise
+    if code:
+        rest("PATCH", f"merch_claims?code=eq.{code}", json={"claimed_fly": row["id"]})
     if style:   # the owner picked a trading style: its market mind is born with it
         save_mind(minds.apply_style(minds.born(row["id"], random.Random()), style))
     return row
+
+
+CLAIM = re.compile(r"^[A-Z0-9]{8}$")
+
+
+def claim_code(value) -> str | None:
+    """A merch gift code from a request, checked to exist; None when there's none."""
+    if value in (None, ""):
+        return None
+    code = str(value).strip().upper().replace(" ", "").replace("-", "")
+    if not CLAIM.match(code) or not rest("GET", f"merch_claims?select=code&code=eq.{code}"):
+        raise ApiError(404, "that code doesn't exist; check the card")
+    return code
+
+
+def claim_info(code: str) -> dict:
+    """What a gift code is for: the fly on the buyer's merch and its design. Public, rate-limited by IP."""
+    code = code.strip().upper()
+    rows = rest("GET", f"merch_claims?select=code,claimed_by,fly_id,fly:flies!merch_claims_fly_id_fkey(name,color),"
+                       f"merch_designs(preview_path)&code=eq.{quote(code)}") if CLAIM.match(code) else []
+    if not rows:
+        raise ApiError(404, "that code doesn't exist; check the card")
+    c = rows[0]
+    design = c.get("merch_designs") or {}
+    return {"code": c["code"], "used": c["claimed_by"] is not None, "fly_id": c.get("fly_id"),
+            "fly": c.get("fly"), "preview_url": merch.public_url(design["preview_path"]) if design.get("preview_path") else None}
 
 
 def is_holder(wallet: str | None) -> bool:
@@ -717,6 +760,7 @@ def my_merch(user: dict) -> dict:
             "unpaid_tokens": round(unpaid / price) if price else None, "payout_date": month_end.isoformat()}
 
 
+MERCH_CLAIM_PATH = re.compile(r"^/merch/claims/([A-Za-z0-9-]{4,16})$")
 MERCH_DESIGN_PATH = re.compile(r"^/merch/designs/(\d+)$")
 MERCH_PAY_PATH = re.compile(r"^/merch/designs/(\d+)/pay$")
 MEME_PATH = re.compile(r"^/memes/(\d+)$")
@@ -816,6 +860,10 @@ class Handler(BaseHTTPRequestHandler):
             if method == "POST" and path == "/memes":
                 user, wallet = authed(self)
                 return self._send(201, create_meme(user, wallet, self._body(), ip))
+            merch_claim = MERCH_CLAIM_PATH.match(path)
+            if merch_claim and method == "GET":
+                limit(f"claim-look:{ip}", 20, 600, "too many code checks; try again in a few minutes")
+                return self._send(200, claim_info(merch_claim.group(1).replace("-", "")))
             if method == "GET" and path == "/merch/quota":
                 return self._send(200, merch_quota(*authed(self)))
             if method == "GET" and path == "/merch/mine":

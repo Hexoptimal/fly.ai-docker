@@ -7,6 +7,7 @@ export type MyFly = FlySettings & {
   id: string; name: string; color: string; patch_id: string; active: boolean; created_at: string;
   elo?: number; wins?: number; losses?: number; draws?: number; generation?: number; parents?: string[];
   auto_born?: boolean;   // born from automatic mating; doesn't count toward max_flies
+  gift?: boolean;        // hatched from a merch thank-you code; doesn't count toward max_flies
 };
 export type Me = {
   wallet: string | null;         // null for an email account
@@ -52,7 +53,7 @@ export type PublicBalance = { wallet: string; balance: string; tokens: number; h
 export const getBalance = (wallet: string) => call<PublicBalance>(`/balance/${wallet}`);
 export const getMe = () => call<Me>("/me");
 export const setHandle = (handle: string) => call<{ handle: string }>("/handle", { method: "POST", body: JSON.stringify({ handle }) });
-export const createFly = (fly: FlySettings & { name: string; color: string; patch_id: string; style?: StyleBody }) =>
+export const createFly = (fly: FlySettings & { name: string; color: string; patch_id: string; style?: StyleBody; claim?: string }) =>
   call<MyFly>("/flies", { method: "POST", body: JSON.stringify(fly) });
 export type LikeResult = { post_id: number; liked: boolean; likes: number };
 export const setLike = (postId: number, liked: boolean) =>
@@ -114,4 +115,7 @@ export const drawDesign = (req: { fly_id: string; style: string; idea?: string; 
   call<MerchDesign>("/merch/designs", { method: "POST", body: JSON.stringify(req) });
 export const payDesign = (id: number, txHash: string, kinds: string[]) =>
   call<{ id: number; status: string }>(`/merch/designs/${id}/pay`, { method: "POST", body: JSON.stringify({ tx_hash: txHash, kinds }) });
+/** A free-fly code from a merch thank-you card: which fly was on the merch, and whether it's been used. */
+export type Claim = { code: string; used: boolean; fly_id: string | null; fly: { name: string; color: string } | null; preview_url: string | null };
+export const getClaim = (code: string) => call<Claim>(`/merch/claims/${encodeURIComponent(code)}`);
 export const deleteDesign = (id: number) => call<{ deleted: number }>(`/merch/designs/${id}`, { method: "DELETE" });

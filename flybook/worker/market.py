@@ -1,10 +1,15 @@
-"""Flybook fly market: holders' flies trade fake coins with fake ETH using their real brains, learn from how it went,
-and pass what they are (and, by lineage, what they learned) to their children. See minds.py for the learning.
+"""Flybook fly market: holders' flies paper-trade real Robinhood Chain tokens using their real brains, learn from how
+it went, and pass what they are (and, by lineage, what they learned) to their children. See minds.py for the learning.
 
-Everything is SIMULATED: prices follow a random process below, balances are fake ETH, nothing is real money or advice.
+Since 2026-09-18 prices are REAL (prices.py: an allowlist of Robinhood Chain tokens, live USD prices from their pools)
+and the money is not: every fly starts with 1 ETH's worth of paper USDG (real ETH price when its wallet opens), and nothing is bought or sold on chain. The
+portfolio columns keep their old names (eth, value_eth, cost_eth) but hold paper dollars. Before that the market was a
+random walk over made-up coins with fake ETH; that walk (COINS, move_prices) is kept for the offline checks
+(market_eval.py, market_encoder_eval.py). Fly-made coins (launches.py) are switched off (FLYBOOK_FLY_COINS=1 turns
+them back on; their pool sizes are still in ETH-era units and need rescaling first).
 
 Each round (every --market-every seconds, after a tick):
-  1. prices move: a random walk per coin with regimes (calm / pump / dump) and, for meme coins, rare pumps and rugs.
+  1. prices: the latest real price of every allowlisted token (a round with no prices at all is skipped).
   2. each fly's result since last round is its reward; minds.learn turns it into dopamine (updating the gains and
      action biases behind last round's trade), stores last round's trade in memory, and grows its slime-mold tubes.
   3. the market becomes senses, per fly (hand-written encoder, the interface, like patch.py's channels):
@@ -40,8 +45,14 @@ import minds
 from episode import AMOUNT, DT
 from settings import clean
 
+import prices as live_prices
+
 FEE = 0.003
-MIN_TRADE_ETH = 0.001
+STABLE_FEE = 0.0001            # a stablecoin swap (real stable pools charge ~0.01%): parking in USDG must not cost 0.3%
+CASH_START = 2500.0            # fallback start: a new wallet gets 1 ETH's worth of paper USDG (set_eth_usd), ~this
+_eth_usd = [CASH_START]        # the latest real ETH price, for new wallets
+MIN_TRADE_ETH = 2.5            # smallest trade, in paper dollars: ~0.1% of a starting wallet, as 0.001 ETH was
+LAUNCHES = os.environ.get("FLYBOOK_FLY_COINS", "0") == "1"   # fly-made coins, shills and FUD (off since 2026-09-18)
 HISTORY = 4                    # rounds of prices used for momentum (3-round moves)
 PROFILE_FITS_PER_ROUND = 2
 PAM_PER_DOPAMINE = 0.3
@@ -58,7 +69,7 @@ def learning_of(spec: str) -> dict[str, bool]:
         raise ValueError(f"unknown learning {spec!r}: use all, none or a comma list of {', '.join(ALL_LEARNING)}")
     return {k: k in parts for k in ALL_LEARNING}
 
-# symbol, name, kind, start price in ETH, volatility per round, drift per round
+# the old simulated market, kept for the offline checks: symbol, name, kind, start price, volatility per round, drift
 COINS = [
     ("BTC", "Bitcoin (simulated)", "real", 25.0, 0.020, 0.0005),
     ("SOL", "Solana (simulated)", "real", 0.05, 0.040, 0.0005),
@@ -100,23 +111,37 @@ PICK_REF_V2 = {"turned": 4.85, "jumped": 5.2, "groomed": 5.25, "backed_up": 3.0}
 # |z| > 3 5% (memes 6%), noticed target a fly coin 50% (they are 63% of coins), full strength 75%.
 VOL_FLY = 0.15                        # before 2026-09-15 evening; still the floor
 VOL_FLY_MIN, VOL_FLY_NEW, VOL_WINDOW, VOL_MIN_N = 0.15, 1.1, 24, 6
+# Real tokens' usual 1-round log move (a round is ~10-15 min): measured from their own last VOL_WINDOW rounds once
+# there are VOL_MIN_N moves, never below REAL_VOL_FLOOR of the category's default. Defaults from typical daily moves
+# (ETH ~3%/day, tokenized stocks ~2%, Robinhood Chain memes ~10-20%) scaled to one round.
+REAL_VOL = {"major": 0.004, "stock": 0.003, "meme": 0.015, "stable": 0.0003}
+REAL_VOL_FLOOR = 0.5
 
 
 def fly_vols(history: list[dict]) -> dict[str, float]:
-    """Each fly coin's usual 1-round move from price history (newest first, up to VOL_WINDOW + 1 rounds)."""
+    """Each non-simulated coin's usual 1-round move (RMS log move) from price history (newest first, up to
+    VOL_WINDOW + 1 rounds): real tokens and fly-made coins. vol_of applies each kind's floor."""
     moves: dict[str, list[float]] = {}
     for new, old in zip(history, history[1:VOL_WINDOW + 1]):
         for s, p in new.items():
             if s not in KIND and p and old.get(s) and p > 0 and old[s] > 0:
                 moves.setdefault(s, []).append(math.log(p / old[s]))
-    return {s: max(VOL_FLY_MIN, math.sqrt(sum(m * m for m in ms) / len(ms))) for s, ms in moves.items() if len(ms) >= VOL_MIN_N}
+    return {s: math.sqrt(sum(m * m for m in ms) / len(ms)) for s, ms in moves.items() if len(ms) >= VOL_MIN_N}
 
 
 def vol_of(symbol: str, vols: dict | None = None) -> float:
     spec = KIND.get(symbol)
     if spec:
         return spec[4]
-    return (vols or {}).get(symbol, VOL_FLY_NEW if vols is not None else VOL_FLY)
+    token = live_prices.BY_SYMBOL.get(symbol)
+    if token:
+        default = REAL_VOL[token[3]]
+        got = (vols or {}).get(symbol)
+        return max(default * REAL_VOL_FLOOR, got) if got else default
+    if vols is None:
+        return VOL_FLY
+    got = vols.get(symbol)
+    return max(VOL_FLY_MIN, got) if got else VOL_FLY_NEW
 
 
 def zscores(prices: dict, history: list[dict], vols: dict | None = None) -> dict:
@@ -161,12 +186,51 @@ def move_prices(coins: list[dict], rng: np.random.Generator) -> tuple[list[dict]
     return out, events
 
 
+def fee_of(symbol: str) -> float:
+    token = live_prices.BY_SYMBOL.get(symbol)
+    return STABLE_FEE if token and token[3] == "stable" else FEE
+
+
+# the learning reward charges each trade its own fee (minds.trade_reward)
+minds.FEE_LOG_BY.update({t[0]: math.log(1 / (1 - STABLE_FEE)) for t in live_prices.TOKENS if t[3] == "stable"})
+
+
+def real_prices(coins: list[dict], live: dict[str, float], vols: dict | None = None) -> tuple[list[dict], list[dict]]:
+    """This round's allowlisted tokens at their live prices (a token without one keeps its last price). regime marks a
+    move of 2+ usual moves; a move of 3+ usual moves and at least 2% is an event."""
+    old = {c["symbol"]: c for c in coins}
+    out, events = [], []
+    for symbol, name, address, category in live_prices.TOKENS:
+        prev = (old.get(symbol) or {}).get("price")
+        price = live.get(symbol) or prev
+        if not price:
+            continue
+        regime = "calm"
+        if prev:
+            move = price / prev - 1
+            z = math.log(price / prev) / vol_of(symbol, vols)
+            regime = "pump" if z >= 2 else "dump" if z <= -2 else "calm"
+            if abs(z) >= 3 and abs(move) >= 0.02:
+                events.append({"symbol": symbol, "kind": "pump" if move > 0 else "dump", "move": round(float(move), 4)})
+        out.append({"symbol": symbol, "name": name, "kind": "real", "price": float(price), "regime": regime,
+                    "address": address, "category": category})
+    return out, events
+
+
 def value(portfolio: dict, prices: dict) -> float:
     return portfolio["eth"] + sum(h["qty"] * prices.get(s, 0.0) for s, h in portfolio["holdings"].items())
 
 
+def set_eth_usd(price: float | None) -> None:
+    """Remember the real ETH price: every new wallet starts with 1 ETH's worth of paper USDG."""
+    if price and price > 0:
+        _eth_usd[0] = round(float(price), 2)
+
+
 def new_portfolio(fly_id: str) -> dict:
-    return {"fly_id": fly_id, "eth": 1.0, "holdings": {}, "start_eth": 1.0, "value_eth": 1.0, "trades": 0}
+    """A new wallet: 1 ETH's worth of paper USDG (at the latest real ETH price) in the (historically named) eth column."""
+    cash = _eth_usd[0]
+    return {"fly_id": fly_id, "eth": cash, "holdings": {}, "start_eth": cash, "value_eth": cash, "trades": 0}
 
 
 def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, mind: dict, learning: dict | None = None,
@@ -335,7 +399,7 @@ def decide(portfolio: dict, did: list[dict], drive: dict, prices: dict, mind: di
             qty = launches.buy(pools[symbol], spend)
             prices[symbol] = pools[symbol]["price"]
         else:
-            qty = spend * (1 - FEE) / prices[symbol]
+            qty = spend * (1 - fee_of(symbol)) / prices[symbol]
         h = portfolio["holdings"].setdefault(symbol, {"qty": 0.0, "cost_eth": 0.0})
         h["qty"] += qty
         h["cost_eth"] += spend
@@ -353,7 +417,7 @@ def decide(portfolio: dict, did: list[dict], drive: dict, prices: dict, mind: di
         got = launches.sell(pools[symbol], qty)
         prices[symbol] = pools[symbol]["price"]
     else:
-        got = qty * prices[symbol] * (1 - FEE)
+        got = qty * prices[symbol] * (1 - fee_of(symbol))
     if got < MIN_TRADE_ETH:
         return None, "hold", {}
     h["cost_eth"] *= (1 - share)
@@ -374,8 +438,8 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
     coins = state.get("coins") or seed_coins()
     old_prices = {c["symbol"]: c["price"] for c in coins}
     coins, events = moved if moved else move_prices(coins, rng)
-    fly_market = bool(state.get("launches"))              # fly-made coins, shills and FUD (off in the offline check)
-    feed = (state.get("feed") or {}) if fly_market else {}   # posts, likes and comments since last round (feedflow.py)
+    fly_market = bool(state.get("launches"))              # fly-made coins, shills and FUD (off live since 2026-09-18)
+    feed = state.get("feed") or {}                        # posts, likes and comments since last round (live market only)
     if fly_market:
         events = events + launches.drift(coins, rng)
         events = events + feedflow.crowd(coins, feed.get("likes") or {}, feed.get("comments") or {})
@@ -394,11 +458,13 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
             coins_of.setdefault(pools[s]["creator"], []).append(s)
 
     def senses(f: dict) -> dict:
-        """What this fly feels: the market, plus (live market only) shills, FUD and the feed since last round."""
+        """What this fly feels: the market, plus (live market) its own posts since last round, and (with fly coins on)
+        shills and FUD."""
         social = mood = None
+        mine = feed_posts.get(f["id"], [])
         if fly_market:
-            mine = feed_posts.get(f["id"], [])
             social = feedflow.merge(launches.social_drive(f["id"], social_in, bonds, live_symbols), feedflow.set_off(f["id"], mine, coins_of))
+        if feed:
             mood = feedflow.mood(mine)
         return felt(state["portfolios"][f["id"]], prices, history, settings_of(f), state["minds"][f["id"]], own[f["id"]], social, mood,
                     encoder=state.get("encoder", "v1"), vols=state.get("vols"))
@@ -475,29 +541,41 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
 def market_round(store, eps, reader, rng: np.random.Generator, flies: list[dict], learning: dict | None = None) -> dict:
     """Load the market, run one round for these flies, save it. learning: force these learners on every fly
     (None: each fly's owner's choice). Flies launch, shill and FUD coins here (launches.py)."""
+    live = live_prices.fetch()
+    if not live:
+        print("market round skipped: no token prices from GeckoTerminal or DexScreener", flush=True)
+        return None
+    set_eth_usd(live.get("ETH"))
     ids = [f["id"] for f in flies]
     past = [r["prices"] for r in store.market_history(VOL_WINDOW + 1)]     # newest first
-    state = {"coins": store.market_coins(), "history": past[:HISTORY], "vols": fly_vols(past),
+    vols = fly_vols(past)
+    stored = store.market_coins()
+    tokens = [c for c in stored if c["symbol"] in live_prices.BY_SYMBOL]
+    fly_coins = [c for c in stored if c.get("kind") == "fly"] if LAUNCHES else []
+    moved, events = real_prices(tokens, live, vols)
+    state = {"coins": tokens + fly_coins, "history": past[:HISTORY], "vols": vols,
              "portfolios": {p["fly_id"]: p for p in store.portfolios(ids)}, "minds": {m["fly_id"]: m for m in store.minds(ids)},
-             "launches": True, "social": [], "bonds": {}, "launch_budget": 0,
+             "launches": LAUNCHES, "social": [], "bonds": {}, "launch_budget": 0,
              "encoder": MARKET_ENCODER, "pick_ref": PICK_REF_V2 if MARKET_ENCODER == "v2" else None}
-    try:                                   # relationships and last round's drama; the round still runs without them
-        state["bonds"] = store.bonds()
-        state["social"] = store.recent_social()
-        state["launch_budget"] = max(0, launches.DAILY_CAP - store.launches_today())
-    except Exception as e:
-        print(f"fly coins: couldn't load bonds or social events: {e}", flush=True)
+    if LAUNCHES:
+        try:                               # relationships and last round's drama; the round still runs without them
+            state["bonds"] = store.bonds()
+            state["social"] = store.recent_social()
+            state["launch_budget"] = max(0, launches.DAILY_CAP - store.launches_today())
+        except Exception as e:
+            print(f"fly coins: couldn't load bonds or social events: {e}", flush=True)
     try:
         state["feed"] = store.recent_feed()
     except Exception as e:
         print(f"fly market: couldn't load the feed since last round: {e}", flush=True)
     state["image"] = lambda fly, symbol, key: launches.make_image(store.save_coin_image, fly, symbol, key)
-    out = simulate_round(state, eps, reader, rng, flies, learning)
+    out = simulate_round(state, eps, reader, rng, flies, learning, moved=(moved + fly_coins, events))
     rnd = out["round"]
     store.save_market(rnd, state["coins"], [state["portfolios"][i] for i in ids], out["trades"], [state["minds"][i] for i in ids],
                       out["social"])
     skipped = sum(t["side"] == "skipped" for t in out["trades"])
     kinds = {k: sum(e["kind"] == k for e in out["social"]) for k in ("launch", "shill", "fud", "buyback", "dump")}
     print(f"market round: {len(flies)} traders, {rnd['trades']} trades, {skipped} skipped by learning, "
-          f"fly coins {kinds}, events {rnd['events']}, {rnd['seconds']} s", flush=True)
+          f"prices for {len(live)}/{len(live_prices.TOKENS)} tokens, fly coins {kinds if LAUNCHES else 'off'}, "
+          f"events {rnd['events']}, {rnd['seconds']} s", flush=True)
     return rnd

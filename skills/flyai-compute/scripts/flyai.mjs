@@ -4,7 +4,7 @@
  * Plain Node 18+ (built-in fetch), no dependencies. Every command prints JSON on the last line for scripts.
  *
  *   node flyai.mjs config                                          prices, limits, token, pay_to
- *   node flyai.mjs quote  (--spec spec.json | --program f.wasm|f.wgsl [program options]) [--bid N]
+ *   node flyai.mjs quote  (--spec spec.json | --program f.wasm|f.wgsl [program options] | --embed texts.txt [--model M]) [--bid N]
  *   node flyai.mjs create --wallet 0x... (--spec spec.json | --program ...) [--bid N] [--budget N] [--hours H] [--webhook URL]
  *       creates the order (unpaid), saves its key to order-<id8>.json and prints the pay link
  *   node flyai.mjs pay    --order ID --tx 0x... [--chain base]    only if the buyer paid by a transfer themselves
@@ -15,6 +15,8 @@
  *
  * Program options: --count N (job i gets i as a u32) or --inputs dir (one job per file), --timeout S (60),
  *   --redundancy R (2), --keep-open; WGSL also --dispatch x,y,z --output-bytes N [--tolerance 0.0001].
+ * Embeddings: --embed file (.txt one text per line, .json array, .jsonl strings or {"text"}), --model minilm-l6|bge-small-en,
+ *   --batch 128 (texts per job, up to 256), --redundancy R (2). Each job's output is float32 vectors, 384 per text.
  * FLYAI_SERVER overrides the API (default https://flyai-mine.fly.dev).
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -65,9 +67,33 @@ async function inputsFrom(dir) {
   return hashes;
 }
 
-/** The order's spec: a JSON file (any kind, e.g. connectome-sweep), or a program uploaded here. */
+/** Texts from a file: a JSON array, JSON lines (strings or {"text": ...}), or one text per line. */
+function readTexts(path) {
+  const body = readFileSync(path, "utf8");
+  const pick = (x) => (typeof x === "string" ? x : typeof x?.text === "string" ? x.text : "").trim();
+  const texts = path.endsWith(".json") ? JSON.parse(body).map(pick)
+    : path.endsWith(".jsonl") ? body.split(/\r?\n/).filter((l) => l.trim()).map((l) => pick(JSON.parse(l)))
+    : body.split(/\r?\n/).map((l) => l.trim());
+  return texts.filter(Boolean);
+}
+
+/** The order's spec: a JSON file (any kind, e.g. connectome-sweep), texts to embed, or a program uploaded here. */
 async function specFromFlags() {
   if (flag("spec")) return JSON.parse(readFileSync(flag("spec"), "utf8"));
+  if (flag("embed")) {
+    const texts = readTexts(flag("embed"));
+    if (!texts.length) throw new Error(`no texts in ${flag("embed")}`);
+    const size = Number(flag("batch") ?? 128);
+    if (!(size >= 1 && size <= 256)) throw new Error("--batch is 1 to 256 texts per job");
+    const inputs = [];
+    for (let i = 0; i < texts.length; i += size) {
+      process.stderr.write(`\ruploading batch ${i / size + 1}/${Math.ceil(texts.length / size)}`);
+      inputs.push(await upload(Buffer.from(JSON.stringify(texts.slice(i, i + size).map((t) => t.slice(0, 8000))))));
+    }
+    process.stderr.write("\n");
+    say(`${texts.length} texts in ${inputs.length} batches of up to ${size}`);
+    return { kind: "embed", model: flag("model") ?? "minilm-l6", inputs, redundancy: Number(flag("redundancy") ?? 2), keep_open: has("keep-open") };
+  }
   const path = flag("program");
   if (!path) throw new Error("give --spec spec.json or --program file.wasm|file.wgsl");
   const kind = path.endsWith(".wgsl") ? "wgsl" : "wasm";

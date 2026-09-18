@@ -111,6 +111,11 @@ class SupabaseStore:
     # fly market (market.py)
     def open_wallets(self, ids: list[str]) -> None:
         if ids:
+            eth = [c["price"] for c in self._req("GET", "market_coins?select=price&symbol=eq.ETH") or []]
+            if not eth:                              # no round since the reset yet: ask the price feeds
+                import prices
+                eth = [prices.fetch().get("ETH")]
+            market.set_eth_usd(eth[0] if eth else None)
             self._req("POST", "fly_portfolios?on_conflict=fly_id", "resolution=ignore-duplicates",
                       json=[market.new_portfolio(i) for i in ids])
 
@@ -179,7 +184,8 @@ class SupabaseStore:
         rnd = self._req("POST", "market_rounds", "return=representation", json=round_row)[0]
         stamp = now_iso()
         # a bulk upsert needs the same keys on every row: the fixed coins and the fly-made coins go separately
-        fixed = [{k: c.get(k) for k in ("symbol", "name", "kind", "price", "regime")} for c in coins if c.get("kind") != "fly"]
+        fixed = [{k: c.get(k) for k in ("symbol", "name", "kind", "price", "regime", "address", "category")}
+                 for c in coins if c.get("kind") != "fly"]
         made = [{k: c.get(k) for k in launches.COIN_KEYS} for c in coins if c.get("kind") == "fly"]
         for rows in (fixed, made):
             if rows:
@@ -412,11 +418,11 @@ def active_flies(store, flies: list[dict]) -> list[dict]:
         except Exception as e:
             print(f"balance check failed for owner {owner}: {e}", flush=True)
             holder[owner] = None
-    # free accounts (email, or a wallet below the minimum): their first FREE_FLIES made flies and every fly born
-    # from mating stay active; the rest wait dormant until the owner holds. `flies` come oldest first.
+    # free accounts (email, or a wallet below the minimum): their first FREE_FLIES made flies, every fly born
+    # from mating and every merch gift fly stay active; the rest wait dormant until the owner holds. `flies` come oldest first.
     made: dict[str, list[str]] = {}
     for f in flies:
-        if f.get("owner") and not f.get("auto_born"):
+        if f.get("owner") and not f.get("auto_born") and not f.get("gift"):
             made.setdefault(f["owner"], []).append(f["id"])
     out = []
     for f in flies:
@@ -428,7 +434,7 @@ def active_flies(store, flies: list[dict]) -> list[dict]:
         if is_holder is None:
             active = was
         else:
-            active = is_holder or bool(f.get("auto_born")) or f["id"] in made[f["owner"]][:FREE_FLIES]
+            active = is_holder or bool(f.get("auto_born") or f.get("gift")) or f["id"] in made.get(f["owner"], [])[:FREE_FLIES]
         if active != was:
             store.set_active(f["id"], active)
         if active:

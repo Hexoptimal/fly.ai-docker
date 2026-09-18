@@ -6,7 +6,7 @@ import Leaderboard from "./Leaderboard";
 import { MemeCard, MemeGallery, MemeMaker } from "./Memes";
 import Missions from "./Missions";
 import Market from "./Market";
-import Merch from "./Merch";
+import Merch, { ClaimWelcome, setStoredClaim } from "./Merch";
 import MyFlies from "./MyFlies";
 import PatchView from "./PatchView";
 import Relationships from "./Relationships";
@@ -14,7 +14,7 @@ import { Caption, Comments } from "./PostSocial";
 import { pokePatch, setLike, setMemeLike } from "./api";
 import { badgesFor, type Badge, type BoardRow } from "./badges";
 import {
-  BASE, coinImage, fetchPost, likeCount, load, loadBoard, loadCoinLogos, loadComments, loadDuels, loadFlies, loadMatings, loadMemes, loadPokes,
+  BASE, coinImage, fetchPost, loadMerchAwards, type MerchAward, likeCount, load, loadBoard, loadCoinLogos, loadComments, loadDuels, loadFlies, loadMatings, loadMemes, loadPokes,
   loadPositions, loadReplays, loadSocial, myLikes, myMemeLikes, subscribe, tuning, type Duel, type Fly, type FlyCoin, type MarketSocial,
   type Mating, type Meme, type Patch, type Poke, type Post, type Replay, type Snapshot,
 } from "./feed";
@@ -25,6 +25,7 @@ import { POKES, WORDS, actionText, causeText, joinActions, line, ordinal, pick, 
 const SCIENCE_URL = "/research/flybook";
 const SITE_URL = "/";
 type View = "feed" | "board" | "arena" | "mine" | "market" | "friends" | "merch";
+const CLAIM_HASH = /^#claim-([A-Za-z0-9-]{4,16})$/;
 
 function ago(iso: string, now: number): string {
   const s = Math.max(0, (now - Date.parse(iso)) / 1000);
@@ -131,6 +132,23 @@ export default function App() {
   const [boardAt, setBoardAt] = useState(0);            // newest post id when the board totals were read
   const [unfolded, setUnfolded] = useState<Set<number>>(new Set());
   const [view, setView] = useState<View>(() => viewOf(location.hash));
+  // a merch thank-you card links to #claim-CODE: keep the code (sign-in reloads the page) and say hello
+  const [welcome, setWelcome] = useState<string | null>(null);
+  const [awards, setAwards] = useState<MerchAward[]>([]);   // Fly of the month winners, for the 🏆 on their profile
+  useEffect(() => { loadMerchAwards().then(setAwards); }, []);
+  useEffect(() => {
+    const take = () => {
+      const m = location.hash.match(CLAIM_HASH);
+      if (!m) return;
+      const code = m[1].replace(/-/g, "").toUpperCase();
+      setStoredClaim(code);
+      setWelcome(code);
+      history.replaceState(null, "", `${location.pathname}${location.search}#feed`);
+    };
+    take();
+    window.addEventListener("hashchange", take);
+    return () => window.removeEventListener("hashchange", take);
+  }, []);
   const [focus, setFocus] = useState<number | null>(() => {
     const m = location.hash.match(/^#post-(\d+)$/);
     return m ? Number(m[1]) : null;
@@ -495,7 +513,14 @@ export default function App() {
           {view === "feed" && (
             <>
               <div className="feed-head">
-                <h2>{activeFly ? activeFly.name : activePatch ? activePatch.name : "Everywhere"}</h2>
+                <h2>
+                  {activeFly ? activeFly.name : activePatch ? activePatch.name : "Everywhere"}
+                  {activeFly && awards.filter((a) => a.fly_id === activeFly.id).map((a) => (
+                    <a key={a.month} className="trophy" href="#merch" title={`Its merch sold the most in ${new Date(a.month).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}`}>
+                      🏆 Fly of the month
+                    </a>
+                  ))}
+                </h2>
                 <p>
                   {activeFly
                     ? `Generation ${activeFly.generation ?? 1} · Elo ${activeFly.elo ?? 1000} (${activeFly.wins ?? 0}-${activeFly.losses ?? 0}-${activeFly.draws ?? 0})` +
@@ -576,6 +601,7 @@ export default function App() {
                          onFly={(id) => { setFlyId(id); location.hash = "feed"; }} />
         )}
         <aside className="side">
+          {welcome && <ClaimWelcome code={welcome} onClose={() => setWelcome(null)} />}
           <Account patches={snap.patches} live={snap.live} onCreated={reload} onViewer={setViewer} house={house} />
           <HowItWorks />
           {snap.live && <Missions viewer={viewer} />}

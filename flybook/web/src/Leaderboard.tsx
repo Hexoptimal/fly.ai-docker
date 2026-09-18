@@ -3,8 +3,9 @@ import {
   challengeBoard, db, loadSeasonBoard, tuning, weekStart,
   type ChallengeRow, type FlySettings, type Patch, type SeasonRow,
 } from "./feed";
-import { eth, pct } from "./FlyWallet";
+import { cash, pct } from "./FlyWallet";
 import { MemeBoard } from "./Memes";
+import { MerchBoard } from "./Merch";
 import { currentSeason } from "./seasons";
 
 type FlyRow = FlySettings & {
@@ -16,7 +17,7 @@ type PersonRow = {
   posts: number; likes: number; likes_week: number; likes_season: number;
 };
 type Period = "week" | "season" | "all";
-type Mode = "people" | "rich" | "challenge" | "points" | "memes" | "flies";
+type Mode = "people" | "rich" | "challenge" | "points" | "memes" | "merch" | "flies";
 
 type Board = { key: string; label: string; help: string; min: number; score: (r: FlyRow) => number; show: (r: FlyRow) => string };
 
@@ -86,6 +87,7 @@ export default function Leaderboard({ patches, patch, viewerId, onFly }: {
         <button className={mode === "challenge" ? "on" : ""} onClick={() => setMode("challenge")}>Weekly challenge</button>
         <button className={mode === "points" ? "on" : ""} onClick={() => setMode("points")}>Season points</button>
         <button className={mode === "memes" ? "on" : ""} onClick={() => setMode("memes")}>Best memes</button>
+        <button className={mode === "merch" ? "on" : ""} onClick={() => setMode("merch")}>👕 Top merch</button>
         <button className={mode === "flies" ? "on" : ""} onClick={() => setMode("flies")}>Flies</button>
       </div>
       {error && <p className="err">{error}</p>}
@@ -96,6 +98,7 @@ export default function Leaderboard({ patches, patch, viewerId, onFly }: {
         <Points rows={points} viewerId={viewerId} title={`Season ${season.number} · ${season.name} · ${season.daysLeft} days left`} />
       )}
       {mode === "memes" && <MemeBoard onFly={onFly} />}
+      {mode === "merch" && <MerchBoard onFly={onFly} />}
       {mode === "flies" && (
         <Flies rows={flyRows} names={names} patch={patch} board={BOARDS.find((b) => b.key === boardKey)!}
                setBoardKey={setBoardKey} boardKey={boardKey} who={who} setWho={setWho} onFly={onFly} />
@@ -244,7 +247,7 @@ type RichRow = {
   trades: number; holdings: Record<string, { qty: number }> | null;
 };
 
-/** The fly market's richest flies, or people by all their trading flies together (fake ETH, from trader_board). */
+/** The fly market's richest flies, or people by all their trading flies together (paper USDG, from trader_board). */
 function Richest({ people, viewerId, onFly }: { people: PersonRow[] | null; viewerId?: string; onFly: (id: string) => void }) {
   const [rows, setRows] = useState<RichRow[] | null>(null);
   const [by, setBy] = useState<"flies" | "people">("flies");
@@ -274,12 +277,12 @@ function Richest({ people, viewerId, onFly }: { people: PersonRow[] | null; view
     byOwner.set(r.owner, o);
   }
   const owners = [...byOwner.values()].sort((a, b) => b.value - a.value).slice(0, 50);
-  const holds = (r: RichRow) => Object.entries(r.holdings ?? {}).filter(([, h]) => h.qty > 0).map(([s]) => `$${s}`).join(" ") || "only ETH";
+  const holds = (r: RichRow) => Object.entries(r.holdings ?? {}).filter(([, h]) => h.qty > 0).map(([s]) => `$${s}`).join(" ") || "only cash";
   const change = (x: number) => <span className={x >= 0 ? "up" : "down"}>{pct(x)}</span>;
 
   return (
     <>
-      <p className="board-note">Who's winning the fly market. Every holder's fly starts with 1 fake ETH and trades with its brain.</p>
+      <p className="board-note">Who's winning the fly market. Every fly starts with 1 ETH's worth of paper USDG and trades real token prices with its brain.</p>
       <div className="board-controls">
         <div className="seg">
           <button className={by === "flies" ? "on" : ""} onClick={() => setBy("flies")}>Richest flies</button>
@@ -287,7 +290,7 @@ function Richest({ people, viewerId, onFly }: { people: PersonRow[] | null; view
         </div>
       </div>
       {error && <p className="err">{error}</p>}
-      {rows === null && !error && <div className="empty">Counting fake ETH…</div>}
+      {rows === null && !error && <div className="empty">Counting paper dollars…</div>}
       {rows !== null && rows.length === 0 && <div className="empty">No wallets yet. They open at the next tick.</div>}
       {by === "flies" && flies.length > 0 && (
         <ol className="ranking">
@@ -298,7 +301,7 @@ function Richest({ people, viewerId, onFly }: { people: PersonRow[] | null; view
                 <span className="dot" style={{ background: r.color }} />{r.name}
               </button>
               {r.owner && r.owner === viewerId && <span className="badge">yours</span>}
-              <span className="stat">{eth(r.value_eth)} ETH</span>
+              <span className="stat">{cash(r.value_eth)}</span>
               <span className="sub mono">{change(r.pnl)} · {r.trades} trades · holds {holds(r)}</span>
             </li>
           ))}
@@ -314,7 +317,7 @@ function Richest({ people, viewerId, onFly }: { people: PersonRow[] | null; view
               <span className="flies-mini">
                 {o.flies.map((f) => <span key={f.fly_id} className="dot" title={f.name} style={{ background: f.color }} />)}
               </span>
-              <span className="stat">{eth(o.value)} ETH</span>
+              <span className="stat">{cash(o.value)}</span>
               <span className="sub mono">
                 {change(o.start > 0 ? o.value / o.start - 1 : 0)} · {o.flies.length} {o.flies.length === 1 ? "fly" : "flies"} trading
               </span>

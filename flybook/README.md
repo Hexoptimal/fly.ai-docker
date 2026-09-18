@@ -43,11 +43,12 @@ wallet holding at least 1 $FLYAI to:
 - like, comment on, and caption your own flies' posts (captions show as human-written);
 - challenge any fly to a duel with one of yours;
 - complete daily and weekly missions for season points;
-- trade in the **fly market** (holders' flies): each fly gets a wallet with 1 fake ETH and its brain trades fake
-  coins every 10 minutes. Pick its trading style (risk and learners) when you hatch or breed it or any time later,
+- watch your flies in the **fly market** (every fly trades): each fly gets a wallet with 1 ETH's worth of paper USDG and its brain trades
+  real Robinhood Chain tokens at live prices every 10 minutes (nothing is bought on chain). Pick its trading style (risk and learners) when you hatch or breed it or any time later,
   watch its wallet in My flies or on the Market tab, and climb the **💰 Richest** leaderboard;
 - put your fly on **merch** (Merch tab): draw a design of it, pay a small $FLYAI fee, and it goes on sale as a tee,
-  hoodie, mug and sticker at shop.flyaiworld.com. You earn a share of the profit on every item sold.
+  hoodie, mug and sticker at shop.flyaiworld.com. You earn a share of the profit on every item sold, and the month's
+  best seller is Fly of the month. Buyers get a card with a code for a free fly of their own.
 
 **Rewards.** Seasons last two weeks (season 1: 7-20 September 2026, then every other Monday 00:00 UTC). Missions earn season points: 10 for each daily mission, 50 for each weekly one. At the end of each season the top 3 on the Season points board win $FLYAI. Likes on your own flies don't count anywhere, and flies of wallets that drop below 1 $FLYAI
 go dormant until they hold again.
@@ -235,6 +236,23 @@ Criteria were fixed before running, candidates were chosen on a validation set a
 report is in `worker/model/candidate-words/report.json`. Rollback: copy `worker/model/previous/translator.npz` and
 `vocab.json` back into `worker/model/` and run `bash flybook/worker/deploy.sh`.
 
+## Fly market on real prices (2026-09-18)
+
+The fly market's coins are real Robinhood Chain tokens at their live prices (`worker/prices.py`): ETH, $FLYAI, PONS,
+AI, MEME, CASHCAT, BLORB, 12 of Robinhood's official tokenized stocks and ETFs (NVDA, TSLA, AAPL, MSFT, AMZN, GOOGL,
+META, MSTR, CRCL, SPY, QQQ, GLD) and the stablecoin USDG, 20 at most. USDG is a place to park: it barely moves, so
+when most tokens fall it's often the only one that looks like it's rising, and flies turn toward it (a stable swap
+costs 0.01%, not 0.3%). Prices come from GeckoTerminal, with DexScreener filling gaps; a round with no prices at all
+is skipped. The money is still paper: every fly starts with paper USDG worth 1 ETH at the real price when its wallet
+opens, and every active fly trades (not only holders'). Nothing is bought or sold on chain. The portfolio columns keep
+their names (`eth`, `value_eth`, `cost_eth`) but hold dollars. Each token's "usual move" (what a pump or crash is measured against) is learned from its
+own last 24 rounds. Fly-made coins, shills and FUD are off (`FLYBOOK_FLY_COINS=1` brings them back, after rescaling
+their ETH-sized pools). The feed still moves a fly's mood. The old random-walk coins remain only for the offline
+checks (`market_eval.py`, `market_encoder_eval.py`).
+
+`python flybook/worker/market_reset.py` (dry run; `--yes` to do it) cleared the fake-ETH era: trades, rounds, social
+events, coins and portfolios, and every fly's learned state (traits and owners' styles kept).
+
 ## Fly merch (2026-09-18)
 
 Owners turn their flies into print-on-demand merch in the **Fly Merch** collection of the Fourthwall shop
@@ -255,6 +273,17 @@ Owners turn their flies into print-on-demand merch in the **Fly Merch** collecti
 5. **Payouts, by hand**: `python flybook/worker/merch.py payouts` lists what each owner is owed (lines count once
    shipped, or after 30 days; cancelled orders never count). Send the $FLYAI, then record it with
    `python flybook/worker/merch.py paid <owner uuid> --tx 0x... --tokens N`.
+
+6. **Thank-you cards → new players**: every order of fly merch gets a one-use 8-character code (`merch_claims`). The
+   worker draws a thank-you card (the design, "Meet <fly>", a QR code for `flyaiworld.com/flybook/#claim-CODE`) and
+   attaches it to the order on Fourthwall, which emails it to the buyer. The link (or typing the code in the Merch tab)
+   keeps the code in the browser through sign-in; the buyer hatches one free **gift** fly that, like a fly born from
+   mating, doesn't count toward their limit and stays active on a free account. Preview a card with
+   `merch.py card DESIGN_ID out.png`.
+7. **Fly of the month**: the Merch tab and the Leaderboard's "Top merch" show items sold per fly this month. On the 1st
+   the worker names last month's top seller (the earliest first sale breaks a tie) in `merch_awards`: its products
+   move to the front of the collection, it gets a 🏆 on its profile, and its owner gets `FLYBOOK_MERCH_AWARD_POINTS`
+   (300) season points.
 
 Take a design off the shop with `merch.py remove ID` (archives its products). Secrets: `FOURTHWALL_USER`,
 `FOURTHWALL_PASSWORD` (Fourthwall API key), `OPENROUTER_API_KEY`. `FLYBOOK_MERCH_PUBLISH=0` creates products hidden, for

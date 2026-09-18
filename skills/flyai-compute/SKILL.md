@@ -9,6 +9,8 @@ Browser miners run jobs for $FLYAI. There are two kinds of job:
 - **Brain experiments** (`connectome-sweep`): drive a sense in the full 166,700-neuron fly connectome and record what the
   motor neurons do.
 - **The user's own programs**: WebAssembly (CPU) or WGSL (GPU) programs, one job per input.
+- **Embeddings**: text in, one vector per text out (`minilm-l6` or `bge-small-en`, 384 numbers each), run on miners'
+  GPUs. Use them for search, clustering, deduplication or RAG. Each job is a batch of up to 256 texts.
 
 A job is charged only when it settles, which means two miners returned the same answer (or `redundancy` of them did). 80% of every charge goes to the miners.
 
@@ -43,6 +45,8 @@ https://www.flyaiworld.com/compute/compute-api.md. Fetch it when you need a fiel
      TinyGo, AssemblyScript) or a `.wgsl` compute shader. Jobs come from `--count N`, where job i gets i as a
      little-endian u32, or from `--inputs dir`, one job per file. The guide's "Writing a WebAssembly job" section
      shows the `flyai` imports and how to make outputs deterministic.
+   - Embeddings: a text file, with one text per line (.txt), a JSON array (.json) or JSON lines (.jsonl). The
+     script splits it into batches.
    - Examples to start from: https://github.com/alextitonis/fly.ai/tree/main/mine/examples (pi, hash-search,
      mandelbrot, tsp, wordcount, matmul-wgsl).
 
@@ -51,6 +55,7 @@ https://www.flyaiworld.com/compute/compute-api.md. Fetch it when you need a fiel
    node scripts/flyai.mjs quote --spec spec.json
    node scripts/flyai.mjs quote --program job.wasm --count 1000 [--timeout 60] [--redundancy 2]
    node scripts/flyai.mjs quote --program job.wgsl --count 64 --dispatch 256,1,1 --output-bytes 4096 [--tolerance 0.0001]
+   node scripts/flyai.mjs quote --embed docs.txt [--model minilm-l6|bge-small-en] [--batch 128]
    ```
    Show the user the number of jobs, the price per job and the most it can cost. Mention that jobs already done
    cost less. The lowest bid depends on `timeout_s` (it grows with every started 30 s), and `config` shows the
@@ -76,6 +81,9 @@ https://www.flyaiworld.com/compute/compute-api.md. Fetch it when you need a fiel
    node scripts/flyai.mjs status --order ID
    node scripts/flyai.mjs watch --order ID [--out results/]     # waits until done; --once takes what's there now
    ```
+   For embeddings, `N.out` holds batch N's vectors as float32, one row of 384 per text, in the order of the file's
+   texts (batch N holds texts N×batch to N×batch+batch-1). In Python that's `numpy.fromfile(path, "<f4").reshape(-1, 384)`.
+   The vectors are normalized, so a dot product is the cosine similarity.
    For programs, `N.out` is job N's output bytes, and `N.json` is its row: who checked it, any `error` (e.g.
    `"timeout"`), and `answers` when miners disagreed (`disputed`). Brain sweeps have no `.out` file. Their `N.json`
    holds the condition plus `base` and `stim`, the spike counts for each motor group before and during the

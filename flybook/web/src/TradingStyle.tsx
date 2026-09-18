@@ -65,7 +65,7 @@ export function StylePicker({ value, onChange, naturalHelp }: { value: Style; on
           <input type="range" min={RISK[0]} max={RISK[1]} step={0.01} value={value.risk} aria-label="risk per buy"
                  onChange={(e) => onChange({ ...value, risk: Number(e.target.value) })} />
         )}
-        <small>How much of its fake ETH goes into a buy ({Math.round(RISK[0] * 100)}–{Math.round(RISK[1] * 100)}%).</small>
+        <small>How much of its paper cash goes into a buy ({Math.round(RISK[0] * 100)}–{Math.round(RISK[1] * 100)}%).</small>
       </div>
     </div>
   );

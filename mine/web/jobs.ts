@@ -18,6 +18,7 @@ interface Config {
   chain_id: number; chain_name: string; rpc: string; explorer: string; token_symbol: string;
   /** card buyers: USDC on Base, credited in $FLYAI at the live price */
   usdc: { chain_id: number; chain_name: string; rpc: string; explorer: string; token: string; decimals: number; pay_to: string; gasless: boolean; onramp_url: string | null; card: boolean; card_min_usd?: number } | null;
+  embed?: { models: Record<string, { dim: number; about: string }>; max_texts: number; max_text_chars: number };
 }
 interface Order {
   id: string; wallet: string; status: "unpaid" | "expired" | "live" | "done" | "ended"; end_reason: string | null;
@@ -47,10 +48,16 @@ const REPEATS = [{ n: 3, name: "Quick" }, { n: 10, name: "Solid" }, { n: 30, nam
 const MODES = [
   { key: "brain", title: "Brain experiment", small: "ready-made: pick what the fly senses" },
   { key: "program", title: "Your own program", small: "WebAssembly or a GPU shader: anything" },
+  { key: "embed", title: "Embeddings", small: "text in, vectors out, on miners' GPUs" },
 ];
 /** "Your own program": the uploads so far */
 const upload = { program: null as null | { hash: string; kind: "wasm" | "wgsl"; name: string }, inputs: [] as string[] };
-const isProgram = () => pressed("modes") === "program";
+/** "Embeddings": the text batches uploaded so far, one job each */
+const embedUpload = { inputs: [] as string[], texts: 0 };
+const isEmbed = () => pressed("modes") === "embed";
+// embeddings are priced like any program job: by their time limit (60 s)
+const isProgram = () => pressed("modes") === "program" || isEmbed();
+const timeoutS = () => (isEmbed() ? 60 : Number(input("timeout").value || 60));
 const SPEEDS = [{ x: 1, name: "Normal" }, { x: 2, name: "Faster" }, { x: 5, name: "Fastest" }];
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -127,7 +134,7 @@ function pickRepeats(n: string): void {
 
 function pickSpeed(x: string): void {
   press("speeds", x);
-  const min = isProgram() ? Number(config.min_bid) * Math.ceil(Number(input("timeout").value || 60) / 30) : Number(config.min_bid);
+  const min = isProgram() ? Number(config.min_bid) * Math.ceil(timeoutS() / 30) : Number(config.min_bid);
   input("bid").value = String(min * Number(x));
   changed();
 }
@@ -155,6 +162,9 @@ async function uploadFile(file: Blob): Promise<string> {
 }
 
 function programSpec() {
+  if (isEmbed()) {
+    return { kind: "embed", model: $<HTMLSelectElement>("embed-model").value, inputs: embedUpload.inputs, redundancy: Number($<HTMLSelectElement>("embed-redundancy").value) };
+  }
   const p = upload.program!;
   const byFiles = pressed("input-modes") === "files";
   const tolerance = input("tolerance").value.trim();
@@ -170,9 +180,29 @@ function programSpec() {
   };
 }
 
+/**
+ * Texts from a file: a JSON array of strings, JSON lines (a string or {"text": ...} per line), or plain text with one
+ * text per line. Blank lines are skipped.
+ */
+function parseTexts(name: string, body: string): string[] {
+  const clean = (xs: unknown[]) => xs.map((x) => (typeof x === "string" ? x : typeof (x as { text?: unknown })?.text === "string" ? (x as { text: string }).text : "")).map((t) => t.trim()).filter(Boolean);
+  let texts: string[];
+  if (/\.json$/i.test(name)) {
+    const data = JSON.parse(body);
+    if (!Array.isArray(data)) throw new Error("a .json file should be an array of texts");
+    texts = clean(data);
+  } else if (/\.jsonl$/i.test(name)) {
+    texts = clean(body.split(/\r?\n/).filter((l) => l.trim()).map((l) => JSON.parse(l)));
+  } else {
+    texts = clean(body.split(/\r?\n/));
+  }
+  if (!texts.length) throw new Error("no texts found in that file");
+  return texts;
+}
+
 /** Speed choices show this mode's price: a program's lowest price grows with its time limit. */
 function speedLabels(): void {
-  const min = isProgram() ? Number(config.min_bid) * Math.ceil(Number(input("timeout").value || 60) / 30) : Number(config.min_bid);
+  const min = isProgram() ? Number(config.min_bid) * Math.ceil(timeoutS() / 30) : Number(config.min_bid);
   for (const b of $("speeds").querySelectorAll<HTMLButtonElement>(".choice")) {
     b.querySelector("small")!.textContent = `${fmt(min * Number(b.dataset.key))} per ${isProgram() ? "job" : "run"}`;
   }
@@ -180,16 +210,19 @@ function speedLabels(): void {
 
 function setMode(key: string): void {
   press("modes", key);
-  const program = key === "program";
-  $("headline").textContent = program ? "Run your own code on the network" : "Run an experiment on the fly brain";
-  $("lede").textContent = program
+  const program = key === "program" || key === "embed";
+  $("headline").textContent = key === "embed" ? "Embed your texts on the network" : program ? "Run your own code on the network" : "Run an experiment on the fly brain";
+  $("lede").textContent = key === "embed"
+    ? "Upload texts and get back one vector per text, for search, clustering or RAG. Miners' GPUs run the model, and two of them must agree on every vector. You pay in $FLYAI only for batches that finish."
+    : program
     ? "Upload a WebAssembly program or a GPU shader and as many inputs as you like. Miners run it in their browsers, sandboxed, and send back the outputs. You pay in $FLYAI only for jobs that finish, and most of it goes straight to the miners who ran them."
     : $("lede").dataset.brain!;
   $("speed-card").style.gridColumn = program ? "1 / -1" : "";
   speedLabels();
   $("brain-card").hidden = program;
   $("repeats-card").hidden = program;
-  $("program-card").hidden = !program;
+  $("program-card").hidden = key !== "program";
+  $("embed-card").hidden = key !== "embed";
   $("brain-advanced").hidden = program;
   changed();
 }
@@ -223,12 +256,29 @@ let quoting = 0;
 async function requote(): Promise<void> {
   const n = ++quoting;
   try {
+    if (isEmbed()) {
+      if (!embedUpload.inputs.length) throw new Error("Upload a text file to see the price.");
+      const speed = Number(pressed("speeds") ?? 0);
+      if (speed) input("bid").value = String(Number(config.min_bid) * Math.ceil(timeoutS() / 30) * speed);
+      const q = await api(API, "/api/orders/quote", null, { spec: programSpec(), bid: input("bid").value.trim() || undefined });
+      if (n !== quoting) return;
+      spec = programSpec();
+      fullCost = Number(q.full_cost);
+      const budget = input("budget").value.trim();
+      $("summary").innerHTML = [
+        `<b>${count(embedUpload.texts)} texts</b> in ${count(q.jobs)} batches with ${$<HTMLSelectElement>("embed-model").value}, at ${fmt(q.bid)} a batch.`,
+        budget && Number(budget) < fullCost ? `It stops after spending <b>${fmt(budget)}</b>.` : `It costs at most <b>${fmt(q.full_cost)}</b>, and ${fmt(q.full_to_pool)} goes straight to the miners who run it.`,
+      ].join(" ") + dollars(fullCost);
+      $("note").textContent = "";
+      setButtons();
+      return;
+    }
     if (isProgram()) {
       if (!upload.program) throw new Error("Upload a program to see the price.");
       if (pressed("input-modes") === "files" && !upload.inputs.length && !input("keep-open").checked) throw new Error("Upload input files, or pick a number of jobs.");
       // a program's lowest price grows with its time limit; the speed choice multiplies it
       const speed = Number(pressed("speeds") ?? 0);
-      const min = Number(config.min_bid) * Math.ceil(Number(input("timeout").value || 60) / 30);
+      const min = Number(config.min_bid) * Math.ceil(timeoutS() / 30);
       if (speed) input("bid").value = String(min * speed);
       const q = await api(API, "/api/orders/quote", null, { spec: programSpec(), bid: input("bid").value.trim() || undefined });
       if (n !== quoting) return;
@@ -501,6 +551,7 @@ async function showPayCard(id: string): Promise<void> {
 function describe(o: Order): string {
   const s = o.spec;
   if (o.kind === "wasm" || o.kind === "wgsl") return `your ${o.kind === "wasm" ? "WebAssembly program" : "GPU shader"}`;
+  if (o.kind === "embed") return `embeddings with ${(s as unknown as { program: string }).program}`;
   const senses = s.channels.map((c) => SENSES[c] ?? c).join(", ");
   return `${senses} · ${s.seeds.length} repeat${s.seeds.length === 1 ? "" : "s"}`;
 }
@@ -680,6 +731,40 @@ async function boot(): Promise<void> {
     changed();
   });
   press("input-modes", "count");
+  // embeddings: the models the server offers, and a text file split into batches (one job each)
+  $<HTMLSelectElement>("embed-model").replaceChildren(...Object.entries(config.embed?.models ?? {}).map(([id, m]) => new Option(`${id}: ${m.about}`, id)));
+  let embedRun = 0;
+  const embedFile = async () => {
+    const file = input("embed-file").files?.[0];
+    if (!file) return;
+    // a newer file or batch size replaces an upload still running
+    const run = ++embedRun;
+    embedUpload.inputs = [];
+    embedUpload.texts = 0;
+    const inputs: string[] = [];
+    try {
+      const texts = parseTexts(file.name, await file.text());
+      const size = Number($<HTMLSelectElement>("embed-batch").value);
+      const limit = config.embed?.max_text_chars ?? 8000;
+      for (let i = 0; i < texts.length; i += size) {
+        $("embed-status").textContent = `uploading batch ${i / size + 1} of ${Math.ceil(texts.length / size)}…`;
+        const batch = texts.slice(i, i + size).map((t) => t.slice(0, limit));
+        inputs.push(await uploadFile(new Blob([JSON.stringify(batch)], { type: "application/json" })));
+        if (run !== embedRun) return;
+      }
+      embedUpload.inputs = inputs;
+      embedUpload.texts = texts.length;
+      $("embed-status").textContent = `${file.name} · ${count(texts.length)} texts in ${count(embedUpload.inputs.length)} batches${texts.some((t) => t.length > limit) ? ` · texts over ${count(limit)} characters were cut` : ""}`;
+    } catch (err) {
+      if (run !== embedRun) return;
+      embedUpload.inputs = [];
+      $("embed-status").textContent = errorText(err);
+    }
+    changed();
+  };
+  input("embed-file").addEventListener("change", () => void embedFile());
+  $("embed-batch").addEventListener("change", () => void embedFile());
+  for (const id of ["embed-model", "embed-redundancy"]) $(id).addEventListener("change", changed);
   input("program-file").addEventListener("change", () => void (async () => {
     const file = input("program-file").files?.[0];
     if (!file) return;

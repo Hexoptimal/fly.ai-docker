@@ -656,3 +656,25 @@ button.step.toggle small { color: var(--dim); font: 12px var(--sans); }
 .merch-launched .fine { text-align: center; }
 .merch-actions { justify-content: center; margin: 14px 0 6px; }
 @media (max-width: 480px) { .merch-kinds { grid-template-columns: 1fr; } }
+
+/* merch gifts and Fly of the month */
+.gift-box { margin: 10px 0; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(242,181,68,.45); background: rgba(242,181,68,.08); }
+.gift-box p { margin: 0 0 8px; }
+p.gift-box { margin: 0 0 12px; }
+.merch-code { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
+.merch-code .fine { width: auto; margin: 0; }
+.merch-code input { font: 500 14px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text);
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; width: 150px; }
+.merch-claim-lede { margin: 12px auto 4px; }
+.merch-board { margin-bottom: 16px; }
+.merch-board .meme-board { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.merch-board-img { background: radial-gradient(circle at 50% 40%, #1a2230, #0b0f15 70%); object-fit: contain !important; }
+.merch-champ { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; margin: 0 0 12px; padding: 12px 16px;
+  border-radius: 12px; border: 1px solid rgba(242,181,68,.5); background: linear-gradient(135deg, rgba(242,181,68,.16), rgba(242,181,68,.03));
+  color: var(--text); cursor: pointer; }
+.merch-champ > span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.merch-champ b { font: 700 20px var(--display); }
+.merch-champ .fine { margin: 0; }
+.merch-champ-cup { font-size: 34px; }
+.trophy { margin-left: 10px; vertical-align: middle; font: 600 12px var(--sans); color: #f2b544; text-decoration: none;
+  border: 1px solid rgba(242,181,68,.5); border-radius: 99px; padding: 3px 9px; white-space: nowrap; }

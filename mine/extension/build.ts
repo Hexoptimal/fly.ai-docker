@@ -46,6 +46,12 @@ for (const file of SCRIPTS) {
   const code = stripTypeScriptTypes(readFileSync(join(REPO, file), "utf8"), { mode: "strip" });
   write(join(DIST, file.replace(/\.ts$/, ".js")), code.replace(RELATIVE_TS, "$1$2.js$1"));
 }
+// embeddings load their model code from a CDN, which extensions may not do: the extension never asks for embed jobs
+// (offscreen.ts), and ships a worker that refuses, so no remote code is in the package at all
+write(join(DIST, "mine/web/embed.worker.js"),
+  `// the extension doesn't run embedding jobs (their model code comes from a CDN); see mine/extension/build.ts
+self.onmessage = () => self.postMessage({ type: "error", text: "embeddings run on the website only" });
+`);
 for (const [from, to] of STATIC) {
   mkdirSync(dirname(join(DIST, to)), { recursive: true });
   copyFileSync(join(REPO, from), join(DIST, to));

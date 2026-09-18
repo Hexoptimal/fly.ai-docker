@@ -11,6 +11,10 @@ products in the "Fly Merch" collection of shop.flyaiworld.com (Fourthwall). Owne
     sales    this worker reads the shop's orders (updated since its cursor) and records every line of a fly product:
              profit = (unit price - unit cost) x quantity, owner cut = profit x SHARE.
     payouts  by hand: `payouts` lists what each owner is owed, `paid` records a payout.
+    cards    every order of fly merch gets a one-use claim code; its thank-you card (a PNG with a QR code) is attached
+             to the order on Fourthwall, which emails it to the buyer. The code hatches one free "gift" fly.
+    awards   on the 1st of the month, last month's best-selling fly is Fly of the month: its products move to the
+             front of the collection, and its owner gets AWARD_POINTS season points (merch_awards).
 
     python flybook/worker/merch.py run                 # the fly.io "merch" process: make products + sync orders
     python flybook/worker/merch.py sync                # sync orders once
@@ -18,6 +22,7 @@ products in the "Fly Merch" collection of shop.flyaiworld.com (Fourthwall). Owne
     python flybook/worker/merch.py remove ID           # archive a design's products and hide it
     python flybook/worker/merch.py payouts             # what each owner is owed
     python flybook/worker/merch.py paid OWNER --tx 0x.. [--tokens N] [--note ..]   # record a payout of all they're owed
+    python flybook/worker/merch.py card DESIGN_ID OUT.png                          # draw a sample thank-you card
 
 Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, FOURTHWALL_USER, FOURTHWALL_PASSWORD, OPENROUTER_API_KEY (drawing),
 FLYBOOK_MERCH_FEE, FLYBOOK_MERCH_TREASURY, FLYBOOK_MERCH_SHARE, FLYBOOK_MERCH_PUBLISH.
@@ -47,6 +52,9 @@ SHARE = float(os.environ.get("FLYBOOK_MERCH_SHARE", "0.4"))                 # th
 PUBLISH = os.environ.get("FLYBOOK_MERCH_PUBLISH", "1") == "1"               # 0: products stay hidden until published by hand
 DRAFTS_PER_DAY = 3                 # designs drawn per person per UTC day (each costs an image)
 DAILY_CAP = int(os.environ.get("FLYBOOK_MERCH_DAILY_CAP", "40"))           # designs drawn per UTC day, everyone together
+AWARD_POINTS = int(os.environ.get("FLYBOOK_MERCH_AWARD_POINTS", "300"))   # season points for Fly of the month
+CARD_DAYS = 14                     # keep trying to attach an order's thank-you card this long
+CLAIM_URL = "https://flyaiworld.com/flybook/#claim-"
 MAX_ATTEMPTS = 3                   # the worker gives up on a design after this many failed makes
 PAYABLE_AFTER_DAYS = 30            # sales count toward a payout once shipped, or this old (returns window)
 SHOP = "https://shop.flyaiworld.com"
@@ -161,13 +169,14 @@ def prompt(fly: dict, style: str, idea: str | None) -> str:
             "No text, no letters, no numbers, no logos, no watermark, no real people.")
 
 
-def _font(text: str, width: int, start: int) -> ImageFont.FreeTypeFont:
+def _font(text: str, width: int, start: int, smallest: int = 60) -> ImageFont.FreeTypeFont:
+    """Anton at `start` px, or smaller (down to `smallest`) until the text fits `width`."""
     probe = ImageDraw.Draw(Image.new("L", (1, 1)))
-    for size in range(start, 60, -8):
+    for size in range(start, smallest, -2 if start < 80 else -8):
         font = ImageFont.truetype(str(FONT), size)
         if probe.textlength(text, font=font) <= width:
             return font
-    return ImageFont.truetype(str(FONT), 60)
+    return ImageFont.truetype(str(FONT), min(start, smallest))
 
 
 def compose(art: bytes, name: str | None, color: str) -> tuple[bytes, bytes]:
@@ -438,6 +447,10 @@ def sync_orders() -> int:
             if rows:
                 db("POST", "merch_sales?on_conflict=order_id,variant_id,fourthwall_id", "resolution=merge-duplicates", json=rows)
                 saved += len(rows)
+                if order.get("status") != "CANCELLED":   # one free-fly code per order, for its thank-you card
+                    db("POST", "merch_claims?on_conflict=order_id", "resolution=ignore-duplicates", json={
+                        "code": new_code(), "order_id": order["id"], "design_id": rows[0]["design_id"],
+                        "fly_id": fly_of_design(rows[0]["design_id"])})
         page += 1
         if page >= got.get("totalPages", 1):
             break
@@ -446,6 +459,135 @@ def sync_orders() -> int:
         back = dt.datetime.fromisoformat(newest.replace("Z", "+00:00")) - dt.timedelta(minutes=1)
         set_state("orders_since", back.isoformat().replace("+00:00", "Z"))
     return saved
+
+
+# ---- thank-you cards and claim codes ----
+
+CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"   # no 0/O or 1/I
+
+
+def new_code() -> str:
+    return "".join(random.SystemRandom().choice(CODE_CHARS) for _ in range(8))
+
+
+def fly_of_design(design_id: int) -> str | None:
+    rows = db("GET", f"merch_designs?select=fly_id&id=eq.{design_id}")
+    return rows[0]["fly_id"] if rows else None
+
+
+def _line(draw: ImageDraw.ImageDraw, y: int, text: str, size: int, fill, width: int) -> int:
+    """Centre a line of Anton at y, shrinking it to fit; returns the y below it."""
+    font = _font(text, width - 100, size, smallest=16)
+    draw.text(((width - draw.textlength(text, font=font)) / 2, y), text, font=font, fill=fill)
+    return y + int(font.size * 1.3)
+
+
+def card(design: dict, fly_name: str, code: str) -> bytes:
+    """The thank-you card: the design, the fly's name, and a QR code for the buyer's free fly. 1080 x 1350 PNG."""
+    import segno
+    W, H = 1080, 1350
+    img = Image.new("RGB", (W, H), (11, 15, 21))
+    draw = ImageDraw.Draw(img)
+    green, white, grey = (61, 220, 132), (238, 241, 245), (149, 160, 174)
+    y = _line(draw, 80, "THANK YOU FOR YOUR ORDER", 60, green, W)
+    art = Image.open(io.BytesIO(requests.get(public_url(design["print_path"]), timeout=120).content)).convert("RGBA")
+    art.thumbnail((560, 560), Image.LANCZOS)
+    img.paste(art, ((W - art.width) // 2, y + 6), art)
+    y += art.height + 36
+    y = _line(draw, y, f"MEET {fly_name.upper()}", 70, white, W)
+    y = _line(draw, y, "A SIMULATED FRUIT FLY BRAIN THAT LIVES ON FLYBOOK", 32, grey, W)
+    buf = io.BytesIO()
+    segno.make(CLAIM_URL + code, error="m").save(buf, kind="png", scale=10, border=2, dark="#0b0f15", light="#ffffff")
+    qr = Image.open(buf).convert("RGB").resize((300, 300), Image.NEAREST)
+    top = y + 40
+    img.paste(qr, (120, top))
+    for dy, text, size, fill in [(10, "SCAN FOR YOUR", 46, white), (66, "OWN FREE FLY", 46, green),
+                                 (146, "OR GO TO FLYAIWORLD.COM/FLYBOOK", 26, grey), (186, "AND ENTER", 26, grey),
+                                 (226, f"CODE  {code}", 42, green)]:
+        draw.text((460, top + dy), text, font=ImageFont.truetype(str(FONT), size), fill=fill)
+    out = io.BytesIO()
+    img.save(out, "PNG", optimize=True)
+    return out.getvalue()
+
+
+def waiting_thank_yous() -> dict[str, str]:
+    """Fourthwall orders still waiting for a thank-you: order id -> contribution id."""
+    found, page = {}, 0
+    while True:
+        got = fw("GET", "thank-you-contributions", params={"page": page, "size": 100, "state": "WAITING"})
+        for c in got.get("results", []):
+            found[c["orderId"]] = c["id"]
+        page += 1
+        if page >= got.get("totalPages", 1):
+            return found
+
+
+def send_cards() -> int:
+    """Attach the thank-you card to every recent order that has a code but no card yet."""
+    since = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=CARD_DAYS)).isoformat()
+    todo = db("GET", f"merch_claims?select=*&card_sent_at=is.null&created_at=gte.{requests.utils.quote(since)}")
+    if not todo:
+        return 0
+    waiting, sent = waiting_thank_yous(), 0
+    for claim in todo:
+        contribution = waiting.get(claim["order_id"])
+        if not contribution or not claim.get("design_id"):
+            continue          # Fourthwall hasn't listed the order yet, or it was thanked by hand
+        design = db("GET", f"merch_designs?select=id,print_path&id=eq.{claim['design_id']}")[0]
+        fly = (db("GET", f"flies?select=name&id=eq.{claim['fly_id']}") or [{"name": "a Flybook fly"}])[0]
+        png = card(design, fly["name"], claim["code"])
+        r = requests.post(f"{FW}/thank-you-contributions/{contribution}", timeout=120,
+                          auth=(env("FOURTHWALL_USER"), env("FOURTHWALL_PASSWORD")),
+                          files={"file": (f"flybook-{claim['code']}.png", png, "image/png")})
+        if not r.ok:
+            print(f"thank-you card for order {claim['order_id']} failed: {r.status_code} {r.text[:200]}", flush=True)
+            continue
+        db("PATCH", f"merch_claims?code=eq.{claim['code']}", json={"card_sent_at": dt.datetime.now(dt.timezone.utc).isoformat()})
+        sent += 1
+    return sent
+
+
+# ---- Fly of the month ----
+
+def award_last_month(today: dt.date | None = None) -> dict | None:
+    """Pick last month's Fly of the month once: the design with the most items sold (earliest first sale breaks a tie).
+    Record it with its season points and move its products to the front of the shop's collection."""
+    today = today or dt.datetime.now(dt.timezone.utc).date()
+    this = today.replace(day=1)
+    last = (this - dt.timedelta(days=1)).replace(day=1)
+    if db("GET", f"merch_awards?select=month&month=eq.{last.isoformat()}"):
+        return None
+    sales = db("GET", f"merch_sales?select=design_id,quantity,ordered_at&status=neq.CANCELLED"
+                      f"&ordered_at=gte.{last.isoformat()}&ordered_at=lt.{this.isoformat()}")
+    if not sales:
+        return None
+    totals: dict[int, list] = {}
+    for s in sales:
+        t = totals.setdefault(s["design_id"], [0, s["ordered_at"]])
+        t[0] += s["quantity"]
+        t[1] = min(t[1], s["ordered_at"])
+    design_id, (sold, _) = min(totals.items(), key=lambda kv: (-kv[1][0], kv[1][1]))
+    design = db("GET", f"merch_designs?select=id,fly_id,user_id&id=eq.{design_id}")[0]
+    award = {"month": last.isoformat(), "design_id": design_id, "fly_id": design["fly_id"], "owner": design["user_id"],
+             "sold": sold, "points": AWARD_POINTS}
+    db("POST", "merch_awards", json=award)
+    try:
+        feature(design_id)
+    except Exception as e:
+        print(f"couldn't feature design {design_id} in the shop: {e}", flush=True)
+    print(f"fly of the month {last:%Y-%m}: design {design_id}, {sold} sold", flush=True)
+    return award
+
+
+def feature(design_id: int) -> None:
+    """Put a design's products first in the Fly Merch collection."""
+    cid = state("collection_id")
+    if not cid:
+        return
+    first = [p["fourthwall_id"] for p in db("GET", f"merch_products?select=fourthwall_id&design_id=eq.{design_id}")]
+    got = fw("GET", f"collections/{cid}/products?page=0&size=100")
+    others = [p["id"] for p in got.get("results", []) if p["id"] not in first]
+    fw("PUT", f"collections/{cid}/products", json={"offerIds": first + others})
 
 
 def payable(sale: dict) -> bool:
@@ -509,6 +651,16 @@ def run(make_every: float = 20, sync_every: float = 300) -> None:
                     print(f"synced {n} sale lines", flush=True)
             except Exception as e:
                 print(f"order sync failed: {e}", flush=True)
+            try:
+                n = send_cards()
+                if n:
+                    print(f"sent {n} thank-you cards", flush=True)
+            except Exception as e:
+                print(f"thank-you cards failed: {e}", flush=True)
+            try:
+                award_last_month()
+            except Exception as e:
+                print(f"fly of the month failed: {e}", flush=True)
         time.sleep(make_every)
 
 
@@ -527,6 +679,9 @@ def main() -> None:
     pd.add_argument("--tx")
     pd.add_argument("--tokens", type=float)
     pd.add_argument("--note")
+    cd = sub.add_parser("card")
+    cd.add_argument("id", type=int)
+    cd.add_argument("out")
     args = p.parse_args()
     if args.cmd == "run":
         run()
@@ -545,6 +700,10 @@ def main() -> None:
                   f"pending ${o['pending']:.2f}")
     elif args.cmd == "paid":
         record_payout(args.owner, args.tx, args.tokens, args.note)
+    elif args.cmd == "card":
+        design = db("GET", f"merch_designs?select=id,print_path,fly_id&id=eq.{args.id}")[0]
+        fly = (db("GET", f"flies?select=name&id=eq.{design['fly_id']}") or [{"name": "a fly"}])[0]
+        Path(args.out).write_bytes(card(design, fly["name"], new_code()))
 
 
 if __name__ == "__main__":

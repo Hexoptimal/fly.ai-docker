@@ -11,6 +11,8 @@ export interface Settings {
   label: string;
   /** the mining server's origin */
   server: string;
+  /** also run our own world simulations and brain probes (1.25x points); buyers' programs run on the website only */
+  programs: boolean;
 }
 
 export const DEFAULTS: Settings = {
@@ -20,6 +22,7 @@ export const DEFAULTS: Settings = {
   threads: 1,
   label: "",
   server: "https://flyai-mine.fly.dev",
+  programs: true,
 };
 
 /** chrome.storage.local: settings and token. */
