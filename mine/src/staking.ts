@@ -37,6 +37,7 @@ export const STAKE_SELECTORS = {
   stakedOf: selector("stakedOf(address)"),
   unstaking: selector("unstaking(address)"),
   cooldown: selector("cooldown()"),
+  totalStaked: selector("totalStaked()"),
   approve: selector("approve(address,uint256)"),
   allowance: selector("allowance(address,address)"),
   balanceOf: selector("balanceOf(address)"),

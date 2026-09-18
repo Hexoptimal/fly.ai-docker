@@ -2366,12 +2366,23 @@ function checkProgram(spec: OpenSpec): string {
 }
 
 const uploads = new Map<string, { at: number; bytes: number }[]>();
-/** POST /api/blobs with the raw bytes: → {hash, size, url}. Limits per IP: 600 uploads and 2 GB an hour. */
+/** Whether the request carries the admin token (the house bridges do), without throwing. */
+function isAdmin(req: IncomingMessage): boolean {
+  try {
+    adminOnly(req);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** POST /api/blobs with the raw bytes: → {hash, size, url}. Limits per IP: 600 uploads and 2 GB an hour,
+ *  except for admin uploads: the mining bridges upload one input per job, far more than that. */
 async function upload(req: IncomingMessage) {
   const ip = clientIp(req);
   const hourAgo = Date.now() - 3_600_000;
   const recent = (uploads.get(ip) ?? []).filter((u) => u.at > hourAgo);
-  if (recent.length >= 600 || recent.reduce((sum, u) => sum + u.bytes, 0) > 2e9) throw new HttpError(429, "too many uploads from this address, try later");
+  if (!isAdmin(req) && (recent.length >= 600 || recent.reduce((sum, u) => sum + u.bytes, 0) > 2e9)) throw new HttpError(429, "too many uploads from this address, try later");
   const declared = Number(req.headers["content-length"] ?? 0);
   if (declared > BLOB_MAX_BYTES) throw new HttpError(413, `uploads are at most ${BLOB_MAX_BYTES} bytes`);
   const chunks: Buffer[] = [];
@@ -2619,6 +2630,34 @@ function houseOrdersView() {
   return houseOrders(null);
 }
 
+/**
+ * GET /api/mining: what the project's own mining has done. Jobs come from the mining/* house orders; what the
+ * pools owe us comes from the bridge app (BRIDGE_URL), which reads the pools' public stats. Cached for a minute.
+ */
+const BRIDGE_URL = env("BRIDGE_URL", "https://flyai-bridge.fly.dev");
+let miningCache: { at: number; pools: any } | null = null;
+async function miningView() {
+  if (!miningCache || Date.now() - miningCache.at > 60_000) {
+    const pools = await fetch(`${BRIDGE_URL}/mining`, { signal: AbortSignal.timeout(15_000) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body) => (Array.isArray(body?.coins) ? body : null))
+      .catch(() => null);
+    // a bridge that's away keeps the last good answer rather than blanking the page
+    miningCache = { at: Date.now(), pools: pools ?? miningCache?.pools ?? null };
+  }
+  const jobs = new Map<string, { jobs: number; settled: number; live: boolean }>();
+  for (const o of houseOrders(null).orders) {
+    if (!o.label?.startsWith("mining/")) continue;
+    const j = jobs.get(o.label) ?? { jobs: 0, settled: 0, live: false };
+    jobs.set(o.label, { jobs: j.jobs + o.jobs, settled: j.settled + o.settled, live: j.live || o.status === "live" });
+  }
+  const coins = ((miningCache.pools?.coins ?? []) as any[]).map((c) => {
+    const j = jobs.get(`mining/${c.algo}`) ?? jobs.get(`mining/${c.name}`);
+    return { ...c, jobs_settled: j?.settled ?? 0, live: j?.live ?? false };
+  });
+  return { updated_at: miningCache.pools?.updated_at ?? null, coins, pools_reachable: !!miningCache.pools };
+}
+
 /** A settled program job as a result row. */
 function programRow(p: any, s: { result: string; by: string }) {
   const r = JSON.parse(s.result);
@@ -2729,6 +2768,7 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
       return send(res, 200, relayer ? { address: relayer.address, chain: USDC.chain_name, gas_wei: (await relayer.balance()).toString() } : { address: null });
     }
     if (p === "/api/house") return send(res, 200, houseOrdersView());
+    if (p === "/api/mining") return send(res, 200, await miningView());
     if ((m = /^\/connectome\/(brain\.json|meta\.bin|weights\.\d+\.bin)$/.exec(p))) return serveFile(res, join(CONNECTOME_DIR, m[1]), 3600);
     if (p === "/api/model") return send(res, 200, loaded().model);
     if (p === "/api/me") return send(res, 200, me(minerOf(req)));

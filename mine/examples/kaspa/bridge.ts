@@ -157,10 +157,18 @@ async function call(path: string, body?: unknown, admin = false): Promise<any> {
   return json;
 }
 
+/** Uploads as admin (no per-IP cap). A busy or restarting server is waited out, not fatal. */
 async function upload(bytes: Uint8Array): Promise<string> {
-  const res = await fetch(`${SERVER}/api/blobs`, { method: "POST", body: bytes as BodyInit });
-  if (!res.ok) throw new Error(`upload: ${(await res.json().catch(() => ({}))).error ?? res.status}`);
-  return (await res.json()).hash as string;
+  for (let wait = 5; ; wait = Math.min(wait * 2, 120)) {
+    const res = await fetch(`${SERVER}/api/blobs`, {
+      method: "POST", body: bytes as BodyInit, headers: ADMIN ? { authorization: `Bearer ${ADMIN}` } : {},
+    }).catch(() => null);
+    if (res?.ok) return (await res.json()).hash as string;
+    const why = res ? (await res.json().catch(() => ({}))).error ?? `HTTP ${res.status}` : "server unreachable";
+    if (res && res.status !== 429 && res.status < 500) throw new Error(`upload: ${why}`);
+    log(`upload: ${why}; retrying in ${wait}s`);
+    await new Promise((r) => setTimeout(r, wait * 1000));
+  }
 }
 
 async function openOrder(): Promise<string> {

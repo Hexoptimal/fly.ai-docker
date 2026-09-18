@@ -20,6 +20,9 @@
  *     points a settled mining job earns. They are set so that a mining job pays what the brain job it displaces
  *     would have paid for the same seconds of the miner's machine (times PROGRAM_BONUS on top), which is why they
  *     look large: a yespower job is 82 s of one thread, a Kaspa job about 1.5 s of a desktop GPU.
+ *
+ * GET /mining answers what each pool says it owes our payout address (pending + paid, in the coin and in USD),
+ * read from the pools' public stats and cached for 5 minutes. The mining server's /api/mining passes it on.
  */
 import { spawn, type ChildProcess } from "node:child_process";
 import { createServer } from "node:http";
@@ -79,8 +82,81 @@ function run(b: Bridge): void {
 }
 for (const b of bridges) run(b);
 
+// ---- what the pools owe us -------------------------------------------------------------------------------
+// Each pool's own public stats for our payout address, so the numbers are the pool's, not our share counts.
+interface Earned {
+  name: string; algo: string; coin: string; pool: string; address: string;
+  pending: number | null; paid: number | null; earned: number | null; usd: number | null; error?: string;
+}
+const COINGECKO: Record<string, string> = { BTC: "bitcoin", KAS: "kaspa" };
+const payout = (user: string) => user.split(".")[0];
+
+async function getJson(url: string): Promise<any> {
+  const res = await fetch(url, { signal: AbortSignal.timeout(10_000), headers: { accept: "application/json" } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function poolEarned(name: string, algo: string, poolUrl: string, user: string, pass: string): Promise<Earned> {
+  const host = poolUrl.replace(/^stratum\+\w+:\/\//, "").split(":")[0];
+  const address = payout(user);
+  const base = { name, algo, pool: host, address };
+  try {
+    if (host.endsWith("zpool.ca")) {
+      // zpool pays in the currency named by c= in the password; amounts are in that coin
+      const coin = /(?:^|,)c=([A-Z]+)/.exec(pass)?.[1] ?? "BTC";
+      const w = await getJson(`https://zpool.ca/api/wallet?address=${encodeURIComponent(address)}`);
+      if (w.error) throw new Error(String(w.error));
+      const pending = Number(w.unpaid ?? w.balance ?? 0) + Number(w.unsold ?? 0);
+      const paid = Number(w.paidtotal ?? 0);
+      return { ...base, coin, pending, paid, earned: pending + paid, usd: null };
+    }
+    if (host.endsWith("herominers.com")) {
+      // HeroMiners amounts are in the coin's smallest unit (1e8 for Kaspa)
+      const coin = host.startsWith("kaspa") ? "KAS" : host.split(".")[0].toUpperCase();
+      const w = await getJson(`https://${host}/api/stats_address?address=${encodeURIComponent(address)}`);
+      const pending = Number(w.stats?.balance ?? 0) / 1e8;
+      const paid = Number(w.stats?.paid ?? 0) / 1e8;
+      return { ...base, coin, pending, paid, earned: pending + paid, usd: null };
+    }
+    return { ...base, coin: "?", pending: null, paid: null, earned: null, usd: null, error: "this pool's stats aren't read yet" };
+  } catch (err) {
+    return { ...base, coin: "?", pending: null, paid: null, earned: null, usd: null, error: (err as Error).message };
+  }
+}
+
+let earnedCache: { at: number; body: unknown } | null = null;
+async function mining(): Promise<unknown> {
+  if (earnedCache && Date.now() - earnedCache.at < 300_000) return earnedCache.body;
+  const coins = await Promise.all([
+    ...(env("YESPOWER_POOL") && env("YESPOWER_USER") ? [poolEarned("yespower", env("YESPOWER_COIN", "yescrypt"), env("YESPOWER_POOL"), env("YESPOWER_USER"), env("YESPOWER_PASS", "x"))] : []),
+    ...(env("KASPA_POOL") && env("KASPA_USER") ? [poolEarned("kaspa", "kheavyhash", env("KASPA_POOL"), env("KASPA_USER"), env("KASPA_PASS", "x"))] : []),
+  ]);
+  const ids = [...new Set(coins.map((c) => COINGECKO[c.coin]).filter(Boolean))];
+  const prices = ids.length
+    ? await getJson(`https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(",")}&vs_currencies=usd`).catch(() => ({}))
+    : {};
+  for (const c of coins) {
+    const price = prices[COINGECKO[c.coin]]?.usd;
+    if (c.earned !== null && typeof price === "number") c.usd = c.earned * price;
+  }
+  const body = { updated_at: new Date().toISOString(), coins };
+  earnedCache = { at: Date.now(), body };
+  return body;
+}
+
 // Fly wants something to health-check, and it doubles as a look at what the bridges are doing
 createServer((req, res) => {
+  if (req.url?.startsWith("/mining")) {
+    void mining().then((body) => {
+      res.writeHead(200, { "content-type": "application/json", "access-control-allow-origin": "*" });
+      res.end(JSON.stringify(body));
+    }, (err) => {
+      res.writeHead(502, { "content-type": "application/json" });
+      res.end(JSON.stringify({ error: (err as Error).message }));
+    });
+    return;
+  }
   res.writeHead(200, { "content-type": "application/json" });
   res.end(JSON.stringify({
     server: SERVER,

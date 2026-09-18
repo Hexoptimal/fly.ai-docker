@@ -228,5 +228,57 @@ onAccount((wallet) => {
   // signing in with a miner here whose wallet isn't linked yet links it (refresh does the same once /api/me is in)
   if (wallet && meLoaded && !linked && store.get(TOKEN_KEY)) void linkMiner();
 });
+const COIN_NAMES: Record<string, string> = { KAS: "Kaspa", BTC: "Bitcoin" };
+const LANES: Record<string, string> = { kaspa: "GPU", yespower: "CPU" };
+
+/** Each pool's public page for our payout address, so anyone can check the numbers. */
+function poolPage(c: { pool: string; address: string }): string | null {
+  if (c.pool.endsWith("zpool.ca")) return `https://zpool.ca/wallet/${c.address}`;
+  if (c.pool.endsWith("herominers.com")) return `https://${c.pool}/#/dashboard?addr=${c.address}`;
+  return null;
+}
+
+/** The project's own mining: jobs done by the fleet and what the pools say they owe us. */
+async function refreshMining(): Promise<void> {
+  let m: any;
+  try {
+    m = await api(API, "/api/mining", null);
+  } catch {
+    return; // server away; keep what's shown
+  }
+  if (!m.coins?.length) return;
+  $("mining-card").hidden = false;
+  $("mining-rows").replaceChildren(...m.coins.map((c: any) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    const k = document.createElement("span");
+    k.className = "k";
+    k.textContent = `${COIN_NAMES[c.coin] ?? c.coin} · ${c.algo} (${LANES[c.name] ?? c.name})`;
+    const v = document.createElement("span");
+    v.className = "v";
+    const digits = c.coin === "BTC" ? 8 : 2;
+    v.textContent = [
+      c.earned === null ? "pool stats unavailable" : `${c.earned.toFixed(digits)} ${c.coin}`,
+      c.usd === null || c.usd === undefined ? null : `≈ $${c.usd.toFixed(2)}`,
+      `${Number(c.jobs_settled).toLocaleString("en-US")} jobs`,
+      c.live ? null : "paused",
+    ].filter(Boolean).join(" · ");
+    if (c.pending) v.title = `${c.pending.toFixed(digits)} ${c.coin} pending, ${Number(c.paid ?? 0).toFixed(digits)} paid out`;
+    row.append(k, v);
+    return row;
+  }));
+  $("mining-links").replaceChildren(...m.coins.flatMap((c: any, i: number) => {
+    const url = poolPage(c);
+    const a = document.createElement("a");
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = c.pool.split(".").slice(-2).join(".");
+    if (url) a.href = url;
+    return i ? [document.createTextNode(" · "), a] : [a];
+  }));
+}
+
 refresh();
 setInterval(refresh, 20_000);
+void refreshMining();
+setInterval(() => void refreshMining(), 60_000);

@@ -10,7 +10,7 @@ import { shortAddress } from "./wallet.ts";
 interface Config {
   contract: string | null; token: string; rpc: string; explorer: string; chain_id: number; chain_name: string; token_symbol: string;
   tiers: { name: string; min: string; multiplier: number }[];
-  selectors: Record<"stake" | "requestUnstake" | "cancelUnstake" | "withdraw" | "stakedOf" | "unstaking" | "cooldown" | "approve" | "allowance" | "balanceOf", string>;
+  selectors: Record<"stake" | "requestUnstake" | "cancelUnstake" | "withdraw" | "stakedOf" | "unstaking" | "cooldown" | "totalStaked" | "approve" | "allowance" | "balanceOf", string>;
 }
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -47,7 +47,14 @@ function tierFor(staked: bigint) {
   return found;
 }
 
+/** Everyone's stake, shown whether or not a wallet is signed in. Tokens waiting to unstake don't count. */
+async function refreshTotal(): Promise<void> {
+  if (!config.contract) return;
+  $("total").textContent = tokens(BigInt(await read(config.contract, config.selectors.totalStaked ?? "0x817b1cd2")));
+}
+
 async function refresh(): Promise<void> {
+  void refreshTotal().catch(() => {});
   if (!account || !config.contract) return;
   const [staked, unstaking, balance, cooldown] = await Promise.all([
     read(config.contract, data(config.selectors.stakedOf, account)),
@@ -120,6 +127,7 @@ async function boot(): Promise<void> {
     const link = $<HTMLAnchorElement>("contract-link");
     link.href = `${config.explorer}/address/${config.contract}#code`;
     link.textContent = config.contract;
+    void refreshTotal().catch(() => { $("total").textContent = "—"; });
   }
   if (!config.contract) $("note").textContent = "Staking isn't live yet. Until it is, every miner's points count 1×.";
 
