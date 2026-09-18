@@ -52,7 +52,11 @@ STABLE_FEE = 0.0001            # a stablecoin swap (real stable pools charge ~0.
 CASH_START = 2500.0            # fallback start: a new wallet gets 1 ETH's worth of paper USDG (set_eth_usd), ~this
 _eth_usd = [CASH_START]        # the latest real ETH price, for new wallets
 MIN_TRADE_ETH = 2.5            # smallest trade, in paper dollars: ~0.1% of a starting wallet, as 0.001 ETH was
-LAUNCHES = os.environ.get("FLYBOOK_FLY_COINS", "0") == "1"   # fly-made coins, shills and FUD (off since 2026-09-18)
+LAUNCHES = os.environ.get("FLYBOOK_FLY_COINS", "0") == "1"
+# Field of view (live market, 2026-09-18): each round a fly watches VIEW tokens, drawn at random weighted by its tubes
+# (what paid before is likelier to be in view), plus everything it holds. With every fly seeing every token, the first
+# real-price round had all 84 trades buy the same top mover.
+VIEW = int(os.environ.get("FLYBOOK_MARKET_VIEW", "6"))   # fly-made coins, shills and FUD (off since 2026-09-18)
 HISTORY = 4                    # rounds of prices used for momentum (3-round moves)
 PROFILE_FITS_PER_ROUND = 2
 PAM_PER_DOPAMINE = 0.3
@@ -234,12 +238,15 @@ def new_portfolio(fly_id: str) -> dict:
 
 
 def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, mind: dict, learning: dict | None = None,
-         social: dict | None = None, mood: dict | None = None, encoder: str = "v1", vols: dict | None = None) -> dict:
+         social: dict | None = None, mood: dict | None = None, encoder: str = "v1", vols: dict | None = None,
+         view: set | None = None) -> dict:
     """What the market does to this fly's senses: amounts in stimulus units, after its settings and learned gains.
     A learner switched off is not used: dopamine off ignores learned gains, tubes off ignores tube thickness.
     social (launches.social_drive): shills and FUD from flies it has a relationship with; when that hits harder than the
     price moves, the shilled coin becomes the moving target, and a FUDed coin it holds becomes the looming shape."""
     learning = ALL_LEARNING if learning is None else learning
+    if view is not None:                                     # it only senses the tokens in its field of view
+        prices = {s: p for s, p in prices.items() if s in view}
     old = history[-1] if history else {}
     moves = {s: prices[s] / old[s] - 1 for s in prices if old.get(s)}
     last = history[0] if history else {}
@@ -312,6 +319,19 @@ def felt(portfolio: dict, prices: dict, history: list[dict], settings: dict, min
             out[sense]["amount"] = round(min(top, out[sense]["amount"] + amount(sense, strength)), 4)
             out[sense]["mood"] = strength
     return out
+
+
+def field_of_view(portfolio: dict, mind: dict, symbols: list[str], k: int, rng: random.Random, tubes_on: bool) -> set:
+    """k tokens drawn without replacement, weighted by the fly's tube to each (1 when tubes are off), plus its holdings."""
+    held = {s for s, h in portfolio["holdings"].items() if h["qty"] > 0}
+    pool = [s for s in symbols if s not in held]
+    seen: set = set()
+    while pool and len(seen) < k:
+        weights = [minds.tube(mind, s) if tubes_on else 1.0 for s in pool]
+        pick = rng.choices(pool, weights=weights)[0]
+        seen.add(pick)
+        pool.remove(pick)
+    return seen | held
 
 
 def run_brains(eps, reader, settings: list[dict], drives: list[dict], rewards: list[float], seed: int):
@@ -466,8 +486,12 @@ def simulate_round(state: dict, eps, reader, rng: np.random.Generator, flies: li
             social = feedflow.merge(launches.social_drive(f["id"], social_in, bonds, live_symbols), feedflow.set_off(f["id"], mine, coins_of))
         if feed:
             mood = feedflow.mood(mine)
+        view = None
+        if state.get("view"):
+            view = field_of_view(state["portfolios"][f["id"]], state["minds"][f["id"]], list(prices), state["view"], py_rng,
+                                 own[f["id"]].get("tubes", True))
         return felt(state["portfolios"][f["id"]], prices, history, settings_of(f), state["minds"][f["id"]], own[f["id"]], social, mood,
-                    encoder=state.get("encoder", "v1"), vols=state.get("vols"))
+                    encoder=state.get("encoder", "v1"), vols=state.get("vols"), view=view)
     settings_of = lambda f: {k: f.get(k) or {} for k in ("senses", "temperament", "dials")}
 
     dopamine, own = {}, {}
@@ -555,7 +579,7 @@ def market_round(store, eps, reader, rng: np.random.Generator, flies: list[dict]
     moved, events = real_prices(tokens, live, vols)
     state = {"coins": tokens + fly_coins, "history": past[:HISTORY], "vols": vols,
              "portfolios": {p["fly_id"]: p for p in store.portfolios(ids)}, "minds": {m["fly_id"]: m for m in store.minds(ids)},
-             "launches": LAUNCHES, "social": [], "bonds": {}, "launch_budget": 0,
+             "launches": LAUNCHES, "social": [], "bonds": {}, "launch_budget": 0, "view": VIEW,
              "encoder": MARKET_ENCODER, "pick_ref": PICK_REF_V2 if MARKET_ENCODER == "v2" else None}
     if LAUNCHES:
         try:                               # relationships and last round's drama; the round still runs without them

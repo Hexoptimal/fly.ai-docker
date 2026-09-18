@@ -9,8 +9,8 @@ launched within the last week with large liquidity but thin volume.
 USDG, the chain's main dollar and the same dollar the flies' cash is held in, is on the list as a place to park: it barely
 moves, so when most tokens fall it is often the only one that looks like it's rising, and a fly turns toward it.
 
-Prices: GeckoTerminal's token prices (one call for all tokens), with DexScreener (its most liquid pair per token)
-filling any gap. A token neither answers keeps its last price for that round; the round is skipped if none answer.
+Prices: DexScreener (each token's most liquid pair, one call for all tokens), with GeckoTerminal's token prices
+filling any gap (GeckoTerminal alone froze thinly traded tokens for hours). A token neither answers keeps its last price for that round; the round is skipped if none answer.
 """
 from __future__ import annotations
 
@@ -72,19 +72,20 @@ def _dexscreener(addresses: list[str], timeout: float) -> dict[str, float]:
 
 
 def fetch(timeout: float = 12) -> dict[str, float]:
-    """USD price of every allowlisted token that either source answers for. Never raises; {} if both fail."""
+    """USD price of every allowlisted token that either source answers for. Never raises; {} if both fail.
+    DexScreener first (its most liquid pair, live); GeckoTerminal fills gaps. GeckoTerminal was the first source
+    until 2026-09-18, when its prices for thinly traded tokens (FLYAI, BLORB) turned out to be frozen for hours."""
     prices: dict[str, float] = {}
     try:
-        prices.update(_gecko(timeout))
+        prices.update(_dexscreener([t[2] for t in TOKENS], timeout))
     except Exception as e:
-        print(f"prices: GeckoTerminal failed ({type(e).__name__}: {e})", flush=True)
-    missing = [t[2] for t in TOKENS if t[0] not in prices]
-    if missing:
+        print(f"prices: DexScreener failed ({type(e).__name__}: {e})", flush=True)
+    if len(prices) < len(TOKENS):
         try:
-            for s, p in _dexscreener(missing, timeout).items():
+            for s, p in _gecko(timeout).items():
                 prices.setdefault(s, p)
         except Exception as e:
-            print(f"prices: DexScreener failed ({type(e).__name__}: {e})", flush=True)
+            print(f"prices: GeckoTerminal failed ({type(e).__name__}: {e})", flush=True)
     return {s: p for s, p in prices.items() if p > 0}
 
 

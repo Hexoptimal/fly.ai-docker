@@ -3,6 +3,7 @@
  * RPC; writes are approve / stake / requestUnstake / cancelUnstake / withdraw, with selectors from the server.
  */
 import { API } from "./config.ts";
+import { compact } from "./format.ts";
 import { errorText, mined, mountAccount, onAccount, requireWallet, transact } from "./account.ts";
 import { api } from "./mine-core.ts";
 import { shortAddress } from "./wallet.ts";
@@ -29,7 +30,9 @@ function toWei(text: string): bigint {
 function tokens(wei: bigint): string {
   const whole = wei / WEI;
   const frac = (wei % WEI).toString().padStart(18, "0").slice(0, 4).replace(/0+$/, "");
-  return `${whole.toLocaleString("en-US")}${frac ? `.${frac}` : ""} ${config.token_symbol}`;
+  const exact = `${whole.toLocaleString("en-US")}${frac ? `.${frac}` : ""}`;
+  // big amounts read better compact; small ones keep their decimals
+  return `${whole >= 10_000n ? compact(Number(whole)) : exact} ${config.token_symbol}`;
 }
 
 async function rpc(method: string, params: unknown[]): Promise<any> {
@@ -116,7 +119,7 @@ async function boot(): Promise<void> {
   config = await api(API, "/api/stake-config", null);
   $("tiers").replaceChildren(...config.tiers.map((t) => {
     const tr = document.createElement("tr");
-    for (const text of [t.name, `${BigInt(t.min).toLocaleString("en-US")}+ $${config.token_symbol}`, `${t.multiplier}×`]) {
+    for (const text of [t.name, `${compact(Number(t.min))}+ $${config.token_symbol}`, `${t.multiplier}×`]) {
       const td = document.createElement("td");
       td.textContent = text;
       tr.append(td);

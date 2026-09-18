@@ -4,6 +4,7 @@
  * claim transaction from the signed-in wallet (account.ts).
  */
 import { API } from "./config.ts";
+import { compact } from "./format.ts";
 import { errorText, mined, mountAccount, onAccount, requireWallet, transact } from "./account.ts";
 import { api } from "./mine-core.ts";
 import { shortAddress } from "./wallet.ts";
@@ -60,7 +61,7 @@ async function load(): Promise<void> {
     row.innerHTML = `<div><b class="month"></b> <span class="meta"></span></div><div class="amount"></div><div class="state">checking…</div>`;
     (row.querySelector(".month") as HTMLElement).textContent = c.month;
     (row.querySelector(".meta") as HTMLElement).textContent = `${fmt(c.points)} points`;
-    (row.querySelector(".amount") as HTMLElement).textContent = `${Number(c.amount).toLocaleString("en-US", { maximumFractionDigits: 4 })} $${claims.token_symbol}`;
+    (row.querySelector(".amount") as HTMLElement).textContent = `${compact(Number(c.amount))} $${claims.token_symbol}`;
     void showState(c, row.querySelector(".state") as HTMLElement);
     return row;
   }));
@@ -74,7 +75,7 @@ function showMonth(current: { month: string; days_left: number; announced_pool: 
     ? [
       `${fmt(mine.points)} points · ${(mine.share * 100).toFixed(2)}%`,
       `#${mine.rank} of ${current.wallets.length}`,
-      current.announced_pool ? `≈ ${fmt(Number(current.announced_pool) * mine.share)} $FLYAI at this share` : null,
+      current.announced_pool ? `≈ ${compact(Number(current.announced_pool) * mine.share)} $FLYAI at this share` : null,
       ends,
     ].filter(Boolean).join(" · ")
     : `no points in ${current.month} yet · ${ends}`;

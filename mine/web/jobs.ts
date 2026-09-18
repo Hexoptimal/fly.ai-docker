@@ -7,6 +7,7 @@
  * payment sent before a reload is remembered in this browser, so the order still gets funded.
  */
 import { API } from "./config.ts";
+import { compact } from "./format.ts";
 import { errorText, mined, mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, transact } from "./account.ts";
 import { api } from "./mine-core.ts";
 import { shortAddress } from "./wallet.ts";
@@ -70,7 +71,7 @@ let balance = 0;
 /** what the whole experiment costs at the current price, from the last quote */
 let fullCost = 0;
 
-const fmt = (tokens: string | number) => `${Number(tokens).toLocaleString("en-US", { maximumFractionDigits: 4 })} $${config.token_symbol}`;
+const fmt = (tokens: string | number) => `${compact(Number(tokens))} $${config.token_symbol}`;
 const count = (n: number) => n.toLocaleString("en-US");
 const numbers = (id: string) => input(id).value.split(",").map((x) => x.trim()).filter(Boolean).map(Number);
 const store = {

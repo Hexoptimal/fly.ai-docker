@@ -22,8 +22,10 @@ export interface Params {
 
 /** Coins whose parameters are published; add more as needed. */
 export const COINS: Record<string, Params> = {
-  // zpool/zergpool call yespower 0.5 with r=8 "yescrypt"; it is the best paid of the family per hash
-  yescrypt: { version: 0, N: 2048, r: 8, pers: "" },
+  // zpool's "yescrypt" mines GlobalBoost-Y: yescrypt 0.5 keyed by the header itself (checked against BSTY block
+  // 600000, whose hash only this variant reproduces). The keyless form is kept as yescryptPlain.
+  yescrypt: { version: 0, N: 2048, r: 8, pers: "", persIsHeader: true },
+  yescryptPlain: { version: 0, N: 2048, r: 8, pers: "" },
   yescryptR16: { version: 0, N: 4096, r: 16, pers: "" },
   yescryptR32: { version: 0, N: 4096, r: 32, pers: "" },
   yespower: { version: 1, N: 2048, r: 32, pers: "" },
@@ -40,15 +42,17 @@ export const COINS: Record<string, Params> = {
 export const PROGRAM = readFileSync(new URL("../yespower/yespower_search.wasm", import.meta.url));
 
 /** The job input the program takes: a header without its nonce, a nonce range, a target and the parameters. */
-export function input(prefix: Buffer, firstNonce: number, count: number, target: Buffer, p: Params, header?: Buffer): Buffer {
-  const pers = p.persIsHeader ? (header ?? Buffer.alloc(0)) : Buffer.from(p.pers);
+export function input(prefix: Buffer, firstNonce: number, count: number, target: Buffer, p: Params, _header?: Buffer): Buffer {
+  // a coin keyed by its own header: the program uses each nonce's full header (version flag 0x80), so no bytes here.
+  // (Passing one fixed header was the old way, and it hashed every nonce but the first wrong.)
+  const pers = p.persIsHeader ? Buffer.alloc(0) : Buffer.from(p.pers);
   if (pers.length > 255) throw new Error("the personalization string is at most 255 bytes");
   const b = Buffer.alloc(126 + pers.length);
   prefix.copy(b, 0, 0, 76);
   b.writeUInt32LE(firstNonce >>> 0, 76);
   b.writeUInt32LE(count >>> 0, 80);
   target.copy(b, 84);
-  b[116] = p.version;
+  b[116] = p.version | (p.persIsHeader ? 0x80 : 0);
   b.writeUInt32LE(p.N, 117);
   b.writeUInt32LE(p.r, 121);
   b[125] = pers.length;

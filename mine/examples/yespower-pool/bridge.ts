@@ -12,13 +12,16 @@
  *
  *   node examples/yespower-pool/bridge.ts --pool stratum+tcp://HOST:PORT --user ADDRESS[.WORKER] [--pass x]
  *        [--coin yescrypt] [--server https://flyai-mine.fly.dev] [--admin TOKEN] [--label mining/yescrypt]
- *        [--per-job 20000] [--ahead 16] [--units 2]
+ *        [--per-job 1000] [--ahead 16] [--lead 8] [--units 2]
  *
  *   node examples/yespower-pool/bridge.ts --pool ... --user ... --local
  *     no order: runs the jobs here the way miners do, to check a pool before pointing the fleet at it
  *
- * Sizing: a browser thread does roughly 250 hashes a second at yescrypt's parameters, so --per-job 20000 is about a
- * minute and a half. Keep --ahead modest: jobs still queued when the pool moves to a new block are wasted.
+ * Timing is everything. A pool job lives only until the pool sends a "clean" one (zpool: every 20-60 s, even on the
+ * same block), and a share for a retired job is refused ("Invalid job id"). So jobs are short (--per-job 1000 is about
+ * 4 s of a browser thread at ~250 hashes a second), only about --lead seconds of work waits in the queue at the
+ * fleet's current pace (at most --ahead jobs), results are polled every second, and a share is sent only while its
+ * pool job is still alive. Work still queued when a job retires is wasted, which the short queue keeps small.
  */
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -39,10 +42,15 @@ const COIN = flag("coin") ?? "yescrypt";
 const SERVER = flag("server") ?? process.env.FLYAI_SERVER ?? "https://flyai-mine.fly.dev";
 const ADMIN = flag("admin") ?? process.env.ADMIN_TOKEN ?? "";
 const LABEL = flag("label") ?? `mining/${COIN}`;
-const PER_JOB = Number(flag("per-job") ?? (LOCAL ? 2_000 : 20_000));
+const PER_JOB = Number(flag("per-job") ?? 1_000);
 const AHEAD = Number(flag("ahead") ?? 16);
+/** jobs always waiting: miners run them side by side, so too few starves the fleet (a queue of 2 let only two
+ *  miners mine at once, which kept the measured pace, and so the queue, low) */
+const MIN_AHEAD = Number(flag("min-ahead") ?? 6);
+/** seconds of work to keep waiting at the fleet's current pace */
+const LEAD_S = Number(flag("lead") ?? 8);
 const UNITS = Number(flag("units") ?? 2);
-const TIMEOUT = Number(flag("timeout") ?? 300);
+const TIMEOUT = Number(flag("timeout") ?? 60);
 const STOP_AFTER = flag("shares") ? Number(flag("shares")) : Infinity; // for tests: exit after this many accepted shares
 // The yescrypt/yespower family states difficulty 65536x smaller than Bitcoin does (cpuminer's
 // work_set_target(work, diff / 65536) for these algorithms). Pools that don't, take --diff-divisor 1.
@@ -65,8 +73,11 @@ let en2 = 0;
 let nonceAt = 0;
 const stats = { jobs: 0, nonces: 0, accepted: 0, rejected: 0, stale: 0, bad: 0, started: Date.now() };
 
-pool.on("job", (j: PoolJob) => {
-  if (job && job.prevhash !== j.prevhash) log("new block on the network: jobs already queued for the last one are stale");
+/** Pool jobs a share can still be sent for: a clean job retires every earlier one. */
+const alive = new Set<string>();
+pool.on("job", (j: PoolJob, clean: boolean) => {
+  if (clean) alive.clear();
+  alive.add(j.id);
   job = j;
   if (!en2Bytes) en2Bytes = extranonce2Bytes(j, pool.extranonce1);
   en2 = 0;
@@ -110,8 +121,8 @@ async function handleOutput(work: Work, output: Uint8Array, nonces: number): Pro
       log(`ignored a hit that doesn't check out (nonce ${hit.nonce}); a miner returned something false`);
       continue;
     }
-    if (job && work.poolJob.prevhash !== job.prevhash) {
-      stats.stale++;
+    if (!alive.has(work.poolJob.id)) {
+      stats.stale++; // the pool has retired this job: it would refuse the share
       continue;
     }
     const verdict = await pool.submit(work.poolJob.id, work.en2, work.poolJob.ntime, hit.nonce);
@@ -196,13 +207,16 @@ async function runOrder(): Promise<never> {
     after = page.next;
     if (!page.more) break;
   }
+  const back: number[] = []; // when each of our jobs came back, over the last minute: the fleet's pace
   for (;;) {
     const o = await call(`/api/orders/${order}`);
     if (o.status !== "live") throw new Error(`the order is ${o.status}${o.end_reason ? ` (${o.end_reason})` : ""}; start another`);
     const waiting = o.jobs - o.settled;
-    if (waiting < AHEAD) {
+    while (back.length && back[0] < Date.now() - 60_000) back.shift();
+    const want = Math.min(AHEAD, Math.max(MIN_AHEAD, Math.ceil((back.length / 60) * LEAD_S)));
+    if (waiting < want) {
       const inputs: string[] = [];
-      for (let i = waiting; i < AHEAD; i++) {
+      for (let i = waiting; i < want; i++) {
         const { bytes, work } = nextInput();
         const hash = createHash("sha256").update(bytes).digest("hex");
         await upload(bytes);
@@ -217,6 +231,7 @@ async function runOrder(): Promise<never> {
       const work = row.input ? works.get(row.input) : undefined;
       if (!work) continue; // not ours: an earlier run of the bridge
       works.delete(row.input);
+      back.push(Date.now());
       if (row.output) {
         const bytes = new Uint8Array(await (await fetch(SERVER + row.output.url)).arrayBuffer());
         await handleOutput(work, bytes, nonces.get(row.input) ?? 0);
@@ -226,7 +241,7 @@ async function runOrder(): Promise<never> {
       nonces.delete(row.input);
     }
     after = page.next;
-    if (!page.more) await new Promise((r) => setTimeout(r, 2000));
+    if (!page.more) await new Promise((r) => setTimeout(r, 1000));
   }
 }
 

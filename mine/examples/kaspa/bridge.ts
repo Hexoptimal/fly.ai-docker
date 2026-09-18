@@ -38,6 +38,14 @@ const LABEL = flag("label") ?? "mining/kaspa";
 const GROUPS = Number(flag("groups") ?? 1024);
 const PER_THREAD = Number(flag("per-thread") ?? (LOCAL ? 1 : 64));
 const AHEAD = Number(flag("ahead") ?? 8);
+/** jobs always waiting: miners run them side by side, so too few starves the fleet (a queue of 2 let only two
+ *  miners mine at once, which kept the measured pace, and so the queue, low) */
+const MIN_AHEAD = Number(flag("min-ahead") ?? 4);
+/** seconds of work to keep waiting at the fleet's current pace */
+const LEAD_S = Number(flag("lead") ?? 6);
+/** how old a pool job may be when its share is sent. Kaspa makes several blocks a second and pools accept shares
+ *  on recent templates; the pool's answer (logged) says whether this is too generous */
+const MAX_AGE_S = Number(flag("max-age") ?? 10);
 const UNITS = Number(flag("units") ?? 3);
 const TIMEOUT = Number(flag("timeout") ?? 120);
 const LOCAL_NONCES = Number(flag("local-nonces") ?? 20_000);
@@ -59,9 +67,14 @@ const stats = { jobs: 0, nonces: 0, accepted: 0, rejected: 0, stale: 0, bad: 0, 
 
 // Kaspa runs at ten blocks a second, so the pool pushes jobs constantly. The matrix is built only when work is
 // actually cut from a job (see matrixFor), not for every job that flies past.
+/** when each recent pool job arrived, to judge whether a share is still worth sending */
+const arrived = new Map<string, number>();
 pool.on("job", (j: KaspaJob) => {
   job = j;
   counter = 0n;
+  const now = Date.now();
+  arrived.set(j.id, now);
+  if (arrived.size > 2000) for (const [id, at] of arrived) if (at < now - 60_000) arrived.delete(id);
 });
 
 let matrixFor = "";
@@ -101,8 +114,9 @@ async function handleOutput(work: Work, output: Uint8Array): Promise<void> {
       log(`ignored a hit that doesn't check out (nonce ${hit.nonce}); a miner returned something false`);
       continue;
     }
-    if (job && job.id !== work.poolJob.id) {
-      stats.stale++;
+    const born = arrived.get(work.poolJob.id);
+    if (born === undefined || Date.now() - born > MAX_AGE_S * 1000) {
+      stats.stale++; // far too old for the pool to take
       continue;
     }
     const verdict = await pool.submit(work.poolJob.id, hit.nonce);
@@ -201,13 +215,17 @@ async function runOrder(): Promise<never> {
     after = page.next;
     if (!page.more) break;
   }
+  const back: number[] = []; // when each of our jobs came back, over the last minute: the fleet's pace
   for (;;) {
     const o = await call(`/api/orders/${order}`);
     if (o.status !== "live") throw new Error(`the order is ${o.status}${o.end_reason ? ` (${o.end_reason})` : ""}; start another`);
     const waiting = o.jobs - o.settled;
-    if (waiting < AHEAD) {
+    while (back.length && back[0] < Date.now() - 60_000) back.shift();
+    // a few seconds of work waiting, no more: the pool's templates move on constantly
+    const want = Math.min(AHEAD, Math.max(MIN_AHEAD, Math.ceil((back.length / 60) * LEAD_S)));
+    if (waiting < want) {
       const inputs: string[] = [];
-      for (let i = waiting; i < AHEAD; i++) {
+      for (let i = waiting; i < want; i++) {
         const { bytes, work } = nextWork(NONCES_PER_JOB);
         if (bytes.length !== INPUT_BYTES) throw new Error("the job input is the wrong size");
         works.set(createHash("sha256").update(bytes).digest("hex"), work);
@@ -221,6 +239,7 @@ async function runOrder(): Promise<never> {
       const work = row.input ? works.get(row.input) : undefined;
       if (!work) continue;
       works.delete(row.input);
+      back.push(Date.now());
       if (row.output) {
         await handleOutput(work, new Uint8Array(await (await fetch(SERVER + row.output.url)).arrayBuffer()));
       } else {
@@ -228,7 +247,7 @@ async function runOrder(): Promise<never> {
       }
     }
     after = page.next;
-    if (!page.more) await new Promise((r) => setTimeout(r, 2000));
+    if (!page.more) await new Promise((r) => setTimeout(r, 1000));
   }
 }
 

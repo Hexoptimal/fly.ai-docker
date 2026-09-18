@@ -9,9 +9,9 @@ primary_region = "cdg"
 [env]
   FLYAI_SERVER = "https://flyai-mine.fly.dev"
   YESPOWER_COIN = "yescrypt"
-  YESPOWER_PER_JOB = "20000"   # about a minute and a half of one browser thread
-  YESPOWER_AHEAD = "16"
-  YESPOWER_UNITS = "84"        # 82 s of a browser thread, priced like the brain jobs it displaces
+  YESPOWER_PER_JOB = "1000"    # about 4 s of one browser thread: a share must reach zpool before its job retires (20-60 s)
+  YESPOWER_AHEAD = "16"        # the most jobs ever queued; the bridge keeps only ~8 s of work waiting at the fleet's pace
+  YESPOWER_UNITS = "4.2"       # 4 s of a browser thread, priced like the brain jobs it displaces (84 per 82 s before)
   KASPA_GROUPS = "4096"        # 16.8 M nonces a job: about 1.5 s of a desktop GPU
   KASPA_PER_THREAD = "64"
   KASPA_AHEAD = "8"

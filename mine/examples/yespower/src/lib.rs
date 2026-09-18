@@ -12,7 +12,8 @@
 //!   u32 LE    first nonce
 //!   u32 LE    how many nonces to try
 //!   32 bytes  target, big-endian: a hash at or below it is a hit
-//!   u8        version: 0 for yespower 0.5, 1 for yespower 1.0
+//!   u8        version: 0 for yespower 0.5, 1 for yespower 1.0; plus 0x80 when the personalization string is the
+//!             whole 80-byte header being hashed, nonce included (GlobalBoost-Y's yescrypt, zpool's "yescrypt")
 //!   u32 LE    N (1024..512*1024, a power of two)
 //!   u32 LE    r (8..32)
 //!   u8        length of the personalization string, then its bytes
@@ -35,6 +36,8 @@ pub struct Job<'a> {
     pub n: u32,
     pub r: usize,
     pub pers: &'a [u8],
+    /** the personalization string is the header itself, so it changes with every nonce */
+    pub pers_is_header: bool,
 }
 
 pub fn parse(input: &[u8]) -> Result<Job<'_>, &'static str> {
@@ -46,7 +49,8 @@ pub fn parse(input: &[u8]) -> Result<Job<'_>, &'static str> {
     let u32at = |i: usize| u32::from_le_bytes([input[i], input[i + 1], input[i + 2], input[i + 3]]);
     let mut target = [0u8; 32];
     target.copy_from_slice(&input[84..116]);
-    let version = match input[116] {
+    let pers_is_header = input[116] & 0x80 != 0;
+    let version = match input[116] & 0x7f {
         0 => Version::V0_5,
         1 => Version::V1_0,
         _ => return Err("version is 0 (yespower 0.5) or 1 (yespower 1.0)"),
@@ -63,7 +67,7 @@ pub fn parse(input: &[u8]) -> Result<Job<'_>, &'static str> {
     if input.len() < 126 + pers_len {
         return Err("personalization string is cut short");
     }
-    Ok(Job { header, first_nonce: u32at(76), count: u32at(80), target, version, n, r, pers: &input[126..126 + pers_len] })
+    Ok(Job { header, first_nonce: u32at(76), count: u32at(80), target, version, n, r, pers: &input[126..126 + pers_len], pers_is_header })
 }
 
 /// A hash at or below the target, compared big-endian as the coin does.
@@ -87,7 +91,8 @@ pub fn search(job: &Job<'_>) -> Vec<u8> {
     for i in 0..job.count {
         let nonce = job.first_nonce.wrapping_add(i);
         header[76..80].copy_from_slice(&nonce.to_le_bytes());
-        let h = hash(&header, job.version, job.n, job.r, job.pers, &mut scratch);
+        let pers: &[u8] = if job.pers_is_header { &header } else { job.pers };
+        let h = hash(&header, job.version, job.n, job.r, pers, &mut scratch);
         if meets(&h, &job.target) {
             hits.push((nonce, h));
             if hits.len() == 16 {

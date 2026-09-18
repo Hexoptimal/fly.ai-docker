@@ -3,6 +3,7 @@
  * The miner token lives in localStorage; losing it just means registering again.
  */
 import { API, CONNECTOME } from "./config.ts";
+import { compact } from "./format.ts";
 import { api, ApiError, Miner, probeGpu } from "./mine-core.ts";
 import { isPhone, mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, signedIn } from "./account.ts";
 import { shortAddress } from "./wallet.ts";
@@ -123,7 +124,7 @@ async function refresh(): Promise<void> {
     // signed in on this site and the miner has no wallet yet: it takes the signed-in one, no questions
     if (!me.wallet && signedIn()) void linkMiner();
     $("stake").textContent = me.stake
-      ? `${Number(me.stake.staked).toLocaleString("en-US")} FLYAI · ${me.stake.tier ?? "no tier"} · ${me.stake.multiplier}× points today${me.stake.tomorrow ? ` (${me.stake.tomorrow.multiplier}× from tomorrow)` : ""}`
+      ? `${compact(Number(me.stake.staked))} FLYAI · ${me.stake.tier ?? "no tier"} · ${me.stake.multiplier}× points today${me.stake.tomorrow ? ` (${me.stake.tomorrow.multiplier}× from tomorrow)` : ""}`
       : me.wallet ? "staking isn't live yet: 1× points" : "link a wallet first";
     const days = `ends in ${me.month_days_left} day${me.month_days_left === 1 ? "" : "s"}`;
     $("month").textContent = me.wallet
@@ -138,9 +139,9 @@ async function refresh(): Promise<void> {
     $("share-estimate").textContent = pool === null
       ? "the month's pool isn't announced yet"
       : [
-        `≈ ${Math.round(me.month_estimate).toLocaleString("en-US")} $FLYAI`,
-        `${(me.month_estimate_share * 100).toFixed(2)}% of a ${Number(pool).toLocaleString("en-US")} pool`,
-        Number(me.month_program_pay) > 0 ? `incl. ${Math.round(Number(me.month_program_pay)).toLocaleString("en-US")} already earned from buyers` : null,
+        `≈ ${compact(Math.round(me.month_estimate))} $FLYAI`,
+        `${(me.month_estimate_share * 100).toFixed(2)}% of a ${compact(Number(pool))} pool`,
+        Number(me.month_program_pay) > 0 ? `incl. ${compact(Math.round(Number(me.month_program_pay)))} already earned from buyers` : null,
         me.wallet ? null : "if you link a wallet",
       ].filter(Boolean).join(" · ");
     $("today-jobs").textContent = String(me.jobs);

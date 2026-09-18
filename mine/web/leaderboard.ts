@@ -3,6 +3,7 @@
  * or snapshotted, and the visitor's own row if this browser has a miner with a linked wallet.
  */
 import { API } from "./config.ts";
+import { compact } from "./format.ts";
 import { mountAccount, signedIn } from "./account.ts";
 import { api } from "./mine-core.ts";
 import { shortAddress } from "./wallet.ts";
@@ -34,7 +35,7 @@ async function load(): Promise<void> {
   $("days").textContent = data.closed ? "ended" : String(data.days_left);
   $("days-label").textContent = data.closed ? new Date(data.ends_at).toLocaleDateString("en-US", { timeZone: "UTC" }) : "days left";
   const pool = data.snapshot?.pool ?? data.announced_pool;
-  $("pool").textContent = pool ? fmt(Number(pool), 0) : "not set";
+  $("pool").textContent = pool ? compact(Number(pool)) : "not set";
   // before the snapshot the pool is the announcement plus the buyers' part, which grows as orders are charged
   const buyers = Number(data.buyer_pool ?? 0);
   $("pool-parts").hidden = !!data.snapshot || buyers <= 0;
@@ -42,8 +43,8 @@ async function load(): Promise<void> {
     const announced = Number(data.announced_pool ?? 0) - buyers;
     const fromUsdc = Number(data.buyer_pool_from_usdc ?? 0);
     $("pool-parts").textContent = [
-      `Pool: ${announced > 0 ? `${fmt(announced, 0)} announced + ` : ""}${fmt(buyers, 0)} from buyers' orders`,
-      fromUsdc > 0 ? ` (${fmt(fromUsdc, 0)} of it from orders paid in USDC, ${Number(data.usdc_received).toLocaleString("en-US", { maximumFractionDigits: Number(data.usdc_received) < 1 ? 6 : 2 })} USDC received)` : "",
+      `Pool: ${announced > 0 ? `${compact(announced)} announced + ` : ""}${compact(buyers)} from buyers' orders`,
+      fromUsdc > 0 ? ` (${compact(fromUsdc)} of it from orders paid in USDC, ${Number(data.usdc_received).toLocaleString("en-US", { maximumFractionDigits: Number(data.usdc_received) < 1 ? 6 : 2 })} USDC received)` : "",
       ". It grows as orders run.",
     ].join("");
   }
@@ -59,7 +60,7 @@ async function load(): Promise<void> {
   $("you").hidden = !mine;
   if (mine) {
     $("you-text").textContent = me
-      ? `You: #${me.rank} of ${rows.length} · ${fmt(me.points)} points · ${(me.share * 100).toFixed(2)}%${pool ? ` · ≈ ${fmt(Number(pool) * me.share, 0)} $FLYAI at this share` : ""}`
+      ? `You: #${me.rank} of ${rows.length} · ${fmt(me.points)} points · ${(me.share * 100).toFixed(2)}%${pool ? ` · ≈ ${compact(Number(pool) * me.share)} $FLYAI at this share` : ""}`
       : `You: ${shortAddress(mine)} has no points this month yet`;
   }
 

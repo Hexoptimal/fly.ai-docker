@@ -52,7 +52,8 @@ export function startMockPool(port: number, difficulty: number, params: Params):
               const header = Buffer.alloc(80);
               headerPrefix(j, GENESIS_EXTRANONCE1, en2).copy(header, 0, 0, 76);
               header.writeUInt32LE(parseInt(nonceHex, 16) >>> 0, 76);
-              ok = meets(display(await yespowerHash(header, params)), shareTarget(difficulty));
+              // the yespower family states difficulty 65536x smaller than Bitcoin, as real pools (zpool) and the bridge do
+              ok = meets(display(await yespowerHash(header, params)), shareTarget(difficulty / 65536));
             }
             if (ok) shares.accepted++;
             else shares.rejected++;

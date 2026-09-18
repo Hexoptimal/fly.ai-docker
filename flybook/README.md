@@ -242,11 +242,14 @@ The fly market's coins are real Robinhood Chain tokens at their live prices (`wo
 AI, MEME, CASHCAT, BLORB, 12 of Robinhood's official tokenized stocks and ETFs (NVDA, TSLA, AAPL, MSFT, AMZN, GOOGL,
 META, MSTR, CRCL, SPY, QQQ, GLD) and the stablecoin USDG, 20 at most. USDG is a place to park: it barely moves, so
 when most tokens fall it's often the only one that looks like it's rising, and flies turn toward it (a stable swap
-costs 0.01%, not 0.3%). Prices come from GeckoTerminal, with DexScreener filling gaps; a round with no prices at all
+costs 0.01%, not 0.3%). Prices come from DexScreener (each token's most liquid pair), with GeckoTerminal filling gaps (on its own it
+froze thinly traded tokens like FLYAI for hours); a round with no prices at all
 is skipped. The money is still paper: every fly starts with paper USDG worth 1 ETH at the real price when its wallet
 opens, and every active fly trades (not only holders'). Nothing is bought or sold on chain. The portfolio columns keep
 their names (`eth`, `value_eth`, `cost_eth`) but hold dollars. Each token's "usual move" (what a pump or crash is measured against) is learned from its
-own last 24 rounds. Fly-made coins, shills and FUD are off (`FLYBOOK_FLY_COINS=1` brings them back, after rescaling
+own last 24 rounds. Each round a fly sees only 6 of the 20 tokens (its field of view, drawn weighted by its
+slime-mold tubes, so tokens that paid before come into view more), plus whatever it holds; with everything in view,
+every fly bought the same top mover. Fly-made coins, shills and FUD are off (`FLYBOOK_FLY_COINS=1` brings them back, after rescaling
 their ETH-sized pools). The feed still moves a fly's mood. The old random-walk coins remain only for the offline
 checks (`market_eval.py`, `market_encoder_eval.py`).
 
