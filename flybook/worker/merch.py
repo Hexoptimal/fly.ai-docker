@@ -58,16 +58,16 @@ PRINT = 2250                       # print canvas, px (15" at 150 dpi on a tee's
 PREVIEW = 640
 
 # Fourthwall product templates (checked 2026-09-18 with GET /product-templates). margin = our profit per item in USD
-# on top of Fourthwall's base cost; the shop price is base + margin.
+# on top of Fourthwall's base cost; the shop price is base + margin. from = the lowest shop price, for the app.
 PRODUCTS = [
     {"kind": "tee", "label": "Tee", "template": "pro_e4677535402b4eeb81", "region": "front_large", "placement": "largeCenter",
-     "colors": ["Black", "Navy", "Charcoal", "White"], "margin": 12.0, "noun": "Tee"},
+     "colors": ["Black", "Navy", "Charcoal", "White"], "margin": 12.0, "noun": "Tee", "from": 21.50},
     {"kind": "hoodie", "label": "Hoodie", "template": "pro_380", "region": "front", "placement": "largeCenter",
-     "colors": ["Black", "Navy Blazer", "Charcoal Heather"], "margin": 18.0, "noun": "Hoodie"},
+     "colors": ["Black", "Navy Blazer", "Charcoal Heather"], "margin": 18.0, "noun": "Hoodie", "from": 45.29},
     {"kind": "mug", "label": "Mug", "template": "pro_dWMJDO04TgWcXKGQohVnHw", "region": "default",
-     "colors": None, "margin": 8.0, "noun": "Mug"},
+     "colors": None, "margin": 8.0, "noun": "Mug", "from": 16.95},
     {"kind": "sticker", "label": "Sticker", "template": "pro_358", "region": "default",
-     "colors": None, "margin": 3.0, "noun": "Sticker"},
+     "colors": None, "margin": 3.0, "noun": "Sticker", "from": 5.29},
 ]
 
 STYLES = {
@@ -316,7 +316,8 @@ def make(design: dict) -> None:
     fly = (db("GET", f"flies?select=id,name&id=eq.{design['fly_id']}") or [{"name": "A fly"}])[0]
     db("PATCH", f"merch_designs?id=eq.{design['id']}", json={"status": "making", "attempts": design.get("attempts", 0) + 1})
     done = {p["kind"] for p in db("GET", f"merch_products?select=kind&design_id=eq.{design['id']}")}
-    todo = [p for p in PRODUCTS if p["kind"] not in done]
+    wanted = set(design.get("kinds") or [p["kind"] for p in PRODUCTS])   # null: every product
+    todo = [p for p in PRODUCTS if p["kind"] in wanted and p["kind"] not in done]
     if todo:
         png = requests.get(public_url(design["print_path"]), timeout=120)
         png.raise_for_status()
@@ -362,6 +363,36 @@ def remove(design_id: int) -> None:
     for p in db("GET", f"merch_products?select=fourthwall_id&design_id=eq.{design_id}"):
         fw("DELETE", f"products/{p['fourthwall_id']}")
     db("PATCH", f"merch_designs?id=eq.{design_id}", json={"status": "removed"})
+
+
+# ---- the $FLYAI price (owners' earnings are shown and paid in $FLYAI) ----
+
+_price: tuple[float, float] | None = None   # (read at, USD)
+
+
+def flyai_usd() -> float | None:
+    """$FLYAI in USD: the lower of GeckoTerminal and DexScreener (as mine/ does), cached 5 minutes. None if both fail."""
+    global _price
+    if _price and time.monotonic() - _price[0] < 300:
+        return _price[1]
+    token, prices = chain.TOKEN.lower(), []
+    try:
+        j = requests.get(f"https://api.geckoterminal.com/api/v2/simple/networks/robinhood/token_price/{token}", timeout=8).json()
+        prices.append(float(j["data"]["attributes"]["token_prices"][token]))
+    except Exception:
+        pass
+    try:
+        pairs = requests.get(f"https://api.dexscreener.com/tokens/v1/robinhood/{token}", timeout=8).json()
+        best = max((p for p in pairs if p["baseToken"]["address"].lower() == token and p.get("priceUsd")),
+                   key=lambda p: (p.get("liquidity") or {}).get("usd") or 0)
+        prices.append(float(best["priceUsd"]))
+    except Exception:
+        pass
+    prices = [p for p in prices if p > 0]
+    if not prices:
+        return _price[1] if _price else None
+    _price = (time.monotonic(), min(prices))
+    return _price[1]
 
 
 # ---- sales ----

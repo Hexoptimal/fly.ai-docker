@@ -596,7 +596,8 @@ def merch_quota(user: dict, wallet: str | None) -> dict:
             "per_day": merch.DRAFTS_PER_DAY, "global_left": max(0, merch.DAILY_CAP - everyone), "idea_max": memes.IDEA_MAX,
             "fee_tokens": float(merch.FEE_TOKENS), "fee_wei": str(merch.FEE_WEI), "treasury": merch.TREASURY,
             "share": merch.SHARE, "styles": [{"key": k, "label": v[0]} for k, v in merch.STYLES.items()],
-            "products": [{"kind": p["kind"], "label": p["label"]} for p in merch.PRODUCTS]}
+            "products": [{"kind": p["kind"], "label": p["label"], "from": p["from"], "earn_each": round(p["margin"] * merch.SHARE, 2)}
+                         for p in merch.PRODUCTS]}
 
 
 def create_design(user: dict, wallet: str | None, body: dict, ip: str) -> dict:
@@ -648,6 +649,11 @@ def pay_design(user: dict, wallet: str | None, design_id: int, body: dict) -> di
         return {"id": design_id, "status": design["status"]}      # sent twice: already counted
     if design["status"] != "draft":
         raise ApiError(409, "that design is already paid for")
+    known = [p["kind"] for p in merch.PRODUCTS]
+    kinds = body.get("kinds") or known
+    if not isinstance(kinds, list) or not kinds or any(k not in known for k in kinds):
+        raise ApiError(400, f"pick at least one of {', '.join(known)}")
+    kinds = [k for k in known if k in kinds]
     limit(f"merch-pay:{user['id']}", 20, 600)
     try:
         found = chain.paid(tx, wallet, merch.TREASURY)
@@ -665,7 +671,7 @@ def pay_design(user: dict, wallet: str | None, design_id: int, body: dict) -> di
         raise ApiError(400, "that payment was sent before this design was drawn")
     updated = rest("PATCH", f"merch_designs?id=eq.{design_id}&status=eq.draft", "return=representation",
                    conflict="that transaction already paid for another design",
-                   json={"status": "paid", "tx_hash": tx, "wallet": wallet, "fee_wei": str(sent),
+                   json={"status": "paid", "tx_hash": tx, "wallet": wallet, "fee_wei": str(sent), "kinds": kinds,
                          "paid_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
     if not updated:
         raise ApiError(409, "that design is already paid for")
@@ -685,7 +691,7 @@ def delete_design(user: dict, design_id: int) -> dict:
 
 def my_merch(user: dict) -> dict:
     """Your designs with their products, items sold and earnings, and your payouts."""
-    designs = rest("GET", f"merch_designs?select=id,fly_id,style,idea,preview_path,status,error,created_at,live_at,"
+    designs = rest("GET", f"merch_designs?select=id,fly_id,style,idea,preview_path,status,error,created_at,live_at,kinds,"
                           f"merch_products(kind,url,image_url,price)&user_id=eq.{user['id']}&status=neq.removed"
                           "&order=created_at.desc&limit=60")
     sales = rest("GET", f"merch_sales?select=design_id,quantity,owner_cut,status,payout_id&owner=eq.{user['id']}")
@@ -702,8 +708,13 @@ def my_merch(user: dict) -> dict:
         d.update(by_design.get(d["id"], {"sold": 0, "earned": 0.0}))
     earned = sum(d["earned"] for d in by_design.values())
     paid = sum(float(p["usd"]) for p in payouts)
-    return {"designs": designs, "earned": round(earned, 2), "paid": round(paid, 2), "unpaid": round(earned - paid, 2),
-            "share": merch.SHARE, "payouts": payouts}
+    unpaid = max(0.0, earned - paid)
+    price = merch.flyai_usd()
+    today = dt.date.today()
+    month_end = (today.replace(day=28) + dt.timedelta(days=4)).replace(day=1) - dt.timedelta(days=1)
+    return {"designs": designs, "earned": round(earned, 2), "paid": round(paid, 2), "unpaid": round(unpaid, 2),
+            "share": merch.SHARE, "payouts": payouts, "flyai_usd": price,
+            "unpaid_tokens": round(unpaid / price) if price else None, "payout_date": month_end.isoformat()}
 
 
 MERCH_DESIGN_PATH = re.compile(r"^/merch/designs/(\d+)$")
