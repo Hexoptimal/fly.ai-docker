@@ -35,6 +35,7 @@ import { Worker } from "node:worker_threads";
 import { CHANNELS } from "./model.ts";
 import type { TaskParams, TaskResult } from "./runner.ts";
 import { ADDRESS, checksumAddress, recoverAddress, siweMessage } from "./wallet.ts";
+import { createRoulette } from "./roulette.ts";
 import { allocate, claimCalldata, fromWei, hasClaimedCalldata, leafHash, merkleTree, monthCalldata, monthId, toWei } from "./payouts.ts";
 import { parseTiers, readStake, STAKE_SELECTORS, tierFor } from "./staking.ts";
 import {
@@ -164,7 +165,7 @@ function round(r: number): TaskParams[] {
 }
 
 // ---- storage -----------------------------------------------------------------------------------------
-const SCHEMA = 13; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions, 11 USDC payments, 12 guest card orders, 13 day_credit; created below for new and old databases alike
+const SCHEMA = 14; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions, 11 USDC payments, 12 guest card orders, 13 day_credit, 14 Fly Roulette bets (ledger kinds bet/payout, roulette_* tables, withdraw requests); created below for new and old databases alike
 mkdirSync(dirname(DB_PATH), { recursive: true });
 const db = new DatabaseSync(DB_PATH);
 const version = (db.prepare("pragma user_version").get() as { user_version: number }).user_version;
@@ -219,6 +220,38 @@ if (hasTables && version < 9) {
   if (version >= 6) db.exec("alter table orders add column house integer not null default 0; alter table orders add column label text; alter table orders add column house_units real");
   if (version >= 8) db.exec("alter table blobs add column keep integer not null default 0");
   console.log("database upgraded to schema 9 (house orders)");
+}
+if (hasTables && version < 14 && db.prepare("select 1 from sqlite_master where name = 'ledger'").get()) {
+  // 14: the ledger's kinds gain bet and payout (Fly Roulette). SQLite can't alter a check, so copy the table
+  // into one with the new check; its indexes are made again below.
+  const rows = (db.prepare("select count(*) as n from ledger").get() as { n: number }).n;
+  db.exec("begin");
+  try {
+    db.exec(`
+      create table ledger_v14 (
+        id integer primary key,
+        wallet text not null,
+        order_id text,
+        kind text not null check (kind in ('deposit', 'fund', 'release', 'withdraw', 'charge', 'bet', 'payout')),
+        amount_wei text not null,
+        pool_wei text,
+        month text,
+        tx text,
+        at integer not null
+      );
+      insert into ledger_v14 (id, wallet, order_id, kind, amount_wei, pool_wei, month, tx, at)
+        select id, wallet, order_id, kind, amount_wei, pool_wei, month, tx, at from ledger;
+      drop table ledger;
+      alter table ledger_v14 rename to ledger;
+    `);
+    const after = (db.prepare("select count(*) as n from ledger").get() as { n: number }).n;
+    if (after !== rows) throw new Error(`ledger copy has ${after} rows, not ${rows}`);
+    db.exec("commit");
+  } catch (err) {
+    db.exec("rollback");
+    throw err;
+  }
+  console.log(`database upgraded to schema 14 (ledger kinds for roulette, ${rows} rows kept)`);
 }
 db.exec(`
   pragma journal_mode = wal;
@@ -420,7 +453,7 @@ db.exec(`
     id integer primary key,
     wallet text not null,
     order_id text,
-    kind text not null check (kind in ('deposit', 'fund', 'release', 'withdraw', 'charge')),
+    kind text not null check (kind in ('deposit', 'fund', 'release', 'withdraw', 'charge', 'bet', 'payout')),
     amount_wei text not null,
     pool_wei text,                    -- charge: the miners' part
     month text,                       -- charge: the pool month
@@ -454,6 +487,59 @@ db.exec(`
     at integer not null
   );
   create index if not exists earnings_by_month on earnings (month, wallet);
+  -- 14: Fly Roulette. A commit is a server seed shown only as its hash until the game it seeds is over.
+  create table if not exists roulette_commits (
+    id text primary key,
+    wallet text not null,
+    server_seed text not null,
+    hash text not null,
+    created_at integer not null,
+    used integer not null default 0
+  );
+  create index if not exists roulette_commits_by_wallet on roulette_commits (wallet, created_at);
+  create table if not exists roulette_games (
+    id text primary key,
+    wallet text not null,
+    flies integer not null,
+    pick integer not null,
+    stake_wei text not null,
+    payout_wei text not null,          -- what a win pays (stake x flies x (1 - edge))
+    edge real not null,
+    commit_hash text not null,
+    server_seed text not null,         -- secret until the game is done
+    client_seed text not null,
+    names text not null,               -- JSON: who sat at the table
+    status text not null check (status in ('live', 'done', 'void')),
+    winner integer,
+    events integer not null default 0,
+    created_at integer not null,
+    done_at integer
+  );
+  create index if not exists roulette_games_by_wallet on roulette_games (wallet, created_at);
+  create index if not exists roulette_games_live on roulette_games (status) where status = 'live';
+  create index if not exists roulette_games_done on roulette_games (done_at) where status = 'done';
+  create table if not exists roulette_events (
+    game text not null,
+    seq integer not null,
+    event text not null,
+    primary key (game, seq)
+  ) without rowid;
+  create table if not exists roulette_terms (
+    wallet text primary key,
+    version integer not null,
+    accepted_at integer not null
+  );
+  -- players ask for their balance back; the operator sends it and records it with POST /api/admin/withdraw
+  create table if not exists withdraw_requests (
+    id integer primary key,
+    wallet text not null,
+    amount_wei text not null,
+    status text not null check (status in ('open', 'paid', 'cancelled')),
+    created_at integer not null,
+    done_at integer,
+    tx text
+  );
+  create index if not exists withdraw_requests_open on withdraw_requests (wallet) where status = 'open';
 `);
 if (hasTables && !hadDayCredit) {
   // 13: one pass over every assignment so far; from here on the triggers keep it
@@ -857,7 +943,7 @@ function sessionNonce(req: IncomingMessage, body: any) {
   const message = siweMessage({
     domain: origin.host,
     address: body.address,
-    statement: `Sign in to fly.ai compute for ${Math.round(SESSION_TTL_MS / 86_400_000)} days. Free, and sends no transaction.`,
+    statement: `Sign in to fly.ai (compute and Fly Roulette) for ${Math.round(SESSION_TTL_MS / 86_400_000)} days. Free, and sends no transaction.`,
     uri: origin.origin,
     chainId: CHAIN_ID,
     nonce,
@@ -1597,12 +1683,12 @@ function book(wallet: string, orderId: string | null, kind: string, amount: bigi
     .run(wallet, orderId, kind, amount.toString(), extra.pool?.toString() ?? null, extra.month ?? null, extra.tx ?? null, Date.now());
 }
 
-/** Deposits and releases, less what funded orders or was sent back. */
+/** Deposits, releases and roulette winnings, less what funded orders, was bet or was sent back. */
 function balanceOf(wallet: string): bigint {
   let sum = 0n;
   for (const r of db.prepare("select kind, amount_wei from ledger where wallet = ?").all(wallet) as { kind: string; amount_wei: string }[]) {
-    if (r.kind === "deposit" || r.kind === "release") sum += BigInt(r.amount_wei);
-    else if (r.kind === "fund" || r.kind === "withdraw") sum -= BigInt(r.amount_wei);
+    if (r.kind === "deposit" || r.kind === "release" || r.kind === "payout") sum += BigInt(r.amount_wei);
+    else if (r.kind === "fund" || r.kind === "withdraw" || r.kind === "bet") sum -= BigInt(r.amount_wei);
   }
   return sum;
 }
@@ -2327,6 +2413,7 @@ function withdraw(body: any) {
     const balance = balanceOf(w);
     if (amount <= 0n || amount > balance) throw new HttpError(409, `the balance is ${fromWei(balance)}`);
     book(w, null, "withdraw", amount, { tx: body.tx.toLowerCase() });
+    db.prepare("update withdraw_requests set status = 'paid', done_at = ?, tx = ? where wallet = ? and status = 'open'").run(Date.now(), body.tx.toLowerCase(), w);
   });
   return balanceView(w);
 }
@@ -2825,6 +2912,9 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     return reference;
   };
   let m: RegExpExecArray | null;
+  if (req.method !== "OPTIONS" && (p.startsWith("/api/roulette/") || p.startsWith("/api/balance/") || p === "/api/admin/roulette")) {
+    if (await roulette.route(req, res, url)) return;
+  }
   if (req.method === "OPTIONS") {
     res.writeHead(204, { ...CORS, "access-control-allow-methods": "GET, POST" });
     return void res.end();
@@ -2844,7 +2934,7 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     if ((m = /^\/compute\/mine\/web\/wallet\/((?:chunks\/)?[\w.-]+\.js)$/.exec(p))) return serveFile(res, join(ROOT, "wallet", "dist", m[1]));
     if ((m = /^\/compute\/mine\/src\/(model|runner|fixed|wasmcheck|probe)\.js$/.exec(p))) return serveFile(res, join(ROOT, "src", `${m[1]}.ts`));
     if ((m = /^\/compute\/world\/src\/(connectome|rng|sim|brain|eyes|senses|wiring|genome|social|datalog)\.js$/.exec(p))) return serveFile(res, join(WORLD_SRC, `${m[1]}.ts`));
-    if ((m = /^\/assets\/(site\.css|site\.js|logo\.webp)$/.exec(p))) return serveFile(res, join(DOCS_ASSETS, m[1]), 3600);
+    if ((m = /^\/assets\/(site\.css|site\.js|nav\.js|logo\.webp)$/.exec(p))) return serveFile(res, join(DOCS_ASSETS, m[1]), 3600);
     if (p === "/api/stake-config") return send(res, 200, stakeConfig());
     if (p === "/api/session") return send(res, 200, sessionOf(req));
     if (p === "/api/month") {
@@ -2993,6 +3083,18 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
 db.prepare(`update tasks set state = 'open' where state = 'out' and truth is null
   and not exists (select 1 from assignments where task = tasks.id and status = 'issued')`).run();
 topUp();
+// Fly Roulette bets (src/roulette.ts): the same ledger, sign-in and chain as compute orders
+const roulette = createRoulette({
+  db, transaction, book, balanceOf, adminOnly, HttpError, toWei, fromWei, send, readJson,
+  sessionWallet: (req) => sessionOf(req).wallet,
+  transfersIn: (tx) => {
+    if (!ORDERS.payTo) throw new HttpError(503, "deposits aren't open yet");
+    return transfersIn(CLAIMS.rpc, tx, ORDERS.token, ORDERS.payTo);
+  },
+  connectomeDir: CONNECTOME_DIR,
+  env: process.env,
+});
+roulette.resume();
 // card checkouts still open from the last three hours: a buyer who closed the tab still gets their order started
 setInterval(() => {
   if (!cdp) return;

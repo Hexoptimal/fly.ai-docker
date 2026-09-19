@@ -28,7 +28,7 @@ orders: brain tuning, world simulations and encoding data.
   wallets (browser wallets and WalletConnect for phones) and mining on phones. The API guide is at
   /compute/compute-api.md.
 - **Contracts:** deployed and verified on Robinhood Chain.
-- **Pool:** September 2026 announced at 5,250,000 $FLYAI; not yet snapshotted or funded (after 1 October).
+- **Pool:** September 2026 announced at 6,530,000 $FLYAI (raised from 5,250,000 by ~$100 on 2026-09-19); not yet snapshotted or funded (after 1 October).
 - **House work:** the research orders (tuning, world, encoding, demo) were stopped on 18 September so the fleet
   mines instead; their results up to that point are still readable with `npm run pull:house`. The only house work
   now is `mining/yescrypt` and `mining/kaspa`.
@@ -512,6 +512,39 @@ their phrases have been through a chat transcript. Generate fresh ones before an
   presented to miners as a reason to join. In-browser mining can get a site flagged as cryptojacking, which is
   why the switch stays opt-in.
 
+## Fly Roulette bets
+
+[Fly Roulette](../world/roulette.html) (www.flyaiworld.com/roulette/) plays free in the browser. Its "Play for
+$FLYAI" panel bets on the same server, from the same balance and sign-in as compute orders. Code: `src/roulette.ts`
+(endpoints, limits, settling), `src/roulette.worker.ts` (plays bet games), and the shared rules in
+`world/src/roulette/game.ts` + `readout.ts` (the page, the server and the Verify replay all run these files).
+
+- **The game is the server's.** A player gets a commit (sha256 of a secret server seed), then bets with its own
+  client seed. All chance (brain seeds, names, first shooter, where the cap sits) comes from sfc32 seeded with
+  sha256(server:client); every choice comes from a fly's float connectome (the same engine as the page). One worker
+  thread plays all live games, one turn at a time in turn order (about 1 s of CPU a turn); the page polls the events.
+  When the game ends the seed is revealed, and replaying from the seeds gives the same events (tested in Node, and in
+  Chrome by the page's Verify button). A restart replays live games from their seeds and settles them once.
+- **Odds.** Seats are interchangeable (independent brain seeds, uniform first shooter), so each wins 1/n
+  (`world/tools/roulette-fair.ts` checks the rules over 20,000 games per table size). A win pays
+  stake × n × (1 − `ROULETTE_EDGE`).
+- **Money.** Schema 14 adds ledger kinds `bet` (tx `roulette:<game>`) and `payout` (tx `roulette-win:<game>`, or
+  `roulette-refund:<game>` for a void game); the unique tx index rules out double payouts. `balanceOf` counts them.
+  Deposits without an order: `POST /api/balance/deposit {tx}` credits a $FLYAI transfer from the signed-in wallet to
+  `PAY_TO`. Withdrawals: players ask (`withdraw_requests`); the operator sends the tokens and records it with
+  `POST /api/admin/withdraw`, which closes the request.
+- **Not the miners' pool.** Bets touch no points, day credit, pool or charge rows. The house result is visible in
+  `GET /api/admin/roulette` and stays with the dev wallet.
+- **Settings** (`fly.toml` env, whole tokens): `ROULETTE_ON` (`1` to take bets; off by default),
+  `ROULETTE_EDGE` (0.05), `ROULETTE_MIN_BET`, `ROULETTE_MAX_BET`, `ROULETTE_MAX_DAY` (per wallet per UTC day),
+  `ROULETTE_MAX_PAYOUT` (biggest single win), `ROULETTE_HOUSE_STOP` (pause when the house is down this much over
+  24 h), `ROULETTE_MAX_LIVE` (games played at once). Terms: `docs/roulette-terms.html`, version 1.
+- **Operations.** The dev wallet must hold at least `balances_held` from `GET /api/admin/roulette`, which also shows
+  the house's net (all time and 24 h), live games and open withdrawal requests.
+- **Tests:** `npm run test:roulette` (anvil + test token: the schema 13 → 14 upgrade, deposits, terms, every limit,
+  a game settled once with the revealed seed replayed, a restart mid-game, withdrawals, the house stop, the off
+  switch).
+
 ## Browser extension
 
 ```sh
@@ -987,6 +1020,15 @@ How answers are checked, without the server re-running a fixed share of a fast G
 | `GET /api/balance?wallet=` | balance and its ledger |
 | `GET /api/admin/orders` (admin) | charged, pool and treasury per month; balances held; orders |
 | `POST /api/admin/withdraw {wallet, amount, tx}` (admin) | record a balance sent back on-chain |
+| `POST /api/balance/deposit {tx}` (x-flyai-session) | credit a $FLYAI transfer from the signed-in wallet to `PAY_TO` (once) |
+| `POST /api/balance/withdraw-request {amount}` (x-flyai-session) | ask for balance back; one open request per wallet |
+| `GET /api/roulette/config` | on/paused, edge, limits, multiplier per table size |
+| `GET /api/roulette/me` (x-flyai-session) | balance, terms, today's stakes, live game, withdrawal request, last 20 bets |
+| `POST /api/roulette/terms {over18: true, accept: true}` (x-flyai-session) | accept the betting terms |
+| `POST /api/roulette/commit` (x-flyai-session) | → `{commit_id, hash}`: sha256 of a secret server seed, 15 minutes |
+| `POST /api/roulette/games {commit_id, client_seed, flies, pick, stake}` (x-flyai-session) | bet and start a game → the game |
+| `GET /api/roulette/games/:id?after=` | the game: table, stake, payout, events after a seq; `server_seed` once it's over |
+| `GET /api/admin/roulette` (admin) | house net, balances held, live games, open withdrawal requests |
 
 ## Not in v1
 

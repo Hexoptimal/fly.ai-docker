@@ -133,7 +133,7 @@ try {
   };
   const dave = wallet();
   const sn = await call("/api/session/nonce", null, { address: dave.address });
-  check("a session sign-in needs no miner", sn.status === 200 && sn.json.message.includes("Sign in to fly.ai compute for 30 days") && sn.json.message.includes("Chain ID: 4663"));
+  check("a session sign-in needs no miner", sn.status === 200 && sn.json.message.includes("Sign in to fly.ai (compute and Fly Roulette) for 30 days") && sn.json.message.includes("Chain ID: 4663"));
   check("a session needs the address's own signature", (await call("/api/session", null, { nonce: sn.json.nonce, signature: carol.sign(sn.json.message) })).status === 401);
   const sn2 = await call("/api/session/nonce", null, { address: dave.address });
   const started = await call("/api/session", null, { nonce: sn2.json.nonce, signature: dave.sign(sn2.json.message) });

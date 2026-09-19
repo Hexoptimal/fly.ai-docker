@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fly Roulette</title>
+<meta name="description" content="Cartoon flies pass a toy cap gun around the table. Each fly's real 166,700-neuron connectome, running in your browser, decides: squeeze the trigger or fly off. Last fly standing wins.">
+<meta property="og:title" content="Fly Roulette">
+<meta property="og:description" content="Real fly brains play roulette with a toy cap gun. Squeeze or fly off?">
+<meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@flydotai">
+<meta name="theme-color" content="#07090c">
+<link rel="canonical" href="https://flyaiworld.com/roulette/">
+<link rel="icon" href="/assets/logo.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#07090c; --surface:#11161e; --surface-2:#0d1117; --line:#222a35;
+    --ink:#eef1f5; --muted:#95a0ae; --dim:#5f6b7a;
+    --accent:#e0342c; --accent-hi:#ff5b4f; --live:#3ddc84; --gold:#ffc83d;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--ground); color:var(--ink); font:15px/1.5 'Inter',system-ui,sans-serif; overflow-x:hidden;}
+  a{color:inherit;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+  /* nav (same markup/classes as every docs/*.html page) */
+  nav{position:sticky; top:0; z-index:10; background:rgba(7,9,12,.85); backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; gap:16px; height:58px; max-width:1120px; margin:0 auto; padding-inline:24px;}
+  .brand{display:flex; align-items:center; gap:10px; font:700 18px 'Space Grotesk',sans-serif; text-decoration:none;}
+  .brand .logo{height:34px; width:auto; margin:-6px -8px; mix-blend-mode:screen;}
+  nav ul{display:flex; gap:22px; list-style:none; margin:0; padding:0; font-size:14px; align-items:center;}
+  nav ul a{color:var(--muted); text-decoration:none;}
+  nav ul a:hover{color:var(--ink);}
+  nav ul a.on{color:var(--ink);}
+  nav ul a.on::after{content:""; display:block; height:2px; background:var(--accent); margin-top:4px;}
+  nav li.dd{position:relative; display:flex; align-items:center; gap:2px;}
+  nav .ddbtn{all:unset; cursor:pointer; color:var(--muted); font-size:11px; line-height:1; padding:5px 4px; border-radius:4px;}
+  nav .ddbtn:hover{color:var(--ink);}
+  nav .ddmenu{position:absolute; top:calc(100% + 12px); left:-12px; min-width:240px; margin:0; padding:6px;
+              display:none; flex-direction:column; gap:2px; background:var(--surface); border:1px solid var(--line);
+              border-radius:10px; box-shadow:0 14px 34px rgba(0,0,0,.5); z-index:20; list-style:none;}
+  nav .ddmenu::before{content:""; position:absolute; left:0; right:0; top:-14px; height:14px;}
+  nav li.dd:hover .ddmenu, nav li.dd:focus-within .ddmenu, nav li.dd.open .ddmenu{display:flex;}
+  nav .ddmenu li{display:block;}
+  nav .ddmenu a{display:block; padding:9px 11px; border-radius:7px; color:var(--ink); font-size:14px; white-space:nowrap;}
+  nav .ddmenu a:hover{background:var(--surface-2);}
+  nav .ddmenu a.on{background:var(--surface-2);}
+  nav .ddmenu a.on::after{display:none;}
+  nav .ddmenu small{display:block; color:var(--dim); font:12px/1.4 'JetBrains Mono',monospace; margin-top:2px; white-space:normal;}
+  nav .ddlabel{font-size:inherit; color:var(--muted); padding:4px 2px;}
+  nav .ddlabel span{font-size:10px; margin-left:2px;}
+  nav .ddlabel:hover, nav li.dd.open .ddlabel, nav .ddlabel.on{color:var(--ink);}
+  nav .ddlabel.on::after{content:""; display:block; height:2px; background:var(--accent); margin-top:4px;}
+  nav .ddmenu.right{left:auto; right:-12px;}
+  nav .ddmenu{align-items:stretch;}
+  @media (max-width:1080px){
+    nav ul{gap:14px; font-size:13px;}
+  }
+  @media (max-width:760px){
+    nav .wrap{height:auto; padding-block:10px; flex-wrap:wrap; gap:8px 14px;}
+    nav ul{gap:14px; font-size:13px; flex-wrap:wrap;}
+  }
+  @media (max-width:520px){
+    nav ul{gap:12px; font-size:12px; width:100%; justify-content:space-between;}
+    nav ul li:last-child{display:none;}
+    nav .ddmenu{left:-40px; min-width:220px;}
+    nav .ddmenu.right{left:auto; right:-8px;}
+    .brand{font-size:16px;}
+  }
+
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:13px 20px; border-radius:10px; font-weight:600;
+       font-size:15px; text-decoration:none; border:1px solid var(--line); background:var(--surface); color:var(--ink); cursor:pointer;}
+  .btn.sm{padding:8px 14px; font-size:13px; border-radius:8px;}
+  .btn:hover{border-color:var(--muted);}
+
+  main{max-width:1120px; margin:0 auto; padding:16px 24px;}
+  @media (max-width:640px){ main{padding:16px;} }
+  .head{display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 20px; margin-bottom:12px;}
+  h1{font:700 clamp(28px,5vw,44px)/1 'Space Grotesk',sans-serif; letter-spacing:-.02em; margin:0;}
+  h1 span{color:var(--accent-hi);}
+  .sub{color:var(--muted); margin:6px 0 0; max-width:620px;}
+  #status{color:var(--dim); font-size:12px;}
+  .game{display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:16px;}
+  @media (max-width:900px){ .game{grid-template-columns:1fr;} }
+
+  .stagebox{position:relative; border:1px solid var(--line); border-radius:16px; overflow:hidden; background:#140d12; height:min(72vh,640px); min-height:380px;}
+  @media (max-width:900px){ .stagebox{height:62vh;} }
+  #stage{position:absolute; inset:0; cursor:pointer;}
+  #tags{position:absolute; inset:0; pointer-events:none;}
+  .tag{position:absolute; left:0; top:0; pointer-events:auto; cursor:pointer; border:2px solid var(--c); background:rgba(10,10,14,.85);
+       color:var(--ink); border-radius:999px; padding:3px 10px; font:600 12px 'Inter',sans-serif; white-space:nowrap; display:flex; gap:6px; align-items:center;
+       transition:opacity .3s, box-shadow .2s;}
+  .tag .st{color:var(--muted); font:500 10px 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.06em;}
+  .tag.mine{background:var(--c); color:#111;}
+  .tag.mine .st{color:#111;}
+  .tag.turn{box-shadow:0 0 0 4px rgba(255,255,255,.25);}
+  .tag.out{opacity:.45;}
+  .pop{position:absolute; transform:translate(-50%,-100%) rotate(var(--tilt)); pointer-events:none; white-space:nowrap;
+       font:700 18px/1 'Space Grotesk',sans-serif; color:#111; background:#fff; border:3px solid #111; border-radius:12px;
+       padding:5px 10px; box-shadow:3px 3px 0 #111; animation:floatpop 1.4s ease-out forwards;}
+  .pop.bang{background:#e0342c; color:#fff6d5; font-size:28px;}
+  .pop.click{background:#fff6d5;}
+  .pop.phew, .pop.cheer{background:#3ddc84;}
+  .pop.chicken{background:#8fd3ff;}
+  .pop.nervous{background:#eef1f5; font-size:15px;}
+  .pop.win{background:#ffc83d; font-size:24px;}
+  @keyframes floatpop{
+    0%{opacity:0; transform:translate(-50%,-100%) rotate(var(--tilt)) scale(.3);}
+    15%{opacity:1; transform:translate(-50%,-100%) rotate(var(--tilt)) scale(1.15);}
+    25%{transform:translate(-50%,-100%) rotate(var(--tilt)) scale(1);}
+    75%{opacity:1;}
+    100%{opacity:0; transform:translate(-50%,-190%) rotate(var(--tilt)) scale(1);}
+  }
+  #pick-hint{position:absolute; left:50%; top:14px; transform:translateX(-50%); background:rgba(0,0,0,.6); border-radius:999px; padding:6px 14px; font-size:13px; color:var(--muted); pointer-events:none;}
+  #banner{position:absolute; left:50%; top:40%; transform:translate(-50%,-50%) rotate(-3deg); background:var(--gold); color:#1a1200; border:4px solid #111;
+          box-shadow:6px 6px 0 #111; border-radius:14px; padding:14px 26px; font:700 clamp(24px,4vw,40px)/1.1 'Space Grotesk',sans-serif; text-align:center; pointer-events:none;
+          animation:pop .5s cubic-bezier(.3,1.6,.5,1);}
+  #banner small{display:block; font:500 14px 'Inter',sans-serif; margin-top:6px;}
+  @keyframes pop{from{transform:translate(-50%,-50%) rotate(-3deg) scale(.2);}}
+
+  .panel{display:flex; flex-direction:column; gap:12px;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px;}
+  .card h2{font:500 11px 'JetBrains Mono',monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--accent-hi); margin:0 0 10px;}
+  .controls{display:flex; flex-wrap:wrap; gap:8px;}
+  button.btn, select{font:600 14px 'Inter',sans-serif; border-radius:10px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); padding:9px 12px; cursor:pointer;}
+  button.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff; flex:1 1 100%; font-size:16px; padding:12px;}
+  button.btn.primary:hover:not(:disabled){background:var(--accent-hi);}
+  button.btn:disabled, select:disabled{opacity:.5; cursor:not-allowed;}
+  .who{font:700 18px 'Space Grotesk',sans-serif; margin-bottom:8px;}
+  .row{display:grid; grid-template-columns:1fr auto; gap:2px 8px; margin:8px 0 2px; font-size:13px; color:var(--muted);}
+  .bar{grid-column:1 / -1; height:10px; background:var(--surface-2); border-radius:6px; overflow:hidden; position:relative;}
+  .bar i{display:block; height:100%; width:0; background:var(--live); border-radius:6px; transition:width .08s linear;}
+  #wing-bar{background:#8fd3ff;}
+  #wing-bar.hot{background:var(--accent-hi);}
+  .bar .line{position:absolute; top:-2px; bottom:-2px; width:2px; background:var(--ink); opacity:.6; left:62.5%;}
+  #verdict{margin-top:10px; font:700 20px 'Space Grotesk',sans-serif; min-height:26px;}
+  #verdict.fly{color:#8fd3ff;} #verdict.pull{color:var(--gold);}
+  .note{font-size:12px; color:var(--dim); margin:8px 0 0;}
+  #log{list-style:none; margin:0; padding:0; max-height:230px; overflow:auto; font-size:13px;}
+  #log li{padding:6px 0; border-bottom:1px solid var(--line);}
+  #log li.win{color:var(--gold);}
+  #log .dim{color:var(--dim); font-size:11px;}
+  #log .bang{color:var(--accent-hi);}
+  #tally{font-size:12px; color:var(--dim); margin-top:8px;}
+
+  /* Play for $FLYAI */
+  .bet h3{font:600 13px 'Inter',sans-serif; margin:14px 0 6px; color:var(--muted);}
+  .bet-intro{font-size:13px; color:var(--muted); margin:0 0 10px;}
+  .game > *{min-width:0;}                     /* long hashes must wrap, not widen the column past the screen */
+  .bet{overflow-wrap:anywhere;}
+  #bet-commit, .bet-result dd{word-break:break-all;}
+  .bet-acct{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;}
+  .bet-acct b{font:700 18px 'Space Grotesk',sans-serif; white-space:nowrap;}
+  #bet-who{white-space:nowrap;}
+  .bet-how{font-size:12px; color:var(--muted); margin-top:10px;}
+  .bet-how summary{cursor:pointer; color:var(--ink); font-weight:600;}
+  .bet-how ul{padding-left:16px; margin:6px 0 0;}
+  .bet-how li{margin-bottom:4px;}
+  .bet-acct-btns{display:flex; gap:6px;}
+  .bet-acct-btns .btn{padding:7px 10px; font-size:13px;}
+  .bet-box{background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:10px;}
+  .bet-box label, .bet-stake{display:block; font-size:13px; color:var(--muted);}
+  .bet-row{display:flex; gap:8px; align-items:center; margin-top:6px;}
+  .bet-row input{flex:1; min-width:0; font:600 15px 'JetBrains Mono',monospace; background:var(--ground); color:var(--ink);
+                 border:1px solid var(--line); border-radius:8px; padding:8px 10px;}
+  .bet-line{font-size:13px; margin:8px 0; color:var(--ink);}
+  .bet-line .dot{display:inline-block; width:10px; height:10px; border-radius:50%; vertical-align:middle;}
+  .dim{color:var(--dim);}
+  #bet-go{margin-top:4px;}
+  #bet-msg.bad{color:var(--accent-hi);}
+  .bet-result{border-top:1px solid var(--line); margin-top:12px; padding-top:10px;}
+  .bet-result dl{font-size:11px; margin:8px 0; word-break:break-all;}
+  .bet-result dt{color:var(--dim);}
+  .bet-result dd{margin:0 0 6px; color:var(--muted);}
+  .bet-history{list-style:none; margin:0; padding:0; font-size:12px; max-height:160px; overflow:auto;}
+  .bet-history li{display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--line);}
+  .bet-history .won{color:var(--live);} .bet-history .lost{color:var(--accent-hi);}
+  #banner .betwin{color:#0c5a2c; font-weight:700;} #banner .betloss{color:#7a1410; font-weight:700;}
+  dialog.terms{background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:14px; max-width:460px; width:calc(100% - 32px); padding:20px;}
+  dialog.terms::backdrop{background:rgba(0,0,0,.6);}
+  dialog.terms h3{font:700 20px 'Space Grotesk',sans-serif; margin:0 0 10px;}
+  dialog.terms ul{padding-left:18px; color:var(--muted); font-size:14px;}
+  dialog.terms label{display:flex; gap:8px; align-items:center; margin:8px 0; font-size:14px;}
+  .terms-btns{display:flex; gap:8px; justify-content:flex-end; margin-top:12px;}
+  .terms-btns .btn.primary{flex:0 0 auto;}
+  /* the compute site's wallet picker (mine/web/account.ts builds it) */
+  .acct-sheet{position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(0,0,0,.6);}
+  .acct-sheet[hidden]{display:none;}
+  .acct-panel{width:min(420px,100%); max-height:calc(100dvh - 32px); overflow-y:auto; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .acct-head{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .acct-head h3{margin:0; font:700 18px 'Space Grotesk',sans-serif;}
+  .acct-list{display:grid; gap:8px; margin:14px 0 4px;}
+  .acct-wallet{display:flex; align-items:center; gap:12px; width:100%; padding:12px 14px; text-align:left; cursor:pointer;
+               background:var(--surface-2); border:1px solid var(--line); border-radius:10px; color:var(--ink); font:inherit;}
+  .acct-wallet:hover{border-color:var(--muted);}
+  .acct-wallet img, .acct-icon{width:28px; height:28px; border-radius:7px; flex:none;}
+  .acct-icon{display:grid; place-items:center; background:var(--line); color:var(--muted);}
+  .acct-wallet b{display:block; font-weight:600;}
+  .acct-wallet small{display:block; font:12px 'JetBrains Mono',monospace; color:var(--dim);}
+  .acct-apps{display:flex; flex-wrap:wrap; gap:8px;}
+  .acct-status:empty{display:none;}
+  .caption{color:var(--muted); font-size:13px;}
+  .codeline{font:12px 'JetBrains Mono',monospace; color:var(--muted);}
+  @media (max-width:640px){ .acct-sheet{align-items:flex-end; padding:0;} .acct-panel{width:100%; border-radius:16px 16px 0 0; max-height:85dvh;} }
+</style>
+</head>
+<body>
+<nav aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="/"><img class="logo" src="/assets/logo.webp" alt="fly.ai" width="1774" height="887">$FLYAI</a>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li class="dd"><button class="ddbtn ddlabel" type="button" aria-expanded="false" aria-controls="dd-research">Research <span aria-hidden="true">&#9662;</span></button>
+        <ul class="ddmenu" id="dd-research">
+          <li><a href="/research">All findings<small>Fighting, the 3-D world, what failed</small></a></li>
+          <li><a href="/research/flybook">Talking flies<small>Flybook: can two brains signal?</small></a></li>
+          <li><a href="/research/radio">On air<small>How a radio station run by a real fly brain works</small></a></li>
+          <li><a href="/roadmap">Roadmap<small>What's done and what's next</small></a></li>
+        </ul></li>
+      <li class="dd"><button class="ddbtn ddlabel on" type="button" aria-expanded="false" aria-controls="dd-apps">Apps <span aria-hidden="true">&#9662;</span></button>
+        <ul class="ddmenu" id="dd-apps">
+          <li><a href="/simulation/">Simulation<small>Flies with real brains in a 3-D world</small></a></li>
+          <li><a href="/flybook/">Flybook<small>The live feed written by fly brains</small></a></li>
+          <li><a href="/radio/">Fly Radio<small>A station played by a real fly brain</small></a></li>
+          <li><a class="on" href="/roulette/">Fly Roulette<small>Fly brains vs a toy cap gun</small></a></li>
+          <li><a href="/compute/">Compute<small>Mine with your browser, earn $FLYAI</small></a></li>
+        </ul></li>
+      <li class="dd"><button class="ddbtn ddlabel" type="button" aria-expanded="false" aria-controls="dd-token">$FLYAI <span aria-hidden="true">&#9662;</span></button>
+        <ul class="ddmenu right" id="dd-token">
+          <li><a href="/token">Token<small>Contract, chain, where to buy</small></a></li>
+          <li><a href="/shop" target="_blank" rel="noopener">Merch<small>Fly shirts and more</small></a></li>
+        </ul></li>
+      <li class="opt"><a href="/agents">For Agents</a></li>
+      <li><a class="btn sm" href="https://x.com/flydotai" target="_blank" rel="noopener">Follow @flydotai</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <div class="head">
+    <div>
+      <h1>Fly <span>Roulette</span></h1>
+      <p class="sub">A toy cap gun goes round the table. Each fly's real brain decides: squeeze the trigger or fly off. Last fly at the table wins.</p>
+    </div>
+    <span id="status" class="mono">loading the fly brains…</span>
+  </div>
+
+  <div class="game">
+    <div class="stagebox">
+      <div id="stage"></div>
+      <div id="tags"></div>
+      <div id="pick-hint">tap a fly to back it</div>
+      <div id="banner" hidden></div>
+    </div>
+
+    <div class="panel">
+      <div class="card">
+        <div class="controls">
+          <button class="btn primary" id="start" disabled>Spin the drum</button>
+          <select id="size" aria-label="Flies at the table">
+            <option value="2">2 flies</option>
+            <option value="3">3 flies</option>
+            <option value="4">4 flies</option>
+            <option value="5" selected>5 flies</option>
+            <option value="6">6 flies</option>
+            <option value="7">7 flies</option>
+            <option value="8">8 flies</option>
+            <option value="9">9 flies</option>
+            <option value="10">10 flies</option>
+          </select>
+          <button class="btn" id="speed">Speed: normal</button>
+          <button class="btn" id="sound">Sound: on</button>
+        </div>
+        <div id="tally"></div>
+      </div>
+
+      <div class="card bet" id="bet-card">
+        <h2>Play for $FLYAI</h2>
+        <p class="note" id="bet-off">Loading the betting table…</p>
+        <div id="bet-out" hidden>
+          <p class="bet-intro">Back a fly with real $FLYAI. If it's the last fly at the table, you win your stake times the number of flies, less 5%.</p>
+          <button class="btn primary" id="bet-signin" type="button">Sign in with your wallet</button>
+        </div>
+        <div id="bet-in" hidden>
+          <div class="bet-acct">
+            <span><span class="mono dim" id="bet-who"></span><br><b id="bet-balance">…</b></span>
+            <span class="bet-acct-btns">
+              <button class="btn" id="bet-deposit" type="button">Deposit</button>
+              <button class="btn" id="bet-withdraw" type="button">Withdraw</button>
+              <button class="btn" id="bet-signout" type="button" title="Sign out">⏻</button>
+            </span>
+          </div>
+          <div class="bet-box" id="bet-deposit-box" hidden>
+            <label>Send $FLYAI from your wallet to your balance
+              <span class="bet-row"><input id="dep-amount" inputmode="decimal" placeholder="amount"><button class="btn" id="dep-go" type="button">Send</button></span></label>
+            <p class="note" id="dep-status"></p>
+          </div>
+          <div class="bet-box" id="bet-withdraw-box" hidden>
+            <label>Ask for $FLYAI back to your wallet
+              <span class="bet-row"><input id="wd-amount" inputmode="decimal" placeholder="amount"><button class="btn" id="wd-go" type="button">Ask</button></span></label>
+            <p class="note" id="wd-status">Withdrawals are sent by hand, usually within a day.</p>
+          </div>
+          <p class="note" id="bet-withdraw-note"></p>
+          <label class="bet-stake">Stake
+            <span class="bet-row"><input id="bet-stake" inputmode="decimal"><span class="mono">FLYAI</span></span></label>
+          <p class="bet-line" id="bet-pick"></p>
+          <p class="bet-line" id="bet-pays"></p>
+          <button class="btn primary" id="bet-go" type="button" disabled>Bet and spin</button>
+          <p class="note" id="bet-msg"></p>
+          <p class="note mono" id="bet-limits"></p>
+          <div class="bet-result" id="bet-result" hidden>
+            <p id="res-line"></p>
+            <dl class="mono">
+              <dt>commit (shown before the bet)</dt><dd id="res-commit"></dd>
+              <dt>server seed (revealed after)</dt><dd id="res-server"></dd>
+              <dt>your seed</dt><dd id="res-client"></dd>
+            </dl>
+            <button class="btn" id="res-verify" type="button">Verify this game</button>
+            <p class="note" id="res-verify-out"></p>
+          </div>
+          <p class="note mono dim">last commit: <span id="bet-commit">none yet</span></p>
+          <h3>Your bets</h3>
+          <ul class="bet-history" id="bet-history"></ul>
+          <details class="bet-how">
+            <summary>How betting works</summary>
+            <ul>
+              <li><b>Free play stays free.</b> "Spin the drum" never touches money; betting is only this panel.</li>
+              <li><b>You against the house.</b> Every seat wins 1 time in n. A win pays stake × n × 0.95; the 5% is the house edge.</li>
+              <li><b>Your balance</b> is the same $FLYAI balance compute orders use: deposits, winnings and order refunds all land in it, and any of it can be bet, spent on orders or withdrawn.</li>
+              <li><b>Separate from the miners' pool.</b> Bets don't earn compute points, don't change anyone's share of the monthly pool, and no stakes or house edge go into it. The house edge stays with fly.ai.</li>
+              <li><b>Provably fair.</b> The server commits to its seed before your bet and reveals it after; "Verify this game" replays it on your own fly brains.</li>
+            </ul>
+          </details>
+          <p class="note"><a href="/roulette-terms">Terms</a> · 18+ only · play responsibly</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Inside its head</h2>
+        <div class="who" id="meter-name">nobody yet</div>
+        <div class="row"><span>Fly off <span class="mono" style="color:var(--dim)">wing motor neurons</span></span><span class="mono" id="wing-num">0</span>
+          <div class="bar"><i id="wing-bar"></i><span class="line" title="take-off"></span></div></div>
+        <div class="row"><span>Squeeze <span class="mono" style="color:var(--dim)">leg flexor neurons</span></span><span class="mono" id="grip-num">0</span>
+          <div class="bar"><i id="grip-bar"></i></div></div>
+        <div class="row"><span>Panic <span class="mono" style="color:var(--dim)">giant fibre</span></span><span class="mono" id="gf-num">0</span></div>
+        <div id="verdict"></div>
+        <p class="note">Spikes from the fly's real 166,700-neuron connectome, running in your browser. The gun looks bigger with every empty click.</p>
+      </div>
+
+      <div class="card">
+        <h2>Table talk</h2>
+        <ul id="log"></ul>
+      </div>
+    </div>
+  </div>
+<dialog id="terms-dlg" class="terms">
+  <h3>Before your first bet</h3>
+  <ul>
+    <li>You bet real $FLYAI from your balance. You can lose all of it.</li>
+    <li>Each fly at the table is equally likely to win. A win pays your stake times the number of flies, less a 5% house edge.</li>
+    <li>The server plays the game: it commits to its seed before your bet and reveals it after, so you can check every game.</li>
+    <li>Winnings go to your balance. Withdrawals are sent by hand and can take a day.</li>
+    <li>Betting may be illegal where you live. It's your responsibility to follow your local laws.</li>
+  </ul>
+  <label><input type="checkbox" id="terms-18"> I'm 18 or older</label>
+  <label><input type="checkbox" id="terms-ok"> I accept the <a href="/roulette-terms" target="_blank" rel="noopener">terms</a></label>
+  <p class="note" id="terms-msg"></p>
+  <div class="terms-btns"><button class="btn" id="terms-cancel" type="button">Cancel</button><button class="btn primary" id="terms-go" type="button" disabled>Continue</button></div>
+</dialog>
+</main>
+<script type="module" src="/src/roulette/main.ts"></script>
+<script src="/assets/nav.js"></script>
+</body>
+</html>

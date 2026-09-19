@@ -17,6 +17,15 @@ primary_region = "cdg"
   CACHED_PRICE = "5"      # already-settled jobs, ~$0.00025
   POOL_SHARE = "0.8"
   STORE_MAX_MB = "400"    # buyers' uploads and program outputs, on the 1 GB volume next to the database
+  # Fly Roulette bets (src/roulette.ts; whole tokens): small bets, 10 to 2,000 FLYAI (the biggest win, 10 flies, is 19,000)
+  ROULETTE_ON = "1"
+  ROULETTE_EDGE = "0.05"
+  ROULETTE_MIN_BET = "10"
+  ROULETTE_MAX_BET = "2000"
+  ROULETTE_MAX_DAY = "20000"
+  ROULETTE_MAX_PAYOUT = "19000"
+  ROULETTE_HOUSE_STOP = "200000"
+  ROULETTE_MAX_LIVE = "8"
 
 [mounts]
   source = "mine_data"
@@ -37,6 +46,7 @@ primary_region = "cdg"
     path = "/api/stats"
 
 [[vm]]
-  cpu_kind = "shared"
+  # dedicated since 2026-09-19: shared vCPUs got throttled under the mining fleet (every request 15-55 s, health checks flapping)
+  cpu_kind = "performance"
   cpus = 2
-  memory = "2gb"
+  memory = "4gb"

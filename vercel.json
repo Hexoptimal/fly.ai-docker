@@ -27,6 +27,11 @@
       "permanent": false
     },
     {
+      "source": "/roulette",
+      "destination": "/roulette/",
+      "permanent": false
+    },
+    {
       "source": "/compute",
       "destination": "/compute/",
       "permanent": false
@@ -43,6 +48,15 @@
     }
   ],
   "headers": [
+    {
+      "source": "/roulette/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
     {
       "source": "/radio/assets/(.*)",
       "headers": [

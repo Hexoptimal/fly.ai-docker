@@ -89,8 +89,28 @@ re-runs a sample of answers, and a wrong answer zeroes that day's credit.
 Both contracts are verified on Robinhood Chain.
 
 Funded months (pool, Merkle root, transactions) are logged here. As of 17 September 2026: **none yet.**
-September 2026 is announced at 5,250,000 $FLYAI, plus whatever buyers' charges add; it will be funded after
+September 2026 is announced at 6,530,000 $FLYAI (raised by about $100 of $FLYAI on 19 September), plus whatever buyers' charges add; it will be funded after
 it ends.
+
+## Fly Roulette
+
+[Fly Roulette](https://flyaiworld.com/roulette/) is a cartoon game where a toy cap gun goes round a table of 2 to
+10 flies and each fly's real connectome decides whether it squeezes the trigger or flies off. The last fly at the
+table wins. **Free play is always free.** Betting is optional:
+
+* **Against the house.** A player backs one seat and stakes $FLYAI from their fly.ai balance. Every seat wins 1 time
+  in n, and a win pays stake × n × 0.95, so the house edge is 5%.
+* **Provably fair.** The server commits to a secret seed before the bet and reveals it after; the player's browser
+  adds its own seed. Anyone can replay a game from the two seeds, and the page does it on the player's own fly brains.
+* **The same balance as compute.** Deposits ($FLYAI sent to the dev wallet), winnings and unspent compute budgets
+  all land in one balance per wallet, which can be bet, spent on compute orders or withdrawn. Withdrawals are sent by
+  hand. The dev wallet holds every balance.
+* **Separate from the miners' pool.** Bets earn no compute points and change no one's share of a monthly pool. Stakes
+  and the house edge don't go into any pool; the house's result stays with the dev wallet. If that ever changes,
+  this document will say so first.
+* **Limits.** Smallest and biggest bet, a daily cap per wallet and a cap on a single win, shown on the page. Betting
+  pauses by itself if the house loses a set amount in a day. Players confirm they're 18+ and accept the
+  [terms](https://flyaiworld.com/roulette-terms); betting may be restricted where they live.
 
 ## The world
 
