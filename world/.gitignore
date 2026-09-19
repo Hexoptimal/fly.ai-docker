@@ -2,5 +2,6 @@ node_modules
 dist
 dist-radio
 dist-roulette
+dist-flinder
 .vite
 world-data/

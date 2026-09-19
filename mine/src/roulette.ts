@@ -54,7 +54,10 @@ export function createRoulette(d: RouletteDeps) {
     maxPayout: tokens("ROULETTE_MAX_PAYOUT", "500000"),
     houseStop: tokens("ROULETTE_HOUSE_STOP", "2000000"),
     maxLive: Number(d.env.ROULETTE_MAX_LIVE ?? "8"),
+    /** PAY_TO is the dev wallet: older transfers to it were for other things and can't become a balance */
+    depositsSince: Date.parse(d.env.ROULETTE_DEPOSITS_SINCE ?? "2026-09-19T00:00:00Z"),
   };
+  if (!Number.isFinite(CFG.depositsSince)) throw new Error("ROULETTE_DEPOSITS_SINCE is a date, e.g. 2026-09-19T00:00:00Z");
   if (!(CFG.edge >= 0 && CFG.edge < 0.5)) throw new Error("ROULETTE_EDGE is a fraction, e.g. 0.05");
   const PPM = BigInt(Math.round((1 - CFG.edge) * 1_000_000));
   const payoutFor = (stake: bigint, flies: number) => (stake * BigInt(flies) * PPM) / 1_000_000n;
@@ -286,6 +289,7 @@ export function createRoulette(d: RouletteDeps) {
     if (!transfers) throw new HttpError(409, "that transaction isn't mined yet; try again in a few seconds");
     const mine = transfers.filter((t) => t.from.toLowerCase() === wallet.toLowerCase());
     if (!mine.length) throw new HttpError(402, "that transaction sends no FLYAI from your wallet to the deposit address");
+    if (mine[0].at < CFG.depositsSince) throw new HttpError(402, "that transfer is older than deposits; it can't be credited");
     const value = mine.reduce((s, t) => s + t.value, 0n);
     transaction(() => {
       if (one("select 1 from ledger where tx = ?", tx)) throw new HttpError(409, "that transaction was just credited");

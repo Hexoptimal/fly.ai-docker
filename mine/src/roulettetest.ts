@@ -201,6 +201,26 @@ try {
   check("the same transaction twice is refused", (await api("/api/balance/deposit", a, { tx: tx1 })).status === 409);
   const tx2 = await payIn(alice.address, 10n);
   check("someone else's transfer isn't yours", (await api("/api/balance/deposit", b, { tx: tx2 })).status === 402);
+  check("nor is the same hash in capitals", (await api("/api/balance/deposit", a, { tx: tx1.toUpperCase().replace("0X", "0x") })).status === 409);
+  {
+    // a transfer that already paid a compute order sits in the same ledger: it can't be a deposit too
+    const tx3 = await payIn(alice.address, 300n);
+    const db = new DatabaseSync(DB);
+    db.prepare("insert into ledger (wallet, order_id, kind, amount_wei, tx, at) values (?, 'some-order', 'deposit', ?, ?, ?)").run(alice.address, (300n * WEI).toString(), tx3.toLowerCase(), Date.now());
+    db.prepare("insert into ledger (wallet, order_id, kind, amount_wei, at) values (?, 'some-order', 'fund', ?, ?)").run(alice.address, (300n * WEI).toString(), Date.now());
+    db.close();
+    const r = await api("/api/balance/deposit", a, { tx: tx3 });
+    check("an order's payment can't be claimed as a deposit", r.status === 409 && (await api("/api/roulette/me", a)).json.balance === "5000", `${r.status}`);
+  }
+  // transfers to PAY_TO (the dev wallet) from before deposits opened were for something else
+  await stopServer();
+  await startServer({ ROULETTE_DEPOSITS_SINCE: new Date(Date.now() + 3_600_000).toISOString() });
+  const old = await api("/api/balance/deposit", a, { tx: tx2 });
+  check("a transfer older than deposits isn't credited", old.status === 402 && /older/.test(old.json.error ?? JSON.stringify(old.json)), JSON.stringify(old.json));
+  await stopServer();
+  await startServer();
+  const late = await api("/api/balance/deposit", a, { tx: tx2 });
+  check("a transfer the page never reported is credited later by its hash", late.status === 200 && late.json.balance === "5010", JSON.stringify(late.json));
 
   // ---- terms and limits
   const commit = async (s: string) => (await api("/api/roulette/commit", s, {})).json;
@@ -221,7 +241,7 @@ try {
   // ---- a game
   const placed = await bet(a, {});
   check("bet placed, the table seated", placed.status === 200 && placed.json.status === "live" && placed.json.names.length === 2 && placed.json.server_seed === null, JSON.stringify(placed.json).slice(0, 200));
-  check("the stake leaves the balance", (await api("/api/roulette/me", a)).json.balance === "4900");
+  check("the stake leaves the balance", (await api("/api/roulette/me", a)).json.balance === "4910");
   check("a used commit can't be used again", (await bet(a, {})).status === 409);
   c = await commit(a);
   check("one game at a time", (await bet(a, {})).status === 409);
@@ -230,7 +250,7 @@ try {
   const end = g1.events.at(-1);
   check("the game plays to one winner", g1.status === "done" && end.type === "end" && end.winner === g1.winner && turns.length >= 1 && g1.events.every((e: any, k: number) => e.seq === k), `${turns.length} turns, winner ${g1.winner}`);
   check("the server seed is revealed and matches the commit", !!g1.server_seed && sha256hex(g1.server_seed) === g1.commit_hash);
-  const expectBal = g1.won ? 4900 + 190 : 4900;
+  const expectBal = g1.won ? 4910 + 190 : 4910;
   check(`settled once: ${g1.won ? "won 1.9x" : "lost"}`, (await api("/api/roulette/me", a)).json.balance === String(expectBal));
   const again = await replay(g1.server_seed, g1.client_seed, g1.flies);
   check("the revealed seeds replay to the same game", JSON.stringify(again) === JSON.stringify(g1.events.map(({ seq: _s, ...e }: any) => e)));

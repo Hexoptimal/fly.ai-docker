@@ -7,7 +7,8 @@ export const robinhood = defineChain({
   id: 4663,
   name: "Robinhood Chain",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-  rpcUrls: { default: { http: ["https://rpc.mainnet.chain.robinhood.com"] } },
+  // VITE_RPC: local testing against a fork of the chain (anvil --fork-url ... --chain-id 4663)
+  rpcUrls: { default: { http: [(import.meta.env.VITE_RPC as string | undefined) || "https://rpc.mainnet.chain.robinhood.com"] } },
   blockExplorers: { default: { name: "Blockscout", url: "https://robinhoodchain.blockscout.com" } },
 });
 

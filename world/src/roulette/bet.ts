@@ -332,8 +332,7 @@ export function initBets(hooks: Hooks) {
     goBtn.onclick = () => void placeBet();
     $("bet-deposit").onclick = () => { depositBox.hidden = !depositBox.hidden; withdrawBox.hidden = true; };
     $("bet-withdraw").onclick = () => { withdrawBox.hidden = !withdrawBox.hidden; depositBox.hidden = true; };
-    $("dep-go").onclick = () => void deposit();
-    $("wd-go").onclick = () => void withdraw();
+    $("dep-go").onclick = () => void deposit();    $("wd-go").onclick = () => void withdraw();
     $("res-verify").onclick = () => void verify();
     await refresh();
     // a game still on the table from before a reload: watch it to the end

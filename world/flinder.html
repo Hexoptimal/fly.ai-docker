@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flinder</title>
+<meta name="description" content="Tinder for flies. A real 166,700-neuron fly brain, running in your browser, swipes through dating profiles: its pC1 mating-drive neurons decide left or right. It's a match when the other fly's brain swipes right too.">
+<meta property="og:title" content="Flinder">
+<meta property="og:description" content="Tinder for flies: a real fly brain swipes left or right.">
+<meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@flydotai">
+<meta name="theme-color" content="#07090c">
+<link rel="canonical" href="https://flyaiworld.com/flinder/">
+<link rel="icon" href="/assets/logo.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#07090c; --surface:#11161e; --surface-2:#0d1117; --line:#222a35;
+    --ink:#eef1f5; --muted:#95a0ae; --dim:#5f6b7a;
+    --accent:#e0342c; --accent-hi:#ff5b4f; --live:#3ddc84; --gold:#ffc83d;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--ground); color:var(--ink); font:15px/1.5 'Inter',system-ui,sans-serif; overflow-x:hidden;}
+  a{color:inherit;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+  /* nav (same markup/classes as every docs/*.html page) */
+  nav{position:sticky; top:0; z-index:10; background:rgba(7,9,12,.85); backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; gap:16px; height:58px; max-width:1120px; margin:0 auto; padding-inline:24px;}
+  .brand{display:flex; align-items:center; gap:10px; font:700 18px 'Space Grotesk',sans-serif; text-decoration:none;}
+  .brand .logo{height:34px; width:auto; margin:-6px -8px; mix-blend-mode:screen;}
+  nav ul{display:flex; gap:22px; list-style:none; margin:0; padding:0; font-size:14px; align-items:center;}
+  nav ul a{color:var(--muted); text-decoration:none;}
+  nav ul a:hover{color:var(--ink);}
+  nav ul a.on{color:var(--ink);}
+  nav ul a.on::after{content:""; display:block; height:2px; background:var(--accent); margin-top:4px;}
+  nav li.dd{position:relative; display:flex; align-items:center; gap:2px;}
+  nav .ddbtn{all:unset; cursor:pointer; color:var(--muted); font-size:11px; line-height:1; padding:5px 4px; border-radius:4px;}
+  nav .ddbtn:hover{color:var(--ink);}
+  nav .ddmenu{position:absolute; top:calc(100% + 12px); left:-12px; min-width:240px; margin:0; padding:6px;
+              display:none; flex-direction:column; gap:2px; background:var(--surface); border:1px solid var(--line);
+              border-radius:10px; box-shadow:0 14px 34px rgba(0,0,0,.5); z-index:20; list-style:none;}
+  nav .ddmenu::before{content:""; position:absolute; left:0; right:0; top:-14px; height:14px;}
+  nav li.dd:hover .ddmenu, nav li.dd:focus-within .ddmenu, nav li.dd.open .ddmenu{display:flex;}
+  nav .ddmenu li{display:block;}
+  nav .ddmenu a{display:block; padding:9px 11px; border-radius:7px; color:var(--ink); font-size:14px; white-space:nowrap;}
+  nav .ddmenu a:hover{background:var(--surface-2);}
+  nav .ddmenu a.on{background:var(--surface-2);}
+  nav .ddmenu a.on::after{display:none;}
+  nav .ddmenu small{display:block; color:var(--dim); font:12px/1.4 'JetBrains Mono',monospace; margin-top:2px; white-space:normal;}
+  nav .ddlabel{font-size:inherit; color:var(--muted); padding:4px 2px;}
+  nav .ddlabel span{font-size:10px; margin-left:2px;}
+  nav .ddlabel:hover, nav li.dd.open .ddlabel, nav .ddlabel.on{color:var(--ink);}
+  nav .ddlabel.on::after{content:""; display:block; height:2px; background:var(--accent); margin-top:4px;}
+  nav .ddmenu.right{left:auto; right:-12px;}
+  nav .ddmenu{align-items:stretch;}
+  @media (max-width:1080px){
+    nav ul{gap:14px; font-size:13px;}
+  }
+  @media (max-width:760px){
+    nav .wrap{height:auto; padding-block:10px; flex-wrap:wrap; gap:8px 14px;}
+    nav ul{gap:14px; font-size:13px; flex-wrap:wrap;}
+  }
+  @media (max-width:520px){
+    nav ul{gap:12px; font-size:12px; width:100%; justify-content:space-between;}
+    nav ul li:last-child{display:none;}
+    nav .ddmenu{left:-40px; min-width:220px;}
+    nav .ddmenu.right{left:auto; right:-8px;}
+    .brand{font-size:16px;}
+  }
+
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:13px 20px; border-radius:10px; font-weight:600;
+       font-size:15px; text-decoration:none; border:1px solid var(--line); background:var(--surface); color:var(--ink); cursor:pointer;}
+  .btn.sm{padding:8px 14px; font-size:13px; border-radius:8px;}
+  .btn:hover{border-color:var(--muted);}
+
+  main{max-width:1120px; margin:0 auto; padding:16px 24px;}
+  @media (max-width:640px){ main{padding:16px;} }
+  :root{--pink:#ff4f7b; --pink-hi:#ff7a9a; --nope:#ff5b4f; --like:#3ddc84;}
+  .head{display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 20px; margin-bottom:12px;}
+  h1{font:700 clamp(28px,5vw,44px)/1 'Space Grotesk',sans-serif; letter-spacing:-.02em; margin:0;}
+  h1 span{color:var(--pink);}
+  .sub{color:var(--muted); margin:6px 0 0; max-width:620px;}
+  #status{color:var(--dim); font-size:12px;}
+  .game{display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:16px;}
+  .game > *{min-width:0;}
+  @media (max-width:900px){ .game{grid-template-columns:1fr;} }
+
+  /* the phone */
+  .stagebox{position:relative; scroll-margin-top:70px; border:1px solid var(--line); border-radius:16px; overflow:hidden; height:min(80vh,720px); min-height:580px;
+            display:grid; place-items:center; padding:16px;
+            background:radial-gradient(circle at 30% 20%, #3a1024 0, transparent 55%), radial-gradient(circle at 80% 90%, #10233a 0, transparent 50%), #120a10;}
+  @media (max-width:900px){ .stagebox{height:auto; min-height:0; padding:12px;} }
+  .phone{position:relative; width:min(360px,100%); height:min(660px,100%); background:#fff; color:#1a1a1f;
+         border:10px solid #0b0b10; border-radius:38px; box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 0 2px #2a2a33; overflow:hidden;
+         display:flex; flex-direction:column;}
+  @media (max-width:900px){ .phone{height:min(640px,calc(100svh - 40px)); min-height:520px;} }
+  .app-top{display:flex; align-items:center; justify-content:space-between; padding:16px 14px 8px; gap:8px;}
+  .logo-f{font:700 22px 'Space Grotesk',sans-serif; color:var(--pink); letter-spacing:-.03em; flex:none;}
+  .me-chip{display:flex; align-items:center; gap:6px; font-size:12px; color:#666; min-width:0;}
+  .me-chip img{width:28px; height:28px; border-radius:50%; object-fit:cover; border:2px solid var(--pink); flex:none;}
+  .me-chip span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .me-chip b{color:#1a1a1f;}
+  .deck{position:relative; flex:1; margin:0 10px; min-height:0; z-index:1; isolation:isolate;}
+  .pcard{position:absolute; inset:0; border-radius:16px; overflow:hidden; background:#ddd; box-shadow:0 4px 18px rgba(0,0,0,.25);
+         transform-origin:50% 120%; will-change:transform;}
+  .pcard .photo, .pcard canvas.live{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;}
+  .pcard .info{position:absolute; left:0; right:0; bottom:0; padding:56px 14px 12px; color:#fff;
+               background:linear-gradient(to top, rgba(0,0,0,.85) 0, rgba(0,0,0,.6) 55%, transparent 100%);}
+  .pcard .nm{font:700 24px/1.1 'Space Grotesk',sans-serif;}
+  .pcard .nm span{font-weight:500; font-size:20px; opacity:.9;}
+  .pcard .meta{font-size:12px; opacity:.85; margin:3px 0 6px;}
+  .pcard .bio{font-size:12.5px; line-height:1.3; margin:0 0 6px;}
+  .chips{display:flex; flex-wrap:wrap; gap:4px;}
+  .chip{font-size:11px; padding:2px 8px; border-radius:999px; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); white-space:nowrap;}
+  .chip i{font-style:normal; opacity:.8; margin-left:4px; font-family:'JetBrains Mono',monospace; font-size:10px;}
+  .chip.hot{background:rgba(255,79,123,.55); border-color:var(--pink-hi);}
+  .stamp{position:absolute; top:28px; padding:4px 12px; border:5px solid; border-radius:10px; font:800 36px/1 'Space Grotesk',sans-serif;
+         letter-spacing:.04em; opacity:0; pointer-events:none;}
+  .stamp.like{left:18px; color:var(--like); border-color:var(--like); transform:rotate(-16deg);}
+  .stamp.nope{right:18px; color:var(--nope); border-color:var(--nope); transform:rotate(16deg);}
+  .app-bottom{display:flex; justify-content:center; align-items:center; gap:22px; padding:12px 0 14px;}
+  .rb{width:54px; height:54px; border-radius:50%; display:grid; place-items:center; font-size:24px; background:#fff;
+      box-shadow:0 3px 12px rgba(0,0,0,.15); border:1px solid #eee; transition:transform .15s, background .15s, color .15s; user-select:none;}
+  .rb.sm{width:40px; height:40px; font-size:18px;}
+  .rb.nope{color:var(--nope);} .rb.like{color:var(--like);} .rb.star{color:#3d8bff;}
+  .rb.on{transform:scale(1.25);} .rb.nope.on{background:var(--nope); color:#fff;} .rb.like.on{background:var(--like); color:#fff;}
+  /* the swiping fly's leg: main.ts moves it */
+  #leg{position:absolute; left:50%; top:0; align-self:start; justify-self:start; width:84px; height:260px; margin-left:-42px; pointer-events:none; z-index:5;
+       transform-origin:50% 100%; transform:translateY(120vh); filter:drop-shadow(3px 5px 3px rgba(0,0,0,.35));}
+  #leg svg{width:100%; height:100%; display:block; overflow:visible;}
+  /* it's a match */
+  #match{position:absolute; inset:0; z-index:8; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+         background:linear-gradient(160deg, rgba(255,79,123,.96), rgba(255,138,31,.94)); color:#fff; text-align:center; padding:20px; overflow:hidden;}
+  #match[hidden]{display:none;}
+  #match h3{font:italic 800 38px/1 'Space Grotesk',sans-serif; margin:0; text-shadow:0 3px 0 rgba(0,0,0,.2); animation:pop .5s cubic-bezier(.3,1.6,.5,1);}
+  #match p{margin:0; font-size:14px;}
+  #match .pair{display:flex;}
+  #match .pair img{width:108px; height:108px; border-radius:50%; object-fit:cover; border:4px solid #fff; box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  #match .pair img:first-child{transform:rotate(-8deg) translateX(10px);} #match .pair img:last-child{transform:rotate(8deg) translateX(-10px);}
+  /* silly effects (main.ts: burst, shake, runAcross, messageFx, endFx) */
+  .pt{position:absolute; z-index:12; font-size:22px; pointer-events:none; transform:translate(-50%,-50%); animation:pt 1s cubic-bezier(.2,.7,.4,1) forwards;}
+  @keyframes pt{to{transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)) scale(.6); opacity:0;}}
+  .phone.shake{animation:shake .45s;}
+  @keyframes shake{20%{transform:translateX(-9px) rotate(-1.5deg);} 40%{transform:translateX(8px) rotate(1.5deg);} 60%{transform:translateX(-6px);} 80%{transform:translateX(4px);}}
+  .phone.pulse{animation:pulse .5s;}
+  @keyframes pulse{50%{box-shadow:0 0 0 10px rgba(255,79,123,.55), 0 20px 60px rgba(0,0,0,.6);}}
+  .bub.hot{font-weight:700; font-size:16px; background:linear-gradient(135deg,#ff4f7b,#ff8a1f); animation:bub .25s ease-out, wobble .5s .25s 2;}
+  @keyframes wobble{25%{transform:rotate(-4deg) scale(1.06);} 75%{transform:rotate(4deg) scale(1.06);}}
+  .bub.spook{animation:bub .25s ease-out, jitter .12s .25s 6;}
+  @keyframes jitter{50%{transform:translate(3px,-2px) rotate(2deg);}}
+  .bub.groom{background:#d9f3ff !important; color:#1a1a1f !important;}
+  .runner{position:absolute; left:0; z-index:12; font-size:26px; pointer-events:none; animation:across 2.4s linear forwards;}
+  .runner i{display:inline-block; font-style:normal; animation:hop .3s ease-in-out infinite alternate;}
+  @keyframes across{from{transform:translateX(-40px);} to{transform:translateX(400px);}}
+  @keyframes hop{to{transform:translateY(-18px) rotate(-12deg);}}
+  .chat-body.faded .bub{filter:grayscale(1); opacity:.35; transition:opacity .8s, filter .8s;}
+  .fx-ov{position:absolute; inset:0; z-index:11; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; pointer-events:none;}
+  .fx-stamp{font:900 34px/1 'Space Grotesk',sans-serif; padding:8px 16px; border:6px solid; border-radius:12px; background:rgba(255,255,255,.92);
+            transform:rotate(-12deg); animation:stampin .45s .3s cubic-bezier(.3,1.8,.5,1) both;}
+  @keyframes stampin{from{transform:rotate(-12deg) scale(3); opacity:0;}}
+  .fx-ghosted .fx-stamp{color:#6b6b78; border-color:#6b6b78;}
+  .fx-unmatched .fx-stamp{color:var(--nope); border-color:var(--nope);}
+  .fx-date .fx-stamp{color:var(--pink); border-color:var(--pink);}
+  .fx-texting .fx-stamp{color:#3d8bff; border-color:#3d8bff;}
+  .big{font-size:96px; line-height:1;}
+  .ghost{animation:ghostfly 2.2s ease-in-out forwards;}
+  @keyframes ghostfly{0%{transform:translate(-150px,60px) scale(.4); opacity:0;} 25%{opacity:1;} 45%{transform:translate(0,0) scale(1.15) rotate(-10deg);}
+    65%{transform:translate(12px,-6px) scale(1) rotate(10deg);} 100%{transform:translate(170px,-120px) scale(.5); opacity:0;}}
+  .heartbreak{position:relative; width:110px; height:100px;}
+  .heartbreak i{position:absolute; inset:0; font-style:normal; font-size:96px; line-height:1; text-align:center;}
+  .heartbreak i:first-child{clip-path:polygon(0 0,55% 0,42% 35%,58% 55%,45% 100%,0 100%); animation:halfL 1.6s .5s ease-in forwards;}
+  .heartbreak i:last-child{clip-path:polygon(55% 0,100% 0,100% 100%,45% 100%,58% 55%,42% 35%); animation:halfR 1.6s .5s ease-in forwards;}
+  @keyframes halfL{15%{transform:translateX(-6px) rotate(-8deg);} 100%{transform:translate(-40px,260px) rotate(-60deg); opacity:0;}}
+  @keyframes halfR{15%{transform:translateX(6px) rotate(8deg);} 100%{transform:translate(40px,260px) rotate(60deg); opacity:0;}}
+  .kiss{display:flex; align-items:center;}
+  .kiss img{width:96px; height:96px; border-radius:50%; object-fit:cover; border:4px solid #fff; box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .kiss img:first-child{animation:inL .7s cubic-bezier(.3,1.6,.5,1) both;}
+  .kiss img:last-child{animation:inR .7s cubic-bezier(.3,1.6,.5,1) both;}
+  .kiss b{font-size:44px; margin:0 -18px; z-index:1; animation:smooch .6s .6s both;}
+  @keyframes inL{from{transform:translateX(-200px) rotate(-40deg);}}
+  @keyframes inR{from{transform:translateX(200px) rotate(40deg);}}
+  @keyframes smooch{from{transform:scale(0);} 60%{transform:scale(1.6);}}
+  .fx-date{background:radial-gradient(circle, rgba(255,214,107,.55), transparent 70%);}
+  /* profile extras */
+  .pcard .prompt{background:rgba(255,255,255,.14); border-radius:10px; padding:5px 9px; margin:0 0 6px; font-size:12px;}
+  .pcard .prompt b{display:block; font-size:10px; text-transform:uppercase; letter-spacing:.08em; opacity:.75;}
+  .flags{display:flex; flex-wrap:wrap; gap:4px; margin:0 0 6px;}
+  .flag{font-size:11px; padding:2px 8px; border-radius:999px; white-space:nowrap;}
+  .flag.red{background:rgba(224,52,44,.55);} .flag.green{background:rgba(61,220,132,.45);} .flag.rival{background:rgba(196,107,255,.55);}
+  .botbadge{position:absolute; top:12px; left:12px; z-index:2; background:#ffc83d; color:#1a1200; font:700 12px 'Inter',sans-serif; padding:4px 10px; border-radius:999px; animation:blinkbadge 1s infinite;}
+  @keyframes blinkbadge{50%{opacity:.5;}}
+  .pcard.bot .photo, .pcard.bot canvas.live{filter:saturate(.3);}
+  .stamp.super{left:50%; top:auto; bottom:48%; transform:translateX(-50%) rotate(-8deg); color:#3d8bff; border-color:#3d8bff; text-align:center; font-size:30px;}
+  .fx-super .fx-stamp{color:#3d8bff; border-color:#3d8bff;}
+  .fx-swat{background:rgba(255,246,213,.6);}
+  .fx-swat .paper{font-size:150px; line-height:1; animation:swat .35s cubic-bezier(.6,0,.9,.4) both;}
+  .fx-swat small{font:600 14px 'Inter',sans-serif; color:#1a1a1f; background:#fff; padding:4px 10px; border-radius:8px;}
+  .fx-swat .fx-stamp{color:#e0342c; border-color:#e0342c;}
+  @keyframes swat{from{transform:translateY(-500px) rotate(-60deg) scale(1.6);} to{transform:rotate(-20deg);}}
+  /* chat extras */
+  .sys{align-self:center; font-size:11px; color:#999; font-style:italic;}
+  .sys.me{align-self:flex-end;} .sys.them{align-self:flex-start;}
+  .sys.unsent{text-decoration:line-through; opacity:.4; transition:opacity .4s;}
+  .bub.voice .tx{font-family:'JetBrains Mono',monospace; letter-spacing:1px;}
+  #date{position:absolute; inset:0; z-index:9; background:#2a1030;}
+  #date[hidden]{display:none;}
+  #date canvas{position:absolute; inset:0; width:100%; height:100%; display:block;}
+  .date-cap{position:absolute; left:0; right:0; bottom:0; z-index:1; padding:16px; text-align:center; color:#fff;
+            background:linear-gradient(to top, rgba(0,0,0,.7), transparent);}
+  .date-cap b{display:block; font:700 18px 'Space Grotesk',sans-serif;}
+  .date-cap span{display:block; font-size:15px; margin-top:6px; min-height:20px;}
+  /* panel extras */
+  .bar .line.super{left:83.3%; background:#3d8bff; opacity:.9;}
+  .bar i.panic{background:#ffc83d;} .bar i.panic.hot{background:var(--nope);}
+  .mine-stats{font-size:12px; color:var(--muted); margin:10px 0 8px;}
+  .share{display:flex; flex-wrap:wrap; gap:6px;}
+  .share .btn{padding:7px 10px; font-size:13px;}
+  #board{list-style:none; margin:0; padding:0;}
+  #board li{display:grid; grid-template-columns:auto 32px minmax(0,1fr) auto; gap:8px; align-items:center; padding:6px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  #board .cat{color:var(--muted); font-size:12px; white-space:nowrap;}
+  #board img{width:32px; height:32px; border-radius:50%; object-fit:cover;}
+  #board b{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  #board .n{font:700 15px 'JetBrains Mono',monospace;}
+  /* their chat */
+  #chat{position:absolute; inset:0; z-index:7; background:#fff; display:flex; flex-direction:column;}
+  #chat[hidden]{display:none;}
+  .chat-top{display:flex; align-items:center; gap:10px; padding:16px 12px 10px; border-bottom:1px solid #eee;}
+  .chat-top img{width:40px; height:40px; border-radius:50%; object-fit:cover; flex:none;}
+  .chat-top b{display:block; font:700 16px/1.2 "Space Grotesk",sans-serif;}
+  .chat-top small{color:#999; font-size:11px;}
+  #chat-back{all:unset; cursor:pointer; font-size:30px; line-height:1; color:var(--pink); padding:0 6px 4px 0;}
+  #chat-back[hidden]{display:none;}
+  .chat-body{flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; background:#fafafa;}
+  .bub{max-width:78%; padding:8px 12px; border-radius:18px; font-size:14px; line-height:1.3; animation:bub .25s ease-out;}
+  .bub.me{align-self:flex-end; background:var(--pink); color:#fff; border-bottom-right-radius:4px;}
+  .bub.them{align-self:flex-start; background:#e9e9ee; color:#1a1a1f; border-bottom-left-radius:4px;}
+  .bub .why{display:block; font:10px "JetBrains Mono",monospace; opacity:.6; margin-top:2px;}
+  .bub.typing{display:flex; gap:4px; padding:12px 14px;}
+  .bub.typing i{width:7px; height:7px; border-radius:50%; background:currentColor; opacity:.5; animation:blink 1s infinite;}
+  .bub.typing i:nth-child(2){animation-delay:.15s;} .bub.typing i:nth-child(3){animation-delay:.3s;}
+  @keyframes blink{50%{opacity:1; transform:translateY(-3px);}}
+  @keyframes bub{from{opacity:0; transform:translateY(8px) scale(.95);}}
+  .chat-end{padding:10px 12px 16px; text-align:center; font:700 15px "Space Grotesk",sans-serif; color:#1a1a1f; min-height:44px;}
+  .chat-end:empty{display:none;}
+  @keyframes pop{from{transform:scale(.2);}}
+  .heart{position:absolute; bottom:-30px; font-size:24px; pointer-events:none; animation:rise 1.8s ease-out forwards;}
+  @keyframes rise{to{transform:translateY(-640px) rotate(40deg); opacity:0;}}
+  #toast{position:absolute; left:50%; top:58px; transform:translateX(-50%); z-index:6; background:rgba(20,20,26,.88); color:#fff; font-size:13px;
+         padding:6px 14px; border-radius:999px; white-space:nowrap; pointer-events:none; transition:opacity .3s; opacity:0;}
+  #toast.on{opacity:1;}
+
+  .panel{display:flex; flex-direction:column; gap:12px;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px;}
+  .card h2{font:500 11px 'JetBrains Mono',monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--pink-hi); margin:0 0 10px;}
+  .controls{display:flex; flex-wrap:wrap; gap:8px;}
+  button.btn{font:600 14px 'Inter',sans-serif; border-radius:10px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); padding:9px 12px; cursor:pointer;}
+  button.btn.primary{background:var(--pink); border-color:var(--pink); color:#fff; flex:1 1 100%; font-size:16px; padding:12px;}
+  button.btn.primary:hover:not(:disabled){background:var(--pink-hi);}
+  button.btn:disabled{opacity:.5; cursor:not-allowed;}
+  .who{font:700 18px 'Space Grotesk',sans-serif; margin-bottom:8px;}
+  .row{display:grid; grid-template-columns:1fr auto; gap:2px 8px; margin:8px 0 2px; font-size:13px; color:var(--muted);}
+  .bar{grid-column:1 / -1; height:10px; background:var(--surface-2); border-radius:6px; overflow:hidden; position:relative;}
+  .bar i{display:block; height:100%; width:0; background:#8fd3ff; border-radius:6px; transition:width .08s linear;}
+  .bar i.hot{background:var(--pink);}
+  .bar .line{position:absolute; top:-2px; bottom:-2px; width:2px; background:var(--ink); opacity:.6; left:62.5%;}
+  #verdict{margin-top:10px; font:700 20px 'Space Grotesk',sans-serif; min-height:26px;}
+  #verdict.right{color:var(--like);} #verdict.left{color:var(--nope);}
+  .note{font-size:12px; color:var(--dim); margin:8px 0 0;}
+  #tally{font-size:12px; color:var(--dim); margin-top:8px;}
+  .mine-card{display:flex; gap:12px; align-items:center;}
+  .mine-card img{width:64px; height:80px; border-radius:12px; object-fit:cover; flex:none; background:var(--surface-2);}
+  .mine-card .nm{font:700 16px 'Space Grotesk',sans-serif; margin-bottom:6px;}
+  .mine-card .chip{background:var(--surface-2); border-color:var(--line); color:var(--muted);}
+  .mine-card .chip.hot{background:rgba(255,79,123,.2); border-color:var(--pink); color:var(--ink);}
+  #matches{list-style:none; margin:0; padding:0; max-height:260px; overflow:auto;}
+  #matches li{display:flex; gap:10px; align-items:center; padding:7px 0; border-bottom:1px solid var(--line); font-size:13px; cursor:pointer;}
+  #matches li > span:nth-child(2){flex:1; min-width:0;}
+  #matches .st{font-size:18px;}
+  #matches li:hover b{color:var(--pink-hi);}
+  #matches img{width:40px; height:40px; border-radius:50%; object-fit:cover; flex:none;}
+  #matches .msg{display:block; color:var(--muted); font-size:12px;}
+  #log{list-style:none; margin:0; padding:0; max-height:200px; overflow:auto; font-size:13px;}
+  #log li{padding:5px 0; border-bottom:1px solid var(--line);}
+  #log .r{color:var(--like);} #log .l{color:var(--nope);} #log .m{color:var(--pink-hi);} #log .dim{color:var(--dim); font-size:11px;}
+  .empty{color:var(--dim); font-size:13px;}
+</style>
+</head>
+<body>
+<nav aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="/"><img class="logo" src="/assets/logo.webp" alt="fly.ai" width="1774" height="887">$FLYAI</a>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li class="dd"><button class="ddbtn ddlabel" type="button" aria-expanded="false" aria-controls="dd-research">Research <span aria-hidden="true">&#9662;</span></button>
+        <ul class="ddmenu" id="dd-research">
+          <li><a href="/research">All findings<small>Fighting, the 3-D world, what failed</small></a></li>
+          <li><a href="/research/flybook">Talking flies<small>Flybook: can two brains signal?</small></a></li>
+          <li><a href="/research/radio">On air<small>How a radio station run by a real fly brain works</small></a></li>
+          <li><a href="/roadmap">Roadmap<small>What's done and what's next</small></a></li>
+        </ul></li>
+      <li class="dd"><button class="ddbtn ddlabel on" type="button" aria-expanded="false" aria-controls="dd-apps">Apps <span aria-hidden="true">&#9662;</span></button>
+        <ul class="ddmenu" id="dd-apps">
+          <li><a href="/simulation/">Simulation<small>Flies with real brains in a 3-D world</small></a></li>
+          <li><a href="/flybook/">Flybook<small>The live feed written by fly brains</small></a></li>
+          <li><a href="/radio/">Fly Radio<small>A station played by a real fly brain</small></a></li>
+          <li><a href="/roulette/">Fly Roulette<small>Fly brains vs a toy cap gun</small></a></li>
+          <li><a class="on" href="/flinder/">Flinder<small>A fly brain swipes on dating profiles</small></a></li>
+          <li><a href="/compute/">Compute<small>Mine with your browser, earn $FLYAI</small></a></li>
+        </ul></li>
+      <li class="dd"><button class="ddbtn ddlabel" type="button" aria-expanded="false" aria-controls="dd-token">$FLYAI <span aria-hidden="true">&#9662;</span></button>
+        <ul class="ddmenu right" id="dd-token">
+          <li><a href="/token">Token<small>Contract, chain, where to buy</small></a></li>
+          <li><a href="/shop" target="_blank" rel="noopener">Merch<small>Fly shirts and more</small></a></li>
+        </ul></li>
+      <li class="opt"><a href="/agents">For Agents</a></li>
+      <li><a class="btn sm" href="https://x.com/flydotai" target="_blank" rel="noopener">Follow @flydotai</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <div class="head">
+    <div>
+      <h1>Fl<span>inder</span></h1>
+      <p class="sub">Tinder for flies. A real fly brain swipes through dating profiles and its mating-drive neurons say left or right. If the other fly's brain swipes right too, it's a match.</p>
+    </div>
+    <span id="status" class="mono">loading the fly brain…</span>
+  </div>
+
+  <div class="game">
+    <div class="stagebox">
+      <div class="phone" id="phone">
+        <div class="app-top">
+          <span class="logo-f">flinder🔥</span>
+          <span class="me-chip"><img id="me-pic" alt=""><span>swiping: <b id="me-name">…</b></span></span>
+        </div>
+        <div class="deck" id="deck"></div>
+        <div class="app-bottom">
+          <span class="rb nope" id="b-nope" title="Nope">✕</span>
+          <span class="rb sm star" id="b-star" title="Super like">★</span>
+          <span class="rb like" id="b-like" title="Like">♥</span>
+        </div>
+        <div id="toast"></div>
+        <div id="date" hidden><div class="date-cap"><b id="date-title"></b><span id="date-line"></span></div></div>
+        <div id="chat" hidden>
+          <div class="chat-top"><button id="chat-back" type="button" aria-label="Back" hidden>‹</button><img id="chat-pic" alt=""><span><b id="chat-name"></b><small id="chat-sub"></small></span></div>
+          <div class="chat-body" id="chat-body"></div>
+          <div class="chat-end" id="chat-end"></div>
+        </div>
+        <div id="match" hidden>
+          <h3>It's a Match!</h3>
+          <div class="pair"><img id="m-me" alt=""><img id="m-them" alt=""></div>
+          <p id="m-line"></p>
+        </div>
+      </div>
+      <div id="leg" aria-hidden="true">
+        <svg viewBox="0 0 84 260">
+          <g stroke="#0b0b10" stroke-linecap="round" fill="none">
+            <path d="M44 262 L40 188" stroke-width="28"/>
+            <path d="M40 188 L34 104" stroke-width="20"/>
+            <path d="M34 104 L40 40" stroke-width="13"/>
+            <path d="M40 40 L42 14" stroke-width="9"/>
+            <path d="M42 14 L31 2 M42 14 L53 2" stroke-width="5"/>
+            <path d="M50 226 l12 -6 M31 214 l-12 -8 M46 160 l12 -6 M28 140 l-12 -6 M41 80 l10 -8 M31 70 l-10 -6 M41 54 l9 -6" stroke-width="2"/>
+          </g>
+          <g fill="#3a3f4d"><circle cx="40" cy="188" r="8"/><circle cx="34" cy="104" r="6"/><circle cx="40" cy="40" r="4.5"/></g>
+          <ellipse cx="42" cy="13" rx="7" ry="4.5" fill="#ff9fb2"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="card">
+        <div class="controls">
+          <button class="btn primary" id="start" disabled>Start swiping</button>
+          <button class="btn" id="newfly">New fly</button>
+          <button class="btn" id="speed">Speed: normal</button>
+          <button class="btn" id="sound">Sound: on</button>
+        </div>
+        <div id="tally"></div>
+      </div>
+      <div class="card">
+        <h2>The swiper</h2>
+        <div class="mine-card">
+          <img id="mine-pic" alt="">
+          <div><div class="nm" id="mine-name"></div><div class="chips" id="mine-chips"></div></div>
+        </div>
+        <p class="mine-stats mono" id="mine-stats"></p>
+        <div class="share">
+          <button class="btn" id="share-card" type="button">📸 Stats card</button>
+          <button class="btn" id="share-x" type="button">𝕏 Post</button>
+          <button class="btn" id="share-link" type="button">🔗 Challenge a friend</button>
+        </div>
+        <p class="note">Its own profile is what the other flies' brains judge. Send the link and a friend runs this same fly. Beat its score.</p>
+      </div>
+
+      <div class="card">
+        <h2>Inside its head</h2>
+        <div class="who" id="meter-name">nobody yet</div>
+        <div class="row"><span>Into it <span class="mono" style="color:var(--dim)">pC1 neurons</span></span><span class="mono" id="heart-num">0</span>
+          <div class="bar"><i id="heart-bar"></i><span class="line" title="swipe right"></span><span class="line super" title="super like"></span></div></div>
+        <div class="row"><span>Panic <span class="mono" style="color:var(--dim)">giant fibre</span></span><span class="mono" id="panic-num">–</span>
+          <div class="bar"><i id="panic-bar" class="panic"></i><span class="line" title="spooked"></span></div></div>
+        <div class="row"><span>Grooming <span class="mono" style="color:var(--dim)">DNg12</span></span><span class="mono" id="groom-num">–</span></div>
+        <div class="row"><span>Blushing <span class="mono" style="color:var(--dim)">vpoDN</span></span><span class="mono" id="vpo-num">0</span></div>
+        <div id="verdict"></div>
+        <p class="note">Spikes from the fly's real 166,700-neuron connectome, running in your browser. It smells each profile (cVA, Or47b, vinegar), sees it (LC10a) and hears it (Johnston's organ). Past the first line it swipes right, past the second it's a super like. In a chat each message is sensed the same way: pC1 flirts back, a fly coming on too strong trips the giant fibre and it bails, and a bored brain grooms its antennae.</p>
+      </div>
+
+      <div class="card">
+        <h2>Matches</h2>
+        <p class="note" style="margin:0 0 6px">Tap one to read their chat.</p>
+        <ul id="matches"><li class="empty">no matches yet</li></ul>
+      </div>
+
+      <div class="card">
+        <h2>Heartbreak board</h2>
+        <ul id="board"></ul>
+        <p class="note">The flies you've run in this browser.</p>
+      </div>
+
+      <div class="card">
+        <h2>Swipes</h2>
+        <ul id="log"></ul>
+      </div>
+    </div>
+  </div>
+</main>
+<script type="module" src="/src/flinder/main.ts"></script>
+<script src="/assets/nav.js"></script>
+</body>
+</html>

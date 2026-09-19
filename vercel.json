@@ -32,6 +32,11 @@
       "permanent": false
     },
     {
+      "source": "/flinder",
+      "destination": "/flinder/",
+      "permanent": false
+    },
+    {
       "source": "/compute",
       "destination": "/compute/",
       "permanent": false
@@ -50,6 +55,15 @@
   "headers": [
     {
       "source": "/roulette/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/flinder/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

@@ -17,12 +17,12 @@ function toonRamp(): THREE.DataTexture {
   return t;
 }
 const RAMP = toonRamp();
-const toon = (color: THREE.ColorRepresentation, extra: Partial<THREE.MeshToonMaterialParameters> = {}) =>
+export const toon = (color: THREE.ColorRepresentation, extra: Partial<THREE.MeshToonMaterialParameters> = {}) =>
   new THREE.MeshToonMaterial({ color, gradientMap: RAMP, ...extra });
 const INK = new THREE.MeshBasicMaterial({ color: 0x0b0b10, side: THREE.BackSide });
 
 /** A mesh with a black inverted-hull outline, the cartoon look. */
-function inked(geo: THREE.BufferGeometry, mat: THREE.Material, outline = 0.06): THREE.Mesh {
+export function inked(geo: THREE.BufferGeometry, mat: THREE.Material, outline = 0.06): THREE.Mesh {
   const m = new THREE.Mesh(geo, mat);
   m.castShadow = true;
   const o = new THREE.Mesh(geo, INK);
@@ -45,7 +45,7 @@ function textTexture(text: string, fg: string, bg: string, w = 256, h = 128): TH
   return t;
 }
 
-class Fly {
+export class Fly {
   readonly root = new THREE.Group();       // sits at the seat, faces the table
   readonly body = new THREE.Group();       // bobs, tilts, falls, flies
   readonly head = new THREE.Group();       // turns to watch the gun
