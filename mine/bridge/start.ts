@@ -48,7 +48,7 @@ if (env("YESPOWER_POOL") && env("YESPOWER_USER")) {
     script: fileURLToPath(new URL("../examples/yespower-pool/bridge.ts", import.meta.url)),
     args: ["--pool", env("YESPOWER_POOL"), "--user", env("YESPOWER_USER"), "--pass", env("YESPOWER_PASS", "x"),
       "--coin", env("YESPOWER_COIN", "yescrypt"), "--server", SERVER, "--per-job", env("YESPOWER_PER_JOB", "20000"),
-      "--ahead", env("YESPOWER_AHEAD", "16"), "--units", env("YESPOWER_UNITS", "84")],
+      "--ahead", env("YESPOWER_AHEAD", "16"), "--units", env("YESPOWER_UNITS", "103.96")],
     restarts: 0, startedAt: 0,
   });
 }
@@ -58,7 +58,7 @@ if (env("KASPA_POOL") && env("KASPA_USER")) {
     script: fileURLToPath(new URL("../examples/kaspa/bridge.ts", import.meta.url)),
     args: ["--pool", env("KASPA_POOL"), "--user", env("KASPA_USER"), "--pass", env("KASPA_PASS", "x"),
       "--server", SERVER, "--groups", env("KASPA_GROUPS", "1024"), "--per-thread", env("KASPA_PER_THREAD", "64"),
-      "--ahead", env("KASPA_AHEAD", "8"), "--units", env("KASPA_UNITS", "39")],
+      "--ahead", env("KASPA_AHEAD", "8"), "--units", env("KASPA_UNITS", "48.267")],
     restarts: 0, startedAt: 0,
   });
 }

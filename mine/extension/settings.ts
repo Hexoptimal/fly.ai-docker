@@ -11,7 +11,7 @@ export interface Settings {
   label: string;
   /** the mining server's origin */
   server: string;
-  /** also run our own world simulations and brain probes (1.25x points); buyers' programs run on the website only */
+  /** also run our own world simulations and brain probes (+1% on those jobs); buyers' programs run on the website only */
   programs: boolean;
 }
 

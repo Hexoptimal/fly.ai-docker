@@ -1,11 +1,13 @@
 """Real prices for the fly market: an allowlist of Robinhood Chain tokens, priced in USD from their live pools.
 
-The flies paper-trade these with paper USDG: nothing is bought or sold on chain. Picked 2026-09-18 (at most 20) from
+The flies paper-trade these with paper USDG: nothing is bought or sold on chain. Picked 2026-09-18 (20 tokens), widened
+2026-09-19 to 41 for more data to improve the encoders and trading on (stocks with ~$500k+ liquidity and daily trades,
+memes with ~$1M liquidity and weeks of history). Picked from
 Robinhood Chain's most traded pools on GeckoTerminal: the chain's ETH; its ecosystem and meme tokens with weeks of history, steady volume and $1M+ of liquidity ($FLYAI is ours and smaller); and
 Robinhood's tokenized stocks and ETFs, only the official ones named "<company> • Robinhood Token" on chain.
 Left out on purpose: WALLET (a scam token), TheGreenHood (0xdaa8…, a meme with the HOOD ticker), every SPCX/SpaceX
-token (not an official Robinhood token, many copycats), COIN (made room for USDG; the thinnest stock token), and memes
-launched within the last week with large liquidity but thin volume.
+token (not an official Robinhood token, many copycats), thin stock tokens (TSM, DELL, NFLX and others under ~$500k),
+and memes launched within the last week with large liquidity but thin volume (musebook, GOOSE, STANDARD).
 USDG, the chain's main dollar and the same dollar the flies' cash is held in, is on the list as a place to park: it barely
 moves, so when most tokens fall it is often the only one that looks like it's rising, and a fly turns toward it.
 
@@ -37,31 +39,62 @@ TOKENS = [
     ("SPY", "S&P 500 ETF", "0x117cc2133c37b721f49de2a7a74833232b3b4c0c", "stock"),
     ("QQQ", "Nasdaq-100 ETF", "0xd5f3879160bc7c32ebb4dc785f8a4f505888de68", "stock"),
     ("GLD", "Gold ETF", "0xc9a981fee1f9dec688bb123ccdecc63d0debfc4e", "stock"),
+    # added 2026-09-19
+    ("COIN", "Coinbase", "0x6330d8c3178a418788df01a47479c0ce7ccf450b", "stock"),
+    ("PLTR", "Palantir", "0x894e1ec2d74ffe5aef8dc8a9e84686accb964f2a", "stock"),
+    ("AMD", "AMD", "0x86923f96303d656e4aa86d9d42d1e57ad2023fdc", "stock"),
+    ("INTC", "Intel", "0xc72b96e0e48ecd4dc75e1e45396e26300bc39681", "stock"),
+    ("MU", "Micron", "0xff080c8ce2e5feadaca0da81314ae59d232d4afd", "stock"),
+    ("SNDK", "Sandisk", "0xb90a19ff0af67f7779aff50a882a9cff42446400", "stock"),
+    ("AMC", "AMC Entertainment", "0x05a3d1cd21d0c88145e82600e62e7e496e0f222b", "stock"),
+    ("GME", "GameStop", "0x1b0e319c6a659f002271b69db8a7df2f911c153e", "stock"),
+    ("HIMS", "Hims & Hers", "0xccee82fe024c36fa15e1005ede3e9e4787e23d09", "stock"),
+    ("RDDT", "Reddit", "0x05b37fb53a299a1b874a619e1c4c404d52c36f4c", "stock"),
+    ("DJT", "Trump Media", "0x1d11f0496982706c5e14a514d4e79f2e6bde4516", "stock"),
+    ("LLY", "Eli Lilly", "0x8005d266423c7ea827372c9c864491e5786600ea", "stock"),
+    ("COST", "Costco", "0x4ea005168d7f09a7a0ba9d1def21a479950e44c2", "stock"),
+    ("RBLX", "Roblox", "0xf0c4bf4c582cb3836e98394b1d4e7b7281101be8", "stock"),
+    ("TTWO", "Take-Two", "0x5e81213613b6b86eab4c6c50d718d34359459786", "stock"),
+    ("GLXY", "Galaxy Digital", "0x2d427692e928fa156ec22acfabafa0447c5805b7", "stock"),
+    ("USO", "Oil Fund ETF", "0xa30fa36db767ad9ed3f7a60fc79526fb4d56d344", "stock"),
+    ("SLV", "Silver ETF", "0x411efb0e7f985935daec3d4c3ebaea0d0ad7d89f", "stock"),
+    ("SGOV", "0-3 Month Treasury ETF", "0x92fd66527192e3e61d4ddd13322aa222de86f9b5", "stock"),
+    ("SHROOM", "MUSHROOM", "0xab093def657f15df31b33922a95e047add645b29", "meme"),
+    ("HOOKR", "Hookr.fun", "0x18e674231a58c239dc7daedcffe15ec3a24cff5c", "meme"),
     ("USDG", "Global Dollar", "0x5fc5360d0400a0fd4f2af552add042d716f1d168", "stable"),   # the chain's main dollar
 ]
 BY_SYMBOL = {t[0]: t for t in TOKENS}
 BY_ADDRESS = {t[2]: t[0] for t in TOKENS}
 GECKO = "https://api.geckoterminal.com/api/v2/networks/robinhood/tokens/multi/"
 DEXSCREENER = "https://api.dexscreener.com/tokens/v1/robinhood/"
+BATCH = 30                      # both APIs take at most 30 addresses per call
+
+
+def _batches(addresses: list[str]) -> list[list[str]]:
+    return [addresses[i:i + BATCH] for i in range(0, len(addresses), BATCH)]
 
 
 def _gecko(timeout: float) -> dict[str, float]:
-    r = requests.get(GECKO + ",".join(BY_ADDRESS), timeout=timeout, headers={"accept": "application/json"})
-    r.raise_for_status()
     out = {}
-    for t in r.json().get("data", []):
-        a = t.get("attributes") or {}
-        symbol = BY_ADDRESS.get((a.get("address") or "").lower())
-        if symbol and a.get("price_usd"):
-            out[symbol] = float(a["price_usd"])
+    for batch in _batches(list(BY_ADDRESS)):
+        r = requests.get(GECKO + ",".join(batch), timeout=timeout, headers={"accept": "application/json"})
+        r.raise_for_status()
+        for t in r.json().get("data", []):
+            a = t.get("attributes") or {}
+            symbol = BY_ADDRESS.get((a.get("address") or "").lower())
+            if symbol and a.get("price_usd"):
+                out[symbol] = float(a["price_usd"])
     return out
 
 
 def _dexscreener(addresses: list[str], timeout: float) -> dict[str, float]:
-    r = requests.get(DEXSCREENER + ",".join(addresses), timeout=timeout, headers={"accept": "application/json"})
-    r.raise_for_status()
+    pairs = []
+    for batch in _batches(addresses):
+        r = requests.get(DEXSCREENER + ",".join(batch), timeout=timeout, headers={"accept": "application/json"})
+        r.raise_for_status()
+        pairs += r.json() or []
     best: dict[str, tuple[float, float]] = {}                  # symbol -> (liquidity, price)
-    for p in r.json() or []:
+    for p in pairs:
         symbol = BY_ADDRESS.get(((p.get("baseToken") or {}).get("address") or "").lower())
         if not symbol or not p.get("priceUsd"):
             continue

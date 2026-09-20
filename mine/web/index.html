@@ -82,7 +82,7 @@
           <label>Engine <select id="engine"><option value="cpu">CPU</option></select></label>
           <label id="batch-field" hidden>Batch <select id="batch"><option>8</option><option>16</option><option selected>32</option></select></label>
           <label id="threads-field">Threads <select id="threads"></select></label>
-          <label class="chip" title="Our own world simulations and brain probes, plus buyers' WebAssembly and GPU programs. Each runs in a sandboxed worker with a time limit; on the GPU they get a lane of their own, so the batch never waits. They earn 1.25x points, and a buyer's paid program pays your wallet on top."><input id="programs" type="checkbox" checked> Also run programs (1.25x points)</label>
+          <label class="chip" title="Our own world simulations and brain probes, plus buyers' WebAssembly and GPU programs. Each runs in a sandboxed worker with a time limit; on the GPU they get a lane of their own, so the batch never waits. They pay the same per second as the brain jobs they displace, plus 1%, and a buyer's paid program pays your wallet on top. This is separate from your stake tier."><input id="programs" type="checkbox" checked> Also run programs (+1% on those jobs)</label>
           <button id="toggle" class="btn red" type="button">Start mining</button>
         </div>
         <div class="row"><span class="k">Status</span><span class="v" id="status">idle</span></div>

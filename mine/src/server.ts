@@ -69,11 +69,18 @@ const CANARY_POOL = Number(env("CANARY_POOL", "100000")); // idle verifiers stop
 /** idle verifiers also work open paid brain jobs (a second answer can be slow with few miners); 0 leaves them to miners */
 const SEED_PAID = env("SEED_PAID", "1") !== "0";
 /**
- * Points multiplier for jobs miners opt into with "also run programs" (world runs, probes, WASM, shaders). They are
- * priced at about a brain job's points per CPU second, but need a second agreeing miner and hold a lane for longer,
- * so without extra the toggle paid less than leaving it off.
+ * Points multiplier for jobs miners opt into with "also run programs" (world runs, probes, WASM, shaders).
+ *
+ * Until 2026-09-20 this was 1.25, and the job units were set low so that units x 1.25 landed on a brain job's rate:
+ * the multiplier was compensation baked into the pricing, not a bonus, but the UI advertised it as "1.25x points" —
+ * the same number as the Operator stake tier, so miners read it as the stake reward being given away free (reported
+ * by a miner that day). The units now carry the parity rate themselves (bridge/fly.toml) and this is what it says it
+ * is: 1% on top, for needing a second agreeing miner and holding a lane longer.
+ *
+ * Changing it re-values credit that is already earned, because day_credit.program_units is stored raw and multiplied
+ * at read time (DAY_SUMS). Any change needs a migration scaling the stored rows the other way — see schema 15.
  */
-const PROGRAM_BONUS = Number(env("PROGRAM_BONUS", "1.25"));
+const PROGRAM_BONUS = Number(env("PROGRAM_BONUS", "1.01"));
 const MAX_JOBS = Number(env("MAX_JOBS", "64")); // a GPU miner holds a whole batch (up to 32) at once
 const JOB_TTL_MS = Number(env("JOB_TTL_MIN", "20")) * 60_000;
 const TRUST_PROXY = !!process.env.TRUST_PROXY;
@@ -165,7 +172,9 @@ function round(r: number): TaskParams[] {
 }
 
 // ---- storage -----------------------------------------------------------------------------------------
-const SCHEMA = 14; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions, 11 USDC payments, 12 guest card orders, 13 day_credit, 14 Fly Roulette bets (ledger kinds bet/payout, roulette_* tables, withdraw requests); created below for new and old databases alike
+const SCHEMA = 15; // 4 adds snapshots and snapshot_claims, 5 stake_samples, 6 orders, 7 result delivery, 8 buyers' programs, 9 house orders, 10 wallet sessions, 11 USDC payments, 12 guest card orders, 13 day_credit, 14 Fly Roulette bets (ledger kinds bet/payout, roulette_* tables, withdraw requests), 15 program units re-priced for PROGRAM_BONUS 1.25 -> 1.01; created below for new and old databases alike
+/** PROGRAM_BONUS before schema 15, and the factor stored program units are scaled by so credit keeps its value. */
+const OLD_PROGRAM_BONUS = 1.25;
 mkdirSync(dirname(DB_PATH), { recursive: true });
 const db = new DatabaseSync(DB_PATH);
 const version = (db.prepare("pragma user_version").get() as { user_version: number }).user_version;
@@ -252,6 +261,19 @@ if (hasTables && version < 14 && db.prepare("select 1 from sqlite_master where n
     throw err;
   }
   console.log(`database upgraded to schema 14 (ledger kinds for roulette, ${rows} rows kept)`);
+}
+if (hasTables && version < 15 && hadDayCredit) {
+  // 15: PROGRAM_BONUS drops 1.25 -> 1.01 and the job units rise to carry the parity rate themselves. Program units
+  // are stored raw and multiplied at read time, so without this every point already earned on the toggle would lose
+  // 19% the moment the new constant shipped. Scaling the stored rows by the same factor keeps each one worth what it
+  // was worth when it was earned. Closed months are already frozen in snapshots/snapshot_claims and are untouched;
+  // tasks.units moves with it so the day_credit triggers keep subtracting what they added.
+  const factor = OLD_PROGRAM_BONUS / Number(env("PROGRAM_BONUS", "1.01"));
+  transaction(() => {
+    db.prepare("update day_credit set program_units = program_units * ?").run(factor);
+    db.prepare("update tasks set units = units * ? where kind is not null and kind != 'connectome'").run(factor);
+  });
+  console.log(`database upgraded to schema 15 (program units x${factor.toFixed(4)}, credit value unchanged)`);
 }
 db.exec(`
   pragma journal_mode = wal;

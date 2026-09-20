@@ -314,8 +314,10 @@ server the probe record-set sizes, since the main thread has no connectome.
 
 Work we queue for ourselves, created with the admin token. It needs no payment, charges nothing and adds nothing
 to the pool. It runs after every paid order and before the free screen. Brain sweeps earn their usual points;
-other house jobs earn `units` points per settled job, by default sized to the work, times `PROGRAM_BONUS` (1.25) so
-that switching on "also run programs" pays more than leaving it off. On a GPU miner these CPU jobs run in a lane of
+other house jobs earn `units` points per settled job, by default sized to the work, times `PROGRAM_BONUS` (1.01) so
+that switching on "also run programs" pays a little more than leaving it off. The units carry the parity rate
+themselves: until 2026-09-20 the multiplier was 1.25 and the units were set low to compensate, which read as a 25%
+bonus in the UI and collided with the Operator stake tier's 1.25x. On a GPU miner these CPU jobs run in a lane of
 their own beside the batch. Everything they upload or produce is kept for good (`blobs.keep`).
 
 - **Kinds:**
@@ -465,7 +467,8 @@ machine, so switching the fleet to mining costs nobody points:
 | `mining/yescrypt` | 20,000 nonces, about 82 s of one browser thread | 105 | 1.28 units/s | 1.27 units/s |
 | `mining/kaspa` | 16.8 M nonces, about 1.5 s of a desktop GPU | 48.75 | 32.5 units/s | 32.3 units/s |
 
-`YESPOWER_UNITS` and `KASPA_UNITS` set them (the values above already include `PROGRAM_BONUS`). Re-price them
+`YESPOWER_UNITS` and `KASPA_UNITS` set them (the Points column is what a miner is credited, so it includes
+`PROGRAM_BONUS`; the env values are that divided by it — 103.96 and 48.267 at 1.01). Re-price them
 whenever the job sizes change, or the toggle quietly starts paying less than the screen - which is exactly what a
 miner told us in September, and how these numbers were arrived at.
 
@@ -876,10 +879,11 @@ of that day's **lowest** sample. Stake added mid-day doesn't boost that day; it 
 and the UIs say so. Stake can't leave between samples either, because unstaking stops counting at once and
 locks the tokens for the cooldown.
 
-**Tiers:** set with `STAKE_TIERS` (JSON, whole tokens). The placeholder defaults are Holder 0+ at 1×,
-Operator 100k+ at 1.25× and Foundry 1M+ at 1.5×. If the lowest tier's `min` is above 0, unstaked
-wallets earn no points, which makes staking a requirement to mine for payouts. Staking stays **off**
-until `STAKING_CONTRACT` is set; until then every wallet counts 1×.
+**Tiers:** set with `STAKE_TIERS` (JSON, whole tokens). The code's placeholder defaults are Holder 0+ at 1×,
+Operator 100k+ at 1.25× and Foundry 1M+ at 1.5×; **live since 2026-09-19 the thresholds are Operator 2M+ and
+Foundry 20M+** (`STAKE_TIERS` on the server, not in `fly.toml`). If the lowest tier's `min` is above 0, unstaked
+wallets earn no points, which makes staking a requirement to mine for payouts. Staking is **off**
+until `STAKING_CONTRACT` is set; until then every wallet counts 1×. It is set in production, so staking is on.
 
 **Where it shows:** `/stake` stakes and unstakes through the browser wallet, the website and extension
 show the tier, and `GET /api/stake-config` feeds the page.

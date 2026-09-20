@@ -11,11 +11,11 @@ primary_region = "cdg"
   YESPOWER_COIN = "yescrypt"
   YESPOWER_PER_JOB = "1000"    # about 4 s of one browser thread: a share must reach zpool before its job retires (20-60 s)
   YESPOWER_AHEAD = "16"        # the most jobs ever queued; the bridge keeps only ~8 s of work waiting at the fleet's pace
-  YESPOWER_UNITS = "4.2"       # 4 s of a browser thread, priced like the brain jobs it displaces (84 per 82 s before)
+  YESPOWER_UNITS = "5.198"     # 4 s of a browser thread, priced like the brain jobs it displaces; carries the parity rate itself since PROGRAM_BONUS became 1.01 (was 4.2 at 1.25)
   KASPA_GROUPS = "4096"        # 16.8 M nonces a job: about 1.5 s of a desktop GPU
   KASPA_PER_THREAD = "64"
   KASPA_AHEAD = "8"
-  KASPA_UNITS = "39"           # priced like the brain batch it displaces
+  KASPA_UNITS = "48.267"       # priced like the brain batch it displaces (was 39 when PROGRAM_BONUS was 1.25)
 
 [http_service]
   internal_port = 8080
