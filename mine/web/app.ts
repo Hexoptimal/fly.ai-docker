@@ -124,7 +124,7 @@ async function refresh(): Promise<void> {
     // signed in on this site and the miner has no wallet yet: it takes the signed-in one, no questions
     if (!me.wallet && signedIn()) void linkMiner();
     $("stake").textContent = me.stake
-      ? `${compact(Number(me.stake.staked))} FLYAI · ${me.stake.tier ?? "no tier"} · ${me.stake.multiplier}× points today${me.stake.tomorrow ? ` (${me.stake.tomorrow.multiplier}× from tomorrow)` : ""}`
+      ? stakeLine(me.stake)
       : me.wallet ? "staking isn't live yet: 1× points" : "link a wallet first";
     const days = `ends in ${me.month_days_left} day${me.month_days_left === 1 ? "" : "s"}`;
     $("month").textContent = me.wallet
@@ -153,6 +153,24 @@ async function refresh(): Promise<void> {
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) store.set(TOKEN_KEY, null);
   }
+}
+
+/**
+ * The stake row. It used to lead with the tier that counts TODAY, so a wallet that had just staked read
+ * "Holder · 1× points today" and looked like the stake had not registered (reported by a staker 2026-09-20).
+ * Lead with the tier the stake they hold has earned, and say plainly when it starts counting.
+ */
+function stakeLine(s: {
+  staked: string; tier: string | null; multiplier: number;
+  tomorrow: { tier: string; multiplier: number } | null;
+  holding?: { tier: string; multiplier: number } | null;
+}): string {
+  const amount = Number(s.staked);
+  if (!amount) return "not staking · 1× points";
+  const held = s.holding ? `${s.holding.tier} ${s.holding.multiplier}×` : s.tier ?? "no tier";
+  return s.tomorrow
+    ? `${compact(amount)} FLYAI · ${held} from 00:00 UTC · today counts ${s.multiplier}×`
+    : `${compact(amount)} FLYAI · ${held} · ${s.multiplier}× points`;
 }
 
 // ---- wallet ------------------------------------------------------------------------------------------

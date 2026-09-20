@@ -888,6 +888,18 @@ until `STAKING_CONTRACT` is set; until then every wallet counts 1×. It is set i
 **Where it shows:** `/stake` stakes and unstakes through the browser wallet, the website and extension
 show the tier, and `GET /api/stake-config` feeds the page.
 
+Two different numbers, and they can disagree on purpose: `/stake` reads `stakedOf` straight from the chain, so it
+shows the tier the wallet's stake has **earned**; the mining page's Stake row comes from the server's samples, so it
+shows what is **counting today**. New stake earns its tier at once and counts from 00:00 UTC, because a day uses the
+lowest sample taken during it.
+
+`stakeOf` used to report 0 staked whenever there was no sample for the current day — which is every wallet in the
+minutes after 00:00 UTC, and any staker whose miner is not running, since only wallets seen mining that day get
+sampled. Their stake looked like it had vanished (reported by a staker on 2026-09-20). It now falls back to the last
+sample ever taken for that wallet and asks the chain again in the background, at most once a minute per wallet so a
+polled page cannot spam the RPC. The mining page leads with the tier the stake has earned
+(`2.1M FLYAI · Operator 1.25× from 00:00 UTC · today counts 1×`) instead of the tier counting today.
+
 **Tests:**
 
 - **`forge test`:** 8 staking tests, including a fuzz check that the contract always holds exactly what's

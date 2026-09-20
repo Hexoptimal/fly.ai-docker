@@ -1394,19 +1394,37 @@ function multiplierFor(stakedWei: bigint | undefined): number {
   return tierFor(STAKING.tiers, stakedWei ?? 0n)?.multiplier ?? 0;
 }
 
+/** Wallets we have asked the chain about outside the sampling loop, so a polled page cannot spam the RPC. */
+const resampled = new Map<string, number>();
+const RESAMPLE_MS = 60_000;
+
 function stakeOf(wallet: string) {
   if (!STAKING.contract) return null;
   const s = one<{ staked_wei: string; last_wei: string; sampled_at: number } | undefined>(
     "select staked_wei, last_wei, sampled_at from stake_samples where wallet = ? and day = ?", wallet, today());
+  // Only wallets whose miners were seen today get sampled, and every wallet starts a UTC day with no row at all. So
+  // a staker who is not mining right now, or anyone in the minutes after 00:00 UTC, used to read as 0 staked on no
+  // tier — their stake looked like it had vanished (reported by a staker 2026-09-20). Fall back to the last sample
+  // we ever took for them, and ask the chain again in the background so the next load is exact.
+  const last = s ?? one<{ staked_wei: string; last_wei: string; sampled_at: number } | undefined>(
+    "select staked_wei, last_wei, sampled_at from stake_samples where wallet = ? order by day desc limit 1", wallet);
+  if (!s && Date.now() - (resampled.get(wallet) ?? 0) > RESAMPLE_MS) {
+    resampled.set(wallet, Date.now());          // /api/me is polled often; one chain read a minute per wallet is plenty
+    void sampleStake(wallet).catch(() => {});
+  }
+  // what counts for TODAY's points is the lowest sample taken today; with no sample yet nothing has been counted
   const counted = BigInt(s?.staked_wei ?? "0");
-  const now = BigInt(s?.last_wei ?? "0");
+  const now = BigInt(last?.last_wei ?? "0");
   const tier = tierFor(STAKING.tiers, counted);
   const next = tierFor(STAKING.tiers, now);
   return {
     staked: fromWei(now), counted: fromWei(counted), tier: tier?.name ?? null, multiplier: tier?.multiplier ?? 0,
     // stake added today counts from tomorrow, once it has been in place a whole day
     tomorrow: next && next.multiplier !== (tier?.multiplier ?? 0) ? { tier: next.name, multiplier: next.multiplier } : null,
-    sampled_at: s?.sampled_at ?? null,
+    // the tier the stake they hold right now is worth, whether or not it counts yet: what the /stake page shows
+    holding: next ? { tier: next.name, multiplier: next.multiplier } : null,
+    sampled_today: !!s,
+    sampled_at: last?.sampled_at ?? null,
   };
 }
 
