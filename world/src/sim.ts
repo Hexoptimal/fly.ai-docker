@@ -303,12 +303,12 @@ export class World {
   broodDeaths: Record<string, number> = {};
   /** population history for the graph: [adults, larvae] every second */
   history: [number, number][] = [];
-  /** one in-world day, in seconds (default 300; 86400 for 24h real-world day) */
-  dayLength = 300;
+  /** one in-world day, in seconds (default 86400 for 24h real-world day) */
+  dayLength = 86400;
   /** 0 = midnight, 0.5 = midday */
   timeOfDay = 0.32; // start mid-morning
   /** if true, syncs timeOfDay with the real-world 24-hour clock */
-  realTimeClock = false;
+  realTimeClock = true;
   /** what just happened and where, for the markers on the map */
   events: WorldEvent[] = [];
   /** which learning rules every brain runs (shared object: flip a field and every fly follows) */
@@ -338,12 +338,10 @@ export class World {
     this.geneRand = mulberry32(seed ^ 0x5eed5);
     this.genes = opts.genes ?? "vary";
     this.learning = opts.learning ?? { hebbian: false, reward: false, mb: true };
-    if (opts.realTimeClock) {
-      this.realTimeClock = true;
-      this.dayLength = opts.dayLength ?? 86400;
+    this.realTimeClock = opts.realTimeClock ?? true;
+    this.dayLength = opts.dayLength ?? (this.realTimeClock ? 86400 : 300);
+    if (this.realTimeClock) {
       this.syncRealTime();
-    } else if (opts.dayLength) {
-      this.dayLength = opts.dayLength;
     }
     this.field = new OdourField(seed + 99);
     this.wiring = buildWiring(64);

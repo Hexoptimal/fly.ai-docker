@@ -40,31 +40,37 @@ RUN node mine/scripts/build-web.mjs /app/out-compute || (mkdir -p /app/out-compu
 FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 
-# Static documentation & landing pages
-COPY docs/ /usr/share/nginx/html/
+# 1. Global site assets (CSS, logo, i18n, etc.) from docs/assets/ into /assets/
+COPY docs/assets/ /usr/share/nginx/html/assets/
 
-# 3D Simulation app
+# 2. 3D Simulation app mounted as the DEFAULT root index at /
+COPY --from=build-world /app/world/dist/ /usr/share/nginx/html/
+
+# 3. 3D Simulation app also available at /simulation/
 COPY --from=build-world /app/world/dist/ /usr/share/nginx/html/simulation/
 
-# Fly Radio app
+# 4. Original Docs & Landing page moved to /info/
+COPY docs/ /usr/share/nginx/html/info/
+
+# 5. Fly Radio app
 COPY --from=build-world /app/world/dist-radio/assets /usr/share/nginx/html/radio/assets
 COPY --from=build-world /app/world/dist-radio/radio.html /usr/share/nginx/html/radio/index.html
 
-# Fly Roulette app
+# 6. Fly Roulette app
 COPY --from=build-world /app/world/dist-roulette/assets /usr/share/nginx/html/roulette/assets
 COPY --from=build-world /app/world/dist-roulette/roulette.html /usr/share/nginx/html/roulette/index.html
 
-# Flinder app
+# 7. Flinder app
 COPY --from=build-world /app/world/dist-flinder/assets /usr/share/nginx/html/flinder/assets
 COPY --from=build-world /app/world/dist-flinder/flinder.html /usr/share/nginx/html/flinder/index.html
 
-# Flybook React app
+# 8. Flybook React app
 COPY --from=build-flybook /app/flybook/web/dist/ /usr/share/nginx/html/flybook/
 
-# Compute app
+# 9. Compute app
 COPY --from=build-compute /app/out-compute/ /usr/share/nginx/html/compute/
 
-# Nginx config
+# 10. Nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80

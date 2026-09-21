@@ -113,15 +113,14 @@ server {
 ## 4. Frontend Route Structure
 
 When accessing the web frontend (`:3000` or through your reverse proxy):
-- `/` - Documentation & project landing page
-- `/simulation/` - 3D fruit fly world simulation viewer
+- `/` - **3D Fruit Fly World Simulation** (Default landing page)
+- `/simulation/` - 3D Fruit Fly World Simulation (Alias)
+- `/info/` (or `/docs/`) - Project Documentation, Research & token info
 - `/radio/` - Fly Radio connectome audio synthesizer
 - `/roulette/` - Fly Roulette connectome betting game
 - `/flinder/` - Flinder fly dating match experiment
 - `/flybook/` - Flybook social connectome React application
 - `/compute/` - Distributed compute dashboard & jobs manager
-
----
 
 ---
 
@@ -131,7 +130,7 @@ The 3D multi-fly living world simulation is the centerpiece of the project. In D
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                 Your Browser (:3000/simulation/)            │
+│                   Your Browser (:3000/ or /)                │
 │  Interactive 3D Three.js renderer & Connectome Brain Viewer │
 └──────────────────────────────▲──────────────────────────────┘
                                │  SSE stream (/live)
@@ -140,7 +139,7 @@ The 3D multi-fly living world simulation is the centerpiece of the project. In D
 │  - 24/7 Living World: flies fly, mate, lay eggs, eat & age  │
 │  - Leaky integrate-and-fire connectome brain per fly        │
 │  - Real-time physics, wind, odor diffusion, and threats     │
-│  - Persistent checkpoint history saved to world_data volume │
+│  - Persistent checkpoint history saved to ${DATA_DIR}/world │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -150,11 +149,11 @@ If you only want the 3D living fly world (without the social network or compute 
 docker compose up --build -d web world-sim
 ```
 
-Open your browser and navigate to:
+Open your browser and navigate directly to:
 ```
-http://your-server:3000/simulation/
+http://your-server:3000/
 ```
-*(Or `https://flyai.yourdomain.com/simulation/` if using your host Nginx reverse proxy)*
+*(Or `https://flyai.yourdomain.com/` if using your host Nginx reverse proxy)*
 
 ### What is Simulated
 - **Living Fly Population**: Flies fly, cast, surge on food odor plumes, groom, take off, mate, lay eggs, hatch, and age in real-time (50 simulation steps per second).
