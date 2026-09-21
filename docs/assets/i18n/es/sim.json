@@ -1,0 +1,345 @@
+{
+  "meta": {
+    "title": "fly.ai world — moscas con cerebros de impulsos",
+    "description": "Un mundo low-poly de moscas, cada una volando con su propia red neuronal de impulsos, con una vista en vivo del cerebro."
+  },
+  "top": {
+    "title": "fly.ai <b>world</b>",
+    "starting": "iniciando…",
+    "togglePanel": "mostrar/ocultar panel"
+  },
+  "stats": {
+    "line": "{clock} {phase} · {flies} moscas × {neurons} neuronas ({synapses} sinapsis cada una) · {fps} fps · {where}{puffs} bocanadas de olor · viento {wind} m/s · {matings} apareamientos, {eggs} huevos, {hatched} eclosionados · muertes: {old} de vejez, {starved} de hambre, {eaten} devoradas, {swatted} aplastadas",
+    "whereLive": "{status} · {viewers} mirando · ",
+    "wherePrivate": "campo privado · paso del cerebro {ms} ms · ",
+    "empty": "en vivo · el campo está vacío",
+    "connecting": "conectando con el mundo en vivo…"
+  },
+  "status": {
+    "live": "en vivo",
+    "connecting": "conectando…",
+    "reconnecting": "reconectando…",
+    "failed": "falló…"
+  },
+  "phase": {
+    "night": "noche",
+    "dawn": "amanecer",
+    "morning": "mañana",
+    "midday": "mediodía",
+    "afternoon": "tarde",
+    "dusk": "anochecer"
+  },
+  "state": {
+    "PANIC": "PÁNICO",
+    "SURGING": "AVANCE",
+    "CASTING": "BÚSQUEDA",
+    "FEEDING": "COMIENDO",
+    "LANDED": "POSADA",
+    "TAKE-OFF": "DESPEGUE",
+    "FLYING": "VOLANDO"
+  },
+  "shared": {
+    "note": "Este campo es compartido: todos en esta página ven las mismas moscas, en vivo desde el servidor. Wiz es solo tuyo: camina en tu pantalla y las moscas compartidas no lo ven.",
+    "unreachable": "No se pudo conectar con el mundo compartido, así que esto es un campo privado que corre en tu navegador."
+  },
+  "about": {
+    "title": "Qué es esto",
+    "hide": "ocultar",
+    "show": "¿qué es esto?",
+    "p1": "Un campo de moscas de la fruta, cada una volando con su propia <b>red neuronal de impulsos</b> &mdash; 748 neuronas de integración y disparo con fugas, con nombres de tipos celulares reales de <i>Drosophila</i> y conectadas siguiendo la forma de las vías medidas en el conectoma MaleCNS.",
+    "p2": "Cada mosca tiene un <b>cuerpo pedunculado</b>: sus células de Kenyon dan a cada olor su propia firma, y las neuronas de dopamina que disparan ante una amenaza que se acerca, un golpe, el CO<sub>2</sub> de alarma o un sorbo de jugo reescriben qué olores la atraen. Actívalo en la tarjeta de Datos.",
+    "p3": "<b>Nada en el comportamiento de una mosca está programado.</b> La luz, las bocanadas de olor, el flujo de aire y el contacto de las patas se inyectan en neuronas sensoriales; la red corre; y el vuelo se lee de vuelta en las <b>neuronas motoras</b>. No hay ningún <code>if (nearFruit) goToFruit</code>. Comer, posarse, esquivar el matamoscas, seguir un penacho de olor, cortejar y poner huevos salen del cableado &mdash; o no salen, y eso se informa con la misma claridad.",
+    "p4": "Aquí corre una vida entera: las moscas <b>comen, se aparean, ponen huevos, eclosionan, buscan comida, son devoradas por arañas y mueren</b> &mdash; cada cosa deja un marcador en el mapa donde ocurrió. El reloj marca un día de 300 segundos, y la noche es real para las moscas: atenúa la luminancia que ven sus fotorreceptores, en lugar de activar una bandera de &ldquo;es de noche&rdquo;.",
+    "p5": "Haz clic en cualquier mosca para ver disparar su cerebro. Cada barra, etiqueta y número de este panel es una lectura de las tasas de disparo de las poblaciones, nunca algo que las controle.",
+    "warn": "<b>No</b> es el conectoma real: 748 neuronas frente a 166,700, con nombres de tipos celulares reales pero cantidades y pesos inventados. Aquí nada está entrenado. <a href=\"https://github.com/alextitonis/fly.ai/blob/main/world/README.md\" target=\"_blank\" rel=\"noreferrer\">Qué es real y qué no →</a>"
+  },
+  "wiz": {
+    "title": "Wiz · una mosca manejando a un mono",
+    "note": "Un mono mago gigante manejado como marioneta por el <b>conectoma completo de la mosca de la fruta</b> &mdash; 166,700 neuronas y 25 M de sinapsis, funcionando en tu navegador. <b>Los hilos son neuronas reales:</b> lo que ve entra en las células de aproximación, amenaza y objetivo de la mosca, sus pisadas en sus células de tacto de las patas, y las neuronas descendentes que disparan le levantan los brazos, le hacen dar traspiés, le giran la cabeza, lo dirigen y lo hacen saltar. <b>Solo sus ganas de pasear están programadas</b>; su equilibrio, sus pasos y sus caídas se simulan (resortes e IK) &mdash; nada en un cerebro de mosca sabe cómo hacer andar a un mono. La mosca de arriba es una caricatura de ese cerebro: sus hilos se iluminan en verde cuando disparan sus neuronas. Las moscas lo ven acercarse. Descarga unos 58 MB.",
+    "summon": "invocar a Wiz",
+    "cam": "cámara de Wiz",
+    "status": {
+      "asleep": "dormido",
+      "loading": "cargando",
+      "failed": "falló: {error}",
+      "ready": "{n} neuronas · {m} M de sinapsis",
+      "labels": "etiquetas {mb} MB",
+      "connectome": "conectoma {mb} MB",
+      "wiring": "conectando 25 M de sinapsis"
+    },
+    "doing": {
+      "stand": "descubriendo cómo funcionan las piernas",
+      "walk": "intentando caminar",
+      "stumble": "perdiendo el equilibrio",
+      "fallen": "se cayó",
+      "getup": "levantándose"
+    },
+    "line": "{doing} · caído {falls}× · {fired} neuronas dispararon en este paso · {ms} ms/paso ({rt}% del tiempo real)",
+    "rows": {
+      "arms": {
+        "label": "hilos de brazos",
+        "tip": "DNp02/03/04/11, DNg40: la aproximación y la amenaza tiran de los brazos · izquierda · derecha"
+      },
+      "legs": {
+        "label": "hilos de piernas",
+        "tip": "DNge104/122, DNg20, DNge102: el tacto patea las piernas · izquierda · derecha"
+      },
+      "head": {
+        "label": "hilo de cabeza",
+        "tip": "DNa05/07, DNg111, DNae002: sacude la cabeza · izquierda · derecha"
+      },
+      "steer": "dirección: lo hace girar · izquierda · derecha",
+      "escape": "fibra gigante: salto · izquierda · derecha"
+    }
+  },
+  "brain": {
+    "title": "Sistema nervioso",
+    "flyNone": "mosca —",
+    "raster": "ráster de impulsos · últimos 5 s",
+    "fly": "{name} {sex} · gen {gen}{parents} · {age} s de edad{mated} · cerebro cambiado {drift}%{courting}",
+    "childOf": " · hija de {mother} y {father}",
+    "founder": " · fundadora",
+    "mated": " · apareada",
+    "courting": " · P1 {hz} Hz"
+  },
+  "modality": {
+    "vision": "visión",
+    "olfaction": "olfato",
+    "mechanosensory": "mecanosensorial",
+    "central": "central",
+    "descending": "descendente",
+    "motor": "motora",
+    "memory": "memoria",
+    "inhibitory": "inhibitoria (GABA)"
+  },
+  "senses": {
+    "title": "Sentidos → cerebro",
+    "sides": "izquierda · derecha",
+    "food": "olfato — comida",
+    "cva": "olfato — cVA (otras moscas)",
+    "aversive": "olfato — aversivo",
+    "loom": "aproximación: algo que se agranda",
+    "threat": "aproximación rápida / amenaza",
+    "small": "objetos pequeños que se acercan",
+    "chase": "un objetivo a corta distancia",
+    "jo": "órgano de Johnston: flujo de aire, velocidad, aleteo",
+    "leg": "contacto tarsal (fásico)",
+    "load": "placa pilosa / campaniformes: golpes",
+    "taste": "gusto labelar: comida",
+    "flow": "flujo óptico ventral: qué tan bajo y qué tan rápido"
+  },
+  "ligand": {
+    "ORN_DM1": "acetato de etilo: fruta madura",
+    "ORN_VM5d": "butirato de etilo: fruta fermentada",
+    "ORN_VL2a": "ácido acético: vinagre",
+    "IR92a": "amoníaco y aminas: carroña, estiércol, excrementos",
+    "ORN_DA1": "cVA: la feromona que liberan otras moscas",
+    "ORN_VA1d": "cVA: la feromona que liberan otras moscas",
+    "Or56a": "geosmina: moho. Aversivo.",
+    "Gr21a": "CO2: compost y moscas asustadas. Aversivo."
+  },
+  "rates": {
+    "title": "Tasa de disparo",
+    "unit": "Hz por neurona · I · D"
+  },
+  "pop": {
+    "R1_6": "fotorreceptores (histamina, inhibitorios)",
+    "L1_L2": "relevo de la lámina",
+    "LPLC2": "aproximación",
+    "LC4": "aproximación rápida / amenaza",
+    "LPLC1": "objetos pequeños que se acercan",
+    "LC10a": "seguimiento de objetivo, acercamiento",
+    "VS": "placa lobular VS: flujo óptico ventral (altura)",
+    "ORN_DM1": "ORN DM1: acetato de etilo, fruta madura",
+    "ORN_VM5d": "ORN VM5d: butirato de etilo, fruta fermentada",
+    "ORN_VL2a": "ORN VL2a: ácido acético, vinagre",
+    "IR92a": "IR92a: amoníaco y aminas, carroña y estiércol",
+    "ORN_DA1": "ORN DA1: cVA, la feromona de mosca",
+    "ORN_VA1d": "ORN VA1d: cVA, la feromona de mosca",
+    "Or56a": "Or56a -> DA2: geosmina, microbios dañinos. Aversivo.",
+    "Gr21a": "Gr21a/Gr63a -> V: CO2. Aversivo.",
+    "Gr68a": "Gr68a/ppk23: quimiorreceptores de contacto de las patas delanteras, feromona femenina",
+    "AL_LN": "neuronas locales del lóbulo antenal (GABA)",
+    "lPN": "neuronas de proyección, AL -> protocerebro (dirección y empuje)",
+    "DA2_PN": "PN de los glomérulos DA2 y V: la vía aversiva",
+    "LH": "cuerno lateral: valencia innata",
+    "JO": "órgano de Johnston: viento, velocidad, aleteo",
+    "WED": "wedge / AMMC, el destino del JO",
+    "SNta": "neuronas sensoriales tarsales (contacto de las patas)",
+    "LgLG": "placa pilosa / campaniformes (carga, golpes)",
+    "LB3": "sensilas gustativas labelares (jugo)",
+    "PVLP": "interneuronas de los glomérulos ópticos",
+    "PLP": "protocerebro lateral posterior",
+    "LPi": "intrínsecas de la placa lobular (GABA)",
+    "LAL": "lóbulo accesorio lateral, premotor",
+    "PFL3": "dirección del complejo central",
+    "P1": "P1: las neuronas de mando del cortejo del macho",
+    "DNa02": "dirección (giro ipsilateral)",
+    "DNp01": "fibra gigante, despegue de escape",
+    "DNg100": "vuelo hacia delante",
+    "MDN": "caminar hacia atrás",
+    "pIP10": "pIP10: mando del canto de cortejo",
+    "VNC_IN": "interneuronas premotoras del VNC (genéricas)",
+    "IN19A": "interneuronas del hemilinaje 19A (GABA)",
+    "DLM_MN": "músculo longitudinal dorsal: potencia de las alas",
+    "b1_MN": "basalar b1: dirección de las alas",
+    "b2_MN": "basalar b2: dirección de las alas",
+    "Ti_flexor_MN": "flexor de la tibia",
+    "Ti_extensor_MN": "extensor de la tibia (salto)",
+    "Tr_flexor_MN": "flexor del trocánter",
+    "Sternotrochanter_MN": "esternotrocánter: despegue",
+    "uPN": "PN uniglomerulares hacia el cuerpo pedunculado: dos por glomérulo",
+    "KC": "células de Kenyon: un código disperso del olor",
+    "APL": "APL (GABA): inhibición de retroalimentación que mantiene disperso el código de las KC",
+    "MBON_g2a1": "MBON-g2a'1 (colinérgica): la salida de acercarse al olor",
+    "MBON_g5b2a": "MBON-g5b2a: la salida de alejarse del olor",
+    "PPL1_g2a1": "PPL1-g2a1: el maestro del castigo (dopamina)",
+    "PAM_g5": "PAM-g5: el maestro de la recompensa (dopamina)"
+  },
+  "body": {
+    "title": "Cerebro → cuerpo",
+    "path": "descendentes → VNC → músculo",
+    "dn": "neuronas descendentes",
+    "mn": "neuronas motoras — aquí se lee el vuelo",
+    "turn": "dirección: derecha menos izquierda",
+    "thrust": "vuelo hacia delante",
+    "back": "hacia atrás",
+    "escape": "escape por fibra gigante",
+    "dlm": "potencia de las alas y, por tanto, sustentación",
+    "b1": "músculos basalares: dirección de las alas",
+    "jump": "extensor de la tibia + esternotrocánter: despegue",
+    "flex": "flexores de las patas: retroceder",
+    "flexLabel": "flexión Ti/Tr",
+    "motor": "DLM {dlm} Hz → sustentación {lift} m/s² (gravedad {gravity}) · giro {turn} rad/s · velocidad {speed} m/s · altura {height} m · {state}"
+  },
+  "field": {
+    "title": "El campo",
+    "sub": "qué hay ahí fuera"
+  },
+  "ecology": {
+    "fruit": "fruta fermentada",
+    "mould": "fruta con moho (geosmina)",
+    "carrion": "carroña (aminas)",
+    "dung": "estiércol (aminas)",
+    "compost": "compost (comida + CO2)",
+    "plant": "planta",
+    "spider": "araña",
+    "egg": "huevo",
+    "larva": "larva",
+    "poop": "excremento de mosca",
+    "obstacle": "roca",
+    "threat": "matamoscas",
+    "fly": "mosca"
+  },
+  "feed": {
+    "title": "Pasando ahora",
+    "empty": "nada todavía — los apareamientos, huevos, comidas, ataques de araña y muertes aparecen aquí y sobre la mosca a la que le pasaron.",
+    "now": "ahora",
+    "ago": "hace {s} s"
+  },
+  "population": {
+    "title": "Población",
+    "adults": "adultas",
+    "brood": "huevos + larvas",
+    "now": "{adults} adultas · {brood} crías",
+    "waiting": "esperando al primer minuto…",
+    "axisNow": "ahora",
+    "stats": "<span>adultas <b>{adults}</b> ({males}M / {females}H)</span><span>edad media <b>{age} s</b></span><span>apareamientos <b>{matings}</b> · huevos <b>{eggs}</b></span><span>eclosionados <b>{hatched}</b></span><span>muertas de vejez <b>{old}</b> · de hambre <b>{starved}</b></span><span>devoradas <b>{eaten}</b> · aplastadas <b>{swatted}</b></span>"
+  },
+  "data": {
+    "title": "Datos &amp; hallazgos",
+    "reward": "aprendizaje por recompensa",
+    "rewardTip": "las sinapsis activas justo antes de una comida crecen; antes de un golpe o un ataque de araña se encogen",
+    "hebb": "aprendizaje hebbiano",
+    "hebbTip": "una sinapsis crece cuando su entrada dispara justo antes que su salida",
+    "memory": "memoria olfativa (cuerpo pedunculado)",
+    "memoryTip": "cuerpo pedunculado: un maestro de dopamina deprime las células de Kenyon que estaban disparando, así que el olor que codifican cambia de significado",
+    "gather": "¿se agrupan?",
+    "friends": "amigos y enemigos",
+    "drift": "¿cambian los cerebros?",
+    "herit": "¿las crías se parecen a sus padres?",
+    "fates": "huevos y larvas: qué fue de ellos",
+    "report": "informe (PDF)",
+    "blocks": "brain blocks.csv",
+    "collecting": "recopilando…",
+    "shareInGroups": "proporción en grupos (0-1)",
+    "nnRatio": "razón del vecino más cercano",
+    "random": "colocación aleatoria = 1",
+    "meanDrift": "cambio medio de sinapsis %",
+    "maxDrift": "mosca que más cambió %",
+    "now": "{clock} · aprendizaje {learning}",
+    "groupNote": "<span>grupos <b>{groups}</b></span><span>el mayor <b>{largest}</b></span><span>en un grupo <b>{inGroup}%</b></span><span>de las que están en la comida <b>{atFood}%</b></span><span>razón <b>{ratio}</b> (menos de 1 = agrupadas)</span>",
+    "died": "murió: {cause} ({stage})",
+    "emerged": "llegó a adulta",
+    "still": "todavía {fate}",
+    "noEggs": "todavía no se ha puesto ningún huevo",
+    "stage": {
+      "egg": "huevo",
+      "larva": "larva"
+    },
+    "cause": {
+      "background": "causas naturales",
+      "mould": "moho",
+      "bare_substrate": "sustrato desnudo",
+      "crowding": "hacinamiento",
+      "spider": "araña",
+      "trampled": "pisoteada"
+    },
+    "waitFamilies": "esperando familias: {n} moscas con ambos padres conocidos",
+    "parentsAxis": "media de los padres →",
+    "childAxis": "cría ↑",
+    "heritNote": "{n} crías · pendiente <b>{slope}</b> · r <b>{r}</b> (pendiente 1 = las crías igualan a sus padres, 0 = ningún parecido; discontinua = igualdad)",
+    "rel": {
+      "mates": "parejas",
+      "family": "familia",
+      "enemies": "enemigos",
+      "friends": "amigos",
+      "acquaintances": "conocidos"
+    },
+    "clashes": "{n} choques",
+    "together": "{n} s juntas",
+    "noFriends": "todavía no hay amigos ni enemigos entre las vivas",
+    "trait": {
+      "lifespan": "gen: esperanza de vida",
+      "flight": "gen: potencia de vuelo",
+      "clutch": "gen: tamaño de puesta",
+      "gene_loom_escape": "gen: aproximación → escape",
+      "gene_odour_steer": "gen: olor → dirección",
+      "gene_contact_courtship": "gen: contacto → cortejo",
+      "olfaction_gain": "gen: ganancia olfativa",
+      "reward_rate": "gen: tasa de aprendizaje por recompensa",
+      "memory_rate": "gen: tasa de memoria olfativa",
+      "meals_per_min": "vida: comidas por minuto",
+      "age_at_death": "vida: edad al morir",
+      "final_drift": "vida: cambio cerebral al morir"
+    }
+  },
+  "board": {
+    "title": "Clasificación",
+    "live": "en vivo",
+    "fed": "{s} s comiendo · {m} m",
+    "panics": "{n} pánicos",
+    "swatted": " · aplastada"
+  },
+  "controls": {
+    "title": "Controles",
+    "reset": "reiniciar",
+    "swat": "¡ZAS!",
+    "gust": "ráfaga de viento",
+    "flycam": "cámara de mosca",
+    "drama": "cámara del drama",
+    "next": "siguiente mosca",
+    "followOn": "seguir: sí",
+    "followOff": "seguir: no",
+    "note": "Haz clic en una mosca para seleccionarla. Arrastra para orbitar, usa la rueda para hacer zoom. Cada mosca corre su propia red de integración y disparo con fugas: entran ojos, antenas, órgano de Johnston y cerdas de las patas; salen neuronas motoras. Nada en su vuelo está programado. <a href=\"https://github.com/alextitonis/fly-streetfighter\" target=\"_blank\" rel=\"noreferrer\">fly.ai</a>",
+    "slider": {
+      "flies": "moscas",
+      "wind": "viento (m/s)",
+      "odour": "intensidad del olor",
+      "tonic": "impulso tónico",
+      "gain": "ganancia sináptica",
+      "noise": "tasa de ruido (Hz)",
+      "speed": "velocidad de simulación"
+    }
+  }
+}

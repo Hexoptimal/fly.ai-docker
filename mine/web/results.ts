@@ -2,6 +2,7 @@
  * /compute/results: what our own research orders found (GET /api/experiments, worked out on the server by
  * src/experiments.ts), grouped by kind of experiment, with each order's progress and its full results as CSV.
  */
+import { locale, t } from "./i18n.ts";
 import { API } from "./config.ts";
 import { mountAccount } from "./account.ts";
 import { api } from "./mine-core.ts";
@@ -12,12 +13,9 @@ interface Summary {
 }
 
 const $ = (id: string) => document.getElementById(id)!;
-const FAMILIES: { key: string; title: string; about: string }[] = [
-  { key: "tuning", title: "Brain tuning", about: "Drive one sense in the full 166,700-neuron connectome and measure what every motor group does." },
-  { key: "encoding", title: "Brain → words and trades", about: "Record the descending neurons and wing motor neurons under each sense: the data Flybook's translator and the fly market read." },
-  { key: "world", title: "The flies' world", about: "Seeded runs of the colony simulation, where each fly has a small brain of its own: survival, feeding, breeding, learning." },
-  { key: "demo", title: "Demos", about: "Classic distributed jobs, to show what the network can do with anyone's code." },
-];
+const FAMILIES: { key: string; title: string; about: string }[] = ["tuning", "encoding", "world", "demo"].map((key) => ({
+  key, title: t(`compute.results.family.${key}.title`), about: t(`compute.results.family.${key}.about`),
+}));
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -32,8 +30,9 @@ function card(s: Summary): HTMLElement {
   c.append(el("h3", undefined, s.question));
   c.append(el("p", "lede", s.headline));
   const rows: [string, string][] = s.figures.map((f) => [f.k, f.v]);
-  if (s.jobs) rows.push(["Progress", `${(s.settled ?? 0).toLocaleString("en-US")} of ${s.jobs.toLocaleString("en-US")} runs checked${s.status === "ended" ? " (paused)" : s.status === "done" ? " · finished" : ""}`]);
-  if (s.jobs && s.runs_read < (s.settled ?? 0)) rows.push(["Summarized from", `a sample of ${s.runs_read.toLocaleString("en-US")} runs`]);
+  if (s.jobs) rows.push([t("compute.results.progress"), t("compute.results.progressLine", { settled: (s.settled ?? 0).toLocaleString(locale()), jobs: s.jobs.toLocaleString(locale()) })
+    + (s.status === "ended" ? t("compute.results.paused") : s.status === "done" ? t("compute.results.finishedSuffix") : "")]);
+  if (s.jobs && s.runs_read < (s.settled ?? 0)) rows.push([t("compute.results.summarizedFrom"), t("compute.results.sample", { count: s.runs_read.toLocaleString(locale()) })]);
   for (const [k, v] of rows) {
     const r = el("div", "row");
     r.append(el("span", "k", k), el("span", "v", v));
@@ -41,7 +40,7 @@ function card(s: Summary): HTMLElement {
   }
   if (s.table && s.table.length > 1) {
     const wrap = el("div", "scroller");
-    const t = el("table", "data");
+    const table = el("table", "data");
     const head = el("thead");
     const hr = el("tr");
     for (const h of s.table[0]) hr.append(el("th", undefined, h));
@@ -52,15 +51,15 @@ function card(s: Summary): HTMLElement {
       for (const cell of row) tr.append(el("td", undefined, cell));
       body.append(tr);
     }
-    t.append(head, body);
-    wrap.append(t);
+    table.append(head, body);
+    wrap.append(table);
     wrap.style.marginTop = "14px";
     c.append(wrap);
   }
   if (s.order) {
     const cta = el("div", "cta");
     cta.style.marginTop = "14px";
-    const a = el("a", "btn sm", "All results (CSV)");
+    const a = el("a", "btn sm", t("compute.results.allCsv"));
     a.href = `${API}/api/orders/${s.order}/results?format=csv`;
     cta.append(a);
     c.append(cta);
@@ -73,9 +72,9 @@ async function load(): Promise<void> {
   const list = data.experiments as Summary[];
   $("empty").hidden = list.length > 0;
   $("n-exp").textContent = String(list.length);
-  $("n-runs").textContent = list.reduce((sum, s) => sum + (s.settled ?? 0), 0).toLocaleString("en-US");
+  $("n-runs").textContent = list.reduce((sum, s) => sum + (s.settled ?? 0), 0).toLocaleString(locale());
   $("n-done").textContent = String(list.filter((s) => s.status === "done").length);
-  $("updated").textContent = data.updated_at ? new Date(data.updated_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
+  $("updated").textContent = data.updated_at ? new Date(data.updated_at).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }) : "—";
   const host = $("families");
   host.replaceChildren();
   for (const f of FAMILIES) {
@@ -92,5 +91,5 @@ async function load(): Promise<void> {
 mountAccount();
 void load().catch((err) => {
   $("empty").hidden = false;
-  $("empty").textContent = `Couldn't load the results: ${err instanceof Error ? err.message : String(err)}`;
+  $("empty").textContent = t("compute.results.couldntLoad", { error: err instanceof Error ? err.message : String(err) });
 });

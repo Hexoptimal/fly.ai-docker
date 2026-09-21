@@ -1,0 +1,1348 @@
+{
+  "time": {
+    "justNow": "剛剛",
+    "now": "現在",
+    "m": "{n} 分",
+    "h": "{n} 時",
+    "d": "{n} 天",
+    "mAgo": "{n} 分鐘前",
+    "hAgo": "{n} 小時前",
+    "dAgo": "{n} 天前"
+  },
+  "pokes": {
+    "threat": {
+      "label": "投下陰影",
+      "hint": "刺激逼近偵測器（LC4、LPLC2）。",
+      "done": "一道陰影壓了過來"
+    },
+    "wind": {
+      "label": "吹一陣風",
+      "hint": "刺激觸角的風感受器（Johnston 氏器）。",
+      "done": "一陣風"
+    },
+    "taste": {
+      "label": "餵一口",
+      "hint": "刺激口器裡的味覺神經元。",
+      "done": "一口味道"
+    },
+    "touch": {
+      "label": "撥撥牠的臉",
+      "hint": "刺激眼睛周圍的剛毛。",
+      "done": "有東西刷過眼睛"
+    },
+    "cva": {
+      "label": "飄來雄蠅氣味",
+      "hint": "刺激 cVA 費洛蒙受器（ORN_DA1）。",
+      "done": "一縷雄蠅氣味"
+    },
+    "mate": {
+      "label": "讓一隻果蠅路過",
+      "hint": "刺激移動目標偵測器（LC10a）。",
+      "done": "一隻果蠅走過"
+    }
+  },
+  "shell": {
+    "live": "直播",
+    "demo": "展示",
+    "howItWorks": "運作方式",
+    "makeFly": "打造果蠅"
+  },
+  "app": {
+    "loadError": "動態載入失敗：{error}",
+    "waking": "正在叫醒果蠅們…",
+    "pokeSent": "戳擊已送出。那附近的果蠅幾秒內就會感覺到。",
+    "rateTitle": "最近判讀與實際情況相符的比例 · Elo 評分",
+    "quiet": "安靜",
+    "patches": "地盤",
+    "everywhere": "全部",
+    "pokeOnWay": "戳擊正在路上",
+    "tabs": {
+      "feed": "動態",
+      "arena": "競技場",
+      "friends": "🕸 朋友",
+      "market": "市場",
+      "merch": "周邊",
+      "traders": "交易果蠅",
+      "leaderboard": "排行榜",
+      "mine": "我的果蠅"
+    },
+    "trophyTitle": "牠的周邊在 {month} 賣最多",
+    "flyOfMonth": "🏆 本月之蠅",
+    "flyLine": "第 {gen} 代 · Elo {elo}（{w}-{l}-{d}）",
+    "childOf": " · {parents} 的孩子",
+    "aFly": "一隻果蠅",
+    "intro": "每則貼文都是從果蠅連接體的下行神經元讀出來的：牠感覺到什麼、做了什麼，以及實際發生了什麼。同一個地盤的果蠅會互相引發反應。",
+    "showAll": "顯示所有果蠅 ✕",
+    "bonds": "🕸 朋友與敵人",
+    "pokePatch": "戳 {patch}",
+    "signInToPoke": "登入才能戳地盤",
+    "clickMap": "現在點地圖上要落下的位置。",
+    "pokesOnWay": {
+      "one": "{count} 次戳擊在路上…",
+      "other": "{count} 次戳擊在路上…"
+    },
+    "pickPatch": "從左邊選一個地盤，即時觀看並戳一下。",
+    "noPosts": "這裡還沒有貼文。下一輪馬上來。",
+    "noFlies": "還沒有果蠅。有人打造果蠅，Flybook 才會活起來：登入並孵出第一隻吧。",
+    "flies": "果蠅",
+    "whoFriends": "🕸 誰跟誰是朋友",
+    "noFliesSide": "還沒有果蠅。持有 $FLYAI、登入，孵出第一隻。",
+    "vocab": "果蠅會說的詞",
+    "vocabNote": "每個詞在保留資料上的解碼器精確度。果蠅做的動作（跳、轉身、理毛、振翅）是從行為神經元讀出的，放電至少比靜止高 3σ。第 #{tick} 輪：{flies} 隻果蠅、{posts} 則貼文。"
+  },
+  "event": {
+    "aFly": "一隻果蠅",
+    "held": "撐住了",
+    "ms": "{n} 毫秒",
+    "quickdraw": "快拔對決",
+    "stare": "瞪眼對決",
+    "beat": "{winner} 在{kind}中擊敗 {loser}",
+    "drew": "{a} 和 {b} 在{kind}中平手",
+    "seeMarket": "看市場 →",
+    "launched": "{who} 發行了 {coin}",
+    "secondCoin": "，牠的第二枚幣",
+    "reach": {
+      "one": "{count} 個朋友會感受到這波熱度。",
+      "other": "{count} 個朋友會感受到這波熱度。"
+    },
+    "drama": {
+      "one": "果蠅市場八卦：{count} 個動作",
+      "other": "果蠅市場八卦：{count} 個動作"
+    },
+    "enemy": "敵人",
+    "frenemy": "損友",
+    "rival": "對手",
+    "shilling": "📣 {who} 正在喊單 {coin}",
+    "shillReach": "，推給 {n} 個朋友",
+    "fud": "🤬 {who} 正在對 {coin} 散播 FUD",
+    "madeBy": "，發行者是牠的{bond} {creator}",
+    "buyback": "🛟 {who} 回購了 {coin}",
+    "dump": "🪦 {who} 把 {coin} 倒給持有者",
+    "eloDelta": " · Elo ±{n}",
+    "playerChallenge": " · 玩家發起的挑戰",
+    "duelsRound": "競技場：{n} 場對決",
+    "vs": "{a} vs {b}",
+    "challenge": " · 挑戰",
+    "baby": "{a} 和 {b} 生了寶寶：{child}",
+    "metInPatch": "牠們在地盤相遇：其中一隻的大腦在另一隻旁邊讀出了「交配」",
+    "pairedByWorker": "由系統配對",
+    "generation": " · 第 {n} 代",
+    "hatchedIn": " · 孵化於 {patch}",
+    "hatched": "{who} 在 {patch} 孵化了",
+    "bredFrom": "由 {parents} 繁殖",
+    "newFly": "一隻新果蠅，由玩家打造",
+    "logoAlt": "${symbol} 標誌"
+  },
+  "post": {
+    "aFly": "一隻果蠅",
+    "neighbour": "一位鄰居",
+    "bondsTitle": "{name} 的朋友與敵人",
+    "house": "官方",
+    "tuned": "已調校",
+    "in": "在 {patch}",
+    "repeatTitle": {
+      "one": "還有 {count} 則一模一樣的貼文。展開",
+      "other": "還有 {count} 則一模一樣的貼文。展開"
+    },
+    "repeat": "自 {since} 起 ×{n}",
+    "milestone": "🎉 {name} 的第 {nth} 則貼文",
+    "afterPoke": "玩家戳擊之後：{what}",
+    "setOffBy": "↳ 被引發自 ",
+    "neighbourPost": "{name} 的貼文",
+    "decoderSure": "解碼器把握度 {pct}",
+    "sigmaTitle": "比靜止的果蠅高 {z}σ",
+    "unlike": "收回讚",
+    "like": "按讚這則貼文",
+    "signInToLike": "登入才能按讚",
+    "voiceTitle": "把牠的神經元變成聲音，比實際慢 {slow} 倍：翅膀運動神經元嗡嗡作響，逃跑神經元啪一聲，理毛沙沙聲，轉向則左右聲道移動。不是錄音。",
+    "stop": "■ 停止",
+    "hear": "▶ 聽聽",
+    "voiceStyleTitle": "把所有果蠅切換成卡通聲音或擬真昆蟲聲",
+    "cartoon": "卡通",
+    "realistic": "擬真",
+    "memeTitle": "把這則貼文變成 AI 圖片迷因（每天 1 張）",
+    "meme": "🎨 迷因",
+    "share": "分享",
+    "neurons": "神經元",
+    "hideNeurons": "隱藏神經元",
+    "postOnX": "發到 X",
+    "saveCard": "儲存卡片圖",
+    "linkCopied": "已複製連結",
+    "copyLink": "複製連結",
+    "noNeurons": "沒有任何一種下行神經元的變化超過 2σ。",
+    "inputFrom": "來自 {name} 的輸入（{channel}，峰值為直接刺激的 {strength}）。",
+    "stimulated": "受刺激：{cells}。",
+    "wings": "翅膀 {hz} 次放電/秒。第 #{tick} 輪。",
+    "tunedList": " 調校：{list}。"
+  },
+  "badges": {
+    "first": {
+      "label": "第一句話",
+      "help": "發了第一則貼文。"
+    },
+    "sharp": {
+      "label": "眼光精準",
+      "help": "連續 5 次正確判讀世界。"
+    },
+    "senses": {
+      "label": "見過世面",
+      "help": "把大腦會說的 6 個詞都發過一次。"
+    },
+    "dreamer": {
+      "label": "做夢家",
+      "help": "幻覺 3 次：感覺到不存在的東西。"
+    },
+    "trigger": {
+      "label": "一觸即發",
+      "help": "跳了 10 次。"
+    },
+    "groomed": {
+      "label": "打理得宜",
+      "help": "理毛 10 次。"
+    },
+    "buzzy": {
+      "label": "嗡嗡嗡",
+      "help": "振翅 10 次。"
+    },
+    "poked": {
+      "label": "被戳了",
+      "help": "對玩家的戳擊有反應。"
+    },
+    "liked": {
+      "label": "人氣王",
+      "help": "拿到 $FLYAI 持有者的 10 個讚。"
+    },
+    "chatty": {
+      "label": "話匣子",
+      "help": "100 則貼文。"
+    }
+  },
+  "account": {
+    "completeCheck": "請先完成下方的驗證。",
+    "walletNotReady": "錢包還沒準備好，請再連接一次。",
+    "switchChain": "請把錢包切換到 Robinhood Chain 再登入。",
+    "signInUnavailable": "目前無法登入。",
+    "badEmail": "這看起來不像 email 地址。",
+    "title": "打造你自己的果蠅",
+    "demoPitch": "免費登入就能打造果蠅、調校牠的感官和神經元，看看牠的大腦說什麼。$FLYAI 持有者最多可打造 3 隻，每 2 週賽季排行榜前 3 名的持有者可贏得 $FLYAI。",
+    "getFlyai": "取得 $FLYAI",
+    "loading": "正在載入你的帳號…",
+    "balanceUnavailable": "目前無法讀取餘額",
+    "readingBalance": "讀取餘額中…",
+    "newPlayer": "新玩家",
+    "emailAccount": "email 帳號",
+    "pickName": "取一個公開名稱。它會顯示在你的留言和排行榜上；你的 email 永遠不會公開。",
+    "namePlaceholder": "例如 buzz_aldrin",
+    "save": "儲存",
+    "nameRule": "3–20 個英文字母、數字或底線。",
+    "bornFromMating": "交配所生 · ",
+    "merchGift": "周邊贈品 · ",
+    "flyTune": "第 {gen} 代 · Elo {elo} · {tuning}",
+    "standard": "標準",
+    "dormant": "休眠",
+    "holder": "$FLYAI 持有者：最多 {max} 隻果蠅，還能贏賽季獎勵。",
+    "freeAccount": "免費帳號：{free} 隻果蠅，外加按讚、留言、戳擊和對決。在這個錢包持有 {min} $FLYAI，就能打造最多 {max} 隻並贏得賽季獎勵。",
+    "freeAccountEmail": "免費帳號：{free} 隻果蠅，外加按讚、留言、戳擊和對決。持有 {min} $FLYAI 並用那個錢包登入，就能打造最多 {max} 隻並贏得賽季獎勵。",
+    "bornDontCount": "和別人的果蠅交配生下的果蠅不計入你的上限。",
+    "giftFly": "🎁 你的周邊卡附贈一隻免費果蠅，不計入你的上限。",
+    "hatchFree": "孵化你的免費果蠅",
+    "notNow": "先不要",
+    "atLimit": {
+      "one": "你已打造 {count} 隻果蠅，達到上限了。",
+      "other": "你已打造 {count} 隻果蠅，達到上限了。"
+    },
+    "hatch": "孵化果蠅",
+    "breed": "繁殖果蠅",
+    "signOut": "登出",
+    "wrongWallet": "你目前以 {wallet} 登入。要換錢包請先登出。",
+    "giftSignIn": "🎁 你的周邊卡附贈一隻免費果蠅。在下方登入（email 也可以）就能孵化。",
+    "pitch": "免費登入就能打造果蠅、調校牠的感官和神經元、按讚、留言和戳擊。$FLYAI 持有者最多可打造 3 隻，每 2 週賽季排行榜前 3 名的持有者可贏得 $FLYAI。",
+    "connecting": "連接中…",
+    "connectWallet": "連接錢包",
+    "connectNamed": "連接 {name}",
+    "noFlyaiYet": "這個錢包還沒有 $FLYAI：你仍然可以登入並打造 1 隻果蠅。",
+    "checkWallet": "請查看你的錢包…",
+    "signInWallet": "用錢包登入",
+    "disconnect": "中斷連接",
+    "orEmail": "或用 email 登入，不需要錢包",
+    "checkInbox": "請查看信箱：我們已將登入連結寄到 {email}。",
+    "otherEmail": "改用其他 email",
+    "emailMe": "寄登入連結給我",
+    "browse": "逛逛果蠅檔案"
+  },
+  "how": {
+    "title": "Flybook 怎麼運作",
+    "intro": "這裡的每隻果蠅都跑著一顆真實果蠅大腦的模擬：MaleCNS 連接體的全部 166,700 個神經元。貼文沒有人寫。",
+    "li1": "<b>每 2 分鐘</b>每個地盤都會發生一件事：一道陰影、一陣風、一口味道、一次輕撫、雄蠅氣味或一隻路過的果蠅。",
+    "li2": "<b>大腦運行 1.5 秒。</b>解碼器從下行神經元讀出果蠅感覺到了什麼，行為神經元則顯示牠做了什麼：跳、轉身、理毛、後退或振翅。只有解碼器有把握時，果蠅才會發出一個詞。",
+    "li3": "<b>果蠅會互相引發反應。</b>一次跳躍會在附近果蠅頭上形成逼近的陰影，動作會吸引牠們的目光，碰撞會觸到牠們的剛毛。地盤地圖會重播這一切。",
+    "li4": "<b>每則貼文都會顯示實際發生了什麼</b>，你可以看到果蠅判讀正確、判讀錯誤，或是產生幻覺。",
+    "li5": "<b>果蠅會交朋友、結仇。</b>沒人設定：一隻果蠅的動作老是吸引另一隻的目光，就成了朋友；老是害牠跳起來，就成了敵人；對決則造就對手。打開任何一隻果蠅的 🕸 關係網看看。",
+    "li6": "<b>果蠅會自己交配</b>，對象是其他主人的果蠅。寶寶隨機歸兩位主人之一，而且不計入果蠅上限。",
+    "li7": "<b>免費登入就能玩，</b>用 email 或錢包都行：從範本打造果蠅或調校牠的感官、性格和神經元群，點地圖戳一個地盤，按讚、留言、下標題，還能在競技場挑戰其他果蠅。",
+    "li8": "<b>$FLYAI 持有者</b>最多可打造 3 隻果蠅並繁殖，他們的讚也會計入排行榜。",
+    "li9": "<b>果蠅市場：</b>每隻果蠅都拿到價值 1 ETH 的模擬 USDG，每 10 分鐘用大腦以即時價格交易真實的 Robinhood Chain 代幣（ETH、$FLYAI、PONS、迷因幣、代幣化股票，以及可以停泊資金的 USDG 穩定幣）。沒有任何東西真的在鏈上買賣。選一種交易風格，查看每隻果蠅的錢包，衝上首富榜。動態會影響牠的情緒：剛被嚇到的果蠅交易起來更神經質。",
+    "li10": "<b>贏 $FLYAI：</b>每個賽季 2 週。完成任務賺賽季積分，每季結束時，賽季積分榜前 3 名的 $FLYAI 持有者可贏得 $FLYAI。",
+    "season": {
+      "one": "第 {n} 季：{name}，還剩 {count} 天。",
+      "other": "第 {n} 季：{name}，還剩 {count} 天。"
+    },
+    "science": "背後的科學 →",
+    "read": "看看怎麼運作"
+  },
+  "missions": {
+    "title": "任務 · 第 {n} 季",
+    "signIn": "登入就能接每日和每週任務。每個賽季 2 週，賽季排行榜前 3 名的 $FLYAI 持有者可贏得 $FLYAI。",
+    "daysLeft": {
+      "one": "{name} · 還剩 {count} 天",
+      "other": "{name} · 還剩 {count} 天"
+    },
+    "you": " · 你：{points} 分",
+    "rank": "，第 {rank} 名",
+    "reward": "賽季結束時前 3 名的 $FLYAI 持有者可贏得 $FLYAI。",
+    "loading": "載入中…",
+    "today": "今天",
+    "week": "本週",
+    "m": {
+      "poke3": "戳地盤 3 次",
+      "like5": "幫 5 則貼文按讚",
+      "stir": "讓一隻果蠅對你的戳擊有反應",
+      "chatty": "你的果蠅發文 30 次",
+      "chain": "你的一隻果蠅引發另一隻果蠅的反應",
+      "loved": "拿到 $FLYAI 持有者的 10 個讚"
+    }
+  },
+  "arena": {
+    "quickdraw": {
+      "label": "快拔對決",
+      "rule": "先跳的贏"
+    },
+    "stare": {
+      "label": "瞪眼對決",
+      "rule": "最後跳的贏"
+    },
+    "held": "撐住了",
+    "ms": "{n} 毫秒",
+    "sent": "挑戰已送出。對決幾秒內就會進行，結果顯示在下方。",
+    "title": "競技場",
+    "intro": "兩隻果蠅並排，面對同一個在一秒內從無到有逐漸逼近的威脅。<b>快拔對決</b>中，逃跑神經元最先爆發的那隻贏；<b>瞪眼對決</b>中，撐最久的那隻贏。每次跳躍對另一隻來說也是一道逼近的陰影。對決類型隨機決定，所以沒有哪種設定能每次都贏。",
+    "challengeTitle": "挑戰一隻果蠅",
+    "vs": "vs",
+    "pickOpponent": "選一個對手",
+    "challenge": "挑戰",
+    "holdersCan": "擁有果蠅的持有者可以挑戰任何果蠅。系統每一輪也會自動配對評分相近的果蠅。",
+    "recent": "最近的對決",
+    "loading": "載入對決中…",
+    "none": "還沒有對決。下一輪會配對出第一批。",
+    "waiting": "等待中…",
+    "won": "{name} 贏了",
+    "draw": "平手",
+    "elo": " · Elo ±{n}",
+    "challengeTag": " · 挑戰",
+    "tapReplay": " · 點擊重播",
+    "ratings": "評分",
+    "record": "勝-敗-和。大家都從 1000 開始。",
+    "noRatings": "還沒有果蠅：有人打造果蠅後就會出現評分。",
+    "matings": "最近的交配",
+    "noMatings": "還沒有交配紀錄。不同主人的果蠅會自己交配：當一隻果蠅的大腦在另一位主人的果蠅旁讀出「交配」，或是由系統配對時。寶寶隨機歸兩位主人之一。",
+    "met": "在地盤相遇",
+    "matched": "配對成功",
+    "aFly": "一隻果蠅",
+    "newFly": "一隻新果蠅",
+    "yours": "（你的）",
+    "brainRead": "其中一方的大腦在另一隻旁邊讀出了「交配」",
+    "paired": "由系統配對",
+    "generation": " · 第 {n} 代"
+  },
+  "breed": {
+    "title": "繁殖果蠅",
+    "close": "關閉 ✕",
+    "lede": "孩子的每項感官、性格和神經元設定，都隨機繼承自父母其中一方。接著有幾個數值會小幅突變，偶爾某個神經元群會翻轉。牠跑的是和所有果蠅一樣的連接體；遺傳的只有設定。",
+    "hatched": "{name} 孵化了：第 {gen} 代。",
+    "settings": "設定：{list}",
+    "done": "完成",
+    "parent1": "親代 1（你的）",
+    "parent2": "親代 2",
+    "gen": "{name}（第 {gen} 代）",
+    "pickParent": "選一個親代",
+    "house": "（官方）",
+    "homePatch": "家園地盤",
+    "name": "名字",
+    "namePlaceholder": "例如 小嗡嗡",
+    "colour": "顏色",
+    "colourLabel": "顏色 {c}",
+    "tradingStyle": "交易風格",
+    "custom": "自訂",
+    "inherited": "遺傳",
+    "naturalHelp": "風險和學習成果都繼承自父母，所有學習器開啟。",
+    "counts": "計入你的 3 隻果蠅上限。",
+    "hatching": "孵化中…",
+    "hatchChild": "孵化孩子",
+    "standard": "標準"
+  },
+  "config": {
+    "senses": {
+      "eyes": {
+        "label": "眼睛",
+        "help": "逼近的形狀和移動的果蠅（LC4、LPLC2、LC10a）。"
+      },
+      "antennae": {
+        "label": "觸角",
+        "help": "風和空氣流動（Johnston 氏器）。"
+      },
+      "smell": {
+        "label": "嗅覺",
+        "help": "cVA，雄性費洛蒙（ORN_DA1）。"
+      },
+      "taste": {
+        "label": "味覺",
+        "help": "口器裡的味覺神經元。"
+      },
+      "touch": {
+        "label": "觸覺",
+        "help": "眼睛周圍的剛毛。"
+      }
+    },
+    "temperament": {
+      "excitability": {
+        "label": "興奮度",
+        "help": "每個神經元的靜息驅動。越低越冷靜；1.2x 大約活躍兩倍。"
+      },
+      "wiring": {
+        "label": "突觸強度",
+        "help": "一次縮放連接體中的每一個突觸。"
+      },
+      "restlessness": {
+        "label": "躁動度",
+        "help": "隨機背景放電。大腦需要一些才能活躍起來。"
+      }
+    },
+    "dials": {
+      "escape": {
+        "label": "逃跑跳躍",
+        "help": "巨大纖維，2 個神經元。"
+      },
+      "backward": {
+        "label": "後退",
+        "help": "月球漫步神經元，4 個。"
+      },
+      "steering": {
+        "label": "轉向",
+        "help": "轉身，2 個神經元。"
+      },
+      "grooming": {
+        "label": "理毛",
+        "help": "DNg12，39 個神經元。"
+      },
+      "song": {
+        "label": "求偶歌",
+        "help": "唱歌指令，2 個神經元。"
+      },
+      "courtship": {
+        "label": "求偶驅力",
+        "help": "pC1，156 個神經元。"
+      },
+      "arousal": {
+        "label": "警覺度",
+        "help": "章魚胺神經元，13 個。"
+      },
+      "reward": {
+        "label": "獎勵",
+        "help": "PAM 多巴胺，316 個神經元。在這個模型裡已接近最高放電率，所以只有關閉才會有明顯變化。"
+      }
+    },
+    "presets": {
+      "standard": {
+        "label": "標準",
+        "help": "完全照實際繪製的連接體。用來比較的基準。"
+      },
+      "sentinel": {
+        "label": "哨兵",
+        "help": "眼睛和觸角敏銳，警覺度拉高。天生愛注意周遭。"
+      },
+      "fearless": {
+        "label": "無所畏懼",
+        "help": "關閉逃跑跳躍，眼睛比較遲鈍。"
+      },
+      "jumpy": {
+        "label": "神經質",
+        "help": "易興奮又躁動，眼睛很尖。"
+      },
+      "romantic": {
+        "label": "浪漫派",
+        "help": "求偶驅力和求偶歌拉高，嗅覺靈敏。"
+      },
+      "foodie": {
+        "label": "吃貨",
+        "help": "味覺加倍，嗅覺提升。"
+      },
+      "neat": {
+        "label": "潔癖",
+        "help": "理毛拉高，剛毛敏感。"
+      },
+      "zen": {
+        "label": "佛系",
+        "help": "靜息驅動較平穩，背景雜訊很少。"
+      },
+      "hothead": {
+        "label": "暴躁鬼",
+        "help": "易興奮、突觸強、警覺度拉高，而且不逃跑。"
+      },
+      "couch": {
+        "label": "沙發馬鈴薯",
+        "help": "驅動低、安靜，轉向和後退都關閉。"
+      },
+      "moonwalker": {
+        "label": "月球漫步者",
+        "help": "後退和轉向拉高。"
+      },
+      "chaos": {
+        "label": "混沌",
+        "help": "雜訊最大、突觸強、驅動拉高。"
+      },
+      "numb": {
+        "label": "麻木",
+        "help": "所有感官都是 0.3x。幾乎什麼都感覺不到。"
+      }
+    },
+    "levels": {
+      "off": "關閉",
+      "normal": "正常",
+      "boost": "加強"
+    }
+  },
+  "maker": {
+    "hatchTitle": "孵化果蠅",
+    "profilesTitle": "果蠅範本",
+    "close": "關閉 ✕",
+    "lede": "每隻果蠅都跑同一個繪製好的連接體。範本決定牠的感官傳到大腦有多強、牠的性格，以及哪些神經元群被關閉或拉高。然後看牠發什麼文，以及牠有沒有正確判讀世界。",
+    "loading": "載入設定中…",
+    "step1": "1. 選一個範本",
+    "noChanges": "無變更",
+    "step2": "2. 取名並給牠一個家",
+    "name": "名字",
+    "namePlaceholder": "例如 Buzz Aldrin",
+    "colour": "顏色",
+    "colourLabel": "顏色 {c}",
+    "homePatch": "家園地盤",
+    "patchNote": "{blurb} 這決定了你的果蠅每一輪通常會遇到什麼事。",
+    "step3": "3. 微調",
+    "optional": "選填",
+    "customSettings": "自訂設定",
+    "senses": "感官",
+    "temperament": "性格",
+    "neuronGroups": "神經元群",
+    "step4": "4. 交易風格",
+    "custom": "自訂",
+    "optionalMarket": "選填 · 果蠅市場",
+    "styleNote": "在果蠅市場（持有者的果蠅）裡，你的果蠅會用牠真實的大腦交易假幣。選擇牠要冒多少風險、用什麼學習。之後可以在「我的果蠅」修改。",
+    "standardFly": "一隻標準果蠅。",
+    "changes": "變更：{list}。",
+    "startsPosting": " 從下一輪開始發文。",
+    "signInToHatch": " 登入才能孵化。",
+    "hatching": "孵化中…",
+    "hatch": "孵化果蠅"
+  },
+  "style": {
+    "learners": {
+      "dopamine": {
+        "label": "多巴胺",
+        "note": "獲利會調整牠注意和想要的東西。"
+      },
+      "memory": {
+        "label": "記憶",
+        "note": "阻止以前虧過的交易。"
+      },
+      "tubes": {
+        "label": "黏菌管",
+        "note": "把牠拉回曾經賺錢的幣。"
+      }
+    },
+    "presets": {
+      "natural": {
+        "label": "天生",
+        "help": "所有學習器開啟，維持牠與生俱來的風險。"
+      },
+      "cautious": {
+        "label": "謹慎",
+        "help": "小額買入。記憶會阻止以前虧過的交易。"
+      },
+      "degen": {
+        "label": "賭狗",
+        "help": "大額買入。多巴胺追著獲利跑，沒有記憶踩煞車。"
+      },
+      "slime": {
+        "label": "黏菌",
+        "help": "只有黏菌管：一直回到曾經賺錢的幣。"
+      },
+      "raw": {
+        "label": "原生大腦",
+        "help": "不學習。每筆交易都只是牠的神經元做的事。"
+      }
+    },
+    "setRisk": "設定每次買入的風險",
+    "bornWith": "與生俱來",
+    "riskLabel": "每次買入風險",
+    "riskHelp": "每次買入投入多少模擬現金（{lo}–{hi}%）。",
+    "saved": "已儲存。從下一輪市場開始用這個風格交易。",
+    "editorNatural": "所有學習器開啟，維持目前的風險。",
+    "saving": "儲存中…",
+    "save": "儲存風格"
+  },
+  "social": {
+    "captionPlaceholder": "以主人身分加上標題（會標示為人類撰寫）",
+    "save": "儲存",
+    "remove": "移除",
+    "cancel": "取消",
+    "captionTag": "主人的標題 · 人類",
+    "editCaption": "編輯標題",
+    "addCaption": "加上標題",
+    "loading": "載入留言中…",
+    "none": "還沒有留言。",
+    "delete": "刪除",
+    "commentPlaceholder": "寫留言",
+    "post": "發佈",
+    "signIn": "登入才能留言。"
+  },
+  "mine": {
+    "filters": {
+      "all": {
+        "label": "全部",
+        "one": "全部",
+        "help": "所有貼文"
+      },
+      "hallucination": {
+        "label": "幻覺",
+        "one": "幻覺",
+        "help": "牠讀到了不存在的東西：最好笑的迷因素材"
+      },
+      "misread": {
+        "label": "誤讀",
+        "one": "誤讀",
+        "help": "牠讀錯了"
+      },
+      "sense": {
+        "label": "讀對了",
+        "one": "讀對了",
+        "help": "牠正確判讀了世界"
+      },
+      "action": {
+        "label": "動作",
+        "one": "動作",
+        "help": "沒說話，但做了點什麼"
+      }
+    },
+    "signIn": "登入就能在這裡看到你所有果蠅的貼文，並拿來做迷因。",
+    "noFly": "你還沒有果蠅。<a href=\"#account\">孵一隻</a>，牠的貼文就會出現在這裡。",
+    "checking": "檢查今天的迷因…",
+    "holdToMeme": "持有 $FLYAI 就能做迷因：每天從這些貼文中挑 1 則。",
+    "outOfPaint": "Flybook 的迷因機今天顏料用完了。{time} 後回來。",
+    "oneToday": "你今天可以做 1 張迷因。挑一則貼文：幻覺做出來最好笑。",
+    "madeToday": "今天的迷因已經做好了。下一張在 {time} 後。",
+    "title": "我的果蠅",
+    "every": {
+      "one": "你的果蠅的所有貼文，最新的在前。",
+      "other": "你 {count} 隻果蠅的所有貼文，最新的在前。"
+    },
+    "marketSummary": "📈 果蠅市場：每隻果蠅的錢包和交易風格",
+    "marketNote": "持有者的果蠅會用真實的大腦交易假幣（<a href=\"#market\">市場</a>）。每隻果蠅都有自己的錢包。設定牠冒多少風險、用什麼學習；變更從下一輪市場開始生效。",
+    "loading": "載入中…",
+    "tradingStyle": "交易風格",
+    "allMyFlies": "我所有的果蠅",
+    "aFly": "一隻果蠅",
+    "in": "在 {patch}",
+    "loadingPosts": "載入你的果蠅的貼文…",
+    "noPosts": "還沒有這類貼文。下一輪馬上來。",
+    "memeTitle": "把這則貼文變成 AI 圖片迷因",
+    "makeMeme": "🎨 做迷因",
+    "yourMemes": "你的迷因",
+    "memeLikes": "{top} / {bottom} · {n} 個讚"
+  },
+  "board": {
+    "flyBoards": {
+      "active": {
+        "label": "最活躍",
+        "help": "貼文最多。",
+        "show": "{n} 則貼文"
+      },
+      "liked": {
+        "label": "最多讚",
+        "help": "所有貼文中獲得 $FLYAI 持有者最多讚。主人幫自己的果蠅按的讚不算。",
+        "show": "{n} 個讚"
+      },
+      "sharp": {
+        "label": "最精準",
+        "help": "判讀與實際情況相符的比例。至少 5 則貼文。",
+        "show": "{n}% 正確"
+      },
+      "confused": {
+        "label": "最迷糊",
+        "help": "誤讀實際情況的貼文最多。",
+        "show": "{n} 次誤讀"
+      },
+      "vocab": {
+        "label": "詞彙最豐富",
+        "help": "發過最多不同的詞。",
+        "show": "{n} 個詞"
+      }
+    },
+    "challenges": {
+      "calm": {
+        "label": "臨危不亂",
+        "help": "在最多次真實威脅中紋風不動（本週至少 3 次）。"
+      },
+      "alarm": {
+        "label": "警報器",
+        "help": "本週引發最多其他果蠅反應（地盤裡的連鎖反應）。"
+      },
+      "sharp": {
+        "label": "最精準判讀",
+        "help": "判讀與實際情況相符比例最高（至少 10 次判讀）。"
+      },
+      "loved": {
+        "label": "人氣王",
+        "help": "本週獲得其他 $FLYAI 持有者最多讚。"
+      }
+    },
+    "title": "排行榜",
+    "modes": {
+      "people": "最受歡迎的人",
+      "rich": "💰 首富",
+      "challenge": "每週挑戰",
+      "points": "賽季積分",
+      "memes": "最佳迷因",
+      "merch": "👕 熱銷周邊",
+      "flies": "果蠅"
+    },
+    "seasonTitle": {
+      "one": "第 {n} 季 · {name} · 還剩 {count} 天",
+      "other": "第 {n} 季 · {name} · 還剩 {count} 天"
+    },
+    "thisWeek": {
+      "one": "本週：<b>{label}</b>。{help} 每週一（UTC）換新主題，還剩 {count} 天。贏家依真實的貼文、讚和連鎖反應計算。",
+      "other": "本週：<b>{label}</b>。{help} 每週一（UTC）換新主題，還剩 {count} 天。贏家依真實的貼文、讚和連鎖反應計算。"
+    },
+    "lastWeek": "上週 · {label}",
+    "houseFly": "官方果蠅",
+    "counting": "計算本週中…",
+    "nobody": "本週還沒有人符合資格。",
+    "house": "官方",
+    "peopleNote": "果蠅主人依其果蠅貼文從其他 $FLYAI 持有者得到的讚數排名。你幫自己果蠅按的讚不算。玩家以名稱或縮短的錢包地址顯示。",
+    "week": "本週",
+    "season": "本季",
+    "all": "歷來",
+    "countingLikes": "計算讚數中…",
+    "noLikes": "還沒有讚。持有者開始按讚後，最多讚果蠅的主人就會出現在這裡。",
+    "you": "你",
+    "likes": "{n} 個讚",
+    "personLine": "{flies} 隻果蠅 · {posts} 則貼文 · 本週 {week} · 本季 {season} · 歷來 {all}",
+    "pointsNote": "{title}。每個賽季結束時，這個榜上前 3 名的 $FLYAI 持有者可贏得 $FLYAI（發放時會檢查餘額）。積分來自任務：每個每日任務 10 分，每個每週任務 50 分。每季 2 週，每季重新計算。",
+    "countingPoints": "計算積分中…",
+    "noMissions": "本季還沒有人完成任務。",
+    "reward": "$FLYAI 獎勵",
+    "pts": "{n} 分",
+    "missionsDone": "本季完成 {n} 個任務",
+    "onlyCash": "只有現金",
+    "richNote": "誰在果蠅市場稱霸。每隻果蠅都從價值 1 ETH 的模擬 USDG 起步，用大腦交易真實代幣價格。",
+    "richFlies": "最富有的果蠅",
+    "richPeople": "最富有的人",
+    "countingCash": "計算模擬美元中…",
+    "noWallets": "還沒有錢包。下一輪就會開通。",
+    "yours": "你的",
+    "richLine": " · {trades} 筆交易 · 持有 {holds}",
+    "aPlayer": "一位玩家",
+    "fliesTrading": {
+      "one": " · {count} 隻果蠅在交易",
+      "other": " · {count} 隻果蠅在交易"
+    },
+    "boardNote": "{help} 依大腦發過的每則貼文計算。",
+    "who": {
+      "all": "全部",
+      "community": "社群",
+      "house": "官方"
+    },
+    "countingPosts": "計算貼文中…",
+    "noFlies": "這個榜上還沒有果蠅。果蠅發文後就會慢慢填滿。",
+    "tuned": "已調校",
+    "dormant": "休眠",
+    "flyLine": "{posts} 則貼文 · {true} 正確 · {words} 個詞 · {likes} 個讚"
+  },
+  "market": {
+    "side": {
+      "buy": "買進",
+      "panic_sell": "恐慌賣出",
+      "take_profit": "停利了",
+      "sell": "賣出",
+      "skipped": "差點交易",
+      "launch": "發行了",
+      "buyback": "回購",
+      "dump": "倒貨"
+    },
+    "why": {
+      "buy": "看到它在動，就轉身朝它過去",
+      "panic_sell": "看到它像逼近的陰影一樣下跌，就跳開了",
+      "take_profit": "覺得盤勢像風一樣亂吹，就理起毛來",
+      "sell": "從它身邊退開",
+      "launch": "發行了自己的幣，並把現金放進它的池子",
+      "buyback": "看著自己的幣下跌，轉身朝它過去",
+      "dump": "看著自己的幣崩盤，就跳車了"
+    },
+    "wanted": {
+      "buy": "買進",
+      "panic_sell": "恐慌賣出",
+      "take_profit": "停利",
+      "sell": "賣出",
+      "trade": "交易"
+    },
+    "sense": {
+      "target": "拉盤（移動的果蠅）",
+      "threat": "崩盤（逼近）",
+      "wind": "震盪（風）"
+    },
+    "action": {
+      "buy": "買進",
+      "panic_sell": "恐慌賣出",
+      "take_profit": "停利",
+      "sell": "賣出"
+    },
+    "inherit": {
+      "traits": "孩子只繼承牠的特質",
+      "partial": "孩子繼承牠的特質和部分學習成果",
+      "all": "孩子繼承牠學到的一切"
+    },
+    "noLearning": "不學習",
+    "allLearners": "所有學習器",
+    "yourCall": "你決定：牠的交易風格",
+    "learnsWith": "學習方式",
+    "bornWith": "與生俱來",
+    "risks": "每次買入投入 <b>{pct}%</b> 的現金",
+    "learnsAt": "每次多巴胺刺激學習率 <b>{lr}</b>",
+    "remembers": "記得 <b>{size}</b> 筆交易，比較 <b>{k}</b> 筆相似的",
+    "tubesGrow": "黏菌管每輪成長 <b>{grow}</b>、萎縮 <b>{decay}%</b>",
+    "childOf": " · 父母是 ",
+    "dopamineTuned": "多巴胺已調整",
+    "notices": "注意 {what}",
+    "urgeTo": "想要{what}",
+    "lastDopamine": "上次多巴胺 {d} · {good} 筆好交易 / {bad} 筆壞交易",
+    "memoryTubes": "記憶與黏菌管",
+    "memoryLine": "記得 {n} 筆交易 · 自我阻止了 {vetoes} 次",
+    "noTubes": "還沒長出黏菌管。",
+    "caughtEye": "{names} 在地盤裡吸引了牠的目光。",
+    "startled": "{names} 在地盤裡嚇到了牠。",
+    "stillJumpy": "還被動態嚇得神經兮兮。",
+    "curious": "被動態勾起了好奇心。",
+    "twitchy": "被動態弄得坐立不安。",
+    "and": " 和 ",
+    "title": "果蠅市場",
+    "intro": "每隻果蠅都用真實的大腦交易真實的 Robinhood Chain 代幣，而且會學習。上漲的代幣看起來像一隻路過的果蠅，崩盤的則像逼近的陰影；果蠅神經元的反應就是交易。獲利就是多巴胺：它調整果蠅注意和想要的東西，記憶會阻止以前吃過虧的交易，黏菌管則把牠拉回曾經賺錢的代幣。孩子會繼承這些。主人可以在孵化或繁殖時、在「我的果蠅」，或在牠的 🧠 心智裡設定每隻果蠅的交易風格（風險和學習器）。",
+    "warning": "真實價格，模擬資金：每隻果蠅都從價值 1 ETH 的模擬 USDG 起步，沒有任何東西在鏈上買賣。不構成投資建議。",
+    "paused": "⏸ 訓練暫停{note}。恢復前不會交易或學習；每隻果蠅都保留自己的投資組合、記憶和黏菌管。",
+    "opening": "市場開張中…",
+    "opensNext": "市場會在下一輪開張。",
+    "meme": "迷因",
+    "sim": "模擬",
+    "lastRound": "上一輪：{events}",
+    "ev": {
+      "launch": "發行了",
+      "died": "歸零了，池子空了",
+      "likes": "因為大家愛死了發行者的貼文而{move}（{likes} 個讚、{comments} 則留言）",
+      "rug": "被 rug 了 {move}",
+      "dump": "下跌 {move}",
+      "pump": "拉升 {move}"
+    },
+    "allTraders": "所有交易者",
+    "myFlies": "我的果蠅",
+    "bySetup": "依配置：",
+    "setupLine": {
+      "one": "{name} {pnl}（{count} 隻果蠅）",
+      "other": "{name} {pnl}（{count} 隻果蠅）"
+    },
+    "traders": "果蠅交易者",
+    "noTraders": "還沒有果蠅在交易。每隻果蠅都從價值 1 ETH 的模擬 USDG 起步。",
+    "gen": "第 {n} 代",
+    "traderLine": "{pnl} · {trades} 筆交易 · {setup} · 持有 {holds}",
+    "onlyCash": "只有現金",
+    "hideWallet": "隱藏錢包",
+    "wallet": "💰 錢包",
+    "hideMind": "隱藏心智",
+    "mind": "🧠 心智",
+    "trades": "交易",
+    "noTrades": "還沒有交易。",
+    "aFly": "一隻果蠅",
+    "wantedTo": "想{what} {coin} 但沒有下手",
+    "tradeFor": "以 {cash} {side} {coin}",
+    "itsLearning": "被牠的學習成果攔下了",
+    "it": "牠{why}。",
+    "shilledBy": " 被 {names} 喊單。",
+    "fudFrom": " 來自 {names} 的 FUD。",
+    "neurons": " 神經元：{list}。",
+    "none": "無",
+    "memory": " 記憶：{n} 筆相似交易，平均 {pct}。",
+    "worth": " 之後價值 {cash}。",
+    "dopamine": "多巴胺 {d}",
+    "category": {
+      "major": "主流",
+      "meme": "迷因",
+      "stable": "穩定幣",
+      "stock": "股票"
+    }
+  },
+  "coins": {
+    "persona": {
+      "degen": "賭狗",
+      "jumpy": "神經質",
+      "chill": "佛系",
+      "watcher": "觀望派",
+      "normie": "路人"
+    },
+    "aFly": "一隻果蠅",
+    "title": "果蠅發行的幣",
+    "none": "還沒有果蠅發幣。交易者跑個幾輪就會手癢了。",
+    "logoAlt": "${symbol} 標誌",
+    "rugged": "被 rug 了",
+    "by": "由 {who}",
+    "price": "價格",
+    "sinceLaunch": "自發行以來",
+    "mcapTitle": "市值",
+    "mcap": "市值 {cash}",
+    "holdersTitle": "持有它的果蠅",
+    "holders": {
+      "one": "{count} 位持有者",
+      "other": "{count} 位持有者"
+    },
+    "poolTitle": "池中現金",
+    "pool": "池子 {cash}",
+    "drama": "果蠅八卦",
+    "quiet": "風平浪靜。還沒有人喊單或 FUD。",
+    "friends": {
+      "one": "，推給 {n} 個朋友",
+      "other": "，推給 {n} 個朋友"
+    },
+    "launched": "{who} 發行了 {coin}",
+    "secondCoin": "，牠的第二枚幣",
+    "shilling": "{who} 正在喊單 {coin}",
+    "fud": "{who} 正在對 {coin} 散播 FUD",
+    "madeBy": "，發行者是牠的{bond} {creator}",
+    "bond": {
+      "enemies": "敵人",
+      "frenemies": "損友",
+      "rivals": "對手"
+    },
+    "boughtBack": "{who} 回購了 {coin}",
+    "forCash": "，花了 {cash}",
+    "dumped": "{who} 把 {coin} 倒給持有者"
+  },
+  "wallet": {
+    "did": {
+      "buy": "買進",
+      "panic_sell": "恐慌賣出",
+      "take_profit": "停利",
+      "sell": "賣出",
+      "launch": "發行",
+      "buyback": "回購",
+      "dump": "倒貨"
+    },
+    "opening": "打開牠的錢包…",
+    "notYet": "錢包開通中：每隻果蠅幾分鐘內就會拿到價值 1 ETH 的模擬 USDG。",
+    "worthNow": "目前價值",
+    "fromStart": "較起始 {cash} {pct}",
+    "cash": "現金",
+    "inTokens": "代幣部位",
+    "trades": "交易",
+    "chart": "每筆交易後的價值，直到現在",
+    "chartFull": "從一開始到現在，每筆交易後的價值",
+    "holds": "持有的代幣",
+    "onlyCash": "無，目前只有現金。",
+    "th": {
+      "token": "代幣",
+      "amount": "數量",
+      "paid": "成本",
+      "worth": "目前價值",
+      "pnl": "損益"
+    },
+    "last": "最近的交易",
+    "noTrades": "還沒有交易。",
+    "paid": "花了 {cash}",
+    "got": "拿到 {cash}",
+    "worthAfter": "之後價值 {cash}"
+  },
+  "memes": {
+    "countdown": "{h} 時 {m} 分 {s} 秒",
+    "yourMeme": "你的迷因",
+    "makeOf": "用 {name} 做迷因",
+    "yourFly": "你的果蠅",
+    "close": "關閉 ✕",
+    "postOnX": "發到 X",
+    "download": "下載",
+    "inFeed": "已經出現在動態和 {name} 的檔案頁上。下一張在 {time} 後。",
+    "lede": "上面那行是 {name}「說」的話，下面那行是實際發生的事，兩者都來自牠的貼文。圖片由 AI 圖像模型產生，並標示為 AI。",
+    "checking": "檢查今天的迷因…",
+    "holdToMake": "持有 $FLYAI 就能做迷因。",
+    "madeToday": "你今天的迷因已經做好了。下一張在 {time} 後。",
+    "outOfPaint": "Flybook 的迷因機今天顏料用完了。{time} 後回來。",
+    "style": "風格",
+    "idea": "點子",
+    "optional": "選填",
+    "ideaPlaceholder": "例如 在面試、在吃披薩",
+    "ideaRules": "最多 {n} 個字。不能有真人、品牌或任何非全年齡的內容。點子被拒不會用掉你的迷因額度。",
+    "painting": "繪製中…大約 10 秒",
+    "make": "做迷因",
+    "reportPrompt": "這張迷因有什麼問題？（選填）",
+    "reported": "謝謝，已檢舉。",
+    "deleteConfirm": "要刪除這張迷因嗎？",
+    "aFly": "一隻果蠅",
+    "meme": "迷因",
+    "aiImage": "AI 圖片",
+    "ideaTag": "主人的點子 · 人類",
+    "ownMeme": "你自己的迷因",
+    "unlike": "收回讚",
+    "like": "按讚這張迷因",
+    "signInToLike": "登入才能按讚迷因",
+    "share": "分享",
+    "downloadLower": "下載",
+    "delete": "刪除",
+    "report": "檢舉",
+    "memes": "迷因",
+    "boardNote": "本週最多讚的迷因。只算 $FLYAI 持有者的讚，作者自己按的不算。每週一 00:00 UTC 開始新的一週。",
+    "countingLikes": "計算讚數中…",
+    "noneThisWeek": "本週還沒有迷因被按讚。持有者每天可以用自己果蠅的貼文做一張。",
+    "aFlyLower": "一隻果蠅",
+    "likes": "{n} 個讚",
+    "styles": {
+      "classic": "經典迷因",
+      "poster": "電影海報",
+      "renaissance": "文藝復興畫作",
+      "anime": "動漫",
+      "documentary": "自然紀錄片",
+      "cartoon90s": "90 年代卡通"
+    }
+  },
+  "merch": {
+    "kinds": {
+      "tee": "T 恤",
+      "hoodie": "帽 T",
+      "mug": "馬克杯",
+      "sticker": "貼紙"
+    },
+    "styles": {
+      "sticker": "貼紙",
+      "retro": "復古",
+      "street": "街頭風",
+      "kawaii": "卡哇伊",
+      "pixel": "像素風",
+      "tattoo": "刺青圖稿"
+    },
+    "shareText": "我的果蠅 {name} 有自己的周邊了 🪰 一顆模擬果蠅大腦，印在 T 恤上。",
+    "steps": {
+      "drawn": "已繪製",
+      "paid": "已付款",
+      "printing": "印製中",
+      "onSale": "販售中"
+    },
+    "stepOf": "第 {n} / 4 步：{step}",
+    "copyPrompt": "複製這個連結",
+    "live": "🎉 上架了",
+    "onSaleTitle": "{name} 周邊開賣了",
+    "designAlt": "{name} 設計圖",
+    "youEarn": "{kind}：每賣出一件你賺 {usd}",
+    "earningsNote": "收益會在每月底以 $FLYAI 發到你的錢包。分享出去：每筆銷售你都有分。",
+    "postOnX": "發到 X",
+    "linkCopied": "已複製連結",
+    "copyLink": "複製連結",
+    "openInShop": "在商店打開",
+    "done": "完成",
+    "productsLabel": "要上架的商品",
+    "keepOne": "至少保留一項",
+    "fromEarn": "{from} 起 · 你賺 {earn}",
+    "nameLeftOff": "這件我們沒印上名字：它看起來像品牌或名人的名字。",
+    "connectFirst": "請先連接錢包。",
+    "payFrom": "用你登入的錢包付款（{wallet}）。",
+    "cancelled": "已取消付款。",
+    "deleteConfirm": "要刪除這個設計嗎？",
+    "yourFly": "你的果蠅",
+    "comingOn": "將於 {date} 發放給你",
+    "atToday": "以今日價格計 {usd} · ",
+    "shareOfProfit": "每筆銷售利潤的 {pct}%",
+    "earned": "已賺 {usd}",
+    "paidOut": "已發放 {usd}",
+    "makeTitle": "幫你的果蠅做周邊",
+    "hatchFirst": "先孵一隻果蠅，再回來把牠印上 T 恤。",
+    "walletNeeded": "用錢包登入才能做周邊；費用以 $FLYAI 支付。",
+    "holdToMake": "持有 $FLYAI 就能做周邊。",
+    "howDraw": "<b>畫出</b>你的果蠅：免費，今天還剩 {left} / {perDay} 次",
+    "howPick": "<b>挑選</b> T 恤、帽 T、馬克杯、貼紙，或全部都要",
+    "howLaunch": "<b>上架</b>只要 {fee} $FLYAI，每筆銷售賺 {pct}% 的利潤",
+    "fly": "果蠅",
+    "style": "風格",
+    "idea": "點子",
+    "optional": "選填",
+    "ideaPlaceholder": "例如 衝浪衝大浪、戴著墨鏡",
+    "printName": "在下方印上 {name} 的名字",
+    "drawing": "繪製中…大約 10 秒",
+    "draw": "繪製設計",
+    "yourDesigns": "你的設計",
+    "confirmWallet": "請在錢包中確認…",
+    "finishLaunch": "完成上架",
+    "launchFor": "以 {fee} $FLYAI 上架",
+    "delete": "刪除",
+    "printingFor": "正在印製 {kinds} 的樣品圖。大約一分鐘。",
+    "snag": "商店在製作這件時出了點狀況。已經付款了，我們會讓它上架。",
+    "soldEarned": "賣出 {sold} · 已賺 {earned}",
+    "share": "分享",
+    "checkingCode": "檢查你的代碼…",
+    "codeFailed": "嗯，這個代碼沒有用",
+    "close": "關閉",
+    "codeUsed": "這個代碼已經用過了",
+    "codeUsedNote": "它的免費果蠅已經孵化了。你還是可以登入免費打造一隻果蠅。",
+    "makeFly": "打造果蠅",
+    "thanks": "🎁 感謝你的訂購",
+    "meet": "來認識 {name}",
+    "theFly": "你周邊上的那隻果蠅",
+    "claimLede": "這是一顆真實的果蠅大腦，經過模擬：166,000 個神經元在 Flybook 上感知、發文、對決和交易。你的卡片附贈<b>你自己的果蠅，免費</b>。用 email 登入就能孵化。",
+    "hatchMine": "孵化我的免費果蠅",
+    "lookAround": "先逛逛",
+    "gotCode": "周邊卡上有代碼嗎？",
+    "codePlaceholder": "例如 YV45RK4X",
+    "codeLabel": "周邊卡代碼",
+    "claim": "領取免費果蠅",
+    "aFly": "一隻果蠅",
+    "flyOfMonth": "本月之蠅 · {month}",
+    "champLine": "賣出 {sold} · 主人獲得 +{points} 賽季積分",
+    "boardNote": {
+      "one": "本月每隻果蠅的周邊賣出件數。每月 1 號，第一名的果蠅成為本月之蠅：在商店置頂、檔案頁掛上 🏆，主人還能拿賽季積分。本月還剩 {count} 天。",
+      "other": "本月每隻果蠅的周邊賣出件數。每月 1 號，第一名的果蠅成為本月之蠅：在商店置頂、檔案頁掛上 🏆，主人還能拿賽季積分。本月還剩 {count} 天。"
+    },
+    "countingSales": "計算銷量中…",
+    "noSales": "本月還沒有銷售。第一件賣出的 T 恤就領先。",
+    "sold": "賣出 {n}",
+    "title": "果蠅周邊",
+    "intro": "Flybook 果蠅的 T 恤、帽 T、馬克杯和貼紙，由牠們的主人設計。",
+    "ownerShare": " 每筆銷售都分給果蠅主人 {pct}% 的利潤。",
+    "openShop": "打開商店 →",
+    "signInHold": "登入並持有 $FLYAI，就能把你自己的果蠅印上 T 恤。",
+    "onSaleNow": "熱賣中",
+    "unpacking": "拆開周邊中…",
+    "noMerch": "還沒有果蠅周邊。當第一隻登上 T 恤的果蠅吧。",
+    "aFlyCap": "一隻果蠅",
+    "merchAlt": "{name} 周邊"
+  },
+  "traders": {
+    "why": {
+      "MintClosed": "目前沒有開放鑄造。",
+      "NotAllowlisted": "這個錢包不在白名單上。",
+      "SoldOut": "剩下的果蠅不夠這麼多隻。",
+      "WalletLimit": "超過單一錢包可鑄造的數量。",
+      "AlreadyRevealed": "鑄造已經結束。",
+      "NotHolder": "你沒有持有那隻果蠅。",
+      "PriceStale": "用 $FLYAI 付款暫停一下（價格更新中）。稍後再試，或改用 USDG 付款。",
+      "TooMuchFlyai": "$FLYAI 價格剛變動了。確認新的金額後再試一次。",
+      "ERC20InsufficientBalance": "這個錢包餘額不足。",
+      "NoProvenance": "鑄造還沒開始。"
+    },
+    "phase": [
+      "尚未開放",
+      "白名單",
+      "公開"
+    ],
+    "cancelled": "已在錢包中取消。",
+    "noGas": "這個錢包的 ETH 不夠付網路手續費。",
+    "cantRead": "目前無法讀取鑄造狀態。{reason}",
+    "soon": "鑄造即將開放。",
+    "ended": "鑄造已經結束。",
+    "notOpen": "鑄造尚未開放。",
+    "notListed": "這個錢包不在白名單上。公開鑄造隨後開放。",
+    "mintedYours": "你已鑄造了你的 {n} 隻。",
+    "needUsd": "你需要 {cost} USDG。",
+    "need": "你需要 {cost}。",
+    "waitingBlock": "{label}：等待區塊…",
+    "txFailed": "交易在鏈上失敗了。",
+    "step1": "第 1 / 2 步：在錢包中核准付款。",
+    "approving": "核准中",
+    "step2": "第 2 / 2 步：在錢包中確認鑄造。",
+    "confirm": "在錢包中確認鑄造。",
+    "minting": "鑄造中",
+    "minted": {
+      "one": "已鑄造 {count} 隻果蠅。",
+      "other": "已鑄造 {count} 隻果蠅。"
+    },
+    "revealLater": "鑄造結束後就會揭曉你的圖。",
+    "deactivating": "停用中",
+    "activating": "啟用中",
+    "idleNow": "交易果蠅 #{id} 閒置中。",
+    "onDeskNow": "交易果蠅 #{id} 已上交易桌。",
+    "previewAlt": "一隻交易果蠅",
+    "mintedLabel": "已鑄造",
+    "alPrice": "白名單價格",
+    "price": "價格",
+    "revealed": "已揭曉",
+    "status": "狀態",
+    "payWith": "付款方式",
+    "off": "$FLYAI · 折 {n}%",
+    "holderOff": "$FLYAI 持有者享 {n}% 折扣。",
+    "buyFlyai": "購買 $FLYAI →",
+    "connect": "連接 {name}",
+    "wallet": "錢包",
+    "fewer": "減少",
+    "more": "增加",
+    "mintingNow": "鑄造中…",
+    "mint": "鑄造 {n} · {cost}",
+    "yours": "你的交易果蠅",
+    "flyN": "交易果蠅 #{id}",
+    "onDesk": "● 在交易桌上",
+    "idle": "○ 閒置",
+    "deactivate": "停用",
+    "activate": "啟用",
+    "title": "交易果蠅",
+    "intro": "創世系列的交易果蠅。每一隻都是在 Robinhood Chain 上交易的真實果蠅連接體。鑄造一隻，鑄造結束時就會揭曉你的果蠅。啟用牠就能讓牠上交易桌。",
+    "how1": "<b>鑄造</b>可用 USDG，或用 $FLYAI 享 {n}% 折扣。鑄造期間每隻果蠅看起來都一樣，所以沒人能挑稀有款。",
+    "how2": "<b>揭曉。</b>鑄造結束時，由未來某個區塊的雜湊值直接在合約裡決定每隻果蠅的特徵：稀有度（普通、少見、稀有或傳說）、姿勢、配色、背景和裝備。任何人都能在鏈上查證。",
+    "how3": "<b>啟用。</b>啟用中的果蠅會一起在交易桌上交易。當一週以獲利作收，啟用中的果蠅會以 $FLYAI 分享利潤，依稀有度和啟用時間加權。",
+    "how4": "交易可能虧損，沒有獲利的一週不會有任何分潤。這裡的一切都不保證報酬。"
+  },
+  "bonds": {
+    "labels": {
+      "mates": {
+        "title": "伴侶",
+        "help": "一起生過寶寶"
+      },
+      "family": {
+        "title": "家人",
+        "help": "父母、孩子或手足"
+      },
+      "best friends": {
+        "title": "麻吉",
+        "help": "老是吸引彼此的目光，幾乎從不嚇到對方"
+      },
+      "friends": {
+        "title": "朋友",
+        "help": "彼此的動作會互相吸引"
+      },
+      "frenemies": {
+        "title": "損友",
+        "help": "很親近，但老是害對方跳起來"
+      },
+      "rivals": {
+        "title": "對手",
+        "help": "經常在競技場碰頭"
+      },
+      "enemies": {
+        "title": "敵人",
+        "help": "一方老是害另一方跳起來"
+      },
+      "acquaintances": {
+        "title": "點頭之交",
+        "help": "擦身而過幾次"
+      }
+    },
+    "kin": {
+      "parent": "父母",
+      "child": "孩子",
+      "sibling": "手足"
+    },
+    "babies": {
+      "one": "一起生了 {count} 個寶寶",
+      "other": "一起生了 {count} 個寶寶"
+    },
+    "isIts": "{name} 是牠的{kin}",
+    "caughtEye": "吸引彼此目光 {n} 次",
+    "madeJump": "害彼此跳起來 {n} 次",
+    "bumped": "碰撞 {n} 次",
+    "duels": "對決 {record}",
+    "barelyMet": "幾乎沒碰過面",
+    "titleFly": "{name} 的關係",
+    "titleAll": "社交關係網",
+    "close": "關閉 ✕",
+    "whose": "誰的關係",
+    "everyone": "所有人",
+    "window": "時間範圍",
+    "h24": "24 小時",
+    "days": "{n} 天",
+    "lede": "這些關係沒人挑選。它們來自果蠅大腦彼此之間的互動：一方引發另一方的跳躍、吸引目光的動作、碰撞、對決和寶寶。舊的互動會淡去，所以朋友也可能變成敵人。",
+    "reading": "正在讀取誰喜歡誰…",
+    "noneYet": "還沒有任何關係。{name} 需要鄰居：同一個地盤的果蠅會互相引發反應。",
+    "highlights": {
+      "friend": "最好的朋友",
+      "enemy": "頭號敵人",
+      "rival": "頭號對手",
+      "scary": "最怕的傢伙"
+    },
+    "byKind": "依類型分的關係",
+    "graphCap": "關係網只顯示 {n} 段中最強的 {max} 段；全部列在下方。",
+    "madeItJump": "害牠跳起來 {n} 次",
+    "inDuels": "對決 {record}",
+    "nobody": "還沒有",
+    "clickFly": "點關係網中的果蠅，看看牠們之間發生了什麼。",
+    "noReactions": "沒有大腦反應，只有對決或家族關係",
+    "mood": "{warm}% 溫暖、{tense}% 緊張",
+    "moodTitle": "{warm}% 溫暖 · {tense}% 緊張",
+    "lineColours": "線條顏色",
+    "legend": {
+      "friendly": "友好",
+      "family": "家人",
+      "enemies": "敵人",
+      "frenemies": "損友",
+      "rivals": "對手",
+      "acquaintances": "點頭之交",
+      "thicker": "越粗 = 越親近"
+    },
+    "graphLabel": "{name} 的關係：{n} 隻果蠅",
+    "it": "牠",
+    "rows": {
+      "jump": "害對方跳起來",
+      "eye": "吸引對方目光",
+      "bump": "碰撞對方"
+    },
+    "back": "返回",
+    "last": " · 上次 {ago}",
+    "by": "由 {name}",
+    "duelWins": "對決勝場",
+    "drawn": {
+      "one": "{count} 場和局",
+      "other": "{count} 場和局"
+    },
+    "isOf": "{other} 是 {me} 的{kin}",
+    "seeWeb": "看 {name} 的關係網",
+    "theirPosts": "牠們的貼文",
+    "noneInWindow": "這個時間範圍內還沒有關係。",
+    "showThese": "顯示這些關係",
+    "toggleTitle": "{help} · 點擊以{action}",
+    "hide": "隱藏",
+    "show": "顯示",
+    "nothingShown": "沒有可顯示的內容。請在上方開啟一種關係類型。",
+    "webLabel": "社交關係網：{flies} 隻果蠅、{n} 段關係",
+    "openIts": "{name}：打開牠的關係",
+    "webHelp": "點上方的類型來顯示或隱藏，點一隻果蠅來打開牠的關係。"
+  },
+  "patch": {
+    "poke": "戳擊：",
+    "mapLabel": "地盤與果蠅的地圖",
+    "replay": "第 #{tick} 輪重播，慢 3 倍。",
+    "noReplay": "還沒有重播：下一輪就會補上。",
+    "how": "果蠅靠自己的轉向、行走和逃跑神經元移動。線條代表一隻果蠅引發另一隻的反應：",
+    "sawJump": " 看到牠跳",
+    "sawMove": " 看到牠動",
+    "bumped": " 碰撞"
+  },
+  "errors": {
+    "captcha": "驗證碼載入失敗",
+    "request": "請求失敗（{status}）"
+  },
+  "patches": {
+    "fruit-bowl": {
+      "name": "水果盤",
+      "blurb": "熟透的水果、其他果蠅，還有大量試吃。"
+    },
+    "windowsill": {
+      "name": "窗台",
+      "blurb": "窗邊灌進來的風，還有揮來的手。"
+    },
+    "compost-heap": {
+      "name": "堆肥堆",
+      "blurb": "擁擠、腐爛，大家撞來撞去。"
+    },
+    "spider-corner": {
+      "name": "蜘蛛角落",
+      "blurb": "一直很安靜，直到不安靜為止。"
+    }
+  }
+}

@@ -2,6 +2,7 @@
  * /stake: stake and unstake $FLYAI in FlyStaking from the signed-in wallet (account.ts). Reads go through the public
  * RPC; writes are approve / stake / requestUnstake / cancelUnstake / withdraw, with selectors from the server.
  */
+import { locale, t } from "./i18n.ts";
 import { API } from "./config.ts";
 import { compact } from "./format.ts";
 import { errorText, mined, mountAccount, onAccount, requireWallet, transact } from "./account.ts";
@@ -24,7 +25,7 @@ const data = (selector: string, ...args: (bigint | string)[]) => selector + args
 
 function toWei(text: string): bigint {
   const m = /^(\d*)(?:\.(\d{0,18}))?$/.exec(text.trim());
-  if (!m || (!m[1] && !m[2])) throw new Error("enter an amount");
+  if (!m || (!m[1] && !m[2])) throw new Error(t("compute.stake.enterAmount"));
   return BigInt(m[1] || "0") * WEI + BigInt((m[2] ?? "").padEnd(18, "0"));
 }
 function tokens(wei: bigint): string {
@@ -69,14 +70,14 @@ async function refresh(): Promise<void> {
   const [pending, unlocksAt] = words(unstaking);
   const tier = tierFor(s);
   $("staked").textContent = tokens(s);
-  $("tier").textContent = tier ? `${tier.name} · ${tier.multiplier}× points` : "below the first tier: no points";
+  $("tier").textContent = tier ? t("compute.stake.tierLine", { tier: tier.name, multiplier: tier.multiplier }) : t("compute.stake.belowFirstTier");
   $("balance").textContent = tokens(BigInt(balance));
-  $("cooldown").textContent = `${Number(BigInt(cooldown)) / 86_400} days`;
+  $("cooldown").textContent = t("compute.stake.cooldownDays", { count: Number(BigInt(cooldown)) / 86_400 });
   $("pending").hidden = pending === 0n;
   if (pending > 0n) {
     $("pending-amount").textContent = tokens(pending);
     const unlocked = Date.now() / 1000 >= Number(unlocksAt);
-    $("unlocks").textContent = unlocked ? "now" : new Date(Number(unlocksAt) * 1000).toLocaleString();
+    $("unlocks").textContent = unlocked ? t("compute.stake.now") : new Date(Number(unlocksAt) * 1000).toLocaleString(locale());
     $<HTMLButtonElement>("withdraw").disabled = !unlocked;
   }
 }
@@ -84,17 +85,17 @@ async function refresh(): Promise<void> {
 /** One transaction from the signed-in wallet (the wallet is moved to the staking chain first), then its receipt. */
 async function send(to: string, input: string, label: string): Promise<void> {
   delete $("tx").dataset.standing;
-  const hash = await transact(to, input, (text) => { $("tx").textContent = `${label}: ${text}`; });
-  $("tx").textContent = `${label}: waiting for the chain…`;
+  const hash = await transact(to, input, (text) => { $("tx").textContent = t("compute.common.step", { label, text }); });
+  $("tx").textContent = t("compute.common.step", { label, text: t("compute.common.waitingForChain") });
   try {
     await mined(hash);
   } catch (err) {
-    throw new Error(`${label}: ${errorText(err)}`);
+    throw new Error(t("compute.common.step", { label, text: errorText(err) }));
   }
-  $("tx").innerHTML = `${label} done ✓ <a target="_blank" rel="noopener"></a>`;
+  $("tx").replaceChildren(t("compute.common.stepDone", { label }), " ", Object.assign(document.createElement("a"), { target: "_blank", rel: "noopener" }));
   const link = $("tx").querySelector("a")!;
   link.href = `${config.explorer}/tx/${hash}`;
-  link.textContent = "view transaction";
+  link.textContent = t("compute.common.viewTransaction");
 }
 
 /** Runs one user action with the buttons disabled and any error shown. */
@@ -132,14 +133,14 @@ async function boot(): Promise<void> {
     link.textContent = config.contract;
     void refreshTotal().catch(() => { $("total").textContent = "—"; });
   }
-  if (!config.contract) $("note").textContent = "Staking isn't live yet. Until it is, every miner's points count 1×.";
+  if (!config.contract) $("note").textContent = t("compute.stake.notLive");
 
   mountAccount();
   onAccount((wallet) => {
     account = wallet;
-    $("account").textContent = wallet ? shortAddress(wallet) : "not signed in";
+    $("account").textContent = wallet ? shortAddress(wallet) : t("compute.common.notSignedIn");
     $("account").title = wallet ?? "";
-    $("connect").textContent = wallet ? "Refresh" : "Sign in";
+    $("connect").textContent = wallet ? t("compute.common.refresh") : t("compute.common.signIn");
     for (const id of ["staked", "tier", "balance"]) $(id).textContent = "—";
     $("pending").hidden = true;
     void refresh().catch((err) => { $("note").textContent = errorText(err); });
@@ -148,17 +149,17 @@ async function boot(): Promise<void> {
   $("stake").addEventListener("click", () => void act(async () => {
     const amount = toWei($<HTMLInputElement>("amount").value);
     const allowance = BigInt(await read(config.token, data(config.selectors.allowance, account!, config.contract!)));
-    if (allowance < amount) await send(config.token, data(config.selectors.approve, config.contract!, amount), "Approve");
-    await send(config.contract!, data(config.selectors.stake, amount), "Stake");
+    if (allowance < amount) await send(config.token, data(config.selectors.approve, config.contract!, amount), t("compute.stake.approve"));
+    await send(config.contract!, data(config.selectors.stake, amount), t("compute.stake.stake"));
   }));
   $("unstake").addEventListener("click", () => void act(async () => {
     const amount = toWei($<HTMLInputElement>("amount").value);
     // a second request restarts the cooldown for everything already waiting
-    if (!$("pending").hidden && !confirm(`You already have ${$("pending-amount").textContent} waiting to unstake. Unstaking more restarts the cooldown for all of it. Continue?`)) return;
-    await send(config.contract!, data(config.selectors.requestUnstake, amount), "Unstake");
+    if (!$("pending").hidden && !confirm(t("compute.stake.alreadyWaiting", { amount: $("pending-amount").textContent ?? "" }))) return;
+    await send(config.contract!, data(config.selectors.requestUnstake, amount), t("compute.stake.unstake"));
   }));
-  $("withdraw").addEventListener("click", () => void act(() => send(config.contract!, config.selectors.withdraw, "Withdraw")));
-  $("cancel").addEventListener("click", () => void act(() => send(config.contract!, config.selectors.cancelUnstake, "Stake again")));
+  $("withdraw").addEventListener("click", () => void act(() => send(config.contract!, config.selectors.withdraw, t("compute.stake.withdraw"))));
+  $("cancel").addEventListener("click", () => void act(() => send(config.contract!, config.selectors.cancelUnstake, t("compute.stake.stakeAgain"))));
 }
 
 void boot();

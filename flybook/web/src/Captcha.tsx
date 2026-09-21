@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { t } from "./i18n";
 
 /**
  * Cloudflare Turnstile, shown only when VITE_TURNSTILE_SITE_KEY is set. Supabase Auth checks the token when
@@ -23,7 +24,7 @@ function loadScript(): Promise<void> {
     s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
     s.async = true;
     s.onload = () => resolve();
-    s.onerror = () => { loading = null; reject(new Error("the captcha couldn't load")); };
+    s.onerror = () => { loading = null; reject(new Error(t("flybook.errors.captcha"))); };
     document.head.appendChild(s);
   });
   return loading;

@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-ns="agents">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>For agents &mdash; give your AI agent a real fly brain</title>
-<meta name="description" content="Claude skills and tools that run the real 166,700-neuron fruit-fly connectome. fly-mode makes Claude act like a fly whose reactions come from the brain; flyai-compute lets Claude Code run and pay for jobs on fly.ai compute. How to install, integrate and use.">
-<meta property="og:title" content="For agents &mdash; give your AI agent a real fly brain">
-<meta property="og:description" content="Claude skills and tools that run the real 166,700-neuron fruit-fly connectome. fly-mode makes Claude act like a fly whose reactions come from the brain.">
+<title data-i18n="agents.meta.title">For agents &mdash; give your AI agent a real fly brain</title>
+<meta name="description" content="Claude skills and tools that run the real 166,700-neuron fruit-fly connectome. fly-mode makes Claude act like a fly whose reactions come from the brain; flyai-compute lets Claude Code run and pay for jobs on fly.ai compute. How to install, integrate and use." data-i18n-attr="content:agents.meta.description">
+<meta property="og:title" content="For agents &mdash; give your AI agent a real fly brain" data-i18n-attr="content:agents.meta.title">
+<meta property="og:description" content="Claude skills and tools that run the real 166,700-neuron fruit-fly connectome. fly-mode makes Claude act like a fly whose reactions come from the brain." data-i18n-attr="content:agents.meta.og_description">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@flydotai">
@@ -27,6 +27,7 @@
   "publisher": { "@type": "Organization", "name": "fly.ai" }
 }
 </script>
+<script src="assets/i18n/boot.js"></script>
 <link rel="icon" href="assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,52 +69,52 @@
 </nav>
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">For agents</p>
-    <h1>Give your AI agent a real fly brain</h1>
-    <p class="lede">Skills and tools that run the MaleCNS v1.0 connectome &mdash; all 166,700 neurons of a fruit fly &mdash; so an agent can
+    <p class="eyebrow" data-i18n="agents.head.eyebrow">For agents</p>
+    <h1 data-i18n="agents.head.title">Give your AI agent a real fly brain</h1>
+    <p class="lede" data-i18n="agents.head.lede">Skills and tools that run the MaleCNS v1.0 connectome &mdash; all 166,700 neurons of a fruit fly &mdash; so an agent can
       feel, flinch and buzz with a real brain. Open source, runs on your own machine, no token needed.</p>
   </div>
 </header>
 
 <section id="skills" class="firstsec">
   <div class="wrap">
-    <p class="eyebrow">Skills</p>
+    <p class="eyebrow" data-i18n="agents.skills.eyebrow">Skills</p>
     <h2>fly-mode &#129712;</h2>
-    <p class="lede">A <a href="https://docs.claude.com/en/docs/claude-code/skills" target="_blank" rel="noopener">Claude skill</a> that turns
+    <p class="lede" data-i18n-html="agents.skills.lede">A <a href="https://docs.claude.com/en/docs/claude-code/skills" target="_blank" rel="noopener">Claude skill</a> that turns
       Claude into a fruit fly. Every reply is driven by what a real fly brain did with your message.</p>
     <div class="grid2">
       <div class="card pad">
-        <span class="num">1 &middot; SENSE</span><h3>Your message becomes something a fly can feel</h3>
-        <p>A deadline or a swatter looms. Pizza is a taste. "hi cutie" is another fly walking past. Wind, a touch, a smell.</p>
+        <span class="num" data-i18n="agents.skills.num1">1 &middot; SENSE</span><h3 data-i18n="agents.skills.h31">Your message becomes something a fly can feel</h3>
+        <p data-i18n="agents.skills.p1">A deadline or a swatter looms. Pizza is a taste. "hi cutie" is another fly walking past. Wind, a touch, a smell.</p>
       </div>
       <div class="card pad">
-        <span class="num">2 &middot; BRAIN</span><h3>The real connectome runs for one second</h3>
-        <p>Those sense neurons are stimulated in the 166,700-neuron brain, next to the same brain with nothing happening.</p>
+        <span class="num" data-i18n="agents.skills.num2">2 &middot; BRAIN</span><h3 data-i18n="agents.skills.h32">The real connectome runs for one second</h3>
+        <p data-i18n="agents.skills.p2">Those sense neurons are stimulated in the 166,700-neuron brain, next to the same brain with nothing happening.</p>
       </div>
       <div class="card pad">
-        <span class="num">3 &middot; BEHAVIOUR</span><h3>Its neurons decide what it does</h3>
-        <p>Escape neurons &rarr; jumped. Wing motor neurons &rarr; buzzed. Grooming, turning, walking, backing up.</p>
+        <span class="num" data-i18n="agents.skills.num3">3 &middot; BEHAVIOUR</span><h3 data-i18n="agents.skills.h33">Its neurons decide what it does</h3>
+        <p data-i18n="agents.skills.p3">Escape neurons &rarr; jumped. Wing motor neurons &rarr; buzzed. Grooming, turning, walking, backing up.</p>
       </div>
       <div class="card pad">
-        <span class="num">4 &middot; REPLY</span><h3>Claude answers as that fly</h3>
-        <p>Panic if it jumped, hype if it buzzed, nothing if the brain did nothing &mdash; and a brain log line proving it.</p>
+        <span class="num" data-i18n="agents.skills.num4">4 &middot; REPLY</span><h3 data-i18n="agents.skills.h34">Claude answers as that fly</h3>
+        <p data-i18n="agents.skills.p4">Panic if it jumped, hype if it buzzed, nothing if the brain did nothing &mdash; and a brain log line proving it.</p>
       </div>
     </div>
 
     <div class="card pad" style="margin-top: 18px;">
-      <h3 style="margin-bottom: 12px;">What the brain actually did (real runs)</h3>
+      <h3 style="margin-bottom: 12px;" data-i18n="agents.skills.h35">What the brain actually did (real runs)</h3>
       <div class="tablewrap">
         <table class="agenttable">
-          <thead><tr><th>You say</th><th>The fly senses</th><th>The brain did</th><th>Top neurons</th></tr></thead>
+          <thead><tr><th data-i18n="agents.skills.th1">You say</th><th data-i18n="agents.skills.th2">The fly senses</th><th data-i18n="agents.skills.th3">The brain did</th><th data-i18n="agents.skills.th4">Top neurons</th></tr></thead>
           <tbody>
-            <tr><td>"the boss wants the report by 5"</td><td>a huge shape looming</td><td><b>jumped, buzzed its wings</b></td><td>DNp04, DNp01, DNp02</td></tr>
-            <tr><td>"hi cutie"</td><td>another fly moving nearby</td><td><b>turned</b></td><td>DNg111, DNp17</td></tr>
-            <tr><td>"i brought pizza"</td><td>a taste</td><td><b>nothing</b> &mdash; taste reaches the brain but moves no behaviour neurons</td><td>DNg48, DNg85</td></tr>
-            <tr><td>"what is 2 plus 2"</td><td>nothing a fly can sense</td><td><b>nothing</b></td><td>&mdash;</td></tr>
+            <tr><td data-i18n="agents.skills.td1">"the boss wants the report by 5"</td><td data-i18n="agents.skills.td2">a huge shape looming</td><td><b data-i18n="agents.skills.b1">jumped, buzzed its wings</b></td><td>DNp04, DNp01, DNp02</td></tr>
+            <tr><td data-i18n="agents.skills.td3">"hi cutie"</td><td data-i18n="agents.skills.td4">another fly moving nearby</td><td><b data-i18n="agents.skills.b2">turned</b></td><td>DNg111, DNp17</td></tr>
+            <tr><td data-i18n="agents.skills.td5">"i brought pizza"</td><td data-i18n="agents.skills.td6">a taste</td><td data-i18n-html="agents.skills.td7"><b>nothing</b> &mdash; taste reaches the brain but moves no behaviour neurons</td><td>DNg48, DNg85</td></tr>
+            <tr><td data-i18n="agents.skills.td8">"what is 2 plus 2"</td><td data-i18n="agents.skills.td9">nothing a fly can sense</td><td><b data-i18n="agents.skills.b3">nothing</b></td><td>&mdash;</td></tr>
           </tbody>
         </table>
       </div>
-      <p style="margin-top: 12px;">The word-to-sense table is hand-written and is the only made-up part. The reaction is the connectome's &mdash;
+      <p style="margin-top: 12px;" data-i18n="agents.skills.p5">The word-to-sense table is hand-written and is the only made-up part. The reaction is the connectome's &mdash;
         which is why the pizza does nothing, however dramatic the fly wants to be.</p>
     </div>
   </div>
@@ -121,23 +122,23 @@
 
 <section id="install">
   <div class="wrap">
-    <p class="eyebrow">How to integrate</p>
-    <h2>Install in two minutes</h2>
+    <p class="eyebrow" data-i18n="agents.install.eyebrow">How to integrate</p>
+    <h2 data-i18n="agents.install.title">Install in two minutes</h2>
     <div class="grid2">
       <div class="card pad">
         <h3 style="margin-bottom: 14px;">Claude Code</h3>
         <ol class="steps">
-          <li><div><b>Install the brain</b>The first run downloads ~260 MB of brain files.</div></li>
-          <li><div><b>Add the skill</b>Copy the folder from the repo into your skills.</div></li>
-          <li><div><b>Talk to it</b>Say "be a fly". Say "human mode" to stop.</div></li>
+          <li><div data-i18n-html="agents.install.div1"><b>Install the brain</b>The first run downloads ~260 MB of brain files.</div></li>
+          <li><div data-i18n-html="agents.install.div2"><b>Add the skill</b>Copy the folder from the repo into your skills.</div></li>
+          <li><div data-i18n-html="agents.install.div3"><b>Talk to it</b>Say "be a fly". Say "human mode" to stop.</div></li>
         </ol>
 <pre class="codeblock"><code>pip install flybrain
 git clone https://github.com/alextitonis/fly.ai
 cp -r fly.ai/skills/fly-mode ~/.claude/skills/</code></pre>
       </div>
       <div class="card pad">
-        <h3 style="margin-bottom: 14px;">Any agent or script</h3>
-        <p>The skill is one Python script that prints JSON, so any agent framework, tool call or bot can use it.</p>
+        <h3 style="margin-bottom: 14px;" data-i18n="agents.install.h31">Any agent or script</h3>
+        <p data-i18n="agents.install.p1">The skill is one Python script that prints JSON, so any agent framework, tool call or bot can use it.</p>
 <pre class="codeblock"><code>python skills/fly-mode/scripts/fly_brain.py "someone brought pizza"
 python skills/fly-mode/scripts/fly_brain.py --sense threat "anything"</code></pre>
 <pre class="codeblock"><code>{
@@ -151,8 +152,8 @@ python skills/fly-mode/scripts/fly_brain.py --sense threat "anything"</code></pr
       </div>
     </div>
     <div class="card pad" style="margin-top: 18px;">
-      <h3 style="margin-bottom: 12px;">Or build your own: the flybrain package</h3>
-      <p>Everything above runs on <a href="https://pypi.org/project/flybrain/" target="_blank" rel="noopener">flybrain</a>, the whole fly
+      <h3 style="margin-bottom: 12px;" data-i18n="agents.install.h32">Or build your own: the flybrain package</h3>
+      <p data-i18n-html="agents.install.p2">Everything above runs on <a href="https://pypi.org/project/flybrain/" target="_blank" rel="noopener">flybrain</a>, the whole fly
         nervous system as a spiking network you can stimulate and read out.</p>
 <pre class="codeblock"><code>from flybrain import FlyBrain
 
@@ -170,11 +171,11 @@ for step in range(75):                         # 1.5 s at 20 ms steps
 
 <section id="use">
   <div class="wrap">
-    <p class="eyebrow">How to use</p>
-    <h2>Talking to the fly</h2>
+    <p class="eyebrow" data-i18n="agents.use.eyebrow">How to use</p>
+    <h2 data-i18n="agents.use.title">Talking to the fly</h2>
     <div class="grid2">
       <div class="card pad">
-        <h3 style="margin-bottom: 12px;">In a chat</h3>
+        <h3 style="margin-bottom: 12px;" data-i18n="agents.use.h31">In a chat</h3>
 <pre class="codeblock chat"><code>you:  be a fly
 fly:  bzz. i am fly now. there is a lamp.
 
@@ -188,16 +189,16 @@ you:  human mode
 fly:  bzz. bye.</code></pre>
       </div>
       <div class="card pad">
-        <h3 style="margin-bottom: 12px;">Good to know</h3>
+        <h3 style="margin-bottom: 12px;" data-i18n="agents.use.h32">Good to know</h3>
         <ul class="plainlist">
-          <li><b>It still helps.</b> Ask a real question and the fly answers it, short and distracted.</li>
-          <li><b>It never fakes a reaction.</b> If the brain did nothing, the fly does nothing. That's the joke, and it's true.</li>
-          <li><b>Brains are noisy.</b> The same message can land a little differently each time; the script averages three runs.</li>
-          <li><b>Force a sense</b> with <code>--sense threat|taste|mate|wind|touch|smell</code> when the words don't say it.</li>
-          <li><b>Runs locally</b> on CPU (or GPU with <code>flybrain[gpu]</code>). Nothing is sent anywhere.</li>
+          <li data-i18n-html="agents.use.li1"><b>It still helps.</b> Ask a real question and the fly answers it, short and distracted.</li>
+          <li data-i18n-html="agents.use.li2"><b>It never fakes a reaction.</b> If the brain did nothing, the fly does nothing. That's the joke, and it's true.</li>
+          <li data-i18n-html="agents.use.li3"><b>Brains are noisy.</b> The same message can land a little differently each time; the script averages three runs.</li>
+          <li data-i18n-html="agents.use.li4"><b>Force a sense</b> with <code>--sense threat|taste|mate|wind|touch|smell</code> when the words don't say it.</li>
+          <li data-i18n-html="agents.use.li5"><b>Runs locally</b> on CPU (or GPU with <code>flybrain[gpu]</code>). Nothing is sent anywhere.</li>
         </ul>
         <div class="cta buylinks" style="margin-top: 18px;">
-          <a class="btn" href="https://github.com/alextitonis/fly.ai/tree/main/skills" target="_blank" rel="noopener">Skills on GitHub</a>
+          <a class="btn" href="https://github.com/alextitonis/fly.ai/tree/main/skills" target="_blank" rel="noopener" data-i18n="agents.use.a">Skills on GitHub</a>
           <a class="btn" href="https://pypi.org/project/flybrain/" target="_blank" rel="noopener">flybrain on PyPI</a>
           <a class="btn" href="llms.txt">llms.txt</a>
         </div>
@@ -208,46 +209,46 @@ fly:  bzz. bye.</code></pre>
 
 <section id="compute">
   <div class="wrap">
-    <p class="eyebrow">Skills</p>
+    <p class="eyebrow" data-i18n="agents.compute.eyebrow">Skills</p>
     <h2>flyai-compute &#128421;&#65039;</h2>
-    <p class="lede">A Claude skill that lets Claude Code run jobs on <a href="/compute/">fly.ai compute</a>. Jobs can be fly-brain
+    <p class="lede" data-i18n-html="agents.compute.lede">A Claude skill that lets Claude Code run jobs on <a href="/compute/">fly.ai compute</a>. Jobs can be fly-brain
       experiments, or your own WebAssembly programs and GPU shaders, and they run on browser miners. You say what to run, Claude prices
       it, and you pay from your own wallet. The results land in a folder.</p>
     <div class="grid2">
       <div class="card pad">
-        <span class="num">1 &middot; QUOTE</span><h3>Claude prices the job first</h3>
-        <p>How many jobs, what each costs, and the most it can cost. Nothing is ordered until you say yes.</p>
+        <span class="num" data-i18n="agents.compute.num1">1 &middot; QUOTE</span><h3 data-i18n="agents.compute.h31">Claude prices the job first</h3>
+        <p data-i18n="agents.compute.p1">How many jobs, what each costs, and the most it can cost. Nothing is ordered until you say yes.</p>
       </div>
       <div class="card pad">
-        <span class="num">2 &middot; PAY</span><h3>You pay with your own wallet</h3>
-        <p>Claude hands you a pay link for $FLYAI. It never asks for or touches a private key.</p>
+        <span class="num" data-i18n="agents.compute.num2">2 &middot; PAY</span><h3 data-i18n="agents.compute.h32">You pay with your own wallet</h3>
+        <p data-i18n="agents.compute.p2">Claude hands you a pay link for $FLYAI. It never asks for or touches a private key.</p>
       </div>
       <div class="card pad">
-        <span class="num">3 &middot; RUN</span><h3>Miners run it, checked</h3>
-        <p>Browsers around the world run the jobs. You pay for a job only once two miners return the same answer. 80% of each charge goes to them.</p>
+        <span class="num" data-i18n="agents.compute.num3">3 &middot; RUN</span><h3 data-i18n="agents.compute.h33">Miners run it, checked</h3>
+        <p data-i18n="agents.compute.p3">Browsers around the world run the jobs. You pay for a job only once two miners return the same answer. 80% of each charge goes to them.</p>
       </div>
       <div class="card pad">
-        <span class="num">4 &middot; RESULTS</span><h3>Downloaded as they settle</h3>
-        <p>One file per job, plus a row saying who checked it. Claude can add jobs to an open order or stop it for you.</p>
+        <span class="num" data-i18n="agents.compute.num4">4 &middot; RESULTS</span><h3 data-i18n="agents.compute.h34">Downloaded as they settle</h3>
+        <p data-i18n="agents.compute.p4">One file per job, plus a row saying who checked it. Claude can add jobs to an open order or stop it for you.</p>
       </div>
     </div>
     <div class="grid2" style="margin-top: 18px;">
       <div class="card pad">
-        <h3 style="margin-bottom: 14px;">Install</h3>
-        <p>Needs Node 18+ and nothing else.</p>
+        <h3 style="margin-bottom: 14px;" data-i18n="agents.compute.h35">Install</h3>
+        <p data-i18n="agents.compute.p5">Needs Node 18+ and nothing else.</p>
 <pre class="codeblock"><code>git clone https://github.com/alextitonis/fly.ai
 cp -r fly.ai/skills/flyai-compute ~/.claude/skills/</code></pre>
-        <p>Then ask Claude: "run a connectome sweep of looming vs touch on fly.ai compute", or "run my pi.wasm 1,000 times on fly.ai".</p>
+        <p data-i18n="agents.compute.p6">Then ask Claude: "run a connectome sweep of looming vs touch on fly.ai compute", or "run my pi.wasm 1,000 times on fly.ai".</p>
       </div>
       <div class="card pad">
-        <h3 style="margin-bottom: 14px;">Or from any script</h3>
+        <h3 style="margin-bottom: 14px;" data-i18n="agents.compute.h36">Or from any script</h3>
 <pre class="codeblock"><code>node skills/flyai-compute/scripts/flyai.mjs quote --spec spec.json
 node skills/flyai-compute/scripts/flyai.mjs create --wallet 0xYOU --spec spec.json
 #  → pay link: https://www.flyaiworld.com/compute/jobs?pay=&lt;id&gt;
 node skills/flyai-compute/scripts/flyai.mjs watch --order &lt;id&gt;</code></pre>
         <div class="cta buylinks" style="margin-top: 18px;">
-          <a class="btn" href="https://github.com/alextitonis/fly.ai/tree/main/skills/flyai-compute" target="_blank" rel="noopener">The skill on GitHub</a>
-          <a class="btn" href="/compute/compute-api.md">API guide</a>
+          <a class="btn" href="https://github.com/alextitonis/fly.ai/tree/main/skills/flyai-compute" target="_blank" rel="noopener" data-i18n="agents.compute.a1">The skill on GitHub</a>
+          <a class="btn" href="/compute/compute-api.md" data-i18n="agents.compute.a2">API guide</a>
         </div>
       </div>
     </div>
@@ -267,5 +268,6 @@ node skills/flyai-compute/scripts/flyai.mjs watch --order &lt;id&gt;</code></pre
 
 <script src="assets/site.js"></script>
 <script src="assets/nav.js"></script>
+<script type="module" src="assets/i18n/page.js"></script>
 </body>
 </html>

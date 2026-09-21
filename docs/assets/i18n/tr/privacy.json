@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "title": "Gizlilik — fly.ai",
+    "description": "fly.ai compute web sitesinin ve fly.ai compute tarayıcı uzantısının neleri sakladığı ve neleri asla toplamadığı."
+  },
+  "head": {
+    "eyebrow": "Gizlilik",
+    "title": "Gizlilik politikası",
+    "lede": "fly.ai compute için: flyaiworld.com/compute altındaki web sayfaları ve “fly.ai compute” tarayıcı uzantısı. Son güncelleme: 18 Eylül 2026."
+  },
+  "main": {
+    "h31": "Kısaca",
+    "p1": "fly.ai compute, bilgisayarının boştaki GPU veya CPU gücünü meyve sineği beyni araştırmasına ödünç verir. Bunun için cihazın adına rastgele bir tokena ve ödül istiyorsan bir cüzdan adresine ihtiyaç duyar. Ziyaret ettiğin sayfaları, geçmişini, tuş vuruşlarını ya da bilgisayarındaki başka hiçbir şeyi asla okumaz. Veri satmıyoruz, reklam göstermiyoruz ve analitik çalıştırmıyoruz.",
+    "h32": "Uzantının bilgisayarında sakladıkları",
+    "li1": "<b>Ayarların:</b> açma/kapama düğmesi, GPU veya CPU, yoğunluk, isteğe bağlı bir görünen ad ve sunucu adresi.",
+    "li2": "<b>Bir cihaz tokenı:</b> sunucunun bu cihaza verdiği rastgele bir kod; böylece cihazın yaptığı iş sayılır. Kim olduğunla bağlantılı değildir.",
+    "p2": "Bunlar tarayıcının uzantı depolamasında kalır ve uzantıyı kaldırdığında silinir.",
+    "h33": "Sunucumuzun tuttukları",
+    "li3": "<b>Cihazın:</b> cihaz tokenının bir hash'i, yazdığın isteğe bağlı görünen ad ve cihazın ne zaman oluşturulduğu ve en son ne zaman görüldüğü.",
+    "li4": "<b>Yapılan iş:</b> cihazın hangi simülasyon işlerini çalıştırdığı, sonuçları ve doğrulanıp doğrulanmadıkları ve kazandıkları puanlar.",
+    "li5": "<b>Bir cüzdan adresi, yalnızca bağlarsan:</b> ödülleri ödemek için. Bu, cüzdanındaki bir imzayla kanıtlanan herkese açık bir blokzincir adresidir; anahtarlarını asla görmeyiz. Staking kontratındaki payı herkese açık blokzincirden okunur.",
+    "li6": "<b>Siparişler, hesaplama gücü satın alırsan:</b> siparişin ayarları, ödemeyi yapan cüzdan, ödeme işlemi ve işlerin için yüklediğin dosyalar (kendi araştırmamızın parçası olmadıkça 14 gün saklanır).",
+    "p3": "IP adresleri yalnızca bellekte, en fazla bir saat boyunca, kötüye kullanımı sınırlamak için kullanılır (örneğin bir adresin kaç yeni cihaz kaydedebileceği). Onları saklamayız. Barındırma sağlayıcılarımız (sunucu için Fly.io, web sitesi için Vercel) kendi standart bağlantı kayıtlarını tutabilir.",
+    "h34": "Asla toplamadıklarımız",
+    "p4": "Tarama geçmişi yok, sayfa içeriği yok, tıklama ya da tuş vuruşu yok, yukarıdakilerin ötesinde konum yok, kişisel mesaj yok, e-posta adresi yok ve ödeme kartı bilgisi yok. Uzantının ziyaret ettiğin sayfalara erişimi yoktur.",
+    "h35": "Kim neyi görür",
+    "li7": "<b>Herkese açık:</b> sıralama tablosu bağlı cüzdan adreslerini (kısaltılmış olarak) puanlarıyla birlikte gösterir. Kendi deneylerimizin araştırma sonuçları yayınlanır.",
+    "li8": "<b>Madenciler:</b> bir işi alan herkes o işin girdilerini görebilir. Dağıtık hesaplama böyle çalışır; bu yüzden alıcılara gizli bilgi göndermemeleri söylenir.",
+    "li9": "<b>Başka hiç kimse:</b> verileri üçüncü taraflara satmayız ya da onlarla paylaşmayız ve ağı çalıştırmak, ödülleri ödemek ve kötüye kullanımı önlemek dışında hiçbir şey için kullanmayız.",
+    "h36": "Senin seçimlerin",
+    "li10": "Uzantı sen açana kadar hiçbir şey yapmaz ve kapattığın anda durur.",
+    "li11": "Uzantıyı kaldırmak, ayarlarını ve tokenını tarayıcından siler.",
+    "li12": "Cihazının ya da cüzdanının kayıtlarını sunucumuzdan sildirmek için cüzdan adresi ya da görünen adla bize ulaş. Herkese açık bir blokzincire zaten yazılmış kayıtlar (talepler ve stake'ler) hiç kimse tarafından silinemez.",
+    "h37": "İletişim",
+    "p5": "<a href=\"https://x.com/flydotai\" target=\"_blank\" rel=\"noopener\">X'te @flydotai</a> hesabına mesaj gönder ya da <a href=\"https://github.com/alextitonis/fly.ai/issues\" target=\"_blank\" rel=\"noopener\">GitHub</a>'da bir issue aç. Bu politika değişirse bu sayfa da onunla birlikte değişir ve yukarıdaki tarih güncellenir."
+  },
+  "notice": "Bu çeviri kolaylık amacıyla sunulmuştur; bağlayıcı olan İngilizce sürümdür."
+}

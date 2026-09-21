@@ -1,0 +1,345 @@
+{
+  "meta": {
+    "title": "fly.ai 世界 — 擁有脈衝大腦的果蠅",
+    "description": "一個低多邊形的果蠅世界，每隻果蠅都靠自己的脈衝神經網路飛行，還能即時查看牠的大腦。"
+  },
+  "top": {
+    "title": "fly.ai <b>世界</b>",
+    "starting": "啟動中…",
+    "togglePanel": "顯示/隱藏面板"
+  },
+  "stats": {
+    "line": "{clock} {phase} · {flies} 隻果蠅 × {neurons} 個神經元（每隻 {synapses} 個突觸）· {fps} fps · {where}{puffs} 次氣味噴放 · 風速 {wind} m/s · 交配 {matings} 次，產卵 {eggs} 顆，孵化 {hatched} 隻 · 死亡：老死 {old}，餓死 {starved}，被吃 {eaten}，被打 {swatted}",
+    "whereLive": "{status} · {viewers} 人在看 · ",
+    "wherePrivate": "私人場地 · 大腦步長 {ms} ms · ",
+    "empty": "直播中 · 場地裡空無一蠅",
+    "connecting": "正在連線到即時世界…"
+  },
+  "status": {
+    "live": "直播中",
+    "connecting": "連線中…",
+    "reconnecting": "重新連線中…",
+    "failed": "連線失敗…"
+  },
+  "phase": {
+    "night": "夜晚",
+    "dawn": "黎明",
+    "morning": "上午",
+    "midday": "正午",
+    "afternoon": "下午",
+    "dusk": "黃昏"
+  },
+  "state": {
+    "PANIC": "驚慌",
+    "SURGING": "衝刺",
+    "CASTING": "搜尋",
+    "FEEDING": "進食",
+    "LANDED": "降落",
+    "TAKE-OFF": "起飛",
+    "FLYING": "飛行"
+  },
+  "shared": {
+    "note": "這片場地是共享的：這個頁面上的每個人看的都是同一批果蠅，由伺服器即時直播。Wiz 只屬於你：他在你的螢幕上走動，共享的果蠅看不到他。",
+    "unreachable": "無法連線到共享世界，所以這是一片在你瀏覽器裡運作的私人場地。"
+  },
+  "about": {
+    "title": "這是什麼",
+    "hide": "隱藏",
+    "show": "這是什麼？",
+    "p1": "一片果蠅場地，每隻果蠅都靠自己的<b>脈衝神經網路</b>飛行 &mdash; 748 個洩漏積分發放神經元，以真實的<i>果蠅</i>細胞類型命名，按照 MaleCNS 連接體中測得的路徑形狀連接。",
+    "p2": "每隻果蠅都有一個<b>蕈狀體</b>：牠的 Kenyon 細胞給每種氣味一個專屬的特徵，而多巴胺神經元會在遇到逼近的威脅、一次撞擊、警報 CO<sub>2</sub> 或嚐到果汁時放電，改寫牠會被哪些氣味吸引。可以在「資料」卡片裡開關它。",
+    "p3": "<b>果蠅的行為沒有任何一條是寫死的。</b>光線、氣味噴放、氣流和腿部接觸被注入感覺神經元；網路運作；飛行動作再從<b>運動神經元</b>裡讀出來。這裡沒有 <code>if (nearFruit) goToFruit</code>。進食、降落、躲避蒼蠅拍、追蹤氣味羽流、求偶和產卵，全都是從連接方式裡自然產生的 &mdash; 或者沒能產生，我們也會同樣坦白地回報。",
+    "p4": "這裡運作著完整的一生：果蠅會<b>進食、交配、產卵、孵化、覓食、被蜘蛛吃掉，然後死去</b> &mdash; 每件事發生的地方都會在地圖上留下標記。時鐘按 300 秒一天運作，而夜晚對果蠅來說是真實的：它會調暗光受器看到的亮度，而不是設定某個&ldquo;現在是夜晚&rdquo;的旗標。",
+    "p5": "點擊任何一隻果蠅，看牠的大腦放電。這個面板裡的每根長條、每個標籤和每個數字，都是群體放電率的讀數，從不驅動放電。",
+    "warn": "這<b>不是</b>真實的連接體：只有 748 個神經元，而真實的是 166,700 個；細胞類型名稱是真的，但數量和權重是編的。這裡沒有任何東西經過訓練。<a href=\"https://github.com/alextitonis/fly.ai/blob/main/world/README.md\" target=\"_blank\" rel=\"noreferrer\">哪些是真的，哪些不是 →</a>"
+  },
+  "wiz": {
+    "title": "Wiz · 一隻操縱猴子的果蠅",
+    "note": "一隻巨大的猴子巫師，由<b>完整的果蠅連接體</b>操縱 &mdash; 166,700 個神經元、2500 萬個突觸，在你的瀏覽器裡運作。<b>提線是真實的神經元：</b>他看到的東西進入果蠅的逼近、威脅和目標細胞，他的腳步進入果蠅的腿部觸覺細胞，而放電的下行神經元會舉起他的手臂、讓他踢腳踩空、轉頭、轉向和跳起來。<b>只有他想四處走走的念頭是寫出來的</b>；他的平衡、步伐和跌倒是模擬的（彈簧和 IK）&mdash; 果蠅大腦裡沒有任何東西懂得怎麼讓猴子走路。頭頂上的果蠅是那顆大腦的卡通形象：神經元放電時，對應的提線會亮成綠色。果蠅們會看到他逼近。需下載約 58 MB。",
+    "summon": "召喚 Wiz",
+    "cam": "Wiz 視角",
+    "status": {
+      "asleep": "睡著了",
+      "loading": "載入中",
+      "failed": "失敗：{error}",
+      "ready": "{n} 個神經元 · {m} M 個突觸",
+      "labels": "標籤 {mb} MB",
+      "connectome": "連接體 {mb} MB",
+      "wiring": "正在連接 2500 萬個突觸"
+    },
+    "doing": {
+      "stand": "在研究腿是怎麼用的",
+      "walk": "在努力走路",
+      "stumble": "快站不穩了",
+      "fallen": "跌倒了",
+      "getup": "正在爬起來"
+    },
+    "line": "{doing} · 已跌倒 {falls} 次 · 這一步有 {fired} 個神經元放電 · {ms} ms/步（即時的 {rt}%）",
+    "rows": {
+      "arms": {
+        "label": "手臂提線",
+        "tip": "DNp02/03/04/11、DNg40：逼近和威脅會猛拉手臂 · 左 · 右"
+      },
+      "legs": {
+        "label": "腿部提線",
+        "tip": "DNge104/122、DNg20、DNge102：觸碰會讓腿踢出去 · 左 · 右"
+      },
+      "head": {
+        "label": "頭部提線",
+        "tip": "DNa05/07、DNg111、DNae002：讓頭猛地一轉 · 左 · 右"
+      },
+      "steer": "轉向：讓他轉身 · 左 · 右",
+      "escape": "巨纖維：跳躍 · 左 · 右"
+    }
+  },
+  "brain": {
+    "title": "神經系統",
+    "flyNone": "果蠅 —",
+    "raster": "脈衝光柵圖 · 最近 5 秒",
+    "fly": "{name} {sex} · 第 {gen} 代{parents} · {age} 秒大{mated} · 大腦變化 {drift}%{courting}",
+    "childOf": " · {mother} 與 {father} 的孩子",
+    "founder": " · 始祖",
+    "mated": " · 已交配",
+    "courting": " · P1 {hz} Hz"
+  },
+  "modality": {
+    "vision": "視覺",
+    "olfaction": "嗅覺",
+    "mechanosensory": "機械感覺",
+    "central": "中樞",
+    "descending": "下行",
+    "motor": "運動",
+    "memory": "記憶",
+    "inhibitory": "抑制性（GABA）"
+  },
+  "senses": {
+    "title": "感覺 → 大腦",
+    "sides": "左 · 右",
+    "food": "嗅覺 — 食物",
+    "cva": "嗅覺 — cVA（其他果蠅）",
+    "aversive": "嗅覺 — 厭惡性",
+    "loom": "逼近：有東西在變大",
+    "threat": "快速逼近 / 威脅",
+    "small": "靠近的小物體",
+    "chase": "近距離目標",
+    "jo": "江氏器：氣流、空速、振翅",
+    "leg": "跗節接觸（相位性）",
+    "load": "毛板 / 鐘形感受器：撞擊",
+    "taste": "唇瓣味覺：食物",
+    "flow": "腹側光流：飛得多低、多快"
+  },
+  "ligand": {
+    "ORN_DM1": "乙酸乙酯：成熟的水果",
+    "ORN_VM5d": "丁酸乙酯：發酵的水果",
+    "ORN_VL2a": "乙酸：醋",
+    "IR92a": "氨和胺類：腐肉、糞便、排泄物",
+    "ORN_DA1": "cVA：其他果蠅釋放的費洛蒙",
+    "ORN_VA1d": "cVA：其他果蠅釋放的費洛蒙",
+    "Or56a": "土臭素：黴菌。厭惡性。",
+    "Gr21a": "CO2：堆肥，還有受驚的果蠅。厭惡性。"
+  },
+  "rates": {
+    "title": "放電率",
+    "unit": "每個神經元的 Hz · 左 · 右"
+  },
+  "pop": {
+    "R1_6": "光受器（組織胺，抑制性）",
+    "L1_L2": "視板中繼",
+    "LPLC2": "逼近",
+    "LC4": "快速逼近 / 威脅",
+    "LPLC1": "靠近的小物體",
+    "LC10a": "目標追蹤，近距離接近",
+    "VS": "小葉板 VS：腹側光流（高度）",
+    "ORN_DM1": "ORN DM1：乙酸乙酯，成熟的水果",
+    "ORN_VM5d": "ORN VM5d：丁酸乙酯，發酵的水果",
+    "ORN_VL2a": "ORN VL2a：乙酸，醋",
+    "IR92a": "IR92a：氨和胺類，腐肉和糞便",
+    "ORN_DA1": "ORN DA1：cVA，果蠅費洛蒙",
+    "ORN_VA1d": "ORN VA1d：cVA，果蠅費洛蒙",
+    "Or56a": "Or56a -> DA2：土臭素，有害微生物。厭惡性。",
+    "Gr21a": "Gr21a/Gr63a -> V：CO2。厭惡性。",
+    "Gr68a": "Gr68a/ppk23：前腳接觸化學感受器，雌性費洛蒙",
+    "AL_LN": "觸角葉局部神經元（GABA）",
+    "lPN": "投射神經元，觸角葉 -> 前腦（轉向和推力）",
+    "DA2_PN": "DA2 和 V 小球 PN：厭惡路徑",
+    "LH": "側角：先天效價",
+    "JO": "江氏器：風、空速、振翅",
+    "WED": "楔形區 / AMMC，江氏器的投射目標",
+    "SNta": "跗節感覺神經元（腿部接觸）",
+    "LgLG": "毛板 / 鐘形感受器（負荷、撞擊）",
+    "LB3": "唇瓣味覺毛（果汁）",
+    "PVLP": "視小球中間神經元",
+    "PLP": "後外側前腦",
+    "LPi": "小葉板內在神經元（GABA）",
+    "LAL": "側副葉，前運動區",
+    "PFL3": "中央複合體轉向",
+    "P1": "P1：雄性求偶指令神經元",
+    "DNa02": "轉向（同側轉彎）",
+    "DNp01": "巨纖維，逃逸起飛",
+    "DNg100": "向前飛行",
+    "MDN": "向後行走",
+    "pIP10": "pIP10：求偶歌指令",
+    "VNC_IN": "VNC 前運動中間神經元（通用）",
+    "IN19A": "19A 半譜系中間神經元（GABA）",
+    "DLM_MN": "背縱肌：翅膀動力",
+    "b1_MN": "基節下肌 b1：翅膀轉向",
+    "b2_MN": "基節下肌 b2：翅膀轉向",
+    "Ti_flexor_MN": "脛節屈肌",
+    "Ti_extensor_MN": "脛節伸肌（跳躍）",
+    "Tr_flexor_MN": "轉節屈肌",
+    "Sternotrochanter_MN": "胸板轉節肌：起飛",
+    "uPN": "投向蕈狀體的單小球 PN：每個小球兩個",
+    "KC": "Kenyon 細胞：氣味的稀疏編碼",
+    "APL": "APL（GABA）：讓 KC 編碼保持稀疏的回饋抑制",
+    "MBON_g2a1": "MBON-g2a'1（膽鹼性）：「靠近氣味」的輸出",
+    "MBON_g5b2a": "MBON-g5b2a：「遠離氣味」的輸出",
+    "PPL1_g2a1": "PPL1-g2a1：懲罰老師（多巴胺）",
+    "PAM_g5": "PAM-g5：獎勵老師（多巴胺）"
+  },
+  "body": {
+    "title": "大腦 → 身體",
+    "path": "下行 → VNC → 肌肉",
+    "dn": "下行神經元",
+    "mn": "運動神經元 — 飛行在這裡讀出",
+    "turn": "轉向：右減左",
+    "thrust": "向前飛行",
+    "back": "後退",
+    "escape": "巨纖維逃逸",
+    "dlm": "翅膀動力，也就是升力",
+    "b1": "基節下肌：翅膀轉向",
+    "jump": "脛節伸肌 + 胸板轉節肌：起飛",
+    "flex": "腿部屈肌：後撤",
+    "flexLabel": "Ti/Tr 屈曲",
+    "motor": "DLM {dlm} Hz → 升力 {lift} m/s²（重力 {gravity}）· 轉向 {turn} rad/s · 速度 {speed} m/s · 高度 {height} m · {state}"
+  },
+  "field": {
+    "title": "場地",
+    "sub": "外面有什麼"
+  },
+  "ecology": {
+    "fruit": "發酵的水果",
+    "mould": "發霉的水果（土臭素）",
+    "carrion": "腐肉（胺類）",
+    "dung": "糞便（胺類）",
+    "compost": "堆肥（食物 + CO2）",
+    "plant": "植物",
+    "spider": "蜘蛛",
+    "egg": "卵",
+    "larva": "幼蟲",
+    "poop": "果蠅排泄物",
+    "obstacle": "石頭",
+    "threat": "蒼蠅拍",
+    "fly": "果蠅"
+  },
+  "feed": {
+    "title": "正在發生",
+    "empty": "暫時還沒有動靜 — 交配、產卵、進食、蜘蛛襲擊和死亡都會出現在這裡，也會出現在當事果蠅的頭頂。",
+    "now": "剛剛",
+    "ago": "{s} 秒前"
+  },
+  "population": {
+    "title": "族群",
+    "adults": "成蟲",
+    "brood": "卵 + 幼蟲",
+    "now": "{adults} 隻成蟲 · {brood} 個後代",
+    "waiting": "等待第一分鐘…",
+    "axisNow": "現在",
+    "stats": "<span>成蟲 <b>{adults}</b>（{males} 雄 / {females} 雌）</span><span>平均年齡 <b>{age} 秒</b></span><span>交配 <b>{matings}</b> · 產卵 <b>{eggs}</b></span><span>孵化 <b>{hatched}</b></span><span>老死 <b>{old}</b> · 餓死 <b>{starved}</b></span><span>被吃 <b>{eaten}</b> · 被打 <b>{swatted}</b></span>"
+  },
+  "data": {
+    "title": "資料 &amp; 發現",
+    "reward": "獎勵學習",
+    "rewardTip": "進食前剛活躍過的突觸會增強；撞擊或蜘蛛襲擊前活躍過的會減弱",
+    "hebb": "赫布學習",
+    "hebbTip": "當輸入恰好在輸出之前放電時，突觸會增強",
+    "memory": "氣味記憶（蕈狀體）",
+    "memoryTip": "蕈狀體：多巴胺老師會抑制剛才在放電的 Kenyon 細胞，於是它們編碼的氣味就改變了意義",
+    "gather": "牠們會聚集嗎？",
+    "friends": "朋友與敵人",
+    "drift": "大腦會變化嗎？",
+    "herit": "孩子會像父母嗎？",
+    "fates": "卵和幼蟲：後來怎麼樣了",
+    "report": "報告（PDF）",
+    "blocks": "brain blocks.csv",
+    "collecting": "收集中…",
+    "shareInGroups": "成群比例（0-1）",
+    "nnRatio": "最近鄰比率",
+    "random": "隨機分布 = 1",
+    "meanDrift": "平均突觸變化 %",
+    "maxDrift": "變化最大的果蠅 %",
+    "now": "{clock} · 學習 {learning}",
+    "groupNote": "<span>群體 <b>{groups}</b></span><span>最大 <b>{largest}</b></span><span>在群體中 <b>{inGroup}%</b></span><span>其中在食物旁 <b>{atFood}%</b></span><span>比率 <b>{ratio}</b>（低於 1 = 聚集）</span>",
+    "died": "死亡：{cause}（{stage}）",
+    "emerged": "長成了成蟲",
+    "still": "仍是{fate}",
+    "noEggs": "還沒有產卵",
+    "stage": {
+      "egg": "卵",
+      "larva": "幼蟲"
+    },
+    "cause": {
+      "background": "自然死亡",
+      "mould": "黴菌",
+      "bare_substrate": "基質貧瘠",
+      "crowding": "過於擁擠",
+      "spider": "蜘蛛",
+      "trampled": "被踩死"
+    },
+    "waitFamilies": "等待家族資料：已知雙親的果蠅有 {n} 隻",
+    "parentsAxis": "父母平均值 →",
+    "childAxis": "孩子 ↑",
+    "heritNote": "{n} 個孩子 · 斜率 <b>{slope}</b> · r <b>{r}</b>（斜率 1 = 孩子和父母一樣，0 = 毫無相似；虛線 = 相等）",
+    "rel": {
+      "mates": "配偶",
+      "family": "家人",
+      "enemies": "敵人",
+      "friends": "朋友",
+      "acquaintances": "熟蠅"
+    },
+    "clashes": "衝突 {n} 次",
+    "together": "相處 {n} 秒",
+    "noFriends": "活著的果蠅之間還沒有朋友或敵人",
+    "trait": {
+      "lifespan": "基因：壽命",
+      "flight": "基因：飛行力量",
+      "clutch": "基因：每窩產卵數",
+      "gene_loom_escape": "基因：逼近 → 逃逸",
+      "gene_odour_steer": "基因：氣味 → 轉向",
+      "gene_contact_courtship": "基因：接觸 → 求偶",
+      "olfaction_gain": "基因：嗅覺增益",
+      "reward_rate": "基因：獎勵學習率",
+      "memory_rate": "基因：氣味記憶率",
+      "meals_per_min": "生平：每分鐘進食次數",
+      "age_at_death": "生平：死亡年齡",
+      "final_drift": "生平：死亡時的大腦變化"
+    }
+  },
+  "board": {
+    "title": "排行榜",
+    "live": "直播中",
+    "fed": "進食 {s} 秒 · 飛行 {m} 公尺",
+    "panics": "驚慌 {n} 次",
+    "swatted": " · 被打"
+  },
+  "controls": {
+    "title": "控制",
+    "reset": "重設",
+    "swat": "打！",
+    "gust": "吹一陣風",
+    "flycam": "果蠅視角",
+    "drama": "戲劇鏡頭",
+    "next": "下一隻果蠅",
+    "followOn": "跟隨：開",
+    "followOff": "跟隨：關",
+    "note": "點擊一隻果蠅選取牠。拖曳旋轉視角，滾輪縮放。每隻果蠅都運作著自己的洩漏積分發放網路：眼睛、觸角、江氏器和腿部剛毛作為輸入，運動神經元作為輸出。牠的飛行沒有任何一處是寫死的。<a href=\"https://github.com/alextitonis/fly-streetfighter\" target=\"_blank\" rel=\"noreferrer\">fly.ai</a>",
+    "slider": {
+      "flies": "果蠅數量",
+      "wind": "風速（m/s）",
+      "odour": "氣味強度",
+      "tonic": "緊張性驅動",
+      "gain": "突觸增益",
+      "noise": "雜訊率（Hz）",
+      "speed": "模擬速度"
+    }
+  }
+}

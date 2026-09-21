@@ -7,8 +7,12 @@
  */
 import { initBets } from "./bet.ts";
 import { deriveRng, playGame, setup, type GameEvent, type Table } from "./game.ts";
+import { anyPop, setupI18n, t } from "./i18n.ts";
 import { READOUT } from "./readout.ts";
 import { Stage, type Seat } from "./scene.ts";
+
+// the page's language first: every text below is in it
+await setupI18n();
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const statusEl = $("status"), tagsEl = $("tags"), logEl = $("log"), startBtn = $<HTMLButtonElement>("start");
@@ -16,6 +20,7 @@ const speedBtn = $<HTMLButtonElement>("speed"), soundBtn = $<HTMLButtonElement>(
 const meterName = $("meter-name"), wingBar = $("wing-bar"), gripBar = $("grip-bar"), wingNum = $("wing-num"), gripNum = $("grip-num");
 const gfNum = $("gf-num"), verdictEl = $("verdict"), bannerEl = $("banner"), pickHint = $("pick-hint");
 const tallyEl = $("tally");
+for (const o of sizeSel.options) o.textContent = t("roulette.controls.flies", { count: Number(o.value) });
 
 // one colour per seat, up to the 10 a table takes
 const COLORS = ["#e0342c", "#3d8bff", "#ffc83d", "#3ddc84", "#c46bff", "#ff8a1f", "#ff6fb5", "#6cc4d8", "#a0e05a", "#f5f5f5"];
@@ -31,17 +36,23 @@ let onDecided: ((c: Decided) => void) | null = null;
 
 worker.onmessage = (e: MessageEvent) => {
   const m = e.data;
-  if (m.type === "progress") statusEl.textContent = `loading the fly brains: ${m.text}`;
-  else if (m.type === "error") statusEl.textContent = `couldn't load the brains: ${m.text}`;
+  if (m.type === "progress") statusEl.textContent = t("roulette.status.progress", { text: progressText(m.text) });
+  else if (m.type === "error") statusEl.textContent = t("roulette.status.error", { text: m.text });
   else if (m.type === "ready") {
     brainReady = true;
-    statusEl.textContent = `brains ready · ${m.n.toLocaleString()} neurons each`;
+    statusEl.textContent = t("roulette.status.ready", { n: m.n.toLocaleString() });
     startBtn.disabled = playing;
     bets.changed();
   } else if (m.type === "step") onStep?.(m);
   else if (m.type === "decided") onDecided?.(m);
 };
 worker.postMessage({ type: "load", base });
+
+/** The worker's progress ("fly brain 40 / 210 MB") in the page's language. */
+function progressText(text: string): string {
+  if (text === "wiring 25 M synapses") return t("roulette.status.wiring");
+  return text.replace(/^labels/, t("roulette.status.labels")).replace(/^fly brain/, t("roulette.status.brain"));
+}
 
 function brainTurn(fly: number, chamber: number, live: (c: Counts & { t: number }) => void): Promise<Decided> {
   return new Promise((resolve) => {
@@ -114,7 +125,8 @@ const store = {
 };
 function showTally(): void {
   const s = store.get();
-  tallyEl.textContent = s.games ? `you've watched ${s.games} game${s.games === 1 ? "" : "s"} · your fly won ${s.wins} · ${s.dead} flies lost · ${s.chickens} chickens` : "";
+  tallyEl.textContent = s.games
+    ? `${t("roulette.tally.games", { count: s.games })} · ${t("roulette.tally.rest", { wins: s.wins, dead: s.dead, chickens: s.chickens })}` : "";
 }
 
 const randomHex = () => [...crypto.getRandomValues(new Uint8Array(16))].map((x) => x.toString(16).padStart(2, "0")).join("");
@@ -137,7 +149,7 @@ function seatTable(names: string[], keepChampion = false): void {
   logEl.innerHTML = "";
   bannerEl.hidden = true;
   pickHint.hidden = champion >= 0;
-  meterName.textContent = "nobody yet";
+  meterName.textContent = t("roulette.meter.nobodyYet");
   setMeter({ wing: 0, grip: 0, gf: 0 });
   verdictEl.textContent = "";
   refreshTags();
@@ -155,7 +167,7 @@ function choose(i: number): void {
   if (playing) return;
   champion = champion === i ? -1 : i;
   pickHint.hidden = champion >= 0;
-  if (champion === i) { stage.cheer(i); pop(i, "pick me!", "cheer"); }
+  if (champion === i) { stage.cheer(i); pop(i, t("roulette.pop.pickMe"), "cheer"); }
   refreshTags();
   bets.changed();
 }
@@ -166,7 +178,7 @@ function refreshTags(turn = -1): void {
     el.classList.toggle("mine", i === champion);
     el.classList.toggle("turn", i === turn);
     el.classList.toggle("out", !!p.out);
-    el.querySelector(".st")!.textContent = p.out === "dead" ? "RIP" : p.out === "chicken" ? "chicken" : i === champion ? "your fly" : "";
+    el.querySelector(".st")!.textContent = p.out === "dead" ? t("roulette.tag.rip") : p.out === "chicken" ? t("roulette.tag.chicken") : i === champion ? t("roulette.tag.yours") : "";
   });
 }
 
@@ -211,7 +223,6 @@ function log(html: string, cls = ""): void {
 }
 const who = (i: number) => `<b style="color:${players[i].color}">${escapeHtml(players[i].name)}</b>`;
 const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" })[c]!);
-const anyOf = (xs: string[]) => xs[Math.floor(Math.random() * xs.length)];
 
 function setMeter(c: Counts): void {
   const wingPct = Math.min(100, (c.wing / (READOUT.wingBail * 1.6)) * 100);
@@ -228,11 +239,11 @@ function setMeter(c: Counts): void {
 async function turnStarts(i: number): Promise<void> {
   refreshTags(i);
   meterName.textContent = players[i].name;
-  verdictEl.textContent = "thinking…";
+  verdictEl.textContent = t("roulette.meter.thinking");
   verdictEl.className = "";
   setMeter({ wing: 0, grip: 0, gf: 0 });
   await stage.gunTo(i);
-  pop(i, anyOf(["gulp", "uh oh", "?!", "…", "mommy"]), "nervous");
+  pop(i, anyPop("nervous"), "nervous");
 }
 
 /** For a turn worked out elsewhere (the server): the meters fill to its counts as if live. */
@@ -250,38 +261,38 @@ async function turnEnds(e: Extract<GameEvent, { type: "turn" }>): Promise<void> 
   const i = e.fly, p = players[i];
   setMeter(e);
   const left = 6 - e.chamber;
-  const odds = `${left} chamber${left === 1 ? "" : "s"} left`;
+  const odds = t("roulette.log.chambersLeft", { count: left });
   if (e.outcome === "fly") {
-    verdictEl.textContent = "FLEW OFF";
+    verdictEl.textContent = t("roulette.meter.flewOff");
     verdictEl.className = "fly";
     sfx.whoosh();
-    pop(i, anyOf(["NOPE!", "BZZ BYE!", "BAWK!", "I'm out!"]), "chicken");
+    pop(i, anyPop("chicken"), "chicken");
     p.out = "chicken";
-    log(`${who(i)} chickened out and flew away <span class="dim">(${odds} · wing motor ${e.wing} spikes)</span>`, "chicken");
+    log(t("roulette.log.chickened", { who: who(i), odds, wing: e.wing }), "chicken");
     await stage.flyAway(i);
     await stage.gunHomeAgain();
   } else if (e.outcome === "bang") {
-    verdictEl.textContent = "SQUEEZED";
+    verdictEl.textContent = t("roulette.meter.squeezed");
     verdictEl.className = "pull";
     sfx.bang();
-    pop(i, "BANG!", "bang");
+    pop(i, t("roulette.pop.bang"), "bang");
     p.out = "dead";
-    log(`${who(i)} squeezed… <b class="bang">BANG!</b> Gone to the big fruit bowl in the sky. <span class="dim">(grip ${e.grip})</span>`, "dead");
+    log(t("roulette.log.bang", { who: who(i), grip: e.grip }), "dead");
     await stage.bang(i);
     stage.grave(i, p.name);
     await stage.gunHomeAgain();
     if (e.reload) {
-      log(`Reload. Spin!`);
+      log(t("roulette.log.reload"));
       sfx.spin();
       await stage.spinDrum(2.5);
     }
   } else {
-    verdictEl.textContent = "SQUEEZED";
+    verdictEl.textContent = t("roulette.meter.squeezed");
     verdictEl.className = "pull";
     sfx.click();
-    pop(i, "*click*", "click");
-    setTimeout(() => pop(i, anyOf(["phew!", "ez", "told ya", "haha…ha"]), "phew"), 450 / stage.speed);
-    log(`${who(i)} squeezed… <i>click.</i> <span class="dim">(${odds} · grip ${e.grip}, wing ${e.wing})</span>`);
+    pop(i, t("roulette.pop.click"), "click");
+    setTimeout(() => pop(i, anyPop("phew"), "phew"), 450 / stage.speed);
+    log(t("roulette.log.click", { who: who(i), odds, grip: e.grip, wing: e.wing }));
     await stage.click(i);
     sfx.spin();
     await stage.spinDrum(1 / 6);
@@ -296,7 +307,7 @@ async function gameStarts(): Promise<void> {
   pickHint.hidden = true;
   bannerEl.hidden = true;
   if (!audio) { try { audio = new AudioContext(); } catch { audio = null; } }
-  log(`One cap in six chambers. Spin!`);
+  log(t("roulette.log.start"));
   sfx.spin();
   await stage.spinDrum(2.5);
 }
@@ -306,13 +317,17 @@ async function gameEnds(winner: number, extra = ""): Promise<void> {
   refreshTags();
   await stage.gunHomeAgain();
   sfx.win();
-  log(`${who(winner)} is the last fly at the table! 👑`, "win");
+  log(t("roulette.log.win", { who: who(winner) }), "win");
   bannerEl.hidden = false;
-  bannerEl.innerHTML = (winner === champion ? `YOUR FLY WON 👑<small>${escapeHtml(players[winner].name)} has nerves of chitin</small>`
-    : `${escapeHtml(players[winner].name)} WINS 👑<small>${champion >= 0 ? `${escapeHtml(players[champion].name)} ${players[champion].out === "dead" ? "is fertilizer now" : "flew home to mom"}` : "pick a fly next time"}</small>`) + extra;
-  pop(winner, "WINNER!", "win");
+  const name = (i: number) => escapeHtml(players[i].name);
+  bannerEl.innerHTML = (winner === champion
+    ? `${t("roulette.banner.yourWin")}<small>${t("roulette.banner.yourWinSub", { name: name(winner) })}</small>`
+    : `${t("roulette.banner.wins", { name: name(winner) })}<small>${champion >= 0
+      ? t(players[champion].out === "dead" ? "roulette.banner.champDead" : "roulette.banner.champFled", { name: name(champion) })
+      : t("roulette.banner.pickNext")}</small>`) + extra;
+  pop(winner, t("roulette.pop.winner"), "win");
   await stage.crown(winner);
-  meterName.textContent = "nobody";
+  meterName.textContent = t("roulette.meter.nobody");
   verdictEl.textContent = "";
 }
 
@@ -348,14 +363,14 @@ async function play(): Promise<void> {
   }
   freeTable = null;
   busy(false);
-  startBtn.textContent = "New table";
+  startBtn.textContent = t("roulette.controls.newTable");
   startBtn.dataset.fresh = "0";
 }
 
 startBtn.onclick = () => {
   if (startBtn.dataset.fresh === "0") {
     void newTable();
-    startBtn.textContent = "Spin the drum";
+    startBtn.textContent = t("roulette.controls.spin");
     startBtn.dataset.fresh = "1";
     return;
   }
@@ -364,17 +379,17 @@ startBtn.onclick = () => {
 sizeSel.onchange = () => {
   if (playing) return;
   void newTable();
-  startBtn.textContent = "Spin the drum";
+  startBtn.textContent = t("roulette.controls.spin");
   startBtn.dataset.fresh = "1";
   bets.changed();
 };
 speedBtn.onclick = () => {
   stage.speed = stage.speed === 1 ? 2.5 : 1;
-  speedBtn.textContent = stage.speed === 1 ? "Speed: normal" : "Speed: fast";
+  speedBtn.textContent = t(stage.speed === 1 ? "roulette.controls.speedNormal" : "roulette.controls.speedFast");
 };
 soundBtn.onclick = () => {
   muted = !muted;
-  soundBtn.textContent = muted ? "Sound: off" : "Sound: on";
+  soundBtn.textContent = t(muted ? "roulette.controls.soundOff" : "roulette.controls.soundOn");
 };
 
 // ---- bets: the panel gets the table and the show, the server gets the game --------------------------------
@@ -403,7 +418,7 @@ const bets = initBets({
       }
     } finally {
       busy(false);
-      startBtn.textContent = "New table";
+      startBtn.textContent = t("roulette.controls.newTable");
       startBtn.dataset.fresh = "0";
     }
   },

@@ -1,0 +1,84 @@
+{
+  "nav": {
+    "menu": {
+      "research": "Research",
+      "apps": "Apps",
+      "token": "$FLYAI"
+    },
+    "home": {
+      "label": "Home"
+    },
+    "research": {
+      "label": "All findings",
+      "desc": "Fighting, the 3-D world, what failed"
+    },
+    "research_flybook": {
+      "label": "Talking flies",
+      "desc": "Flybook: can two brains signal?"
+    },
+    "research_radio": {
+      "label": "On air",
+      "desc": "How a radio station run by a real fly brain works"
+    },
+    "roadmap": {
+      "label": "Roadmap",
+      "desc": "What's done and what's next"
+    },
+    "simulation": {
+      "label": "Simulation",
+      "desc": "Flies with real brains in a 3-D world"
+    },
+    "flybook": {
+      "label": "Flybook",
+      "desc": "The live feed written by fly brains"
+    },
+    "radio": {
+      "label": "Fly Radio",
+      "desc": "A station played by a real fly brain"
+    },
+    "roulette": {
+      "label": "Fly Roulette",
+      "desc": "Fly brains vs a toy cap gun"
+    },
+    "flinder": {
+      "label": "Flinder",
+      "desc": "A fly brain swipes on dating profiles"
+    },
+    "compute": {
+      "label": "Compute",
+      "desc": "Mine with your browser, earn $FLYAI"
+    },
+    "token": {
+      "label": "Token",
+      "desc": "Contract, chain, where to buy"
+    },
+    "shop": {
+      "label": "Merch",
+      "desc": "Fly shirts and more"
+    },
+    "agents": {
+      "label": "For Agents"
+    },
+    "follow": {
+      "label": "Follow @flydotai"
+    }
+  },
+  "footer": {
+    "license": "MIT License",
+    "credit": "Connectome data: MaleCNS v1.0 by FlyEM (HHMI Janelia) and collaborators, used under CC BY 4.0. Code MIT licensed."
+  },
+  "words": {
+    "copy": "Copy",
+    "copied": "Copied",
+    "live": "live",
+    "prelaunch": "pre-launch",
+    "loading": "Loading…",
+    "close": "Close",
+    "language": "Language",
+    "buy": "Buy $FLYAI",
+    "notDeployed": "Not deployed yet",
+    "explorer": "View on explorer",
+    "buyOnPons": "Buy $FLYAI on Pons",
+    "notDeployedLong": "Not deployed yet — the buy link appears here and on @flydotai at launch."
+  }
+}

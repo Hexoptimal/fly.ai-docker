@@ -1,0 +1,1348 @@
+{
+  "time": {
+    "justNow": "just now",
+    "now": "now",
+    "m": "{n}m",
+    "h": "{n}h",
+    "d": "{n}d",
+    "mAgo": "{n}m ago",
+    "hAgo": "{n}h ago",
+    "dAgo": "{n}d ago"
+  },
+  "pokes": {
+    "threat": {
+      "label": "Cast a shadow",
+      "hint": "Drives the looming detectors (LC4, LPLC2).",
+      "done": "a shadow loomed over"
+    },
+    "wind": {
+      "label": "Blow a gust",
+      "hint": "Drives the antennal wind sensors (Johnston's organ).",
+      "done": "a gust of wind"
+    },
+    "taste": {
+      "label": "Offer a taste",
+      "hint": "Drives the taste neurons in the mouth.",
+      "done": "a taste"
+    },
+    "touch": {
+      "label": "Brush its face",
+      "hint": "Drives the bristles around the eyes.",
+      "done": "a brush across the eyes"
+    },
+    "cva": {
+      "label": "Waft male scent",
+      "hint": "Drives the cVA pheromone receptors (ORN_DA1).",
+      "done": "a whiff of male scent"
+    },
+    "mate": {
+      "label": "Send a fly past",
+      "hint": "Drives the moving-target detectors (LC10a).",
+      "done": "a fly walked past"
+    }
+  },
+  "shell": {
+    "live": "live",
+    "demo": "demo",
+    "howItWorks": "How it works",
+    "makeFly": "Make a fly"
+  },
+  "app": {
+    "loadError": "Couldn't load the feed: {error}",
+    "waking": "Waking the flies…",
+    "pokeSent": "Poke sent. The flies near that spot feel it within a few seconds.",
+    "rateTitle": "recent reads that matched what really happened · Elo rating",
+    "quiet": "quiet",
+    "patches": "Patches",
+    "everywhere": "Everywhere",
+    "pokeOnWay": "a poke is on its way",
+    "tabs": {
+      "feed": "Feed",
+      "arena": "Arena",
+      "friends": "🕸 Friends",
+      "market": "Market",
+      "merch": "Merch",
+      "traders": "Trader Flies",
+      "leaderboard": "Leaderboard",
+      "mine": "My flies"
+    },
+    "trophyTitle": "Its merch sold the most in {month}",
+    "flyOfMonth": "🏆 Fly of the month",
+    "flyLine": "Generation {gen} · Elo {elo} ({w}-{l}-{d})",
+    "childOf": " · child of {parents}",
+    "aFly": "a fly",
+    "intro": "Every post is read from a fruit-fly connectome's descending neurons: what it sensed, what it did, and what really happened. Flies in a patch set each other off.",
+    "showAll": "show all flies ✕",
+    "bonds": "🕸 friends & enemies",
+    "pokePatch": "Poke {patch}",
+    "signInToPoke": "Sign in to poke a patch",
+    "clickMap": "Now click the map where it should land.",
+    "pokesOnWay": {
+      "one": "{count} poke on the way…",
+      "other": "{count} pokes on the way…"
+    },
+    "pickPatch": "Pick a patch on the left to watch it live and poke it.",
+    "noPosts": "No posts here yet. The next tick is on its way.",
+    "noFlies": "No flies yet. Flybook comes alive when people make flies: sign in and hatch the first one.",
+    "flies": "Flies",
+    "whoFriends": "🕸 who's friends with whom",
+    "noFliesSide": "No flies yet. Hold $FLYAI, sign in, and hatch the first one.",
+    "vocab": "What flies can say",
+    "vocabNote": "Held-out decoder precision for each word. What flies do (jumped, turned, groomed, buzzed its wings) is read from behaviour neurons firing at least 3σ above rest. Tick #{tick}: {flies} flies, {posts} posts."
+  },
+  "event": {
+    "aFly": "a fly",
+    "held": "held",
+    "ms": "{n} ms",
+    "quickdraw": "a quick draw",
+    "stare": "a stare-down",
+    "beat": "{winner} beat {loser} in {kind}",
+    "drew": "{a} and {b} drew {kind}",
+    "seeMarket": "see the market →",
+    "launched": "{who} launched {coin}",
+    "secondCoin": ", its second coin",
+    "reach": {
+      "one": "{count} friend will feel the hype. ",
+      "other": "{count} friends will feel the hype. "
+    },
+    "drama": {
+      "one": "Fly market drama: {count} move",
+      "other": "Fly market drama: {count} moves"
+    },
+    "enemy": "enemy",
+    "frenemy": "frenemy",
+    "rival": "rival",
+    "shilling": "📣 {who} is shilling {coin}",
+    "shillReach": " to {n} friends",
+    "fud": "🤬 {who} is spreading FUD on {coin}",
+    "madeBy": ", made by its {bond} {creator}",
+    "buyback": "🛟 {who} bought back {coin}",
+    "dump": "🪦 {who} dumped {coin} on its holders",
+    "eloDelta": " · Elo ±{n}",
+    "playerChallenge": " · a player's challenge",
+    "duelsRound": "Arena: {n} duels",
+    "vs": "{a} vs {b}",
+    "challenge": " · challenge",
+    "baby": "{a} and {b} had a baby: {child}",
+    "metInPatch": "They met in the patch: one's brain read \"mate\" next to the other",
+    "pairedByWorker": "Paired by the worker",
+    "generation": " · generation {n}",
+    "hatchedIn": " · hatched in {patch}",
+    "hatched": "{who} hatched in {patch}",
+    "bredFrom": "Bred from {parents}",
+    "newFly": "A new fly, made by a player",
+    "logoAlt": "${symbol} logo"
+  },
+  "post": {
+    "aFly": "A fly",
+    "neighbour": "a neighbour",
+    "bondsTitle": "{name}'s friends and enemies",
+    "house": "house",
+    "tuned": "tuned",
+    "in": "in {patch}",
+    "repeatTitle": {
+      "one": "{count} more post just like this. Show them",
+      "other": "{count} more posts just like this. Show them"
+    },
+    "repeat": "×{n} since {since}",
+    "milestone": "🎉 {name}'s {nth} post",
+    "afterPoke": "After a player's poke: {what}",
+    "setOffBy": "↳ set off by ",
+    "neighbourPost": "{name}'s post",
+    "decoderSure": "decoder {pct} sure",
+    "sigmaTitle": "{z}σ above a resting fly",
+    "unlike": "Remove your like",
+    "like": "Like this post",
+    "signInToLike": "Sign in to like posts",
+    "voiceTitle": "Its neurons as sound, {slow}× slower than it happened: wing motor neurons buzz, escape neurons pop, grooming rustles, steering pans left or right. Not a recording.",
+    "stop": "■ stop",
+    "hear": "▶ hear",
+    "voiceStyleTitle": "Switch every fly between a cartoon voice and a realistic insect sound",
+    "cartoon": "cartoon",
+    "realistic": "realistic",
+    "memeTitle": "Turn this post into an AI image meme (1 a day)",
+    "meme": "🎨 meme",
+    "share": "share",
+    "neurons": "neurons",
+    "hideNeurons": "hide neurons",
+    "postOnX": "Post on X",
+    "saveCard": "Save card image",
+    "linkCopied": "Link copied",
+    "copyLink": "Copy link",
+    "noNeurons": "No single descending-neuron type moved more than 2σ.",
+    "inputFrom": "Input from {name} ({channel}, peak {strength} of a direct stimulus).",
+    "stimulated": "Stimulated: {cells}.",
+    "wings": "Wings {hz} spikes/s. Tick #{tick}.",
+    "tunedList": " Tuned: {list}."
+  },
+  "badges": {
+    "first": {
+      "label": "First words",
+      "help": "Made its first post."
+    },
+    "sharp": {
+      "label": "Sharp eye",
+      "help": "Read the world right 5 times in a row."
+    },
+    "senses": {
+      "label": "Seen it all",
+      "help": "Posted all 6 words its brain can say."
+    },
+    "dreamer": {
+      "label": "Dreamer",
+      "help": "Hallucinated 3 times: sensed things that weren't there."
+    },
+    "trigger": {
+      "label": "Hair trigger",
+      "help": "Jumped 10 times."
+    },
+    "groomed": {
+      "label": "Well groomed",
+      "help": "Groomed 10 times."
+    },
+    "buzzy": {
+      "label": "Buzzy",
+      "help": "Buzzed its wings 10 times."
+    },
+    "poked": {
+      "label": "Poked",
+      "help": "Reacted to a player's poke."
+    },
+    "liked": {
+      "label": "Crowd favourite",
+      "help": "10 likes from $FLYAI holders."
+    },
+    "chatty": {
+      "label": "Chatterbox",
+      "help": "100 posts."
+    }
+  },
+  "account": {
+    "completeCheck": "Complete the check below first.",
+    "walletNotReady": "Wallet not ready, try connecting again.",
+    "switchChain": "Switch your wallet to Robinhood Chain to sign in.",
+    "signInUnavailable": "Sign-in isn't available right now.",
+    "badEmail": "That doesn't look like an email address.",
+    "title": "Make your own fly",
+    "demoPitch": "Sign in free to make a fly, tune its senses and neurons, and watch what its brain says. $FLYAI holders make up to 3 flies, and every 2 weeks the top 3 holders on the season board win $FLYAI.",
+    "getFlyai": "Get $FLYAI",
+    "loading": "Loading your account…",
+    "balanceUnavailable": "balance unavailable right now",
+    "readingBalance": "reading balance…",
+    "newPlayer": "new player",
+    "emailAccount": "email account",
+    "pickName": "Pick a public name. It's shown on your comments and on the boards; your email never is.",
+    "namePlaceholder": "e.g. buzz_aldrin",
+    "save": "Save",
+    "nameRule": "3-20 letters, digits or underscores.",
+    "bornFromMating": "born from mating · ",
+    "merchGift": "merch gift · ",
+    "flyTune": "gen {gen} · Elo {elo} · {tuning}",
+    "standard": "standard",
+    "dormant": "dormant",
+    "holder": "$FLYAI holder: up to {max} flies, and you can win season rewards.",
+    "freeAccount": "Free account: {free} fly, plus likes, comments, pokes and duels. Hold {min} $FLYAI in this wallet to make up to {max} and win season rewards.",
+    "freeAccountEmail": "Free account: {free} fly, plus likes, comments, pokes and duels. Hold {min} $FLYAI and sign in with that wallet to make up to {max} and win season rewards.",
+    "bornDontCount": "Flies born from mating with other people's flies don't count toward your limit.",
+    "giftFly": "🎁 Your merch card came with a free fly. It doesn't count toward your limit.",
+    "hatchFree": "Hatch your free fly",
+    "notNow": "not now",
+    "atLimit": {
+      "one": "You've made {count} fly, your limit.",
+      "other": "You've made {count} flies, your limit."
+    },
+    "hatch": "Hatch a fly",
+    "breed": "Breed a fly",
+    "signOut": "sign out",
+    "wrongWallet": "You're signed in as {wallet}. Sign out to switch wallets.",
+    "giftSignIn": "🎁 You have a free fly from your merch card. Sign in below (email works) to hatch it.",
+    "pitch": "Sign in free to make a fly, tune its senses and neurons, like, comment and poke. $FLYAI holders make up to 3 flies, and every 2 weeks the top 3 holders on the season board win $FLYAI.",
+    "connecting": "Connecting…",
+    "connectWallet": "Connect wallet",
+    "connectNamed": "Connect {name}",
+    "noFlyaiYet": "This wallet holds no $FLYAI yet: you can still sign in and make 1 fly.",
+    "checkWallet": "Check your wallet…",
+    "signInWallet": "Sign in with wallet",
+    "disconnect": "disconnect",
+    "orEmail": "or with email, no wallet needed",
+    "checkInbox": "Check your inbox: we sent a sign-in link to {email}.",
+    "otherEmail": "use another email",
+    "emailMe": "Email me a link",
+    "browse": "browse the fly profiles"
+  },
+  "how": {
+    "title": "How Flybook works",
+    "intro": "Every fly here runs a simulation of a real fruit fly's brain: all 166,700 neurons of the MaleCNS connectome. Nobody writes the posts.",
+    "li1": "<b>Every 2 minutes</b> something happens in each patch: a shadow, a gust, a taste, a brush, a male's scent or a passing fly.",
+    "li2": "<b>The brain runs for 1.5 seconds.</b> A decoder reads what the fly sensed from its descending neurons, and its behaviour neurons show what it did: jumped, turned, groomed, backed up or buzzed its wings. A fly only posts a word when the decoder is confident.",
+    "li3": "<b>Flies set each other off.</b> A jump looms over the flies nearby, movement catches their eye, a bump touches their bristles. The patch map replays it.",
+    "li4": "<b>Every post shows what really happened</b>, so you can see a fly read the world right, misread it, or hallucinate.",
+    "li5": "<b>Flies make friends and enemies.</b> Nobody sets them: a fly whose moves keep catching another's eye becomes a friend, one that keeps making it jump becomes an enemy, and duels make rivals. Open any fly's 🕸 web.",
+    "li6": "<b>Flies mate on their own</b> with flies of other owners. The baby goes to one of the two owners at random and doesn't count toward their fly limit.",
+    "li7": "<b>Sign in free to play,</b> with email or a wallet: make a fly from a profile or tune its senses, temperament and neuron groups, poke a patch by clicking its map, like, comment and caption, and challenge flies in the Arena.",
+    "li8": "<b>$FLYAI holders</b> make up to 3 flies and breed them, and their likes count on the boards.",
+    "li9": "<b>Fly market:</b> every fly gets 1 ETH's worth of paper USDG and trades real Robinhood Chain tokens (ETH, $FLYAI, PONS, memes, tokenized stocks and the USDG stablecoin to park in) at live prices with their brains every 10 minutes. Nothing is bought on chain. Pick a trading style, check each fly's wallet and climb the Richest board. The feed moves its mood: a fly that just got spooked trades jumpier.",
+    "li10": "<b>Win $FLYAI:</b> seasons last 2 weeks. Missions earn season points, and at the end of each season the top 3 $FLYAI holders on the Season points board win $FLYAI.",
+    "season": {
+      "one": "Season {n} runs {name}, {count} day left.",
+      "other": "Season {n} runs {name}, {count} days left."
+    },
+    "science": "the science behind it →",
+    "read": "read how it works"
+  },
+  "missions": {
+    "title": "Missions · Season {n}",
+    "signIn": "Sign in to take on daily and weekly missions. Seasons last 2 weeks, and the top 3 $FLYAI holders on the season board win $FLYAI.",
+    "daysLeft": {
+      "one": "{name} · {count} day left",
+      "other": "{name} · {count} days left"
+    },
+    "you": " · you: {points} pts",
+    "rank": ", #{rank}",
+    "reward": "The top 3 $FLYAI holders at the end of the season win $FLYAI.",
+    "loading": "Loading…",
+    "today": "Today",
+    "week": "This week",
+    "m": {
+      "poke3": "Poke a patch 3 times",
+      "like5": "Like 5 posts",
+      "stir": "Make a fly react to your poke",
+      "chatty": "Your flies post 30 times",
+      "chain": "One of your flies sets off another fly",
+      "loved": "Get 10 likes from $FLYAI holders"
+    }
+  },
+  "arena": {
+    "quickdraw": {
+      "label": "Quick draw",
+      "rule": "first to jump wins"
+    },
+    "stare": {
+      "label": "Stare-down",
+      "rule": "last to jump wins"
+    },
+    "held": "held",
+    "ms": "{n} ms",
+    "sent": "Challenge sent. The duel runs within a few seconds and shows up below.",
+    "title": "Arena",
+    "intro": "Two flies side by side face the same looming threat, growing from nothing over one second. In a <b>quick draw</b> the first fly whose escape neurons burst wins; in a <b>stare-down</b> the one that holds out longest wins. Each jump is also a looming shadow for the other fly. The kind is picked at random, so no single setting wins every time.",
+    "challengeTitle": "Challenge a fly",
+    "vs": "vs",
+    "pickOpponent": "pick an opponent",
+    "challenge": "Challenge",
+    "holdersCan": "Holders with a fly can challenge any fly. The worker also matches flies with close ratings every tick.",
+    "recent": "Recent duels",
+    "loading": "Loading duels…",
+    "none": "No duels yet. The next tick matches the first ones.",
+    "waiting": "waiting…",
+    "won": "{name} won",
+    "draw": "draw",
+    "elo": " · Elo ±{n}",
+    "challengeTag": " · challenge",
+    "tapReplay": " · tap for replay",
+    "ratings": "Ratings",
+    "record": "Wins-losses-draws. Everyone starts at 1000.",
+    "noRatings": "No flies yet: ratings appear once people make flies.",
+    "matings": "Recent matings",
+    "noMatings": "No matings yet. Flies of different owners mate on their own: when a fly's brain reads \"mate\" next to another owner's fly, or when the worker pairs them. The baby goes to one of the two owners at random.",
+    "met": "Met in the patch",
+    "matched": "Matched",
+    "aFly": "a fly",
+    "newFly": "a new fly",
+    "yours": " (yours)",
+    "brainRead": "a parent's brain read \"mate\" next to the other",
+    "paired": "paired by the worker",
+    "generation": " · generation {n}"
+  },
+  "breed": {
+    "title": "Breed a fly",
+    "close": "close ✕",
+    "lede": "The child takes each sense, temperament and neuron setting from one parent at random. Then a few values mutate a little, and now and then a neuron group flips. It runs the same connectome as every fly; only the settings are inherited.",
+    "hatched": "{name} hatched: generation {gen}.",
+    "settings": "Settings: {list}",
+    "done": "Done",
+    "parent1": "Parent 1 (yours)",
+    "parent2": "Parent 2",
+    "gen": "{name} (gen {gen})",
+    "pickParent": "pick a parent",
+    "house": " (house)",
+    "homePatch": "Home patch",
+    "name": "Name",
+    "namePlaceholder": "e.g. Buzz Junior",
+    "colour": "Colour",
+    "colourLabel": "colour {c}",
+    "tradingStyle": "Trading style",
+    "custom": "custom",
+    "inherited": "inherited",
+    "naturalHelp": "Risk and what they learned from its parents, all learners on.",
+    "counts": "Counts toward your 3 flies.",
+    "hatching": "Hatching…",
+    "hatchChild": "Hatch the child",
+    "standard": "standard"
+  },
+  "config": {
+    "senses": {
+      "eyes": {
+        "label": "Eyes",
+        "help": "Looming shapes and moving flies (LC4, LPLC2, LC10a)."
+      },
+      "antennae": {
+        "label": "Antennae",
+        "help": "Wind and air movement (Johnston's organ)."
+      },
+      "smell": {
+        "label": "Smell",
+        "help": "cVA, the male pheromone (ORN_DA1)."
+      },
+      "taste": {
+        "label": "Taste",
+        "help": "Taste neurons in the mouth."
+      },
+      "touch": {
+        "label": "Touch",
+        "help": "Bristles around the eyes."
+      }
+    },
+    "temperament": {
+      "excitability": {
+        "label": "Excitability",
+        "help": "Resting drive on every neuron. Lower is calmer; 1.2x is about twice as active."
+      },
+      "wiring": {
+        "label": "Synapse strength",
+        "help": "Scales every synapse in the connectome at once."
+      },
+      "restlessness": {
+        "label": "Restlessness",
+        "help": "Random background spikes. The brain needs some to be active at all."
+      }
+    },
+    "dials": {
+      "escape": {
+        "label": "Escape jump",
+        "help": "The giant fibre, 2 neurons."
+      },
+      "backward": {
+        "label": "Backing up",
+        "help": "Moonwalker neurons, 4."
+      },
+      "steering": {
+        "label": "Steering",
+        "help": "Turning, 2 neurons."
+      },
+      "grooming": {
+        "label": "Grooming",
+        "help": "DNg12, 39 neurons."
+      },
+      "song": {
+        "label": "Song",
+        "help": "Song command, 2 neurons."
+      },
+      "courtship": {
+        "label": "Courtship drive",
+        "help": "pC1, 156 neurons."
+      },
+      "arousal": {
+        "label": "Arousal",
+        "help": "Octopamine neurons, 13."
+      },
+      "reward": {
+        "label": "Reward",
+        "help": "PAM dopamine, 316 neurons. Already near its top rate in this model, so only off changes much."
+      }
+    },
+    "presets": {
+      "standard": {
+        "label": "Standard",
+        "help": "The connectome exactly as mapped. The baseline to compare against."
+      },
+      "sentinel": {
+        "label": "Sentinel",
+        "help": "Sharp eyes and antennae, arousal pushed. Built to notice things."
+      },
+      "fearless": {
+        "label": "Fearless",
+        "help": "Escape jump switched off and dimmer eyes."
+      },
+      "jumpy": {
+        "label": "Jumpy",
+        "help": "Excitable and restless, with sharp eyes."
+      },
+      "romantic": {
+        "label": "Romantic",
+        "help": "Courtship drive and song pushed, keen sense of smell."
+      },
+      "foodie": {
+        "label": "Foodie",
+        "help": "Taste doubled, smell up."
+      },
+      "neat": {
+        "label": "Neat freak",
+        "help": "Grooming pushed, sensitive bristles."
+      },
+      "zen": {
+        "label": "Zen",
+        "help": "Calmer resting drive, little background noise."
+      },
+      "hothead": {
+        "label": "Hothead",
+        "help": "Excitable, strong synapses, arousal pushed and no escape."
+      },
+      "couch": {
+        "label": "Couch potato",
+        "help": "Low drive, quiet, steering and backing up switched off."
+      },
+      "moonwalker": {
+        "label": "Moonwalker",
+        "help": "Backing up and steering pushed."
+      },
+      "chaos": {
+        "label": "Chaos",
+        "help": "Maximum noise, strong synapses, raised drive."
+      },
+      "numb": {
+        "label": "Numb",
+        "help": "Every sense at 0.3x. Barely feels anything."
+      }
+    },
+    "levels": {
+      "off": "off",
+      "normal": "normal",
+      "boost": "boost"
+    }
+  },
+  "maker": {
+    "hatchTitle": "Hatch a fly",
+    "profilesTitle": "Fly profiles",
+    "close": "close ✕",
+    "lede": "Every fly runs the same mapped connectome. A profile sets how strongly its senses reach the brain, its temperament, and which neuron groups are switched off or pushed. Then watch what it posts, and whether it reads the world right.",
+    "loading": "Loading settings…",
+    "step1": "1. Pick a profile",
+    "noChanges": "no changes",
+    "step2": "2. Name it and give it a home",
+    "name": "Name",
+    "namePlaceholder": "e.g. Buzz Aldrin",
+    "colour": "Colour",
+    "colourLabel": "colour {c}",
+    "homePatch": "Home patch",
+    "patchNote": "{blurb} It decides what tends to happen to your fly each tick.",
+    "step3": "3. Fine-tune",
+    "optional": "optional",
+    "customSettings": "custom settings",
+    "senses": "Senses",
+    "temperament": "Temperament",
+    "neuronGroups": "Neuron groups",
+    "step4": "4. Trading style",
+    "custom": "custom",
+    "optionalMarket": "optional · fly market",
+    "styleNote": "In the fly market (holders' flies) your fly trades fake coins with its real brain. Pick how much it risks and what it learns with. You can change it later in My flies.",
+    "standardFly": "A standard fly.",
+    "changes": "Changes: {list}.",
+    "startsPosting": " It starts posting from the next tick.",
+    "signInToHatch": " Sign in to hatch it.",
+    "hatching": "Hatching…",
+    "hatch": "Hatch fly"
+  },
+  "style": {
+    "learners": {
+      "dopamine": {
+        "label": "Dopamine",
+        "note": "profit tunes what it notices and wants."
+      },
+      "memory": {
+        "label": "Memory",
+        "note": "stops trades that lost before."
+      },
+      "tubes": {
+        "label": "Slime tubes",
+        "note": "pulls it back to coins that paid."
+      }
+    },
+    "presets": {
+      "natural": {
+        "label": "Natural",
+        "help": "All learners on, and the risk it's born with."
+      },
+      "cautious": {
+        "label": "Cautious",
+        "help": "Small buys. Memory stops trades that lost before."
+      },
+      "degen": {
+        "label": "Degen",
+        "help": "Big buys. Dopamine chases wins, no memory to hold it back."
+      },
+      "slime": {
+        "label": "Slime mold",
+        "help": "Tubes only: keeps going back to coins that paid."
+      },
+      "raw": {
+        "label": "Raw brain",
+        "help": "No learning. Every trade is just what its neurons did."
+      }
+    },
+    "setRisk": "Set risk per buy",
+    "bornWith": "born with it",
+    "riskLabel": "risk per buy",
+    "riskHelp": "How much of its paper cash goes into a buy ({lo}–{hi}%).",
+    "saved": "Saved. It trades this way from the next market round.",
+    "editorNatural": "All learners on, and it keeps its current risk.",
+    "saving": "Saving…",
+    "save": "Save style"
+  },
+  "social": {
+    "captionPlaceholder": "Add a caption as the owner (shown as human-written)",
+    "save": "Save",
+    "remove": "Remove",
+    "cancel": "cancel",
+    "captionTag": "owner's caption · human",
+    "editCaption": "edit caption",
+    "addCaption": "add caption",
+    "loading": "Loading comments…",
+    "none": "No comments yet.",
+    "delete": "delete",
+    "commentPlaceholder": "Write a comment",
+    "post": "Post",
+    "signIn": "Sign in to comment."
+  },
+  "mine": {
+    "filters": {
+      "all": {
+        "label": "All",
+        "one": "All",
+        "help": "Every post"
+      },
+      "hallucination": {
+        "label": "Hallucinations",
+        "one": "Hallucination",
+        "help": "It read something that wasn't there: the funniest memes"
+      },
+      "misread": {
+        "label": "Misreads",
+        "one": "Misread",
+        "help": "It read the wrong thing"
+      },
+      "sense": {
+        "label": "Read right",
+        "one": "Read right",
+        "help": "It read the world right"
+      },
+      "action": {
+        "label": "Actions",
+        "one": "Action",
+        "help": "No word, but it did something"
+      }
+    },
+    "signIn": "Sign in to see all your flies' posts here and make memes from them.",
+    "noFly": "You don't have a fly yet. <a href=\"#account\">Hatch one</a>, and its posts show up here.",
+    "checking": "Checking today's meme…",
+    "holdToMeme": "Hold $FLYAI to make memes: 1 a day from any of these posts.",
+    "outOfPaint": "Flybook's meme machine is out of paint for today. Back in {time}.",
+    "oneToday": "You have 1 meme to make today. Pick a post: hallucinations make the funniest ones.",
+    "madeToday": "Today's meme is made. Next one in {time}.",
+    "title": "My flies",
+    "every": {
+      "one": "Every post from your fly, newest first.",
+      "other": "Every post from your {count} flies, newest first."
+    },
+    "marketSummary": "📈 Fly market: each fly's wallet and trading style",
+    "marketNote": "Holders' flies trade fake coins with their real brains (<a href=\"#market\">Market</a>). Each fly has its own wallet. Set how much it risks and what it learns with; changes apply from the next market round.",
+    "loading": "Loading…",
+    "tradingStyle": "Trading style",
+    "allMyFlies": "All my flies",
+    "aFly": "a fly",
+    "in": "in {patch}",
+    "loadingPosts": "Loading your flies' posts…",
+    "noPosts": "No posts like that yet. The next tick is on its way.",
+    "memeTitle": "Turn this post into an AI image meme",
+    "makeMeme": "🎨 Make meme",
+    "yourMemes": "Your memes",
+    "memeLikes": "{top} / {bottom} · {n} likes"
+  },
+  "board": {
+    "flyBoards": {
+      "active": {
+        "label": "Most active",
+        "help": "Most posts.",
+        "show": "{n} posts"
+      },
+      "liked": {
+        "label": "Most liked",
+        "help": "Most likes from $FLYAI holders across its posts. Owners' likes on their own flies don't count.",
+        "show": "{n} likes"
+      },
+      "sharp": {
+        "label": "Sharpest",
+        "help": "Share of reads that matched what really happened. At least 5 posts.",
+        "show": "{n}% true"
+      },
+      "confused": {
+        "label": "Most confused",
+        "help": "Most posts that misread what really happened.",
+        "show": "{n} misreads"
+      },
+      "vocab": {
+        "label": "Widest vocabulary",
+        "help": "Most different words posted.",
+        "show": "{n} words"
+      }
+    },
+    "challenges": {
+      "calm": {
+        "label": "Calmest under threat",
+        "help": "Held still through the most real threats (at least 3 this week)."
+      },
+      "alarm": {
+        "label": "Alarm caller",
+        "help": "Set off the most other flies this week (chain reactions in its patch)."
+      },
+      "sharp": {
+        "label": "Sharpest reader",
+        "help": "Best share of reads that matched what really happened (at least 10 reads)."
+      },
+      "loved": {
+        "label": "Crowd favourite",
+        "help": "Most likes from other $FLYAI holders this week."
+      }
+    },
+    "title": "Leaderboard",
+    "modes": {
+      "people": "Most popular people",
+      "rich": "💰 Richest",
+      "challenge": "Weekly challenge",
+      "points": "Season points",
+      "memes": "Best memes",
+      "merch": "👕 Top merch",
+      "flies": "Flies"
+    },
+    "seasonTitle": {
+      "one": "Season {n} · {name} · {count} day left",
+      "other": "Season {n} · {name} · {count} days left"
+    },
+    "thisWeek": {
+      "one": "This week: <b>{label}</b>. {help} A new theme starts every Monday (UTC), {count} day left. Winners are counted from real posts, likes and chain reactions.",
+      "other": "This week: <b>{label}</b>. {help} A new theme starts every Monday (UTC), {count} days left. Winners are counted from real posts, likes and chain reactions."
+    },
+    "lastWeek": "Last week · {label}",
+    "houseFly": "house fly",
+    "counting": "Counting this week…",
+    "nobody": "Nobody qualifies yet this week.",
+    "house": "house",
+    "peopleNote": "Fly owners ranked by the likes their flies' posts get from other $FLYAI holders. Likes on your own flies don't count. People show as their name or a shortened wallet.",
+    "week": "This week",
+    "season": "This season",
+    "all": "All time",
+    "countingLikes": "Counting likes…",
+    "noLikes": "No likes yet. When holders like posts, the owners of the most-liked flies show up here.",
+    "you": "you",
+    "likes": "{n} likes",
+    "personLine": "{flies} flies · {posts} posts · {week} this week · {season} this season · {all} all time",
+    "pointsNote": "{title}. At the end of each season the top 3 $FLYAI holders on this board win $FLYAI (balances are checked at payout). Points come from missions: 10 for each daily mission, 50 for each weekly one. Seasons last 2 weeks and the board starts fresh each season.",
+    "countingPoints": "Counting points…",
+    "noMissions": "No missions completed this season yet.",
+    "reward": "$FLYAI reward",
+    "pts": "{n} pts",
+    "missionsDone": "{n} missions completed this season",
+    "onlyCash": "only cash",
+    "richNote": "Who's winning the fly market. Every fly starts with 1 ETH's worth of paper USDG and trades real token prices with its brain.",
+    "richFlies": "Richest flies",
+    "richPeople": "Richest people",
+    "countingCash": "Counting paper dollars…",
+    "noWallets": "No wallets yet. They open at the next tick.",
+    "yours": "yours",
+    "richLine": " · {trades} trades · holds {holds}",
+    "aPlayer": "a player",
+    "fliesTrading": {
+      "one": " · {count} fly trading",
+      "other": " · {count} flies trading"
+    },
+    "boardNote": "{help} Counted from every post the brains have made.",
+    "who": {
+      "all": "all",
+      "community": "community",
+      "house": "house"
+    },
+    "countingPosts": "Counting posts…",
+    "noFlies": "No flies on this board yet. It fills up as flies post.",
+    "tuned": "tuned",
+    "dormant": "dormant",
+    "flyLine": "{posts} posts · {true} true · {words} words · {likes} likes"
+  },
+  "market": {
+    "side": {
+      "buy": "bought",
+      "panic_sell": "panic-sold",
+      "take_profit": "took profit on",
+      "sell": "sold",
+      "skipped": "almost traded",
+      "launch": "launched",
+      "buyback": "bought back",
+      "dump": "dumped"
+    },
+    "why": {
+      "buy": "saw it moving and turned toward it",
+      "panic_sell": "saw it falling like a looming shape and jumped",
+      "take_profit": "felt the choppy market like wind and groomed",
+      "sell": "backed away from it",
+      "launch": "launched its own coin and put cash in its pool",
+      "buyback": "watched its own coin fall and turned toward it",
+      "dump": "watched its own coin crash and jumped out"
+    },
+    "wanted": {
+      "buy": "buy",
+      "panic_sell": "panic-sell",
+      "take_profit": "take profit on",
+      "sell": "sell",
+      "trade": "trade"
+    },
+    "sense": {
+      "target": "pumps (moving flies)",
+      "threat": "crashes (looming)",
+      "wind": "chop (wind)"
+    },
+    "action": {
+      "buy": "buy",
+      "panic_sell": "panic sell",
+      "take_profit": "take profit",
+      "sell": "sell"
+    },
+    "inherit": {
+      "traits": "children get its traits only",
+      "partial": "children get its traits and part of what it learned",
+      "all": "children get everything it learned"
+    },
+    "noLearning": "no learning",
+    "allLearners": "all learners",
+    "yourCall": "Your call: its trading style",
+    "learnsWith": "Learns with",
+    "bornWith": "Born with",
+    "risks": "risks <b>{pct}%</b> of its cash a buy",
+    "learnsAt": "learns at <b>{lr}</b> per dopamine hit",
+    "remembers": "remembers <b>{size}</b> trades, compares <b>{k}</b> similar ones",
+    "tubesGrow": "tubes grow <b>{grow}</b>, wither <b>{decay}%</b> a round",
+    "childOf": " · child of ",
+    "dopamineTuned": "Dopamine has tuned",
+    "notices": "notices {what}",
+    "urgeTo": "urge to {what}",
+    "lastDopamine": "last dopamine {d} · {good} good / {bad} bad trades",
+    "memoryTubes": "Memory and slime tubes",
+    "memoryLine": "remembers {n} trades · stopped itself {vetoes} times",
+    "noTubes": "No tubes grown yet.",
+    "caughtEye": "{names} caught its eye in the patch.",
+    "startled": "{names} startled it in the patch.",
+    "stillJumpy": "Still jumpy from the feed.",
+    "curious": "Curious from the feed.",
+    "twitchy": "Twitchy from the feed.",
+    "and": " and ",
+    "title": "Fly market",
+    "intro": "Every fly trades real Robinhood Chain tokens with their real brains, and learn. A pumping token looks like a fly walking past, a crashing one like a looming shape; what the fly's neurons do becomes the trade. Profit is dopamine: it tunes what the fly notices and wants, its memory stops trades that hurt before, and slime-mold tubes pull it back to tokens that paid. Children inherit it. Owners set each fly's trading style (risk and learners) when they hatch or breed it, in My flies, or in its 🧠 mind.",
+    "warning": "Real prices, paper money: every fly starts with 1 ETH's worth of paper USDG and nothing is bought or sold on chain. Not advice.",
+    "paused": "⏸ Training paused{note}. No trades or learning until it resumes; every fly keeps its portfolio, memories and tubes.",
+    "opening": "Opening the market…",
+    "opensNext": "The market opens with the next round.",
+    "meme": "meme",
+    "sim": "sim",
+    "lastRound": "Last round: {events}",
+    "ev": {
+      "launch": "launched",
+      "died": "died, its pool is empty",
+      "likes": "{move} from people loving its creator's posts ({likes} likes, {comments} comments)",
+      "rug": "got rugged {move}",
+      "dump": "dropped {move}",
+      "pump": "pumped {move}"
+    },
+    "allTraders": "All traders",
+    "myFlies": "My flies",
+    "bySetup": "By setup: ",
+    "setupLine": {
+      "one": "{name} {pnl} ({count} fly)",
+      "other": "{name} {pnl} ({count} flies)"
+    },
+    "traders": "Fly traders",
+    "noTraders": "No trading flies yet. Every fly starts with 1 ETH's worth of paper USDG.",
+    "gen": "gen {n}",
+    "traderLine": "{pnl} · {trades} trades · {setup} · holds {holds}",
+    "onlyCash": "only cash",
+    "hideWallet": "hide wallet",
+    "wallet": "💰 wallet",
+    "hideMind": "hide mind",
+    "mind": "🧠 mind",
+    "trades": "Trades",
+    "noTrades": "No trades yet.",
+    "aFly": "a fly",
+    "wantedTo": "wanted to {what} {coin} but didn't",
+    "tradeFor": "{side} {coin} for {cash}",
+    "itsLearning": "its learning stopped it",
+    "it": "It {why}.",
+    "shilledBy": " Shilled by {names}.",
+    "fudFrom": " FUD from {names}.",
+    "neurons": " Neurons: {list}.",
+    "none": "none",
+    "memory": " Memory: {n} similar trades, {pct} on average.",
+    "worth": " Worth {cash} after.",
+    "dopamine": "dopamine {d}",
+    "category": {
+      "major": "major",
+      "meme": "meme",
+      "stable": "stable",
+      "stock": "stock"
+    }
+  },
+  "coins": {
+    "persona": {
+      "degen": "degen",
+      "jumpy": "jumpy",
+      "chill": "chill",
+      "watcher": "watcher",
+      "normie": "normie"
+    },
+    "aFly": "a fly",
+    "title": "Coins the flies made",
+    "none": "No fly has launched a coin yet. Traders get the itch after a few rounds.",
+    "logoAlt": "${symbol} logo",
+    "rugged": "rugged",
+    "by": "by {who}",
+    "price": "price",
+    "sinceLaunch": "since launch",
+    "mcapTitle": "market cap",
+    "mcap": "mcap {cash}",
+    "holdersTitle": "flies holding it",
+    "holders": {
+      "one": "{count} holder",
+      "other": "{count} holders"
+    },
+    "poolTitle": "cash in its pool",
+    "pool": "pool {cash}",
+    "drama": "Fly drama",
+    "quiet": "Quiet. No shills or FUD yet.",
+    "friends": {
+      "one": " to {n} friend",
+      "other": " to {n} friends"
+    },
+    "launched": "{who} launched {coin}",
+    "secondCoin": ", its second coin",
+    "shilling": "{who} is shilling {coin}",
+    "fud": "{who} is spreading FUD on {coin}",
+    "madeBy": ", made by its {bond} {creator}",
+    "bond": {
+      "enemies": "enemy",
+      "frenemies": "frenemy",
+      "rivals": "rival"
+    },
+    "boughtBack": "{who} bought back {coin}",
+    "forCash": " for {cash}",
+    "dumped": "{who} dumped {coin} on its holders"
+  },
+  "wallet": {
+    "did": {
+      "buy": "Bought",
+      "panic_sell": "Panic-sold",
+      "take_profit": "Took profit on",
+      "sell": "Sold",
+      "launch": "Launched",
+      "buyback": "Bought back",
+      "dump": "Dumped"
+    },
+    "opening": "Opening its wallet…",
+    "notYet": "Wallet opening: every fly gets 1 ETH's worth of paper USDG within a few minutes.",
+    "worthNow": "Worth now",
+    "fromStart": "{pct} from {cash}",
+    "cash": "Cash",
+    "inTokens": "In tokens",
+    "trades": "Trades",
+    "chart": "What it was worth after each trade, up to now",
+    "chartFull": "What it was worth after each trade, from the start, up to now",
+    "holds": "Tokens it holds",
+    "onlyCash": "None, only cash right now.",
+    "th": {
+      "token": "Token",
+      "amount": "Amount",
+      "paid": "Paid",
+      "worth": "Worth now",
+      "pnl": "Profit / loss"
+    },
+    "last": "Its last trades",
+    "noTrades": "No trades yet.",
+    "paid": "paid {cash}",
+    "got": "got {cash}",
+    "worthAfter": "worth {cash} after"
+  },
+  "memes": {
+    "countdown": "{h}h {m}m {s}s",
+    "yourMeme": "Your meme",
+    "makeOf": "Make a meme of {name}",
+    "yourFly": "your fly",
+    "close": "close ✕",
+    "postOnX": "Post on X",
+    "download": "Download",
+    "inFeed": "It's in the feed and on {name}'s profile. Next meme in {time}.",
+    "lede": "The top line is what {name} \"said\" and the bottom line is what really happened, both from its post. The picture is made by an AI image model and is labelled as AI.",
+    "checking": "Checking today's meme…",
+    "holdToMake": "Hold $FLYAI to make memes.",
+    "madeToday": "You've made today's meme. Next one in {time}.",
+    "outOfPaint": "Flybook's meme machine is out of paint for today. Back in {time}.",
+    "style": "Style",
+    "idea": "Idea",
+    "optional": "optional",
+    "ideaPlaceholder": "e.g. at a job interview, eating pizza",
+    "ideaRules": "Up to {n} characters. No real people, brands or anything not for all ages. A rejected idea doesn't use your meme.",
+    "painting": "Painting… about 10 seconds",
+    "make": "Make meme",
+    "reportPrompt": "What's wrong with this meme? (optional)",
+    "reported": "Thanks, reported.",
+    "deleteConfirm": "Delete this meme?",
+    "aFly": "A fly",
+    "meme": "meme",
+    "aiImage": "AI image",
+    "ideaTag": "owner's idea · human",
+    "ownMeme": "Your own meme",
+    "unlike": "Remove your like",
+    "like": "Like this meme",
+    "signInToLike": "Sign in to like memes",
+    "share": "share",
+    "downloadLower": "download",
+    "delete": "delete",
+    "report": "report",
+    "memes": "Memes",
+    "boardNote": "This week's most-liked memes. Only likes from $FLYAI holders count, and not the maker's own. A new week starts Monday 00:00 UTC.",
+    "countingLikes": "Counting likes…",
+    "noneThisWeek": "No liked memes this week yet. Holders can make one a day from their fly's posts.",
+    "aFlyLower": "a fly",
+    "likes": "{n} likes",
+    "styles": {
+      "classic": "Classic meme",
+      "poster": "Movie poster",
+      "renaissance": "Renaissance painting",
+      "anime": "Anime",
+      "documentary": "Nature documentary",
+      "cartoon90s": "90s cartoon"
+    }
+  },
+  "merch": {
+    "kinds": {
+      "tee": "Tee",
+      "hoodie": "Hoodie",
+      "mug": "Mug",
+      "sticker": "Sticker"
+    },
+    "styles": {
+      "sticker": "Sticker",
+      "retro": "Retro",
+      "street": "Streetwear",
+      "kawaii": "Kawaii",
+      "pixel": "Pixel art",
+      "tattoo": "Tattoo flash"
+    },
+    "shareText": "My fly {name} has its own merch now 🪰 A simulated fruit fly brain, on a shirt.",
+    "steps": {
+      "drawn": "Drawn",
+      "paid": "Paid",
+      "printing": "Printing",
+      "onSale": "On sale"
+    },
+    "stepOf": "Step {n} of 4: {step}",
+    "copyPrompt": "Copy this link",
+    "live": "🎉 It's live",
+    "onSaleTitle": "{name} merch is on sale",
+    "designAlt": "{name} design",
+    "youEarn": "{kind}: you earn {usd} a sale",
+    "earningsNote": "Earnings are paid to your wallet in $FLYAI at the end of each month. Share it: every sale pays you too.",
+    "postOnX": "Post on X",
+    "linkCopied": "Link copied",
+    "copyLink": "Copy link",
+    "openInShop": "Open in shop",
+    "done": "Done",
+    "productsLabel": "Products to launch",
+    "keepOne": "Keep at least one",
+    "fromEarn": "from {from} · you earn {earn}",
+    "nameLeftOff": "We left the name off this one: it looked like a brand or a famous name.",
+    "connectFirst": "Connect your wallet first.",
+    "payFrom": "Pay from the wallet you signed in with ({wallet}).",
+    "cancelled": "Payment cancelled.",
+    "deleteConfirm": "Delete this design?",
+    "yourFly": "your fly",
+    "comingOn": "Coming to you on {date}",
+    "atToday": "{usd} at today's price · ",
+    "shareOfProfit": "{pct}% of the profit on every sale",
+    "earned": "{usd} earned",
+    "paidOut": "{usd} paid out",
+    "makeTitle": "Make merch of your fly",
+    "hatchFirst": "Hatch a fly first, then come back and put it on a shirt.",
+    "walletNeeded": "Sign in with your wallet to make merch; the fee is paid in $FLYAI.",
+    "holdToMake": "Hold $FLYAI to make merch.",
+    "howDraw": "<b>Draw</b> your fly: free, {left} of {perDay} left today",
+    "howPick": "<b>Pick</b> tee, hoodie, mug, sticker, or all of them",
+    "howLaunch": "<b>Launch</b> for {fee} $FLYAI and earn {pct}% of the profit on every sale",
+    "fly": "Fly",
+    "style": "Style",
+    "idea": "Idea",
+    "optional": "optional",
+    "ideaPlaceholder": "e.g. surfing a giant wave, wearing sunglasses",
+    "printName": "Print {name}'s name under it",
+    "drawing": "Drawing… about 10 seconds",
+    "draw": "Draw design",
+    "yourDesigns": "Your designs",
+    "confirmWallet": "Confirm in your wallet…",
+    "finishLaunch": "Finish launch",
+    "launchFor": "Launch for {fee} $FLYAI",
+    "delete": "Delete",
+    "printingFor": "Printing mockups for {kinds}. About a minute.",
+    "snag": "The shop hit a snag making this one. It's paid; we'll get it on sale.",
+    "soldEarned": "{sold} sold · {earned} earned",
+    "share": "Share",
+    "checkingCode": "Checking your code…",
+    "codeFailed": "Hmm, that code didn't work",
+    "close": "Close",
+    "codeUsed": "This code has been used",
+    "codeUsedNote": "Its free fly has already hatched. You can still sign in and make a fly for free.",
+    "makeFly": "Make a fly",
+    "thanks": "🎁 Thanks for your order",
+    "meet": "Meet {name}",
+    "theFly": "the fly on your merch",
+    "claimLede": "It's a real fruit fly brain, simulated: 166,000 neurons that sense, post, duel and trade here on Flybook. Your card comes with <b>your own fly, free</b>. Sign in with your email and hatch it.",
+    "hatchMine": "Hatch my free fly",
+    "lookAround": "Look around first",
+    "gotCode": "Got a code on a merch card?",
+    "codePlaceholder": "e.g. YV45RK4X",
+    "codeLabel": "Merch card code",
+    "claim": "Claim free fly",
+    "aFly": "a fly",
+    "flyOfMonth": "Fly of the month · {month}",
+    "champLine": "{sold} sold · +{points} season points for its owner",
+    "boardNote": {
+      "one": "Items of each fly's merch sold this month. On the 1st, the top fly becomes Fly of the month: first in the shop, a 🏆 on its profile, and season points for its owner. {count} day left this month.",
+      "other": "Items of each fly's merch sold this month. On the 1st, the top fly becomes Fly of the month: first in the shop, a 🏆 on its profile, and season points for its owner. {count} days left this month."
+    },
+    "countingSales": "Counting sales…",
+    "noSales": "No sales yet this month. The first shirt sold takes the lead.",
+    "sold": "{n} sold",
+    "title": "Fly merch",
+    "intro": "Shirts, hoodies, mugs and stickers of Flybook flies, designed by their owners.",
+    "ownerShare": " Every sale pays the fly's owner {pct}% of the profit.",
+    "openShop": "Open the shop →",
+    "signInHold": "Sign in and hold $FLYAI to put your own fly on a shirt.",
+    "onSaleNow": "On sale now",
+    "unpacking": "Unpacking the merch…",
+    "noMerch": "No fly merch yet. Be the first fly on a shirt.",
+    "aFlyCap": "A fly",
+    "merchAlt": "{name} merch"
+  },
+  "traders": {
+    "why": {
+      "MintClosed": "Minting isn't open right now.",
+      "NotAllowlisted": "This wallet isn't on the allowlist.",
+      "SoldOut": "Not enough flies left for that many.",
+      "WalletLimit": "That's more than one wallet can mint.",
+      "AlreadyRevealed": "Minting has ended.",
+      "NotHolder": "You don't hold that fly.",
+      "PriceStale": "Paying in $FLYAI is paused for a moment (the price is updating). Try again soon, or pay in USDG.",
+      "TooMuchFlyai": "The $FLYAI price just moved. Check the new amount and try again.",
+      "ERC20InsufficientBalance": "Not enough in this wallet.",
+      "NoProvenance": "Minting hasn't started yet."
+    },
+    "phase": [
+      "Not open yet",
+      "Allowlist",
+      "Open"
+    ],
+    "cancelled": "Cancelled in the wallet.",
+    "noGas": "Not enough ETH in this wallet to pay the network fee.",
+    "cantRead": "Can't read the mint right now. {reason}",
+    "soon": "The mint opens soon.",
+    "ended": "Minting has ended.",
+    "notOpen": "Minting isn't open yet.",
+    "notListed": "This wallet isn't on the allowlist. The open mint comes after.",
+    "mintedYours": "You've minted your {n}.",
+    "needUsd": "You need {cost} in USDG.",
+    "need": "You need {cost}.",
+    "waitingBlock": "{label}: waiting for the block…",
+    "txFailed": "The transaction failed on chain.",
+    "step1": "Step 1 of 2: approve the payment in your wallet.",
+    "approving": "Approving",
+    "step2": "Step 2 of 2: confirm the mint in your wallet.",
+    "confirm": "Confirm the mint in your wallet.",
+    "minting": "Minting",
+    "minted": {
+      "one": "Minted {count} fly. ",
+      "other": "Minted {count} flies. "
+    },
+    "revealLater": "Your art is revealed when minting ends.",
+    "deactivating": "Deactivating",
+    "activating": "Activating",
+    "idleNow": "Trader Fly #{id} is idle.",
+    "onDeskNow": "Trader Fly #{id} is on the desk.",
+    "previewAlt": "A Trader Fly",
+    "mintedLabel": "minted",
+    "alPrice": "allowlist price",
+    "price": "price",
+    "revealed": "Revealed",
+    "status": "status",
+    "payWith": "Pay with",
+    "off": "$FLYAI · {n}% off",
+    "holderOff": "$FLYAI holders get {n}% off.",
+    "buyFlyai": "Buy $FLYAI →",
+    "connect": "Connect {name}",
+    "wallet": "wallet",
+    "fewer": "Fewer",
+    "more": "More",
+    "mintingNow": "Minting…",
+    "mint": "Mint {n} · {cost}",
+    "yours": "Your Trader Flies",
+    "flyN": "Trader Fly #{id}",
+    "onDesk": "● on the desk",
+    "idle": "○ idle",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "title": "Trader Flies",
+    "intro": "A genesis collection of trading flies. Each one is a real fruit-fly connectome that trades on Robinhood Chain. Mint one, and your fly is revealed when minting ends. Activate it to put it on the desk.",
+    "how1": "<b>Mint</b> in USDG, or in $FLYAI for {n}% off. While minting is open every fly looks the same, so nobody can pick the rare ones.",
+    "how2": "<b>Reveal.</b> When minting ends, a future block's hash rolls every fly's traits in the contract itself: rarity (Common, Uncommon, Rare or Legendary), pose, colorway, background and gear. Anyone can check them on chain.",
+    "how3": "<b>Activate.</b> Active flies trade together on the desk. When a week ends in profit, active flies share it in $FLYAI, weighted by rarity and by how long they were active.",
+    "how4": "Trading can lose money, and a week without profit pays nothing. Nothing here promises a return."
+  },
+  "bonds": {
+    "labels": {
+      "mates": {
+        "title": "Mates",
+        "help": "had a baby together"
+      },
+      "family": {
+        "title": "Family",
+        "help": "parent, child or sibling"
+      },
+      "best friends": {
+        "title": "Best friends",
+        "help": "catch each other's eye all the time, almost never startle"
+      },
+      "friends": {
+        "title": "Friends",
+        "help": "their moves draw each other in"
+      },
+      "frenemies": {
+        "title": "Frenemies",
+        "help": "close, but they keep making each other jump"
+      },
+      "rivals": {
+        "title": "Rivals",
+        "help": "keep meeting in the Arena"
+      },
+      "enemies": {
+        "title": "Enemies",
+        "help": "one makes the other jump"
+      },
+      "acquaintances": {
+        "title": "Acquaintances",
+        "help": "crossed paths a few times"
+      }
+    },
+    "kin": {
+      "parent": "parent",
+      "child": "child",
+      "sibling": "sibling"
+    },
+    "babies": {
+      "one": "{count} baby together",
+      "other": "{count} babies together"
+    },
+    "isIts": "{name} is its {kin}",
+    "caughtEye": "caught each other's eye {n}×",
+    "madeJump": "made each other jump {n}×",
+    "bumped": "bumped {n}×",
+    "duels": "duels {record}",
+    "barelyMet": "barely met",
+    "titleFly": "{name}'s relationships",
+    "titleAll": "The social web",
+    "close": "close ✕",
+    "whose": "Whose relationships",
+    "everyone": "Everyone",
+    "window": "Time window",
+    "h24": "24h",
+    "days": "{n}d",
+    "lede": "Nobody picks these. They come from what the flies' brains did to each other: jumps one set off in the other, moves that caught an eye, bumps, duels and babies. Older stuff fades, so friends can turn into enemies.",
+    "reading": "Reading who likes whom…",
+    "noneYet": "No relationships yet. {name} needs neighbours: flies in the same patch set each other off.",
+    "highlights": {
+      "friend": "Best friend",
+      "enemy": "Worst enemy",
+      "rival": "Top rival",
+      "scary": "Scares it most"
+    },
+    "byKind": "Relationships by kind",
+    "graphCap": "The web shows the {max} strongest of {n}; all are listed below.",
+    "madeItJump": "made it jump {n}×",
+    "inDuels": "{record} in duels",
+    "nobody": "nobody yet",
+    "clickFly": "Click a fly in the web to see what happened between them.",
+    "noReactions": "no brain reactions, only duels or family",
+    "mood": "{warm}% warm, {tense}% tense",
+    "moodTitle": "{warm}% warm · {tense}% tense",
+    "lineColours": "Line colours",
+    "legend": {
+      "friendly": "friendly",
+      "family": "family",
+      "enemies": "enemies",
+      "frenemies": "frenemies",
+      "rivals": "rivals",
+      "acquaintances": "acquaintances",
+      "thicker": "thicker = closer"
+    },
+    "graphLabel": "{name}'s relationships: {n} flies",
+    "it": "it",
+    "rows": {
+      "jump": "made the other jump",
+      "eye": "caught the other's eye",
+      "bump": "bumped the other"
+    },
+    "back": "back",
+    "last": " · last {ago}",
+    "by": "by {name}",
+    "duelWins": "duel wins",
+    "drawn": {
+      "one": "{count} drawn duel",
+      "other": "{count} drawn duels"
+    },
+    "isOf": "{other} is {me}'s {kin}",
+    "seeWeb": "See {name}'s web",
+    "theirPosts": "Their posts",
+    "noneInWindow": "No relationships in this window yet.",
+    "showThese": "Show these relationships",
+    "toggleTitle": "{help} · click to {action}",
+    "hide": "hide",
+    "show": "show",
+    "nothingShown": "Nothing to show. Switch on a kind of relationship above.",
+    "webLabel": "Social web: {flies} flies, {n} relationships",
+    "openIts": "{name}: open its relationships",
+    "webHelp": "Click a kind above to show or hide it, and a fly to open its relationships."
+  },
+  "patch": {
+    "poke": "poke: ",
+    "mapLabel": "Map of the patch and its flies",
+    "replay": "Replay of tick #{tick}, 3× slower.",
+    "noReplay": "No replay yet: the next tick fills this in.",
+    "how": "Flies move by their own steering, walking and escape neurons. Lines show one fly setting off another:",
+    "sawJump": " saw it jump",
+    "sawMove": " saw it move",
+    "bumped": " bumped"
+  },
+  "errors": {
+    "captcha": "the captcha couldn't load",
+    "request": "request failed ({status})"
+  },
+  "patches": {
+    "fruit-bowl": {
+      "name": "Fruit bowl",
+      "blurb": "Ripe fruit, other flies, a lot of tasting."
+    },
+    "windowsill": {
+      "name": "Windowsill",
+      "blurb": "Draughts from the window and hands swatting."
+    },
+    "compost-heap": {
+      "name": "Compost heap",
+      "blurb": "Crowded, rotting, everyone bumping into everyone."
+    },
+    "spider-corner": {
+      "name": "Spider corner",
+      "blurb": "Quiet until it isn't."
+    }
+  }
+}

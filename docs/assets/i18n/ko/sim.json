@@ -1,0 +1,345 @@
+{
+  "meta": {
+    "title": "fly.ai 월드 — 스파이킹 뇌를 가진 파리들",
+    "description": "각자 자신의 스파이킹 신경망으로 날아다니는 파리들의 로우폴리 세계. 뇌를 실시간으로 볼 수 있습니다."
+  },
+  "top": {
+    "title": "fly.ai <b>월드</b>",
+    "starting": "시작하는 중…",
+    "togglePanel": "패널 열기/닫기"
+  },
+  "stats": {
+    "line": "{clock} {phase} · 파리 {flies}마리 × 뉴런 {neurons}개 (각 시냅스 {synapses}개) · {fps} fps · {where}냄새 퍼프 {puffs}개 · 바람 {wind} m/s · 짝짓기 {matings}회, 알 {eggs}개, 부화 {hatched} · 사망: 노화 {old}, 굶주림 {starved}, 잡아먹힘 {eaten}, 파리채 {swatted}",
+    "whereLive": "{status} · {viewers}명 시청 중 · ",
+    "wherePrivate": "개인 필드 · 뇌 스텝 {ms} ms · ",
+    "empty": "라이브 · 필드가 비어 있습니다",
+    "connecting": "라이브 월드에 연결하는 중…"
+  },
+  "status": {
+    "live": "라이브",
+    "connecting": "연결 중…",
+    "reconnecting": "다시 연결 중…",
+    "failed": "실패…"
+  },
+  "phase": {
+    "night": "밤",
+    "dawn": "새벽",
+    "morning": "아침",
+    "midday": "한낮",
+    "afternoon": "오후",
+    "dusk": "해질녘"
+  },
+  "state": {
+    "PANIC": "패닉",
+    "SURGING": "돌진",
+    "CASTING": "탐색",
+    "FEEDING": "식사",
+    "LANDED": "착지",
+    "TAKE-OFF": "이륙",
+    "FLYING": "비행"
+  },
+  "shared": {
+    "note": "이 필드는 공유됩니다. 이 페이지의 모든 사람이 서버에서 실시간으로 오는 같은 파리들을 봅니다. Wiz는 오직 여러분만의 것입니다. 여러분의 화면에서만 걸어 다니고, 공유된 파리들은 그를 보지 못합니다.",
+    "unreachable": "공유 월드에 연결할 수 없어, 브라우저에서 돌아가는 개인 필드를 보여 드립니다."
+  },
+  "about": {
+    "title": "이게 뭔가요",
+    "hide": "숨기기",
+    "show": "이게 뭔가요?",
+    "p1": "초파리들이 사는 들판입니다. 각 파리는 자신만의 <b>스파이킹 신경망</b>으로 날아다닙니다 &mdash; 실제 <i>초파리(Drosophila)</i> 세포 유형의 이름을 딴 누설 적분-발화 뉴런 748개가, MaleCNS 커넥톰에서 측정된 경로의 모양대로 연결되어 있습니다.",
+    "p2": "각 파리에게는 <b>버섯체</b>가 있습니다. 케니언 세포가 모든 냄새에 고유한 서명을 부여하고, 다가오는 위협, 충격, 경보 CO<sub>2</sub>, 과즙 맛에 발화하는 도파민 뉴런이 어떤 냄새에 끌릴지를 다시 씁니다. 데이터 카드에서 켜고 끌 수 있습니다.",
+    "p3": "<b>파리의 행동 중 스크립트로 짠 것은 하나도 없습니다.</b> 빛, 냄새 퍼프, 기류, 다리 접촉이 감각 뉴런에 주입되고, 신경망이 돌아가고, 비행은 <b>운동 뉴런</b>에서 읽어 냅니다. <code>if (nearFruit) goToFruit</code> 같은 건 없습니다. 먹기, 착지, 파리채 피하기, 냄새 기둥 추적, 구애, 산란 모두 배선에서 저절로 나옵니다 &mdash; 혹은 실패하고, 그 실패도 똑같이 솔직하게 보여 줍니다.",
+    "p4": "여기서는 온전한 한 생애가 펼쳐집니다. 파리들은 <b>먹고, 짝짓고, 알을 낳고, 부화하고, 먹이를 찾고, 거미에게 잡아먹히고, 죽습니다</b> &mdash; 그 모든 일이 일어난 자리에 지도 표시가 남습니다. 시계는 하루 300초로 흐르고, 밤은 파리들에게 진짜입니다. &ldquo;지금은 밤&rdquo; 같은 플래그를 켜는 게 아니라, 광수용체가 보는 밝기 자체가 어두워집니다.",
+    "p5": "아무 파리나 클릭하면 그 뇌가 발화하는 모습을 볼 수 있습니다. 이 패널의 모든 막대, 태그, 숫자는 집단 발화율을 읽어 낸 값일 뿐, 발화율을 움직이는 입력이 아닙니다.",
+    "warn": "이것은 실제 커넥톰이 <b>아닙니다</b>. 166,700개가 아닌 748개 뉴런이며, 세포 유형 이름은 진짜지만 개수와 가중치는 지어낸 것입니다. 여기서 학습된 것은 없습니다. <a href=\"https://github.com/alextitonis/fly.ai/blob/main/world/README.md\" target=\"_blank\" rel=\"noreferrer\">무엇이 진짜이고 무엇이 아닌지 →</a>"
+  },
+  "wiz": {
+    "title": "Wiz · 원숭이를 조종하는 파리",
+    "note": "<b>초파리 커넥톰 전체</b>가 조종하는 거대한 원숭이 마법사입니다 &mdash; 뉴런 166,700개와 시냅스 2,500만 개가 브라우저에서 돌아갑니다. <b>조종 줄은 진짜 뉴런입니다:</b> 그가 보는 것은 파리의 루밍·위협·표적 세포로, 발소리는 다리 촉각 세포로 들어가고, 발화하는 하행 뉴런이 팔을 들어 올리고, 발을 헛디디게 차고, 고개를 돌리고, 방향을 틀고, 깡충 뛰게 합니다. <b>돌아다니고 싶은 마음만 코드로 짰습니다</b>. 균형, 걸음, 넘어짐은 시뮬레이션(스프링과 IK)입니다 &mdash; 파리 뇌 안에는 원숭이를 걷게 하는 법을 아는 것이 없으니까요. 머리 위의 파리는 그 뇌를 그린 만화로, 뉴런이 발화하면 해당 줄이 초록색으로 빛납니다. 파리들은 그가 다가오는 모습을 봅니다. 약 58 MB를 내려받습니다.",
+    "summon": "Wiz 소환",
+    "cam": "Wiz 캠",
+    "status": {
+      "asleep": "자는 중",
+      "loading": "불러오는 중",
+      "failed": "실패: {error}",
+      "ready": "뉴런 {n}개 · 시냅스 {m} M",
+      "labels": "라벨 {mb} MB",
+      "connectome": "커넥톰 {mb} MB",
+      "wiring": "시냅스 2,500만 개 연결 중"
+    },
+    "doing": {
+      "stand": "다리 쓰는 법 연구 중",
+      "walk": "걸어 보는 중",
+      "stumble": "균형을 잃는 중",
+      "fallen": "넘어짐",
+      "getup": "일어나는 중"
+    },
+    "line": "{doing} · {falls}번 넘어짐 · 이번 스텝에 뉴런 {fired}개 발화 · {ms} ms/스텝 (실시간의 {rt}%)",
+    "rows": {
+      "arms": {
+        "label": "팔 줄",
+        "tip": "DNp02/03/04/11, DNg40: 루밍과 위협이 팔을 잡아당김 · 왼쪽 · 오른쪽"
+      },
+      "legs": {
+        "label": "다리 줄",
+        "tip": "DNge104/122, DNg20, DNge102: 촉각이 다리를 참 · 왼쪽 · 오른쪽"
+      },
+      "head": {
+        "label": "머리 줄",
+        "tip": "DNa05/07, DNg111, DNae002: 고개를 홱 돌림 · 왼쪽 · 오른쪽"
+      },
+      "steer": "방향 전환: 그를 돌림 · 왼쪽 · 오른쪽",
+      "escape": "거대 섬유: 점프 · 왼쪽 · 오른쪽"
+    }
+  },
+  "brain": {
+    "title": "신경계",
+    "flyNone": "파리 —",
+    "raster": "스파이크 래스터 · 최근 5초",
+    "fly": "{name} {sex} · {gen}세대{parents} · {age}초{mated} · 뇌 변화 {drift}%{courting}",
+    "childOf": " · {mother} & {father}의 자식",
+    "founder": " · 시조",
+    "mated": " · 짝짓기함",
+    "courting": " · P1 {hz} Hz"
+  },
+  "modality": {
+    "vision": "시각",
+    "olfaction": "후각",
+    "mechanosensory": "기계감각",
+    "central": "중추",
+    "descending": "하행",
+    "motor": "운동",
+    "memory": "기억",
+    "inhibitory": "억제성 (GABA)"
+  },
+  "senses": {
+    "title": "감각 → 뇌",
+    "sides": "왼쪽 · 오른쪽",
+    "food": "후각 — 먹이",
+    "cva": "후각 — cVA (다른 파리)",
+    "aversive": "후각 — 혐오",
+    "loom": "루밍: 무언가 점점 커짐",
+    "threat": "빠른 루밍 / 위협",
+    "small": "다가오는 작은 물체",
+    "chase": "가까운 거리의 표적",
+    "jo": "존스턴 기관: 기류, 대기 속도, 날갯짓",
+    "leg": "부절 접촉 (위상성)",
+    "load": "털판 / 종상 감각기: 충격",
+    "taste": "순판 미각: 먹이",
+    "flow": "배쪽 광학 흐름: 얼마나 낮고 빠른지"
+  },
+  "ligand": {
+    "ORN_DM1": "에틸 아세테이트: 잘 익은 과일",
+    "ORN_VM5d": "에틸 부티레이트: 발효 중인 과일",
+    "ORN_VL2a": "아세트산: 식초",
+    "IR92a": "암모니아와 아민: 썩은 고기, 똥, 배설물",
+    "ORN_DA1": "cVA: 다른 파리가 내뿜는 페로몬",
+    "ORN_VA1d": "cVA: 다른 파리가 내뿜는 페로몬",
+    "Or56a": "지오스민: 곰팡이. 혐오성.",
+    "Gr21a": "CO2: 퇴비, 그리고 겁먹은 파리. 혐오성."
+  },
+  "rates": {
+    "title": "발화율",
+    "unit": "뉴런당 Hz · L · R"
+  },
+  "pop": {
+    "R1_6": "광수용체 (히스타민, 억제성)",
+    "L1_L2": "라미나 중계",
+    "LPLC2": "루밍",
+    "LC4": "빠른 루밍 / 위협",
+    "LPLC1": "다가오는 작은 물체",
+    "LC10a": "표적 추적, 근접",
+    "VS": "소엽판 VS: 배쪽 광학 흐름 (높이)",
+    "ORN_DM1": "ORN DM1: 에틸 아세테이트, 잘 익은 과일",
+    "ORN_VM5d": "ORN VM5d: 에틸 부티레이트, 발효 중인 과일",
+    "ORN_VL2a": "ORN VL2a: 아세트산, 식초",
+    "IR92a": "IR92a: 암모니아와 아민, 썩은 고기와 똥",
+    "ORN_DA1": "ORN DA1: cVA, 파리 페로몬",
+    "ORN_VA1d": "ORN VA1d: cVA, 파리 페로몬",
+    "Or56a": "Or56a -> DA2: 지오스민, 해로운 미생물. 혐오성.",
+    "Gr21a": "Gr21a/Gr63a -> V: CO2. 혐오성.",
+    "Gr68a": "Gr68a/ppk23: 앞다리 접촉 화학수용체, 암컷 페로몬",
+    "AL_LN": "더듬이엽 국소 뉴런 (GABA)",
+    "lPN": "투사 뉴런, AL -> 전대뇌 (방향 전환과 추력)",
+    "DA2_PN": "DA2와 V 사구체 PN: 혐오 경로",
+    "LH": "측각: 선천적 가치 판단",
+    "JO": "존스턴 기관: 바람, 대기 속도, 날갯짓",
+    "WED": "웨지 / AMMC, JO의 목표 영역",
+    "SNta": "부절 감각 뉴런 (다리 접촉)",
+    "LgLG": "털판 / 종상 감각기 (하중, 충격)",
+    "LB3": "순판 미각모 (과즙)",
+    "PVLP": "시각 사구체 사이뉴런",
+    "PLP": "후외측 전대뇌",
+    "LPi": "소엽판 내재 뉴런 (GABA)",
+    "LAL": "외측 부속엽, 전운동",
+    "PFL3": "중심 복합체 방향 조절",
+    "P1": "P1: 수컷 구애 명령 뉴런",
+    "DNa02": "방향 전환 (같은 쪽 회전)",
+    "DNp01": "거대 섬유, 탈출 이륙",
+    "DNg100": "전진 비행",
+    "MDN": "뒤로 걷기",
+    "pIP10": "pIP10: 구애 노래 명령",
+    "VNC_IN": "VNC 전운동 사이뉴런 (일반)",
+    "IN19A": "19A 반계통 사이뉴런 (GABA)",
+    "DLM_MN": "등쪽 세로근: 날개 동력",
+    "b1_MN": "기저근 b1: 날개 방향 조절",
+    "b2_MN": "기저근 b2: 날개 방향 조절",
+    "Ti_flexor_MN": "경절 굴근",
+    "Ti_extensor_MN": "경절 신근 (점프)",
+    "Tr_flexor_MN": "전절 굴근",
+    "Sternotrochanter_MN": "흉판-전절근: 이륙",
+    "uPN": "버섯체로 가는 단일사구체 PN: 사구체당 두 개",
+    "KC": "케니언 세포: 냄새를 위한 희소 코드",
+    "APL": "APL (GABA): KC 코드를 희소하게 유지하는 되먹임 억제",
+    "MBON_g2a1": "MBON-g2a'1 (콜린성): 냄새 쪽으로 향하는 출력",
+    "MBON_g5b2a": "MBON-g5b2a: 냄새에서 멀어지는 출력",
+    "PPL1_g2a1": "PPL1-g2a1: 처벌 교사 (도파민)",
+    "PAM_g5": "PAM-g5: 보상 교사 (도파민)"
+  },
+  "body": {
+    "title": "뇌 → 몸",
+    "path": "하행 → VNC → 근육",
+    "dn": "하행 뉴런",
+    "mn": "운동 뉴런 — 비행은 여기서 읽습니다",
+    "turn": "방향 전환: 오른쪽 빼기 왼쪽",
+    "thrust": "전진 비행",
+    "back": "후진",
+    "escape": "거대 섬유 탈출",
+    "dlm": "날개 동력, 곧 양력",
+    "b1": "기저근: 날개 방향 조절",
+    "jump": "경절 신근 + 흉판-전절근: 이륙",
+    "flex": "다리 굴근: 뒤로 물러나기",
+    "flexLabel": "Ti/Tr 굴곡",
+    "motor": "DLM {dlm} Hz → 양력 {lift} m/s² (중력 {gravity}) · 회전 {turn} rad/s · 속도 {speed} m/s · 높이 {height} m · {state}"
+  },
+  "field": {
+    "title": "들판",
+    "sub": "저기 무엇이 있나"
+  },
+  "ecology": {
+    "fruit": "발효 중인 과일",
+    "mould": "곰팡이 핀 과일 (지오스민)",
+    "carrion": "썩은 고기 (아민)",
+    "dung": "똥 (아민)",
+    "compost": "퇴비 (먹이 + CO2)",
+    "plant": "식물",
+    "spider": "거미",
+    "egg": "알",
+    "larva": "애벌레",
+    "poop": "파리 배설물",
+    "obstacle": "바위",
+    "threat": "파리채",
+    "fly": "파리"
+  },
+  "feed": {
+    "title": "지금 일어나는 일",
+    "empty": "아직 아무 일도 없습니다 — 짝짓기, 알, 식사, 거미 공격, 죽음이 여기와 해당 파리 위에 나타납니다.",
+    "now": "지금",
+    "ago": "{s}초 전"
+  },
+  "population": {
+    "title": "개체군",
+    "adults": "성체",
+    "brood": "알 + 애벌레",
+    "now": "성체 {adults} · 새끼 {brood}",
+    "waiting": "첫 1분을 기다리는 중…",
+    "axisNow": "지금",
+    "stats": "<span>성체 <b>{adults}</b> (수 {males} / 암 {females})</span><span>평균 나이 <b>{age}초</b></span><span>짝짓기 <b>{matings}</b> · 알 <b>{eggs}</b></span><span>부화 <b>{hatched}</b></span><span>노화 사망 <b>{old}</b> · 굶주림 <b>{starved}</b></span><span>잡아먹힘 <b>{eaten}</b> · 파리채 <b>{swatted}</b></span>"
+  },
+  "data": {
+    "title": "데이터와 발견",
+    "reward": "보상 학습",
+    "rewardTip": "식사 직전에 활성화된 시냅스는 강해지고, 충격이나 거미 공격 직전의 시냅스는 약해집니다",
+    "hebb": "헤브 학습",
+    "hebbTip": "입력이 출력 직전에 발화하면 시냅스가 강해집니다",
+    "memory": "냄새 기억 (버섯체)",
+    "memoryTip": "버섯체: 도파민 교사가 발화하던 케니언 세포를 억눌러, 그 세포들이 부호화하는 냄새의 의미가 바뀝니다",
+    "gather": "모여 있나요?",
+    "friends": "친구와 적",
+    "drift": "뇌가 변하나요?",
+    "herit": "새끼는 부모를 닮나요?",
+    "fates": "알과 애벌레: 어떻게 되었나",
+    "report": "보고서 (PDF)",
+    "blocks": "brain blocks.csv",
+    "collecting": "수집 중…",
+    "shareInGroups": "무리 속 비율 (0-1)",
+    "nnRatio": "최근접 이웃 비율",
+    "random": "무작위 배치 = 1",
+    "meanDrift": "평균 시냅스 변화 %",
+    "maxDrift": "가장 많이 변한 파리 %",
+    "now": "{clock} · 학습 {learning}",
+    "groupNote": "<span>무리 <b>{groups}</b></span><span>최대 <b>{largest}</b></span><span>무리 속 <b>{inGroup}%</b></span><span>그중 먹이 곁 <b>{atFood}%</b></span><span>비율 <b>{ratio}</b> (1 미만 = 모여 있음)</span>",
+    "died": "사망: {cause} ({stage})",
+    "emerged": "성체가 됨",
+    "still": "아직 {fate}",
+    "noEggs": "아직 낳은 알이 없습니다",
+    "stage": {
+      "egg": "알",
+      "larva": "애벌레"
+    },
+    "cause": {
+      "background": "자연사",
+      "mould": "곰팡이",
+      "bare_substrate": "맨땅",
+      "crowding": "과밀",
+      "spider": "거미",
+      "trampled": "밟힘"
+    },
+    "waitFamilies": "가족을 기다리는 중: 부모가 모두 알려진 파리 {n}마리",
+    "parentsAxis": "부모 평균 →",
+    "childAxis": "자식 ↑",
+    "heritNote": "자식 {n}마리 · 기울기 <b>{slope}</b> · r <b>{r}</b> (기울기 1 = 자식이 부모와 같음, 0 = 닮지 않음, 점선 = 같음)",
+    "rel": {
+      "mates": "짝",
+      "family": "가족",
+      "enemies": "적",
+      "friends": "친구",
+      "acquaintances": "아는 사이"
+    },
+    "clashes": "충돌 {n}회",
+    "together": "함께 {n}초",
+    "noFriends": "살아 있는 파리 중에 아직 친구나 적이 없습니다",
+    "trait": {
+      "lifespan": "유전자: 수명",
+      "flight": "유전자: 비행력",
+      "clutch": "유전자: 한배 알 수",
+      "gene_loom_escape": "유전자: 루밍 → 탈출",
+      "gene_odour_steer": "유전자: 냄새 → 방향 전환",
+      "gene_contact_courtship": "유전자: 접촉 → 구애",
+      "olfaction_gain": "유전자: 후각 이득",
+      "reward_rate": "유전자: 보상 학습률",
+      "memory_rate": "유전자: 냄새 기억률",
+      "meals_per_min": "생애: 분당 식사",
+      "age_at_death": "생애: 사망 나이",
+      "final_drift": "생애: 사망 시 뇌 변화"
+    }
+  },
+  "board": {
+    "title": "리더보드",
+    "live": "라이브",
+    "fed": "{s}초 식사 · {m}m",
+    "panics": "패닉 {n}회",
+    "swatted": " · 파리채 맞음"
+  },
+  "controls": {
+    "title": "조작",
+    "reset": "초기화",
+    "swat": "철썩!",
+    "gust": "돌풍",
+    "flycam": "파리 캠",
+    "drama": "드라마 캠",
+    "next": "다음 파리",
+    "followOn": "따라가기: 켬",
+    "followOff": "따라가기: 끔",
+    "note": "파리를 클릭해 선택하세요. 드래그로 회전, 스크롤로 확대/축소합니다. 모든 파리는 자신만의 누설 적분-발화 신경망을 돌립니다. 눈, 더듬이, 존스턴 기관, 다리 감각모가 입력이고 운동 뉴런이 출력입니다. 비행 중 스크립트로 짠 것은 없습니다. <a href=\"https://github.com/alextitonis/fly-streetfighter\" target=\"_blank\" rel=\"noreferrer\">fly.ai</a>",
+    "slider": {
+      "flies": "파리 수",
+      "wind": "바람 (m/s)",
+      "odour": "냄새 강도",
+      "tonic": "지속 구동",
+      "gain": "시냅스 이득",
+      "noise": "잡음률 (Hz)",
+      "speed": "시뮬레이션 속도"
+    }
+  }
+}

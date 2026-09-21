@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "title": "Términos de Fly Roulette — fly.ai",
+    "description": "Las reglas para apostar $FLYAI en Fly Roulette: probabilidades, ventaja de la casa, límites, equidad demostrable, saldos y retiros."
+  },
+  "head": {
+    "eyebrow": "Fly Roulette",
+    "title": "Términos de apuesta",
+    "lede": "Para apostar $FLYAI en <a href=\"/roulette/\">Fly Roulette</a>. Al hacer una apuesta aceptas estos términos. Última actualización: 19 de septiembre de 2026."
+  },
+  "main": {
+    "h31": "Quién puede jugar",
+    "li1": "<b>Mayores de 18 años.</b> Confirmas tu edad antes de tu primera apuesta.",
+    "li2": "<b>Donde esté permitido.</b> Las apuestas online están restringidas o son ilegales en muchos países y estados. Juega solo si es legal donde estás; es tu responsabilidad.",
+    "li3": "<b>Tu propia wallet.</b> Inicias sesión con una wallet que controlas. Una persona, una cuenta.",
+    "h32": "El juego y las probabilidades",
+    "li4": "Eliges un asiento en una mesa de 2 a 10 moscas y apuestas $FLYAI por él. El conectoma real de cada mosca decide si aprieta el gatillo de una pistola de juguete o sale volando; una de las seis recámaras tiene el fulminante. La última mosca que queda en la mesa gana.",
+    "li5": "<b>Todos los asientos tienen la misma probabilidad de ganar.</b> Los cerebros de las moscas reciben semillas aleatorias independientes y el primero en disparar es un asiento al azar, así que con n moscas tu asiento gana 1 de cada n veces.",
+    "li6": "<b>Una victoria paga tu apuesta &times; n &times; 0.95</b>: 2 moscas pagan 1.9&times;, 5 moscas 4.75&times;, 10 moscas 9.5&times;. El 5% es la ventaja de la casa. Una derrota te cuesta tu apuesta.",
+    "li7": "Los límites vigentes (la apuesta mínima y máxima, lo máximo que puedes apostar en un día y la mayor ganancia individual) se muestran junto al botón de apostar.",
+    "h33": "Equidad demostrable",
+    "p1": "Antes de que apuestes, el servidor muestra el hash de una semilla secreta (el compromiso). Tu navegador añade su propia semilla. Todo lo aleatorio del juego sale de las dos juntas. Cuando termina la partida, el servidor revela su semilla: su hash debe coincidir con el compromiso, y repetir la partida a partir de ambas semillas debe dar los mismos turnos. El botón <b>Verificar esta partida</b> hace las dos comprobaciones con tus propios cerebros de mosca, en tu navegador (Chrome da resultados idénticos bit a bit; otros navegadores pueden redondear las operaciones del cerebro de otra forma).",
+    "h34": "Tu saldo",
+    "li8": "<b>Los depósitos</b> son transferencias de $FLYAI desde tu wallet con sesión iniciada a la dirección de depósito de fly.ai en Robinhood Chain. Se acreditan en cuanto la transferencia se mina.",
+    "li9": "<b>Las ganancias</b> van a tu saldo. Tu saldo lo custodia fly.ai en tu nombre y es el mismo saldo que usan los pedidos de cómputo.",
+    "li10": "<b>Los retiros</b> se solicitan en la página y se envían a tu wallet a mano, normalmente en menos de un día.",
+    "li11": "Si el servidor no puede terminar una partida, la partida se anula y tu apuesta vuelve a tu saldo.",
+    "h35": "Límites, pausas y cambios",
+    "li12": "Las apuestas pueden pausarse solas durante un tiempo si la casa ha perdido mucho en un día, y pueden desactivarse. Los saldos y los retiros siguen funcionando.",
+    "li13": "Podemos cambiar estos términos, los límites o la ventaja para apuestas futuras. Una apuesta hecha se liquida bajo los términos vigentes cuando se hizo.",
+    "li14": "Podemos rechazar o anular apuestas que se aprovechen de errores, y cerrar cuentas usadas para fraude.",
+    "h36": "Juega con responsabilidad",
+    "p2": "Apuesta solo lo que puedas permitirte perder. El precio de $FLYAI se mueve, así que un saldo puede valer más o menos más adelante. No hay garantía de ningún rendimiento. Si apostar deja de ser divertido, para."
+  },
+  "notice": "Esta traducción se ofrece por comodidad; la versión en inglés es la vinculante."
+}

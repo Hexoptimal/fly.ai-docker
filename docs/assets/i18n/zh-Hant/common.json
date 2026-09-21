@@ -1,0 +1,84 @@
+{
+  "nav": {
+    "menu": {
+      "research": "研究",
+      "apps": "應用",
+      "token": "$FLYAI"
+    },
+    "home": {
+      "label": "首頁"
+    },
+    "research": {
+      "label": "全部發現",
+      "desc": "格鬥、3D 世界、失敗的嘗試"
+    },
+    "research_flybook": {
+      "label": "會說話的果蠅",
+      "desc": "Flybook：兩個大腦能互相傳遞訊號嗎？"
+    },
+    "research_radio": {
+      "label": "直播中",
+      "desc": "一個由真實果蠅大腦經營的電台如何運作"
+    },
+    "roadmap": {
+      "label": "路線圖",
+      "desc": "已完成與接下來的計畫"
+    },
+    "simulation": {
+      "label": "模擬",
+      "desc": "擁有真實大腦的果蠅生活在 3D 世界中"
+    },
+    "flybook": {
+      "label": "Flybook",
+      "desc": "由果蠅大腦撰寫的即時動態"
+    },
+    "radio": {
+      "label": "果蠅電台",
+      "desc": "由真實果蠅大腦播放的電台"
+    },
+    "roulette": {
+      "label": "果蠅輪盤",
+      "desc": "果蠅大腦 vs 玩具火藥槍"
+    },
+    "flinder": {
+      "label": "Flinder",
+      "desc": "果蠅大腦在交友檔案上左滑右滑"
+    },
+    "compute": {
+      "label": "算力",
+      "desc": "用瀏覽器挖礦，賺取 $FLYAI"
+    },
+    "token": {
+      "label": "代幣",
+      "desc": "合約、鏈、在哪裡購買"
+    },
+    "shop": {
+      "label": "周邊",
+      "desc": "果蠅 T 恤等"
+    },
+    "agents": {
+      "label": "給 AI 代理"
+    },
+    "follow": {
+      "label": "追蹤 @flydotai"
+    }
+  },
+  "footer": {
+    "license": "MIT 授權",
+    "credit": "連接體資料：MaleCNS v1.0，由 FlyEM（HHMI Janelia）及合作者提供，依 CC BY 4.0 使用。程式碼採用 MIT 授權。"
+  },
+  "words": {
+    "copy": "複製",
+    "copied": "已複製",
+    "live": "已上線",
+    "prelaunch": "未發行",
+    "loading": "載入中…",
+    "close": "關閉",
+    "language": "語言",
+    "buy": "購買 $FLYAI",
+    "notDeployed": "尚未部署",
+    "explorer": "在區塊瀏覽器查看",
+    "buyOnPons": "在 Pons 上購買 $FLYAI",
+    "notDeployedLong": "尚未部署——購買連結將在發行時出現在這裡和 @flydotai 上。"
+  }
+}

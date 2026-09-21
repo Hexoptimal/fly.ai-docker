@@ -24,27 +24,30 @@ const X_URL = "https://x.com/flydotai";
 const GITHUB_URL = "https://github.com/alextitonis/fly.ai";
 
 (function () {
-  const set = (id, text, live) => {
+  // text set here is English; a data-i18n key on it lets i18n/page.js (which runs after) translate it
+  const tr = (key, english) => (window.flyI18n ? window.flyI18n.t(key) : english);
+  const set = (id, text, live, key) => {
     const el = document.getElementById(id);
     if (!el) return;
     el.textContent = text;
+    if (key) el.setAttribute("data-i18n", key);
+    else el.removeAttribute("data-i18n");
     if (live) el.className = "v live";
   };
 
   if (CONTRACT_ADDRESS) {
     set("ca", CONTRACT_ADDRESS);
     set("ca-2", CONTRACT_ADDRESS, true);
-    set("token-status", "live", true);
-    const state = document.getElementById("chain-state");
-    if (state) state.textContent = "live";
+    set("token-status", "live", true, "common.words.live");
+    set("chain-state", "live", false, "common.words.live");
 
     const btn = document.getElementById("ca-copy");
     if (btn) {
       btn.disabled = false;
       btn.addEventListener("click", () => {
         navigator.clipboard.writeText(CONTRACT_ADDRESS).then(() => {
-          btn.textContent = "Copied";
-          setTimeout(() => (btn.textContent = "Copy"), 1500);
+          btn.textContent = tr("common.words.copied", "Copied");
+          setTimeout(() => (btn.textContent = tr("common.words.copy", "Copy")), 1500);
         });
       });
     }
@@ -59,6 +62,7 @@ const GITHUB_URL = "https://github.com/alextitonis/fly.ai";
       a.target = "_blank";
       a.rel = "noopener";
       a.textContent = "Buy $FLYAI on Pons";
+      a.setAttribute("data-i18n", "common.words.buyOnPons");
       host.prepend(a);
       if (EXPLORER_URL) {
         const ex = document.createElement("a");
@@ -67,12 +71,14 @@ const GITHUB_URL = "https://github.com/alextitonis/fly.ai";
         ex.target = "_blank";
         ex.rel = "noopener";
         ex.textContent = "View on explorer";
+        ex.setAttribute("data-i18n", "common.words.explorer");
         a.after(ex);
       }
     } else {
       const p = document.createElement("p");
       p.className = "srcline";
       p.textContent = "Not deployed yet — the buy link appears here and on @flydotai at launch.";
+      p.setAttribute("data-i18n", "common.words.notDeployedLong");
       host.appendChild(p);
     }
   }

@@ -1,0 +1,84 @@
+{
+  "nav": {
+    "menu": {
+      "research": "Araştırma",
+      "apps": "Uygulamalar",
+      "token": "$FLYAI"
+    },
+    "home": {
+      "label": "Ana sayfa"
+    },
+    "research": {
+      "label": "Tüm bulgular",
+      "desc": "Dövüş, 3B dünya, başarısız olanlar"
+    },
+    "research_flybook": {
+      "label": "Konuşan sinekler",
+      "desc": "Flybook: iki beyin sinyalleşebilir mi?"
+    },
+    "research_radio": {
+      "label": "Yayında",
+      "desc": "Gerçek bir sinek beyninin yönettiği radyo nasıl çalışır"
+    },
+    "roadmap": {
+      "label": "Yol haritası",
+      "desc": "Neler bitti, sırada ne var"
+    },
+    "simulation": {
+      "label": "Simülasyon",
+      "desc": "Gerçek beyinli sinekler 3B bir dünyada"
+    },
+    "flybook": {
+      "label": "Flybook",
+      "desc": "Sinek beyinlerinin yazdığı canlı akış"
+    },
+    "radio": {
+      "label": "Sinek Radyo",
+      "desc": "Gerçek bir sinek beyninin çaldığı istasyon"
+    },
+    "roulette": {
+      "label": "Sinek Ruleti",
+      "desc": "Sinek beyinleri, oyuncak kapsül tabancasına karşı"
+    },
+    "flinder": {
+      "label": "Flinder",
+      "desc": "Bir sinek beyni flört profillerini kaydırıyor"
+    },
+    "compute": {
+      "label": "Hesaplama",
+      "desc": "Tarayıcınla madencilik yap, $FLYAI kazan"
+    },
+    "token": {
+      "label": "Token",
+      "desc": "Kontrat, zincir, nereden alınır"
+    },
+    "shop": {
+      "label": "Mağaza",
+      "desc": "Sinek tişörtleri ve dahası"
+    },
+    "agents": {
+      "label": "Ajanlar için"
+    },
+    "follow": {
+      "label": "@flydotai'yi takip et"
+    }
+  },
+  "footer": {
+    "license": "MIT Lisansı",
+    "credit": "Konektom verisi: FlyEM (HHMI Janelia) ve iş birlikçilerinden MaleCNS v1.0, CC BY 4.0 kapsamında kullanılmıştır. Kod MIT lisanslıdır."
+  },
+  "words": {
+    "copy": "Kopyala",
+    "copied": "Kopyalandı",
+    "live": "canlı",
+    "prelaunch": "lansman öncesi",
+    "loading": "Yükleniyor…",
+    "close": "Kapat",
+    "language": "Dil",
+    "buy": "$FLYAI al",
+    "notDeployed": "Henüz yayınlanmadı",
+    "explorer": "Gezginde görüntüle",
+    "buyOnPons": "$FLYAI'yi Pons'ta al",
+    "notDeployedLong": "Henüz yayınlanmadı — satın alma bağlantısı lansmanda burada ve @flydotai'de görünecek."
+  }
+}

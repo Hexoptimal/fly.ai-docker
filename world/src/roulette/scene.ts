@@ -3,6 +3,7 @@
  * pops a BANG! flag. Only looks: every choice comes from the page (main.ts), which gets it from the brains.
  */
 import * as THREE from "three";
+import { t } from "./i18n.ts";
 
 export interface Seat { name: string; color: string }
 
@@ -325,7 +326,7 @@ class Gun {
     stick.position.y = 0.35;
     this.flag.add(stick);
     this.sign = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.6),
-      new THREE.MeshBasicMaterial({ map: textTexture("BANG!", "#e0342c", "#fff6d5"), side: THREE.DoubleSide }));
+      new THREE.MeshBasicMaterial({ map: textTexture(t("roulette.scene.bang"), "#e0342c", "#fff6d5"), side: THREE.DoubleSide }));
     this.sign.position.y = 0.95;
     this.flag.add(this.sign);
     this.flag.position.set(0, 0.25, 1.2);
@@ -736,7 +737,7 @@ export class Stage {
     cap.position.y = 0.9;
     g.add(cap);
     const label = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 0.5),
-      new THREE.MeshBasicMaterial({ map: textTexture("RIP", "#222", "#c9ced6", 256, 192), transparent: true }));
+      new THREE.MeshBasicMaterial({ map: textTexture(t("roulette.scene.rip"), "#222", "#c9ced6", 256, 192), transparent: true }));
     label.position.set(0, 0.55, 0.11);
     g.add(label);
     g.position.set(Math.cos(a) * (this.radius + 1.6), 0, Math.sin(a) * (this.radius + 1.6));

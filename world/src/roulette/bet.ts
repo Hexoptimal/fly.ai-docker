@@ -10,6 +10,7 @@
  * and /assets to a local mining server (world/vite.config.ts).
  */
 import { deriveRng, setup, sha256Hex, type GameEvent, type Table } from "./game.ts";
+import { t } from "./i18n.ts";
 
 interface Hooks {
   size(): number;
@@ -86,7 +87,7 @@ export function initBets(hooks: Hooks) {
     const data = await res.json().catch(() => ({}));
     if (res.status === 401 && acct?.signedIn()) {
       await acct.signOut();
-      throw new ApiError(401, "your sign-in ran out; sign in again");
+      throw new ApiError(401, t("roulette.bet.sessionExpired"));
     }
     if (!res.ok) throw new ApiError(res.status, data.error ?? `HTTP ${res.status}`);
     return data;
@@ -101,13 +102,14 @@ export function initBets(hooks: Hooks) {
     const pick = hooks.champion();
     const names = hooks.names();
     pickEl.innerHTML = pick >= 0
-      ? `on seat ${pick + 1} <span class="dot" style="background:${hooks.color(pick)}"></span> <span class="dim">(now ${esc(names[pick] ?? "")})</span>`
-      : `<span class="dim">tap a fly to back its seat</span>`;
-    paysEl.innerHTML = `${n} flies: a win pays <b>${mult}x</b>${stake > 0 ? ` = <b>${fmt(stake * mult)} FLYAI</b>` : ""}`;
+      ? t("roulette.bet.pickOn", { seat: pick + 1, dot: `<span class="dot" style="background:${hooks.color(pick)}"></span>`, name: esc(names[pick] ?? "") })
+      : `<span class="dim">${t("roulette.bet.pickNone")}</span>`;
+    paysEl.innerHTML = t("roulette.bet.pays", { flies: t("roulette.controls.flies", { count: n }), mult })
+      + (stake > 0 ? t("roulette.bet.paysTotal", { total: fmt(stake * mult) }) : "");
     const bal = me ? Number(me.balance) : 0;
     const ready = !!acct?.signedIn() && !!me && cfg.on && !cfg.paused && pick >= 0 && stake > 0 && stake <= bal && !hooks.playing() && !betting && !me.live_game;
     goBtn.disabled = !ready;
-    goBtn.title = !me ? "sign in first" : pick < 0 ? "pick a fly first" : stake > bal ? "more than your balance" : "";
+    goBtn.title = !me ? t("roulette.bet.needSignIn") : pick < 0 ? t("roulette.bet.needPick") : stake > bal ? t("roulette.bet.overBalance") : "";
   }
 
   function showMe(): void {
@@ -118,10 +120,10 @@ export function initBets(hooks: Hooks) {
     whoEl.textContent = `${wallet.slice(0, 6)}…${wallet.slice(-4)}`;
     balanceEl.textContent = `${fmt(me.balance)} FLYAI`;
     const wr = me.withdraw_request;
-    $("bet-withdraw-note").textContent = wr ? `You asked for ${fmt(wr.amount)} FLYAI back; it's sent by hand, usually within a day.` : "";
-    historyEl.innerHTML = me.history.length ? me.history.map((h) => `<li><span>${h.flies} flies · seat ${h.pick + 1} · ${fmt(h.stake)}</span>
-      <b class="${h.won ? "won" : h.status === "done" ? "lost" : ""}">${h.status === "live" ? "playing" : h.status === "void" ? "refunded" : h.won ? `+${fmt(h.payout)}` : `−${fmt(h.stake)}`}</b></li>`).join("")
-      : `<li class="dim">No bets yet.</li>`;
+    $("bet-withdraw-note").textContent = wr ? t("roulette.bet.withdrawAsked", { amount: fmt(wr.amount) }) : "";
+    historyEl.innerHTML = me.history.length ? me.history.map((h) => `<li><span>${t("roulette.bet.historyRow", { flies: t("roulette.controls.flies", { count: h.flies }), seat: h.pick + 1, stake: fmt(h.stake) })}</span>
+      <b class="${h.won ? "won" : h.status === "done" ? "lost" : ""}">${h.status === "live" ? t("roulette.bet.playing") : h.status === "void" ? t("roulette.bet.refunded") : h.won ? `+${fmt(h.payout)}` : `−${fmt(h.stake)}`}</b></li>`).join("")
+      : `<li class="dim">${t("roulette.bet.noBets")}</li>`;
     changed();
   }
 
@@ -172,7 +174,7 @@ export function initBets(hooks: Hooks) {
         yield event as GameEvent;
         if (event.type === "end") return;
       }
-      if (g.status === "void") throw new ApiError(500, "the server couldn't finish this game; your stake was refunded");
+      if (g.status === "void") throw new ApiError(500, t("roulette.bet.gameVoid"));
       await new Promise((r) => setTimeout(r, 1000));
     }
   }
@@ -181,7 +183,7 @@ export function initBets(hooks: Hooks) {
     resultEl.hidden = true;
     const won = (winner: number) => winner === game.pick;
     await hooks.show(game.names, game.pick, events(game.id), (winner) => won(winner)
-      ? `<small class="betwin">+${fmt(game.payout)} FLYAI to your balance</small>`
+      ? `<small class="betwin">${t("roulette.bet.toBalance", { amount: fmt(game.payout) })}</small>`
       : `<small class="betloss">−${fmt(game.stake)} FLYAI</small>`);
     const done = await api(`/api/roulette/games/${game.id}`);
     showResult(done);
@@ -197,7 +199,7 @@ export function initBets(hooks: Hooks) {
         if (!(await acceptTerms())) return;
         me.terms_accepted = true;
       }
-      say("locking in the server's seed…");
+      say(t("roulette.bet.locking"));
       const { commit_id, hash } = await api("/api/roulette/commit", {});
       $("bet-commit").textContent = hash;
       const game = await api("/api/roulette/games", {
@@ -220,10 +222,10 @@ export function initBets(hooks: Hooks) {
   function showResult(g: any): void {
     last = g;
     resultEl.hidden = false;
-    $("res-line").innerHTML = g.status === "void" ? "Refunded: the server couldn't finish this game."
-      : g.won ? `You won <b>+${fmt(g.payout)} FLYAI</b>` : `You lost <b>${fmt(g.stake)} FLYAI</b>`;
+    $("res-line").innerHTML = g.status === "void" ? t("roulette.bet.resVoid")
+      : g.won ? t("roulette.bet.resWon", { amount: fmt(g.payout) }) : t("roulette.bet.resLost", { amount: fmt(g.stake) });
     $("res-commit").textContent = g.commit_hash;
-    $("res-server").textContent = g.server_seed ?? "not yet revealed";
+    $("res-server").textContent = g.server_seed ?? t("roulette.bet.notRevealed");
     $("res-client").textContent = g.client_seed;
     $("res-verify-out").textContent = "";
     $<HTMLButtonElement>("res-verify").disabled = !g.server_seed;
@@ -236,23 +238,23 @@ export function initBets(hooks: Hooks) {
     const btn = $<HTMLButtonElement>("res-verify");
     btn.disabled = true;
     try {
-      if ((await sha256Hex(g.server_seed)) !== g.commit_hash) { out.textContent = "✗ the server seed doesn't match the commit"; return; }
-      if (!hooks.brainReady()) { out.textContent = "the fly brains are still loading; try in a moment"; return; }
+      if ((await sha256Hex(g.server_seed)) !== g.commit_hash) { out.textContent = t("roulette.bet.vBadSeed"); return; }
+      if (!hooks.brainReady()) { out.textContent = t("roulette.bet.vLoading"); return; }
       const rng = await deriveRng(g.server_seed, g.client_seed);
       const table = setup(g.flies, rng);
-      if (JSON.stringify(table.names) !== JSON.stringify(g.names)) { out.textContent = "✗ the table doesn't follow from the seeds"; return; }
+      if (JSON.stringify(table.names) !== JSON.stringify(g.names)) { out.textContent = t("roulette.bet.vBadTable"); return; }
       const theirs = (g.events as (GameEvent & { seq: number })[]).map(({ seq: _seq, ...e }) => JSON.stringify(e));
       let k = 0;
-      out.textContent = "replaying on your own fly brains… 0 turns";
+      out.textContent = t("roulette.bet.vStart");
       const ok = await hooks.replay(table, rng, (e) => {
         const same = JSON.stringify(e) === theirs[k];
         k++;
-        if (e.type === "turn") out.textContent = `replaying on your own fly brains… ${k} of ${theirs.length - 1} turns`;
+        if (e.type === "turn") out.textContent = t("roulette.bet.vProgress", { k, n: theirs.length - 1 });
         return same;
       });
       out.textContent = ok && k === theirs.length
-        ? `✓ checked: the seed matches the commit, and all ${k - 1} turns replay the same on your own fly brains`
-        : `✗ turn ${k} came out differently here (other browsers than Chrome may round differently)`;
+        ? t("roulette.bet.vOk", { n: k - 1 })
+        : t("roulette.bet.vDiff", { k });
     } finally {
       btn.disabled = false;
     }
@@ -262,19 +264,19 @@ export function initBets(hooks: Hooks) {
   async function deposit(): Promise<void> {
     const amountEl = $<HTMLInputElement>("dep-amount"), status = $("dep-status");
     const wei = toWei(amountEl.value);
-    if (!wei || wei <= 0n) { status.textContent = "enter an amount"; return; }
+    if (!wei || wei <= 0n) { status.textContent = t("roulette.bet.enterAmount"); return; }
     if (!acct || !chain) return;
     const btn = $<HTMLButtonElement>("dep-go");
     btn.disabled = true;
     try {
       const data = `0xa9059cbb${chain.pay_to.slice(2).toLowerCase().padStart(64, "0")}${wei.toString(16).padStart(64, "0")}`;
       const tx = await acct.transact(chain.token, data, (t) => { status.textContent = t; }, chain.chain_id);
-      status.textContent = "waiting for the transfer to be mined…";
+      status.textContent = t("roulette.bet.mining");
       await acct.mined(tx, chain.chain_id);
       for (let i = 0; ; i++) {
         try {
           const r = await api("/api/balance/deposit", { tx });
-          status.textContent = `✓ ${fmt(r.deposited)} FLYAI added`;
+          status.textContent = t("roulette.bet.deposited", { amount: fmt(r.deposited) });
           break;
         } catch (err) {
           if (!(err instanceof ApiError && err.status === 409 && /mined/.test(err.message)) || i > 20) throw err;
@@ -292,10 +294,10 @@ export function initBets(hooks: Hooks) {
 
   async function withdraw(): Promise<void> {
     const amountEl = $<HTMLInputElement>("wd-amount"), status = $("wd-status");
-    if (!toWei(amountEl.value)) { status.textContent = "enter an amount"; return; }
+    if (!toWei(amountEl.value)) { status.textContent = t("roulette.bet.enterAmount"); return; }
     try {
       me = await api("/api/balance/withdraw-request", { amount: amountEl.value.trim() });
-      status.textContent = "✓ asked; it's sent to your wallet by hand, usually within a day";
+      status.textContent = t("roulette.bet.withdrawOk");
       amountEl.value = "";
       showMe();
     } catch (err) {
@@ -309,18 +311,18 @@ export function initBets(hooks: Hooks) {
       const config = await import(/* @vite-ignore */ new URL("/compute/mine/web/config.js", location.href).href);
       API = import.meta.env.DEV ? "" : config.API;
       cfg = await api("/api/roulette/config");
-      if (!cfg!.on) { offEl.textContent = "Betting isn't open yet. Free play is on the table."; return; }
+      if (!cfg!.on) { offEl.textContent = t("roulette.bet.closed"); return; }
       acct = await import(/* @vite-ignore */ new URL("/compute/mine/web/account.js", location.href).href) as Account;
       const oc = await api("/api/orders/config").catch(() => null);
       if (oc?.pay_to) chain = { token: oc.token, pay_to: oc.pay_to, chain_id: oc.chain_id ?? oc.chain?.id };
     } catch {
-      offEl.textContent = "Betting is out of reach right now; free play still works.";
+      offEl.textContent = t("roulette.bet.unreachable");
       return;
     }
     offEl.hidden = true;
     card.classList.add("on");
-    $("bet-limits").textContent = `Bets ${fmt(cfg!.min_bet)} to ${fmt(cfg!.max_bet)} FLYAI · up to ${fmt(cfg!.max_day)} a day · house edge ${Math.round(cfg!.edge * 100)}%`;
-    if (cfg!.paused) say("Betting is paused for now; try again later.", true);
+    $("bet-limits").textContent = t("roulette.bet.limits", { min: fmt(cfg!.min_bet), max: fmt(cfg!.max_bet), day: fmt(cfg!.max_day), edge: Math.round(cfg!.edge * 100) });
+    if (cfg!.paused) say(t("roulette.bet.paused"), true);
     stakeEl.value = cfg!.min_bet;
     acct.onAccount(() => void refresh());
     $("bet-signin").onclick = async () => {

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { setStyle, type StyleBody } from "./api";
 import type { Learning } from "./feed";
+import { t, tAt } from "./i18n";
 
+/** label and note are English; the UI shows t(`flybook.style.learners.<key>.label`) and `.note`. */
 export const LEARNERS: { key: keyof Learning; label: string; note: string }[] = [
   { key: "dopamine", label: "Dopamine", note: "profit tunes what it notices and wants." },
   { key: "memory", label: "Memory", note: "stops trades that lost before." },
@@ -39,8 +41,8 @@ export function StylePicker({ value, onChange, naturalHelp }: { value: Style; on
       <div className="profiles style-presets">
         {PRESETS.map((p) => (
           <button type="button" key={p.key} className={`profile${preset === p.key ? " on" : ""}`} onClick={() => onChange(p.style)}>
-            <b>{p.label}</b>
-            <span>{p.key === "natural" && naturalHelp ? naturalHelp : p.help}</span>
+            <b>{tAt("flybook.style.presets", p.key, "label")}</b>
+            <span>{p.key === "natural" && naturalHelp ? naturalHelp : tAt("flybook.style.presets", p.key, "help")}</span>
           </button>
         ))}
       </div>
@@ -49,7 +51,7 @@ export function StylePicker({ value, onChange, naturalHelp }: { value: Style; on
           <label key={x.key} className={`learner${value.learning[x.key] ? " on" : ""}`}>
             <input type="checkbox" checked={value.learning[x.key]}
                    onChange={() => onChange({ ...value, learning: { ...value.learning, [x.key]: !value.learning[x.key] } })} />
-            <span><b>{x.label}</b>: {x.note}</span>
+            <span><b>{tAt("flybook.style.learners", x.key, "label")}</b>: {tAt("flybook.style.learners", x.key, "note")}</span>
           </label>
         ))}
       </div>
@@ -57,15 +59,15 @@ export function StylePicker({ value, onChange, naturalHelp }: { value: Style; on
         <span className="slider-top">
           <label className="risk-set">
             <input type="checkbox" checked={value.risk !== null} onChange={(e) => onChange({ ...value, risk: e.target.checked ? 0.25 : null })} />
-            Set risk per buy
+            {t("flybook.style.setRisk")}
           </label>
-          <span className={`mono${value.risk === null ? "" : " changed"}`}>{value.risk === null ? "born with it" : `${Math.round(value.risk * 100)}%`}</span>
+          <span className={`mono${value.risk === null ? "" : " changed"}`}>{value.risk === null ? t("flybook.style.bornWith") : `${Math.round(value.risk * 100)}%`}</span>
         </span>
         {value.risk !== null && (
-          <input type="range" min={RISK[0]} max={RISK[1]} step={0.01} value={value.risk} aria-label="risk per buy"
+          <input type="range" min={RISK[0]} max={RISK[1]} step={0.01} value={value.risk} aria-label={t("flybook.style.riskLabel")}
                  onChange={(e) => onChange({ ...value, risk: Number(e.target.value) })} />
         )}
-        <small>How much of its paper cash goes into a buy ({Math.round(RISK[0] * 100)}–{Math.round(RISK[1] * 100)}%).</small>
+        <small>{t("flybook.style.riskHelp", { lo: Math.round(RISK[0] * 100), hi: Math.round(RISK[1] * 100) })}</small>
       </div>
     </div>
   );
@@ -86,7 +88,7 @@ export function StyleEditor({ flyId, learning, risk, onSaved }: {
       await setStyle(flyId, bodyOf(value));
       setSaved(value);
       onSaved?.(value);
-      setMsg("Saved. It trades this way from the next market round.");
+      setMsg(t("flybook.style.saved"));
     } catch (e) {
       setMsg((e as Error).message);
     } finally {
@@ -95,9 +97,9 @@ export function StyleEditor({ flyId, learning, risk, onSaved }: {
   };
   return (
     <div className="style-editor">
-      <StylePicker value={value} onChange={(s) => { setValue(s); setMsg(null); }} naturalHelp="All learners on, and it keeps its current risk." />
+      <StylePicker value={value} onChange={(s) => { setValue(s); setMsg(null); }} naturalHelp={t("flybook.style.editorNatural")} />
       <div className="style-save">
-        <button className="btn red" disabled={same(value, saved) || busy} onClick={save}>{busy ? "Saving…" : "Save style"}</button>
+        <button className="btn red" disabled={same(value, saved) || busy} onClick={save}>{t(busy ? "flybook.style.saving" : "flybook.style.save")}</button>
         {msg && <span className="fine">{msg}</span>}
       </div>
     </div>

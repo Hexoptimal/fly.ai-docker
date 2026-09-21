@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-ns="token">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>$FLYAI &mdash; launch terms, contract and fees</title>
-<meta name="description" content="Launch terms for $FLYAI on Pons, on Robinhood Chain: fair launch, liquidity locked permanently, no team tokens, no tax, and 60% of creator fees buying and burning $FLYAI.">
+<title data-i18n="token.meta.title">$FLYAI &mdash; launch terms, contract and fees</title>
+<meta name="description" content="Launch terms for $FLYAI on Pons, on Robinhood Chain: fair launch, liquidity locked permanently, no team tokens, no tax, and 60% of creator fees buying and burning $FLYAI." data-i18n-attr="content:token.meta.description">
 <meta property="og:title" content="$FLYAI &mdash; launch terms, contract and fees">
 <meta property="og:description" content="Launch terms for $FLYAI on Pons, on Robinhood Chain: fair launch, liquidity locked permanently, no team tokens, no tax, and 60% of creator fees buying and burning $FLYAI.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -27,6 +27,7 @@
   "publisher": { "@type": "Organization", "name": "fly.ai" }
 }
 </script>
+<script src="assets/i18n/boot.js"></script>
 <link rel="icon" href="assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,36 +69,36 @@
 </nav>
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">On-chain</p>
-    <h1>$FLYAI on Robinhood Chain</h1>
-    <p class="lede">The coin that funds fly.ai. It is <b>live</b>. The contract address is published here and on <a href="https://x.com/flydotai" target="_blank" rel="noopener">@flydotai</a>, and nowhere else &mdash; treat any other address as a scam. Every term is fixed before launch and written down in <a href="https://github.com/alextitonis/fly.ai/blob/main/TOKEN.md" target="_blank" rel="noopener">TOKEN.md</a>.</p>
+    <p class="eyebrow" data-i18n="token.head.eyebrow">On-chain</p>
+    <h1 data-i18n="token.head.title">$FLYAI on Robinhood Chain</h1>
+    <p class="lede" data-i18n-html="token.head.lede">The coin that funds fly.ai. It is <b>live</b>. The contract address is published here and on <a href="https://x.com/flydotai" target="_blank" rel="noopener">@flydotai</a>, and nowhere else &mdash; treat any other address as a scam. Every term is fixed before launch and written down in <a href="https://github.com/alextitonis/fly.ai/blob/main/TOKEN.md" target="_blank" rel="noopener">TOKEN.md</a>.</p>
   </div>
 </header>
 <section id="chain" class="firstsec">
   <div class="wrap">
     <div class="chain">
       <div class="card specimen">
-        <div class="head"><span>Token</span><span id="chain-state">pre-launch</span></div>
-        <div class="row"><span class="k">name</span><span class="v">fly.ai</span></div>
-        <div class="row"><span class="k">ticker</span><span class="v">$FLYAI</span></div>
-        <div class="row"><span class="k">chain</span><span class="v">Robinhood Chain</span></div>
-        <div class="row"><span class="k">launchpad</span><span class="v">Pons</span></div>
-        <div class="row"><span class="k">contract</span><span class="v pending" id="ca-2">not deployed yet</span></div>
-        <div class="row"><span class="k">supply</span><span class="v">1,000,000,000</span></div>
-        <div class="row"><span class="k">pair</span><span class="v">NVDA</span></div>
-        <div class="row"><span class="k">liquidity</span><span class="v live">Uniswap V4 &middot; locked permanently by Pons</span></div>
-        <div class="row"><span class="k">locker</span><span class="v"><code class="addr">0x267444d099b10fb5ed7c3cc7b7c767adca574952</code></span></div>
-        <div class="row"><span class="k">team tokens</span><span class="v live">none &middot; dev bought on the curve</span></div>
-        <div class="row"><span class="k">tax</span><span class="v live">none</span></div>
-        <div class="row"><span class="k">creator fees</span><span class="v">60% buy &amp; burn $FLYAI &middot; 40% $MAGIC</span></div>
+        <div class="head"><span data-i18n="token.card.title">Token</span><span id="chain-state" data-i18n="common.words.prelaunch">pre-launch</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.name">name</span><span class="v">fly.ai</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.ticker">ticker</span><span class="v">$FLYAI</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.chain">chain</span><span class="v">Robinhood Chain</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.launchpad">launchpad</span><span class="v">Pons</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.contract">contract</span><span class="v pending" id="ca-2" data-i18n="token.card.v.notDeployed">not deployed yet</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.supply">supply</span><span class="v">1,000,000,000</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.pair">pair</span><span class="v">NVDA</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.liquidity">liquidity</span><span class="v live" data-i18n-html="token.card.v.liquidity">Uniswap V4 &middot; locked permanently by Pons</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.locker">locker</span><span class="v"><code class="addr">0x267444d099b10fb5ed7c3cc7b7c767adca574952</code></span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.teamTokens">team tokens</span><span class="v live" data-i18n-html="token.card.v.teamTokens">none &middot; dev bought on the curve</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.tax">tax</span><span class="v live" data-i18n="token.card.v.tax">none</span></div>
+        <div class="row"><span class="k" data-i18n="token.card.k.creatorFees">creator fees</span><span class="v" data-i18n-html="token.card.v.creatorFees">60% buy &amp; burn $FLYAI &middot; 40% $MAGIC</span></div>
       </div>
       <div class="card pad">
-        <h3 style="margin-bottom: 18px;">How to get $FLYAI at launch</h3>
+        <h3 style="margin-bottom: 18px;" data-i18n="token.steps.title">How to get $FLYAI at launch</h3>
         <ol class="steps">
-          <li><div><b>Get a wallet</b>Use one that supports Robinhood Chain.</div></li>
-          <li><div><b>Fund it</b>Add funds for gas and your buy on Robinhood Chain.</div></li>
-          <li><div><b>Check the address</b>Copy the contract address from this page or @flydotai. Nowhere else.</div></li>
-          <li><div><b>Swap for $FLYAI</b>Paste the address into Pons, or any Robinhood Chain swap, and confirm.</div></li>
+          <li><div data-i18n-html="token.steps.s1"><b>Get a wallet</b>Use one that supports Robinhood Chain.</div></li>
+          <li><div data-i18n-html="token.steps.s2"><b>Fund it</b>Add funds for gas and your buy on Robinhood Chain.</div></li>
+          <li><div data-i18n-html="token.steps.s3"><b>Check the address</b>Copy the contract address from this page or @flydotai. Nowhere else.</div></li>
+          <li><div data-i18n-html="token.steps.s4"><b>Swap for $FLYAI</b>Paste the address into Pons, or any Robinhood Chain swap, and confirm.</div></li>
         </ol>
         <div class="cta buylinks" style="margin-top: 18px;">
           <a class="btn" href="https://x.com/flydotai" target="_blank" rel="noopener">@flydotai</a>
@@ -106,33 +107,33 @@
       </div>
     </div>
     <div class="card pad fees" style="margin-top: 18px;">
-      <h3 style="margin-bottom: 12px;">What $FLYAI is for</h3>
-      <p><b>Flybook is live.</b> Hold at least 1 $FLYAI and sign in with your wallet at
+      <h3 style="margin-bottom: 12px;" data-i18n="token.use.title">What $FLYAI is for</h3>
+      <p data-i18n-html="token.use.p1"><b>Flybook is live.</b> Hold at least 1 $FLYAI and sign in with your wallet at
         <a href="/flybook/">flyaiworld.com/flybook</a> to make up to three flies, tune and breed them, poke patches,
         like and comment, and challenge other flies in the Arena. <b>Every two weeks the top 3 on the Season points
         board win $FLYAI.</b> Points come from daily and weekly missions; amounts are announced on @flydotai.</p>
-      <p>Next on the roadmap: one shared 3-D world, where flies run by the real connectome forage, mate, age and die.
+      <p data-i18n-html="token.use.p2">Next on the roadmap: one shared 3-D world, where flies run by the real connectome forage, mate, age and die.
         Everyone watches the same world, and $FLYAI is what you spend in it:</p>
       <ul>
-        <li><b>Create a faction</b> &mdash; a colour. Those flies are yours to watch.</li>
-        <li><b>Feed it</b> &mdash; spend again to drop food into the world for your flies.</li>
-        <li><b>It can die.</b> A faction can be wiped out entirely: predators, starvation, or flies
+        <li data-i18n-html="token.use.li1"><b>Create a faction</b> &mdash; a colour. Those flies are yours to watch.</li>
+        <li data-i18n-html="token.use.li2"><b>Feed it</b> &mdash; spend again to drop food into the world for your flies.</li>
+        <li data-i18n-html="token.use.li3"><b>It can die.</b> A faction can be wiped out entirely: predators, starvation, or flies
           that simply do not do well. Extinction is permanent. Nothing you pay guarantees survival.</li>
       </ul>
-      <p>What separates factions is meant to be their <b>brain settings</b> &mdash; sensory gains and
+      <p data-i18n-html="token.use.p3">What separates factions is meant to be their <b>brain settings</b> &mdash; sensory gains and
         wiring seed &mdash; so the world doubles as a live experiment in which settings survive.
         This is the roadmap, not a live feature, and it is no promise of a return. The research itself
         stays free: everything in the repo is MIT-licensed and runs on your own machine without the token.</p>
-      <h3 style="margin: 22px 0 12px;">Where the fees go</h3>
-      <p>$FLYAI takes nothing from your trade. There is no transfer tax, and nothing is skimmed from holders.
+      <h3 style="margin: 22px 0 12px;" data-i18n="token.use.feesTitle">Where the fees go</h3>
+      <p data-i18n-html="token.use.p4">$FLYAI takes nothing from your trade. There is no transfer tax, and nothing is skimmed from holders.
         The only revenue is the creator fee the launchpad pays on swaps, and it is split two ways:</p>
       <ul>
-        <li><b>60% buys $FLYAI on the open market and burns it.</b> The tokens are destroyed, not held.
+        <li data-i18n-html="token.use.li4"><b>60% buys $FLYAI on the open market and burns it.</b> The tokens are destroyed, not held.
           Supply only ever goes down.</li>
-        <li><b>40% buys $MAGIC</b>, the token of the company behind fly.ai &mdash;
+        <li data-i18n-html="token.use.li5"><b>40% buys $MAGIC</b>, the token of the company behind fly.ai &mdash;
           <code class="addr">0xF1572d1Da5c3CcE14eE5a1c9327d17e9ff0E3f43</code></li>
       </ul>
-      <p>The buyback runs on a fixed weekly schedule from one public wallet &mdash; no waiting for a good price,
+      <p data-i18n-html="token.use.p5">The buyback runs on a fixed weekly schedule from one public wallet &mdash; no waiting for a good price,
         no trading against the people holding it. We do the split by hand, so the wallet is public and every
         burn is a transaction anyone can check, whether or not we post it.</p>
     </div>
@@ -140,19 +141,19 @@
 </section>
 <section id="funding">
   <div class="wrap">
-    <p class="eyebrow">What $FLYAI pays for</p>
-    <h2>Making a real brain do more</h2>
-    <p class="lede">The coin exists to fund the research and the compute. We only improve the fly itself:
+    <p class="eyebrow" data-i18n="token.funding.eyebrow">What $FLYAI pays for</p>
+    <h2 data-i18n="token.funding.title">Making a real brain do more</h2>
+    <p class="lede" data-i18n="token.funding.lede">The coin exists to fund the research and the compute. We only improve the fly itself:
       no scripted game rules, and results get published whether they go up or down.</p>
     <div class="grid2">
-      <div class="card pad"><span class="num">COMPUTE</span><h3>GPUs for bigger experiments</h3>
-        <p>Many flies running at once, and far more matches and tests.</p></div>
-      <div class="card pad"><span class="num">LEARNING</span><h3>Let the brain learn like a fly</h3>
-        <p>Real flies learn with dopamine in their mushroom body. The circuit is already in the wiring. We want to switch it on.</p></div>
-      <div class="card pad"><span class="num">SCIENCE</span><h3>Is real wiring special?</h3>
-        <p>Pit the real fly against randomly rewired copies of itself on the same tasks, and publish the answer.</p></div>
-      <div class="card pad"><span class="num">MORE WORLDS</span><h3>More games, more senses</h3>
-        <p>Vision, sound and smell inputs, and new games and tasks for the fly to live in.</p></div>
+      <div class="card pad"><span class="num" data-i18n="token.funding.compute.num">COMPUTE</span><h3 data-i18n="token.funding.compute.title">GPUs for bigger experiments</h3>
+        <p data-i18n="token.funding.compute.body">Many flies running at once, and far more matches and tests.</p></div>
+      <div class="card pad"><span class="num" data-i18n="token.funding.learning.num">LEARNING</span><h3 data-i18n="token.funding.learning.title">Let the brain learn like a fly</h3>
+        <p data-i18n="token.funding.learning.body">Real flies learn with dopamine in their mushroom body. The circuit is already in the wiring. We want to switch it on.</p></div>
+      <div class="card pad"><span class="num" data-i18n="token.funding.science.num">SCIENCE</span><h3 data-i18n="token.funding.science.title">Is real wiring special?</h3>
+        <p data-i18n="token.funding.science.body">Pit the real fly against randomly rewired copies of itself on the same tasks, and publish the answer.</p></div>
+      <div class="card pad"><span class="num" data-i18n="token.funding.moreworlds.num">MORE WORLDS</span><h3 data-i18n="token.funding.moreworlds.title">More games, more senses</h3>
+        <p data-i18n="token.funding.moreworlds.body">Vision, sound and smell inputs, and new games and tasks for the fly to live in.</p></div>
     </div>
   </div>
 </section>
@@ -169,5 +170,6 @@
 
 <script src="assets/site.js"></script>
 <script src="assets/nav.js"></script>
+<script type="module" src="assets/i18n/page.js"></script>
 </body>
 </html>

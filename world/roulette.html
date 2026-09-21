@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fly Roulette</title>
-<meta name="description" content="Cartoon flies pass a toy cap gun around the table. Each fly's real 166,700-neuron connectome, running in your browser, decides: squeeze the trigger or fly off. Last fly standing wins.">
+<title data-i18n="roulette.meta.title">Fly Roulette</title>
+<meta name="description" data-i18n-attr="content:roulette.meta.description" content="Cartoon flies pass a toy cap gun around the table. Each fly's real 166,700-neuron connectome, running in your browser, decides: squeeze the trigger or fly off. Last fly standing wins.">
 <meta property="og:title" content="Fly Roulette">
 <meta property="og:description" content="Real fly brains play roulette with a toy cap gun. Squeeze or fly off?">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/roulette/">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -244,25 +245,25 @@
 <main>
   <div class="head">
     <div>
-      <h1>Fly <span>Roulette</span></h1>
-      <p class="sub">A toy cap gun goes round the table. Each fly's real brain decides: squeeze the trigger or fly off. Last fly at the table wins.</p>
+      <h1 data-i18n-html="roulette.head.title">Fly <span>Roulette</span></h1>
+      <p class="sub" data-i18n="roulette.head.sub">A toy cap gun goes round the table. Each fly's real brain decides: squeeze the trigger or fly off. Last fly at the table wins.</p>
     </div>
-    <span id="status" class="mono">loading the fly brains…</span>
+    <span id="status" class="mono" data-i18n="roulette.status.loading">loading the fly brains…</span>
   </div>
 
   <div class="game">
     <div class="stagebox">
       <div id="stage"></div>
       <div id="tags"></div>
-      <div id="pick-hint">tap a fly to back it</div>
+      <div id="pick-hint" data-i18n="roulette.stage.pickHint">tap a fly to back it</div>
       <div id="banner" hidden></div>
     </div>
 
     <div class="panel">
       <div class="card">
         <div class="controls">
-          <button class="btn primary" id="start" disabled>Spin the drum</button>
-          <select id="size" aria-label="Flies at the table">
+          <button class="btn primary" id="start" disabled data-i18n="roulette.controls.spin">Spin the drum</button>
+          <select id="size" aria-label="Flies at the table" data-i18n-attr="aria-label:roulette.controls.sizeLabel">
             <option value="2">2 flies</option>
             <option value="3">3 flies</option>
             <option value="4">4 flies</option>
@@ -273,104 +274,104 @@
             <option value="9">9 flies</option>
             <option value="10">10 flies</option>
           </select>
-          <button class="btn" id="speed">Speed: normal</button>
-          <button class="btn" id="sound">Sound: on</button>
+          <button class="btn" id="speed" data-i18n="roulette.controls.speedNormal">Speed: normal</button>
+          <button class="btn" id="sound" data-i18n="roulette.controls.soundOn">Sound: on</button>
         </div>
         <div id="tally"></div>
       </div>
 
       <div class="card bet" id="bet-card">
-        <h2>Play for $FLYAI</h2>
-        <p class="note" id="bet-off">Loading the betting table…</p>
+        <h2 data-i18n="roulette.bet.title">Play for $FLYAI</h2>
+        <p class="note" id="bet-off" data-i18n="roulette.bet.loading">Loading the betting table…</p>
         <div id="bet-out" hidden>
-          <p class="bet-intro">Back a fly with real $FLYAI. If it's the last fly at the table, you win your stake times the number of flies, less 5%.</p>
-          <button class="btn primary" id="bet-signin" type="button">Sign in with your wallet</button>
+          <p class="bet-intro" data-i18n="roulette.bet.intro">Back a fly with real $FLYAI. If it's the last fly at the table, you win your stake times the number of flies, less 5%.</p>
+          <button class="btn primary" id="bet-signin" type="button" data-i18n="roulette.bet.signIn">Sign in with your wallet</button>
         </div>
         <div id="bet-in" hidden>
           <div class="bet-acct">
             <span><span class="mono dim" id="bet-who"></span><br><b id="bet-balance">…</b></span>
             <span class="bet-acct-btns">
-              <button class="btn" id="bet-deposit" type="button">Deposit</button>
-              <button class="btn" id="bet-withdraw" type="button">Withdraw</button>
-              <button class="btn" id="bet-signout" type="button" title="Sign out">⏻</button>
+              <button class="btn" id="bet-deposit" type="button" data-i18n="roulette.bet.deposit">Deposit</button>
+              <button class="btn" id="bet-withdraw" type="button" data-i18n="roulette.bet.withdraw">Withdraw</button>
+              <button class="btn" id="bet-signout" type="button" title="Sign out" data-i18n-attr="title:roulette.bet.signOut">⏻</button>
             </span>
           </div>
           <div class="bet-box" id="bet-deposit-box" hidden>
-            <label>Send $FLYAI from your wallet to your balance
-              <span class="bet-row"><input id="dep-amount" inputmode="decimal" placeholder="amount"><button class="btn" id="dep-go" type="button">Send</button></span></label>
+            <label><span data-i18n="roulette.bet.depositLabel">Send $FLYAI from your wallet to your balance</span>
+              <span class="bet-row"><input id="dep-amount" inputmode="decimal" placeholder="amount" data-i18n-attr="placeholder:roulette.bet.amount"><button class="btn" id="dep-go" type="button" data-i18n="roulette.bet.send">Send</button></span></label>
             <p class="note" id="dep-status"></p>
           </div>
           <div class="bet-box" id="bet-withdraw-box" hidden>
-            <label>Ask for $FLYAI back to your wallet
-              <span class="bet-row"><input id="wd-amount" inputmode="decimal" placeholder="amount"><button class="btn" id="wd-go" type="button">Ask</button></span></label>
-            <p class="note" id="wd-status">Withdrawals are sent by hand, usually within a day.</p>
+            <label><span data-i18n="roulette.bet.withdrawLabel">Ask for $FLYAI back to your wallet</span>
+              <span class="bet-row"><input id="wd-amount" inputmode="decimal" placeholder="amount" data-i18n-attr="placeholder:roulette.bet.amount"><button class="btn" id="wd-go" type="button" data-i18n="roulette.bet.ask">Ask</button></span></label>
+            <p class="note" id="wd-status" data-i18n="roulette.bet.withdrawNote">Withdrawals are sent by hand, usually within a day.</p>
           </div>
           <p class="note" id="bet-withdraw-note"></p>
-          <label class="bet-stake">Stake
+          <label class="bet-stake"><span data-i18n="roulette.bet.stake">Stake</span>
             <span class="bet-row"><input id="bet-stake" inputmode="decimal"><span class="mono">FLYAI</span></span></label>
           <p class="bet-line" id="bet-pick"></p>
           <p class="bet-line" id="bet-pays"></p>
-          <button class="btn primary" id="bet-go" type="button" disabled>Bet and spin</button>
+          <button class="btn primary" id="bet-go" type="button" disabled data-i18n="roulette.bet.go">Bet and spin</button>
           <p class="note" id="bet-msg"></p>
           <p class="note mono" id="bet-limits"></p>
           <div class="bet-result" id="bet-result" hidden>
             <p id="res-line"></p>
             <dl class="mono">
-              <dt>commit (shown before the bet)</dt><dd id="res-commit"></dd>
-              <dt>server seed (revealed after)</dt><dd id="res-server"></dd>
-              <dt>your seed</dt><dd id="res-client"></dd>
+              <dt data-i18n="roulette.bet.commitShown">commit (shown before the bet)</dt><dd id="res-commit"></dd>
+              <dt data-i18n="roulette.bet.serverSeed">server seed (revealed after)</dt><dd id="res-server"></dd>
+              <dt data-i18n="roulette.bet.yourSeed">your seed</dt><dd id="res-client"></dd>
             </dl>
-            <button class="btn" id="res-verify" type="button">Verify this game</button>
+            <button class="btn" id="res-verify" type="button" data-i18n="roulette.bet.verifyBtn">Verify this game</button>
             <p class="note" id="res-verify-out"></p>
           </div>
-          <p class="note mono dim">last commit: <span id="bet-commit">none yet</span></p>
-          <h3>Your bets</h3>
+          <p class="note mono dim"><span data-i18n="roulette.bet.lastCommit">last commit:</span> <span id="bet-commit" data-i18n="roulette.bet.noneYet">none yet</span></p>
+          <h3 data-i18n="roulette.bet.yourBets">Your bets</h3>
           <ul class="bet-history" id="bet-history"></ul>
           <details class="bet-how">
-            <summary>How betting works</summary>
+            <summary data-i18n="roulette.bet.howTitle">How betting works</summary>
             <ul>
-              <li><b>Free play stays free.</b> "Spin the drum" never touches money; betting is only this panel.</li>
-              <li><b>You against the house.</b> Every seat wins 1 time in n. A win pays stake × n × 0.95; the 5% is the house edge.</li>
-              <li><b>Your balance</b> is the same $FLYAI balance compute orders use: deposits, winnings and order refunds all land in it, and any of it can be bet, spent on orders or withdrawn.</li>
-              <li><b>Separate from the miners' pool.</b> Bets don't earn compute points, don't change anyone's share of the monthly pool, and no stakes or house edge go into it. The house edge stays with fly.ai.</li>
-              <li><b>Provably fair.</b> The server commits to its seed before your bet and reveals it after; "Verify this game" replays it on your own fly brains.</li>
+              <li data-i18n-html="roulette.bet.how1"><b>Free play stays free.</b> "Spin the drum" never touches money; betting is only this panel.</li>
+              <li data-i18n-html="roulette.bet.how2"><b>You against the house.</b> Every seat wins 1 time in n. A win pays stake × n × 0.95; the 5% is the house edge.</li>
+              <li data-i18n-html="roulette.bet.how3"><b>Your balance</b> is the same $FLYAI balance compute orders use: deposits, winnings and order refunds all land in it, and any of it can be bet, spent on orders or withdrawn.</li>
+              <li data-i18n-html="roulette.bet.how4"><b>Separate from the miners' pool.</b> Bets don't earn compute points, don't change anyone's share of the monthly pool, and no stakes or house edge go into it. The house edge stays with fly.ai.</li>
+              <li data-i18n-html="roulette.bet.how5"><b>Provably fair.</b> The server commits to its seed before your bet and reveals it after; "Verify this game" replays it on your own fly brains.</li>
             </ul>
           </details>
-          <p class="note"><a href="/roulette-terms">Terms</a> · 18+ only · play responsibly</p>
+          <p class="note" data-i18n-html="roulette.bet.footer"><a href="/roulette-terms">Terms</a> · 18+ only · play responsibly</p>
         </div>
       </div>
 
       <div class="card">
-        <h2>Inside its head</h2>
-        <div class="who" id="meter-name">nobody yet</div>
-        <div class="row"><span>Fly off <span class="mono" style="color:var(--dim)">wing motor neurons</span></span><span class="mono" id="wing-num">0</span>
-          <div class="bar"><i id="wing-bar"></i><span class="line" title="take-off"></span></div></div>
-        <div class="row"><span>Squeeze <span class="mono" style="color:var(--dim)">leg flexor neurons</span></span><span class="mono" id="grip-num">0</span>
+        <h2 data-i18n="roulette.meter.title">Inside its head</h2>
+        <div class="who" id="meter-name" data-i18n="roulette.meter.nobodyYet">nobody yet</div>
+        <div class="row"><span><span data-i18n="roulette.meter.flyOff">Fly off</span> <span class="mono" style="color:var(--dim)" data-i18n="roulette.meter.wingMn">wing motor neurons</span></span><span class="mono" id="wing-num">0</span>
+          <div class="bar"><i id="wing-bar"></i><span class="line" title="take-off" data-i18n-attr="title:roulette.meter.takeOff"></span></div></div>
+        <div class="row"><span><span data-i18n="roulette.meter.squeeze">Squeeze</span> <span class="mono" style="color:var(--dim)" data-i18n="roulette.meter.legMn">leg flexor neurons</span></span><span class="mono" id="grip-num">0</span>
           <div class="bar"><i id="grip-bar"></i></div></div>
-        <div class="row"><span>Panic <span class="mono" style="color:var(--dim)">giant fibre</span></span><span class="mono" id="gf-num">0</span></div>
+        <div class="row"><span><span data-i18n="roulette.meter.panic">Panic</span> <span class="mono" style="color:var(--dim)" data-i18n="roulette.meter.giantFibre">giant fibre</span></span><span class="mono" id="gf-num">0</span></div>
         <div id="verdict"></div>
-        <p class="note">Spikes from the fly's real 166,700-neuron connectome, running in your browser. The gun looks bigger with every empty click.</p>
+        <p class="note" data-i18n="roulette.meter.note">Spikes from the fly's real 166,700-neuron connectome, running in your browser. The gun looks bigger with every empty click.</p>
       </div>
 
       <div class="card">
-        <h2>Table talk</h2>
+        <h2 data-i18n="roulette.log.title">Table talk</h2>
         <ul id="log"></ul>
       </div>
     </div>
   </div>
 <dialog id="terms-dlg" class="terms">
-  <h3>Before your first bet</h3>
+  <h3 data-i18n="roulette.terms.title">Before your first bet</h3>
   <ul>
-    <li>You bet real $FLYAI from your balance. You can lose all of it.</li>
-    <li>Each fly at the table is equally likely to win. A win pays your stake times the number of flies, less a 5% house edge.</li>
-    <li>The server plays the game: it commits to its seed before your bet and reveals it after, so you can check every game.</li>
-    <li>Winnings go to your balance. Withdrawals are sent by hand and can take a day.</li>
-    <li>Betting may be illegal where you live. It's your responsibility to follow your local laws.</li>
+    <li data-i18n="roulette.terms.t1">You bet real $FLYAI from your balance. You can lose all of it.</li>
+    <li data-i18n="roulette.terms.t2">Each fly at the table is equally likely to win. A win pays your stake times the number of flies, less a 5% house edge.</li>
+    <li data-i18n="roulette.terms.t3">The server plays the game: it commits to its seed before your bet and reveals it after, so you can check every game.</li>
+    <li data-i18n="roulette.terms.t4">Winnings go to your balance. Withdrawals are sent by hand and can take a day.</li>
+    <li data-i18n="roulette.terms.t5">Betting may be illegal where you live. It's your responsibility to follow your local laws.</li>
   </ul>
-  <label><input type="checkbox" id="terms-18"> I'm 18 or older</label>
-  <label><input type="checkbox" id="terms-ok"> I accept the <a href="/roulette-terms" target="_blank" rel="noopener">terms</a></label>
+  <label><input type="checkbox" id="terms-18"> <span data-i18n="roulette.terms.over18">I'm 18 or older</span></label>
+  <label><input type="checkbox" id="terms-ok"> <span data-i18n-html="roulette.terms.accept">I accept the <a href="/roulette-terms" target="_blank" rel="noopener">terms</a></span></label>
   <p class="note" id="terms-msg"></p>
-  <div class="terms-btns"><button class="btn" id="terms-cancel" type="button">Cancel</button><button class="btn primary" id="terms-go" type="button" disabled>Continue</button></div>
+  <div class="terms-btns"><button class="btn" id="terms-cancel" type="button" data-i18n="roulette.terms.cancel">Cancel</button><button class="btn primary" id="terms-go" type="button" disabled data-i18n="roulette.terms.continue">Continue</button></div>
 </dialog>
 </main>
 <script type="module" src="/src/roulette/main.ts"></script>

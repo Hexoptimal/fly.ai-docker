@@ -7,32 +7,18 @@ import {
   db, loadMarket, type Coin, type FlyCoin, type FlyTrade, type Learning, type MarketControl, type MarketRound, type MarketSocial, type SocialHit,
   type Trader,
 } from "./feed";
+import { Html, t, t as translate, tAt, tOr, tn } from "./i18n";
 
-const SIDE: Record<FlyTrade["side"], string> = {
-  buy: "bought", panic_sell: "panic-sold", take_profit: "took profit on", sell: "sold", skipped: "almost traded",
-  launch: "launched", buyback: "bought back", dump: "dumped",
-};
-const WHY: Record<Exclude<FlyTrade["side"], "skipped">, string> = {
-  buy: "saw it moving and turned toward it",
-  panic_sell: "saw it falling like a looming shape and jumped",
-  take_profit: "felt the choppy market like wind and groomed",
-  sell: "backed away from it",
-  launch: "launched its own coin and put cash in its pool",
-  buyback: "watched its own coin fall and turned toward it",
-  dump: "watched its own coin crash and jumped out",
-};
-const WANTED: Record<string, string> = { buy: "buy", panic_sell: "panic-sell", take_profit: "take profit on", sell: "sell" };
-const SENSE: Record<string, string> = { target: "pumps (moving flies)", threat: "crashes (looming)", wind: "chop (wind)" };
-const ACTION: Record<string, string> = { buy: "buy", panic_sell: "panic sell", take_profit: "take profit", sell: "sell" };
-const INHERIT: Record<string, string> = {
-  traits: "children get its traits only",
-  partial: "children get its traits and part of what it learned",
-  all: "children get everything it learned",
-};
-const learningOf = (t: Trader): Learning => ({ dopamine: true, memory: true, tubes: true, ...(t.learning ?? {}) });
+// flybook.market.side / why / wanted / sense / action / inherit, by the server's key
+const SIDE = (side: string) => tAt("flybook.market.side", side);
+const WHY = (side: string) => tAt("flybook.market.why", side);
+const WANTED = (side: string) => tOr(`flybook.market.wanted.${side}`, t("flybook.market.wanted.trade"));
+const SENSE = (k: string) => tOr(`flybook.market.sense.${k}`, k);
+const ACTION = (k: string) => tOr(`flybook.market.action.${k}`, k);
+const learningOf = (tr: Trader): Learning => ({ dopamine: true, memory: true, tubes: true, ...(tr.learning ?? {}) });
 const setupName = (l: Learning) => {
-  const on = LEARNERS.filter((x) => l[x.key]).map((x) => x.label.toLowerCase());
-  return on.length === 0 ? "no learning" : on.length === LEARNERS.length ? "all learners" : on.join(" + ");
+  const on = LEARNERS.filter((x) => l[x.key]).map((x) => tAt("flybook.style.learners", x.key, "label").toLowerCase());
+  return on.length === 0 ? t("flybook.market.noLearning") : on.length === LEARNERS.length ? t("flybook.market.allLearners") : on.join(" + ");
 };
 /** A 0..max bar with the neutral value (1.0) marked. */
 function Bar({ value, max, label }: { value: number; max: number; label: string }) {
@@ -54,19 +40,19 @@ function Learners({ t, mine, onSaved }: { t: Trader; mine: boolean; onSaved: (fl
   if (mine) {
     return (
       <div className="learners">
-        <h5>Your call: its trading style</h5>
+        <h5>{translate("flybook.market.yourCall")}</h5>
         <StyleEditor flyId={t.fly_id} learning={l} risk={t.traits?.risk ?? null} onSaved={(s) => onSaved(t.fly_id, s)} />
       </div>
     );
   }
   return (
     <div className="learners">
-      <h5>Learns with</h5>
+      <h5>{translate("flybook.market.learnsWith")}</h5>
       <div className="learner-list">
         {LEARNERS.map((x) => (
           <label key={x.key} className={`learner${l[x.key] ? " on" : ""}`}>
             <input type="checkbox" checked={l[x.key]} disabled readOnly />
-            <span><b>{x.label}</b>: {x.note}</span>
+            <span><b>{tAt("flybook.style.learners", x.key, "label")}</b>: {tAt("flybook.style.learners", x.key, "note")}</span>
           </label>
         ))}
       </div>
@@ -78,35 +64,36 @@ function Learners({ t, mine, onSaved }: { t: Trader; mine: boolean; onSaved: (fl
 function Mind({ t, names, onFly, mine, onSaved }: {
   t: Trader; names: Map<string, Trader>; onFly: (id: string) => void; mine: boolean; onSaved: (flyId: string, s: Style) => void;
 }) {
+  const tr = translate;
   const s = t.stats ?? {};
   const tubes = Object.entries(t.tubes ?? {}).sort((a, b) => b[1] - a[1]).slice(0, 4);
   const parents = (t.fly_parents ?? []).map((id) => names.get(id)).filter((p): p is Trader => !!p);
   return (
     <div className="mind">
       <div className="mind-col">
-        <h5>Born with</h5>
+        <h5>{tr("flybook.market.bornWith")}</h5>
         <ul className="mind-traits">
-          <li>risks <b>{Math.round((t.traits?.risk ?? 0) * 100)}%</b> of its cash a buy</li>
-          <li>learns at <b>{(t.traits?.lr ?? 0).toFixed(2)}</b> per dopamine hit</li>
-          <li>remembers <b>{t.traits?.memory_size ?? "?"}</b> trades, compares <b>{t.traits?.k ?? "?"}</b> similar ones</li>
-          <li>tubes grow <b>{(t.traits?.tube_growth ?? 0).toFixed(2)}</b>, wither <b>{Math.round((t.traits?.tube_decay ?? 0) * 100)}%</b> a round</li>
+          <Html as="li" k="flybook.market.risks" vars={{ pct: Math.round((t.traits?.risk ?? 0) * 100) }} />
+          <Html as="li" k="flybook.market.learnsAt" vars={{ lr: (t.traits?.lr ?? 0).toFixed(2) }} />
+          <Html as="li" k="flybook.market.remembers" vars={{ size: t.traits?.memory_size ?? "?", k: t.traits?.k ?? "?" }} />
+          <Html as="li" k="flybook.market.tubesGrow" vars={{ grow: (t.traits?.tube_growth ?? 0).toFixed(2), decay: Math.round((t.traits?.tube_decay ?? 0) * 100) }} />
         </ul>
-        <p className="fine">{t.inherit ? INHERIT[t.inherit] : ""}{parents.length ? " · child of " : ""}
+        <p className="fine">{t.inherit ? tOr(`flybook.market.inherit.${t.inherit}`, t.inherit) : ""}{parents.length ? tr("flybook.market.childOf") : ""}
           {parents.map((p, i) => (
             <span key={p.fly_id}>{i ? " × " : ""}<button className="who inline" onClick={() => onFly(p.fly_id)}>{p.name}</button></span>
           ))}
         </p>
       </div>
       <div className="mind-col">
-        <h5>Dopamine has tuned</h5>
-        {Object.entries(t.gains ?? {}).map(([k, v]) => <Bar key={k} value={v} max={2.5} label={`notices ${SENSE[k] ?? k}`} />)}
-        {Object.entries(t.bias ?? {}).map(([k, v]) => <Bar key={k} value={v} max={2} label={`urge to ${ACTION[k] ?? k}`} />)}
-        <p className="fine">last dopamine {(s.dopamine ?? 0) >= 0 ? "+" : ""}{(s.dopamine ?? 0).toFixed(2)} · {s.good_trades ?? 0} good / {s.bad_trades ?? 0} bad trades</p>
+        <h5>{tr("flybook.market.dopamineTuned")}</h5>
+        {Object.entries(t.gains ?? {}).map(([k, v]) => <Bar key={k} value={v} max={2.5} label={tr("flybook.market.notices", { what: SENSE(k) })} />)}
+        {Object.entries(t.bias ?? {}).map(([k, v]) => <Bar key={k} value={v} max={2} label={tr("flybook.market.urgeTo", { what: ACTION(k) })} />)}
+        <p className="fine">{tr("flybook.market.lastDopamine", { d: `${(s.dopamine ?? 0) >= 0 ? "+" : ""}${(s.dopamine ?? 0).toFixed(2)}`, good: s.good_trades ?? 0, bad: s.bad_trades ?? 0 })}</p>
       </div>
       <div className="mind-col">
-        <h5>Memory and slime tubes</h5>
-        <p className="fine">remembers {t.memories ?? 0} trades · stopped itself {s.vetoes ?? 0} times</p>
-        {tubes.length === 0 && <p className="fine">No tubes grown yet.</p>}
+        <h5>{tr("flybook.market.memoryTubes")}</h5>
+        <p className="fine">{tr("flybook.market.memoryLine", { n: t.memories ?? 0, vetoes: s.vetoes ?? 0 })}</p>
+        {tubes.length === 0 && <p className="fine">{tr("flybook.market.noTubes")}</p>}
         {tubes.map(([sym, v]) => <Bar key={sym} value={v} max={5} label={`$${sym}`} />)}
       </div>
       <Learners t={t} mine={mine} onSaved={onSaved} />
@@ -155,16 +142,16 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
 
   const names = new Map(traders.map((t) => [t.fly_id, t]));
   const hyped = (hits?: SocialHit[], fromPosts = false) => [...new Set((hits ?? []).filter((h) => (h.kind === "post") === fromPosts)
-    .map((h) => names.get(h.from ?? "")?.name).filter(Boolean))].join(" and ");
+    .map((h) => names.get(h.from ?? "")?.name).filter(Boolean))].join(t("flybook.market.and"));
   // why the feed moved a trade: other flies setting it off in the patch, and its own posts since last round
-  const fromFeed = (t: FlyTrade) => {
-    const f = t.reason.felt;
+  const fromFeed = (tr: FlyTrade) => {
+    const f = tr.reason.felt;
     const bits: string[] = [];
-    if (t.side === "buy" && hyped(f?.target?.social, true)) bits.push(`${hyped(f?.target?.social, true)} caught its eye in the patch.`);
-    if (t.side === "panic_sell" && hyped(f?.threat?.social, true)) bits.push(`${hyped(f?.threat?.social, true)} startled it in the patch.`);
-    if (t.side === "panic_sell" && f?.threat?.mood) bits.push("Still jumpy from the feed.");
-    if (t.side === "buy" && f?.target?.mood) bits.push("Curious from the feed.");
-    if (t.side === "take_profit" && f?.wind?.mood) bits.push("Twitchy from the feed.");
+    if (tr.side === "buy" && hyped(f?.target?.social, true)) bits.push(t("flybook.market.caughtEye", { names: hyped(f?.target?.social, true) }));
+    if (tr.side === "panic_sell" && hyped(f?.threat?.social, true)) bits.push(t("flybook.market.startled", { names: hyped(f?.threat?.social, true) }));
+    if (tr.side === "panic_sell" && f?.threat?.mood) bits.push(t("flybook.market.stillJumpy"));
+    if (tr.side === "buy" && f?.target?.mood) bits.push(t("flybook.market.curious"));
+    if (tr.side === "take_profit" && f?.wind?.mood) bits.push(t("flybook.market.twitchy"));
     return bits.length ? ` ${bits.join(" ")}` : "";
   };
   const mineSocial = social.filter((e) => !mine || names.get(e.fly_id ?? "")?.owner === viewer?.userId);
@@ -172,34 +159,28 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
   const prev = rounds[rounds.length - 2];
   const board = traders.filter((t) => !mine || t.owner === viewer?.userId);
   const feed = trades.filter((t) => !mine || names.get(t.fly_id)?.owner === viewer?.userId);
-  const saved = (flyId: string, s: Style) => setTraders((ts) => ts.map((t) => (t.fly_id !== flyId ? t : {
-    ...t, learning: s.learning, traits: s.risk !== null ? { ...(t.traits ?? {}), risk: s.risk } : t.traits,
+  const saved = (flyId: string, s: Style) => setTraders((ts) => ts.map((x) => (x.fly_id !== flyId ? x : {
+    ...x, learning: s.learning, traits: s.risk !== null ? { ...(x.traits ?? {}), risk: s.risk } : x.traits,
   })));
   // average result per learner setup, so players can compare choices
   const bySetup = new Map<string, number[]>();
-  for (const t of traders) bySetup.set(setupName(learningOf(t)), [...(bySetup.get(setupName(learningOf(t))) ?? []), t.pnl]);
+  for (const x of traders) bySetup.set(setupName(learningOf(x)), [...(bySetup.get(setupName(learningOf(x))) ?? []), x.pnl]);
   const setups = [...bySetup].map(([name, p]) => ({ name, flies: p.length, pnl: p.reduce((a, b) => a + b, 0) / p.length }))
     .sort((a, b) => b.pnl - a.pnl);
 
   return (
     <div className="market">
       <div className="feed-head">
-        <h2>Fly market</h2>
-        <p>Every fly trades real Robinhood Chain tokens with their real brains, and learn. A pumping token looks like a fly
-          walking past, a crashing one like a looming shape; what the fly's neurons do becomes the trade. Profit is dopamine: it
-          tunes what the fly notices and wants, its memory stops trades that hurt before, and slime-mold tubes pull it back to
-          tokens that paid. Children inherit it. Owners set each fly's trading style (risk and learners) when they hatch or breed
-          it, in My flies, or in its 🧠 mind.</p>
+        <h2>{t("flybook.market.title")}</h2>
+        <p>{t("flybook.market.intro")}</p>
       </div>
-      <p className="market-warning">Real prices, paper money: every fly starts with 1 ETH's worth of paper USDG and nothing is bought or sold on
-        chain. Not advice.</p>
+      <p className="market-warning">{t("flybook.market.warning")}</p>
       {control?.paused && (
-        <p className="market-paused">⏸ Training paused{control.note ? `: ${control.note}` : ""}. No trades or learning until it resumes; every fly
-          keeps its portfolio, memories and tubes.</p>
+        <p className="market-paused">{t("flybook.market.paused", { note: control.note ? `: ${control.note}` : "" })}</p>
       )}
 
-      {coins === null && <div className="empty">Opening the market…</div>}
-      {coins !== null && coins.length === 0 && <div className="empty">The market opens with the next round.</div>}
+      {coins === null && <div className="empty">{t("flybook.market.opening")}</div>}
+      {coins !== null && coins.length === 0 && <div className="empty">{t("flybook.market.opensNext")}</div>}
 
       {coins !== null && coins.length > 0 && (
         <>
@@ -211,7 +192,7 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
                 <div key={c.symbol} className="coin card">
                   <div className="coin-top">
                     <b>${c.symbol}</b>
-                    <span className={`badge${c.category === "meme" ? " meme" : ""}`}>{c.category ?? (c.kind === "meme" ? "meme" : "sim")}</span>
+                    <span className={`badge${c.category === "meme" ? " meme" : ""}`}>{c.category ? tOr(`flybook.market.category.${c.category}`, c.category) : t(c.kind === "meme" ? "flybook.market.meme" : "flybook.market.sim")}</span>
                   </div>
                   <span className="fine">{c.name}</span>
                   <span className="mono coin-price">{cash(c.price)}</span>
@@ -222,80 +203,82 @@ export default function Market({ viewer, onFly }: { viewer: Viewer; onFly: (id: 
             })}
           </div>
           {last?.events?.length ? (
-            <p className="fine">Last round: {last.events.map((e) => `$${e.symbol} ${
-              e.kind === "launch" ? "launched" : e.kind === "died" ? "died, its pool is empty"
-                : e.kind === "likes" ? `${pct(e.move)} from people loving its creator's posts (${e.likes ?? 0} likes, ${e.comments ?? 0} comments)`
-                : `${e.kind === "rug" ? "got rugged" : e.kind === "dump" ? "dropped" : "pumped"} ${pct(e.move)}`}`).join(", ")}</p>
+            <p className="fine">{t("flybook.market.lastRound", { events: last.events.map((e) => `$${e.symbol} ${
+              e.kind === "launch" ? t("flybook.market.ev.launch") : e.kind === "died" ? t("flybook.market.ev.died")
+                : e.kind === "likes" ? t("flybook.market.ev.likes", { move: pct(e.move), likes: e.likes ?? 0, comments: e.comments ?? 0 })
+                : t(e.kind === "rug" ? "flybook.market.ev.rug" : e.kind === "dump" ? "flybook.market.ev.dump" : "flybook.market.ev.pump", { move: pct(e.move) })}`).join(", ") })}</p>
           ) : null}
           <FlyCoins coins={flyCoins} onFly={onFly} />
 
           <div className="board-controls">
             <div className="seg">
-              <button className={!mine ? "on" : ""} onClick={() => setMine(false)}>All traders</button>
-              <button className={mine ? "on" : ""} onClick={() => setMine(true)} disabled={!viewer}>My flies</button>
+              <button className={!mine ? "on" : ""} onClick={() => setMine(false)}>{t("flybook.market.allTraders")}</button>
+              <button className={mine ? "on" : ""} onClick={() => setMine(true)} disabled={!viewer}>{t("flybook.market.myFlies")}</button>
             </div>
           </div>
           {setups.length > 1 && (
-            <p className="fine setups">By setup:{" "}
-              {setups.map((s) => `${s.name} ${pct(s.pnl)} (${s.flies} ${s.flies === 1 ? "fly" : "flies"})`).join(" · ")}</p>
+            <p className="fine setups">{t("flybook.market.bySetup")}
+              {setups.map((s) => t("flybook.market.setupLine", { name: s.name, pnl: pct(s.pnl), count: s.flies })).join(" · ")}</p>
           )}
 
           <div className="market-grid">
             <section>
-              <h4>Fly traders</h4>
-              {board.length === 0 && <div className="empty">No trading flies yet. Every fly starts with 1 ETH's worth of paper USDG.</div>}
+              <h4>{t("flybook.market.traders")}</h4>
+              {board.length === 0 && <div className="empty">{t("flybook.market.noTraders")}</div>}
               <ol className="ranking traders">
-                {board.map((t, i) => (
-                  <li key={t.fly_id} className={`${viewer && t.owner === viewer.userId ? "me" : ""}${open === t.fly_id ? " open" : ""}`}>
+                {board.map((x, i) => (
+                  <li key={x.fly_id} className={`${viewer && x.owner === viewer.userId ? "me" : ""}${open === x.fly_id ? " open" : ""}`}>
                     <span className={`rank${i < 3 ? ` top${i + 1}` : ""}`}>{i + 1}</span>
-                    <button className="who" onClick={() => onFly(t.fly_id)}>
-                      <span className="dot" style={{ background: t.color }} />{t.name}
+                    <button className="who" onClick={() => onFly(x.fly_id)}>
+                      <span className="dot" style={{ background: x.color }} />{x.name}
                     </button>
-                    {(t.generation ?? 1) > 1 && <span className="badge">gen {t.generation}</span>}
-                    <span className="stat">{cash(t.value_eth)}</span>
-                    <span className={`sub mono ${t.pnl >= 0 ? "up" : "down"}`}>
-                      {pct(t.pnl)} · {t.trades} trades · {setupName(learningOf(t))} · holds {Object.keys(t.holdings ?? {}).map((s) => `$${s}`).join(" ") || "only cash"}
+                    {(x.generation ?? 1) > 1 && <span className="badge">{t("flybook.market.gen", { n: x.generation ?? 1 })}</span>}
+                    <span className="stat">{cash(x.value_eth)}</span>
+                    <span className={`sub mono ${x.pnl >= 0 ? "up" : "down"}`}>
+                      {t("flybook.market.traderLine", { pnl: pct(x.pnl), trades: x.trades, setup: setupName(learningOf(x)),
+                        holds: Object.keys(x.holdings ?? {}).map((s) => `$${s}`).join(" ") || t("flybook.market.onlyCash") })}
                     </span>
-                    <button className="more mind-toggle" onClick={() => setWallet(wallet === t.fly_id ? null : t.fly_id)} aria-expanded={wallet === t.fly_id}>
-                      {wallet === t.fly_id ? "hide wallet" : "💰 wallet"}
+                    <button className="more mind-toggle" onClick={() => setWallet(wallet === x.fly_id ? null : x.fly_id)} aria-expanded={wallet === x.fly_id}>
+                      {t(wallet === x.fly_id ? "flybook.market.hideWallet" : "flybook.market.wallet")}
                     </button>
-                    <button className="more" onClick={() => setOpen(open === t.fly_id ? null : t.fly_id)} aria-expanded={open === t.fly_id}>
-                      {open === t.fly_id ? "hide mind" : "🧠 mind"}
+                    <button className="more" onClick={() => setOpen(open === x.fly_id ? null : x.fly_id)} aria-expanded={open === x.fly_id}>
+                      {t(open === x.fly_id ? "flybook.market.hideMind" : "flybook.market.mind")}
                     </button>
-                    {wallet === t.fly_id && <Wallet flyId={t.fly_id} refresh={last?.id} />}
-                    {open === t.fly_id && <Mind t={t} names={names} onFly={onFly} mine={!!viewer && t.owner === viewer.userId} onSaved={saved} />}
+                    {wallet === x.fly_id && <Wallet flyId={x.fly_id} refresh={last?.id} />}
+                    {open === x.fly_id && <Mind t={x} names={names} onFly={onFly} mine={!!viewer && x.owner === viewer.userId} onSaved={saved} />}
                   </li>
                 ))}
               </ol>
             </section>
             <Drama social={mineSocial} traders={names} coins={flyCoins} onFly={onFly} />
             <section>
-              <h4>Trades</h4>
-              {feed.length === 0 && <div className="empty">No trades yet.</div>}
+              <h4>{t("flybook.market.trades")}</h4>
+              {feed.length === 0 && <div className="empty">{t("flybook.market.noTrades")}</div>}
               <ul className="trades">
-                {feed.map((t) => {
-                  const fly = names.get(t.fly_id);
-                  const dop = t.reason.dopamine ?? 0;
+                {feed.map((x) => {
+                  const fly = names.get(x.fly_id);
+                  const dop = x.reason.dopamine ?? 0;
+                  const coin = <b>${x.symbol}</b>;
                   return (
-                    <li key={t.id} className={t.side === "skipped" ? "skipped" : ""}>
-                      <button className="who inline" onClick={() => onFly(t.fly_id)}>
-                        <span className="dot" style={{ background: fly?.color ?? "#888" }} />{fly?.name ?? "a fly"}
+                    <li key={x.id} className={x.side === "skipped" ? "skipped" : ""}>
+                      <button className="who inline" onClick={() => onFly(x.fly_id)}>
+                        <span className="dot" style={{ background: fly?.color ?? "#888" }} />{fly?.name ?? t("flybook.market.aFly")}
                       </button>{" "}
-                      {t.side === "skipped"
-                        ? <>wanted to {WANTED[t.reason.wanted ?? ""] ?? "trade"} <b>${t.symbol}</b> but didn't</>
-                        : <>{SIDE[t.side]} <b>${t.symbol}</b> for {cash(t.eth)}</>}
-                      <span className="when">{ago(t.created_at)}</span>
+                      {x.side === "skipped"
+                        ? tn("flybook.market.wantedTo", { what: WANTED(x.reason.wanted ?? ""), coin })
+                        : tn("flybook.market.tradeFor", { side: SIDE(x.side), coin, cash: cash(x.eth) })}
+                      <span className="when">{ago(x.created_at)}</span>
                       <p className="fine">
-                        {t.side === "skipped" ? `${t.reason.skipped ?? "its learning stopped it"}.` : `It ${WHY[t.side]}.`}
-                        {t.side === "launch" && t.reason.tagline ? ` “${t.reason.tagline}”` : ""}
-                        {t.side === "buy" && hyped(t.reason.felt?.target?.social) ? ` Shilled by ${hyped(t.reason.felt?.target?.social)}.` : ""}
-                        {t.side === "panic_sell" && hyped(t.reason.felt?.threat?.social) ? ` FUD from ${hyped(t.reason.felt?.threat?.social)}.` : ""}
-                        {fromFeed(t)}
-                        {" "}Neurons: {(t.reason.did ?? []).join(", ") || "none"}.
-                        {t.reason.memory ? ` Memory: ${t.reason.memory.similar} similar trades, ${pct(t.reason.memory.mean_reward)} on average.` : ""}
-                        {t.side !== "skipped" ? ` Worth ${cash(t.value_after)} after.` : ""}
+                        {x.side === "skipped" ? `${x.reason.skipped ?? t("flybook.market.itsLearning")}.` : t("flybook.market.it", { why: WHY(x.side) })}
+                        {x.side === "launch" && x.reason.tagline ? ` “${x.reason.tagline}”` : ""}
+                        {x.side === "buy" && hyped(x.reason.felt?.target?.social) ? t("flybook.market.shilledBy", { names: hyped(x.reason.felt?.target?.social) }) : ""}
+                        {x.side === "panic_sell" && hyped(x.reason.felt?.threat?.social) ? t("flybook.market.fudFrom", { names: hyped(x.reason.felt?.threat?.social) }) : ""}
+                        {fromFeed(x)}
+                        {t("flybook.market.neurons", { list: (x.reason.did ?? []).join(", ") || t("flybook.market.none") })}
+                        {x.reason.memory ? t("flybook.market.memory", { n: x.reason.memory.similar, pct: pct(x.reason.memory.mean_reward) }) : ""}
+                        {x.side !== "skipped" ? t("flybook.market.worth", { cash: cash(x.value_after) }) : ""}
                       </p>
-                      {dop !== 0 && <span className={`chip ${dop > 0 ? "up" : "down"}`}>dopamine {dop > 0 ? "+" : ""}{dop.toFixed(2)}</span>}
+                      {dop !== 0 && <span className={`chip ${dop > 0 ? "up" : "down"}`}>{t("flybook.market.dopamine", { d: `${dop > 0 ? "+" : ""}${dop.toFixed(2)}` })}</span>}
                     </li>
                   );
                 })}

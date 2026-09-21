@@ -3,6 +3,7 @@
  * (the extension can't reach a browser wallet itself); on this site it uses the miner token in localStorage.
  * The wallet is the one signed in on the compute pages; signing in happens here if it hasn't yet.
  */
+import { t } from "./i18n.ts";
 import { API } from "./config.ts";
 import { mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost } from "./account.ts";
 import { api } from "./mine-core.ts";
@@ -19,13 +20,14 @@ const status = (text: string, kind?: "ok" | "bad") => {
 };
 
 mountAccount();
-$("which").textContent = code ? "the one in your fly.ai compute extension" : token ? "the one mining on this site" : "none yet";
+$("which").textContent = code ? t("compute.connect.whichExtension") : token ? t("compute.connect.whichSite") : t("compute.connect.whichNone");
 if (!code && !token) {
-  status("start mining on this site first, or open Connect wallet from the extension", "bad");
+  status(t("compute.connect.startFirst"), "bad");
   ($("connect") as HTMLButtonElement).disabled = true;
 }
+let linked = false;
 onAccount((wallet) => {
-  if (!$("connect").textContent?.startsWith("Linked")) $("connect").textContent = wallet ? `Link ${shortAddress(wallet)}` : "Sign in and link";
+  if (!linked) $("connect").textContent = wallet ? t("compute.connect.linkWallet", { wallet: shortAddress(wallet) }) : t("compute.connect.signInAndLink");
 });
 
 $("connect").addEventListener("click", async () => {
@@ -36,16 +38,17 @@ $("connect").addEventListener("click", async () => {
       button.disabled = false;
       return;
     }
-    status("linking…");
+    status(t("compute.connect.linking"));
     const { wallet } = await api(API, "/api/session/link", code ? null : token, code ? { code } : {}, sessionHeaders());
     history.replaceState(null, "", location.pathname); // the link code is spent
-    status(`linked ${shortAddress(wallet)} ✓`, "ok");
+    status(t("compute.connect.linked", { wallet: shortAddress(wallet) }), "ok");
     $("intro").textContent = code
-      ? `Your extension's credit now goes to ${wallet}. You can close this tab.`
-      : `Credit from this site's miner now goes to ${wallet}.`;
-    button.textContent = "Linked";
+      ? t("compute.connect.introExtension", { wallet })
+      : t("compute.connect.introSite", { wallet });
+    linked = true;
+    button.textContent = t("compute.connect.linkedButton");
   } catch (err) {
-    status(sessionLost(err) ? "your sign-in expired: sign in again" : err instanceof Error ? err.message : String(err), "bad");
+    status(sessionLost(err) ? t("compute.connect.expired") : err instanceof Error ? err.message : String(err), "bad");
     button.disabled = false;
   }
 });

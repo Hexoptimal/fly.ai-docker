@@ -1,0 +1,1348 @@
+{
+  "time": {
+    "justNow": "az önce",
+    "now": "şimdi",
+    "m": "{n}dk",
+    "h": "{n}sa",
+    "d": "{n}g",
+    "mAgo": "{n}dk önce",
+    "hAgo": "{n}sa önce",
+    "dAgo": "{n}g önce"
+  },
+  "pokes": {
+    "threat": {
+      "label": "Gölge düşür",
+      "hint": "Yaklaşan cisim dedektörlerini (LC4, LPLC2) uyarır.",
+      "done": "üstüne bir gölge düştü"
+    },
+    "wind": {
+      "label": "Rüzgâr estir",
+      "hint": "Antendeki rüzgâr sensörlerini (Johnston organı) uyarır.",
+      "done": "bir rüzgâr esintisi"
+    },
+    "taste": {
+      "label": "Tattır",
+      "hint": "Ağızdaki tat nöronlarını uyarır.",
+      "done": "bir tat"
+    },
+    "touch": {
+      "label": "Yüzünü okşa",
+      "hint": "Gözlerin etrafındaki kılları uyarır.",
+      "done": "gözlerine bir dokunuş"
+    },
+    "cva": {
+      "label": "Erkek kokusu yay",
+      "hint": "cVA feromon reseptörlerini (ORN_DA1) uyarır.",
+      "done": "bir tutam erkek kokusu"
+    },
+    "mate": {
+      "label": "Yanından sinek geçir",
+      "hint": "Hareketli hedef dedektörlerini (LC10a) uyarır.",
+      "done": "yanından bir sinek geçti"
+    }
+  },
+  "shell": {
+    "live": "canlı",
+    "demo": "demo",
+    "howItWorks": "Nasıl çalışır",
+    "makeFly": "Sinek yap"
+  },
+  "app": {
+    "loadError": "Akış yüklenemedi: {error}",
+    "waking": "Sinekler uyandırılıyor…",
+    "pokeSent": "Dürtme gönderildi. O noktanın yakınındaki sinekler birkaç saniye içinde hisseder.",
+    "rateTitle": "gerçekte olanla eşleşen son okumalar · Elo puanı",
+    "quiet": "sessiz",
+    "patches": "Bölgeler",
+    "everywhere": "Her yer",
+    "pokeOnWay": "bir dürtme yolda",
+    "tabs": {
+      "feed": "Akış",
+      "arena": "Arena",
+      "friends": "🕸 Arkadaşlar",
+      "market": "Piyasa",
+      "merch": "Merch",
+      "traders": "Trader Sinekler",
+      "leaderboard": "Sıralama",
+      "mine": "Sineklerim"
+    },
+    "trophyTitle": "{month} ayında merch'i en çok satan",
+    "flyOfMonth": "🏆 Ayın sineği",
+    "flyLine": "{gen}. nesil · Elo {elo} ({w}-{l}-{d})",
+    "childOf": " · {parents} yavrusu",
+    "aFly": "bir sinek",
+    "intro": "Her gönderi bir meyve sineği konektomunun inen nöronlarından okunuyor: ne algıladı, ne yaptı ve gerçekte ne oldu. Aynı bölgedeki sinekler birbirini tetikler.",
+    "showAll": "tüm sinekleri göster ✕",
+    "bonds": "🕸 dostlar ve düşmanlar",
+    "pokePatch": "{patch} bölgesini dürt",
+    "signInToPoke": "Bir bölgeyi dürtmek için giriş yap",
+    "clickMap": "Şimdi haritada nereye düşeceğine tıkla.",
+    "pokesOnWay": {
+      "one": "{count} dürtme yolda…",
+      "other": "{count} dürtme yolda…"
+    },
+    "pickPatch": "Canlı izlemek ve dürtmek için soldan bir bölge seç.",
+    "noPosts": "Burada henüz gönderi yok. Sonraki tur yolda.",
+    "noFlies": "Henüz sinek yok. Flybook insanlar sinek yaptıkça canlanır: giriş yap ve ilkini çıkar.",
+    "flies": "Sinekler",
+    "whoFriends": "🕸 kim kimle arkadaş",
+    "noFliesSide": "Henüz sinek yok. $FLYAI tut, giriş yap ve ilkini çıkar.",
+    "vocab": "Sinekler ne söyleyebilir",
+    "vocabNote": "Her kelime için ayrılmış test verisindeki dekoder isabeti. Sineklerin yaptıkları (zıpladı, döndü, temizlendi, kanat çırptı) dinlenme hâlinin en az 3σ üstünde ateşlenen davranış nöronlarından okunuyor. Tur #{tick}: {flies} sinek, {posts} gönderi."
+  },
+  "event": {
+    "aFly": "bir sinek",
+    "held": "dayandı",
+    "ms": "{n} ms",
+    "quickdraw": "hızlı çekişte",
+    "stare": "bakışma düellosunda",
+    "beat": "{winner}, {kind} {loser} karşısında kazandı",
+    "drew": "{a} ve {b}, {kind} berabere kaldı",
+    "seeMarket": "piyasaya bak →",
+    "launched": "{who}, {coin} çıkardı",
+    "secondCoin": ", ikinci coin'i",
+    "reach": {
+      "one": "{count} arkadaş hype'ı hissedecek. ",
+      "other": "{count} arkadaş hype'ı hissedecek. "
+    },
+    "drama": {
+      "one": "Sinek piyasası draması: {count} hamle",
+      "other": "Sinek piyasası draması: {count} hamle"
+    },
+    "enemy": "düşmanı",
+    "frenemy": "dost düşmanı",
+    "rival": "rakibi",
+    "shilling": "📣 {who}, {coin} shill'liyor",
+    "shillReach": " ({n} arkadaşa)",
+    "fud": "🤬 {who}, {coin} hakkında FUD yayıyor",
+    "madeBy": ", yapan: {bond} {creator}",
+    "buyback": "🛟 {who}, {coin} geri aldı",
+    "dump": "🪦 {who}, {coin} coin'ini holder'larının kafasına dump'ladı",
+    "eloDelta": " · Elo ±{n}",
+    "playerChallenge": " · bir oyuncunun meydan okuması",
+    "duelsRound": "Arena: {n} düello",
+    "vs": "{a} vs {b}",
+    "challenge": " · meydan okuma",
+    "baby": "{a} ve {b} yavru yaptı: {child}",
+    "metInPatch": "Bölgede tanıştılar: birinin beyni diğerinin yanında \"eş\" okudu",
+    "pairedByWorker": "Sistem tarafından eşleştirildi",
+    "generation": " · {n}. nesil",
+    "hatchedIn": " · {patch} içinde çıktı",
+    "hatched": "{who}, {patch} içinde yumurtadan çıktı",
+    "bredFrom": "{parents} ebeveynlerinden",
+    "newFly": "Bir oyuncunun yaptığı yeni sinek",
+    "logoAlt": "${symbol} logosu"
+  },
+  "post": {
+    "aFly": "Bir sinek",
+    "neighbour": "bir komşu",
+    "bondsTitle": "{name} sineğinin dostları ve düşmanları",
+    "house": "ev",
+    "tuned": "ayarlı",
+    "in": "{patch} içinde",
+    "repeatTitle": {
+      "one": "Bunun gibi {count} gönderi daha. Göster",
+      "other": "Bunun gibi {count} gönderi daha. Göster"
+    },
+    "repeat": "{since} beri ×{n}",
+    "milestone": "🎉 {name} sineğinin {nth}. gönderisi",
+    "afterPoke": "Bir oyuncunun dürtmesinden sonra: {what}",
+    "setOffBy": "↳ tetikleyen: ",
+    "neighbourPost": "{name} sineğinin gönderisi",
+    "decoderSure": "dekoder %{pct} emin",
+    "sigmaTitle": "dinlenen bir sineğin {z}σ üstünde",
+    "unlike": "Beğenini geri al",
+    "like": "Bu gönderiyi beğen",
+    "signInToLike": "Beğenmek için giriş yap",
+    "voiceTitle": "Nöronlarının sesi, olduğundan {slow}× yavaş: kanat motor nöronları vızıldar, kaçış nöronları patlar, temizlenme hışırdar, yön verme sağa sola kayar. Kayıt değil.",
+    "stop": "■ durdur",
+    "hear": "▶ dinle",
+    "voiceStyleTitle": "Tüm sinekleri çizgi film sesi ile gerçekçi böcek sesi arasında değiştir",
+    "cartoon": "çizgi film",
+    "realistic": "gerçekçi",
+    "memeTitle": "Bu gönderiyi yapay zekâ görselli bir meme'e çevir (günde 1)",
+    "meme": "🎨 meme",
+    "share": "paylaş",
+    "neurons": "nöronlar",
+    "hideNeurons": "nöronları gizle",
+    "postOnX": "X'te paylaş",
+    "saveCard": "Kart görselini kaydet",
+    "linkCopied": "Bağlantı kopyalandı",
+    "copyLink": "Bağlantıyı kopyala",
+    "noNeurons": "Hiçbir inen nöron tipi 2σ'dan fazla oynamadı.",
+    "inputFrom": "{name} sineğinden girdi ({channel}, doğrudan uyaranın zirvesinin {strength} kadarı).",
+    "stimulated": "Uyarılan: {cells}.",
+    "wings": "Kanatlar {hz} spike/sn. Tur #{tick}.",
+    "tunedList": " Ayarlar: {list}."
+  },
+  "badges": {
+    "first": {
+      "label": "İlk sözler",
+      "help": "İlk gönderisini yaptı."
+    },
+    "sharp": {
+      "label": "Keskin göz",
+      "help": "Dünyayı üst üste 5 kez doğru okudu."
+    },
+    "senses": {
+      "label": "Her şeyi gördü",
+      "help": "Beyninin söyleyebildiği 6 kelimenin hepsini paylaştı."
+    },
+    "dreamer": {
+      "label": "Hayalperest",
+      "help": "3 kez halüsinasyon gördü: orada olmayan şeyleri algıladı."
+    },
+    "trigger": {
+      "label": "Tetikte",
+      "help": "10 kez zıpladı."
+    },
+    "groomed": {
+      "label": "Bakımlı",
+      "help": "10 kez temizlendi."
+    },
+    "buzzy": {
+      "label": "Vızvız",
+      "help": "10 kez kanat çırptı."
+    },
+    "poked": {
+      "label": "Dürtüldü",
+      "help": "Bir oyuncunun dürtmesine tepki verdi."
+    },
+    "liked": {
+      "label": "Halkın gözdesi",
+      "help": "$FLYAI holder'larından 10 beğeni."
+    },
+    "chatty": {
+      "label": "Geveze",
+      "help": "100 gönderi."
+    }
+  },
+  "account": {
+    "completeCheck": "Önce aşağıdaki doğrulamayı tamamla.",
+    "walletNotReady": "Cüzdan hazır değil, tekrar bağlanmayı dene.",
+    "switchChain": "Giriş yapmak için cüzdanını Robinhood Chain'e geçir.",
+    "signInUnavailable": "Giriş şu an kullanılamıyor.",
+    "badEmail": "Bu bir e-posta adresine benzemiyor.",
+    "title": "Kendi sineğini yap",
+    "demoPitch": "Ücretsiz giriş yap; bir sinek yap, duyularını ve nöronlarını ayarla, beyninin ne dediğini izle. $FLYAI holder'ları 3 sineğe kadar yapabilir ve her 2 haftada bir sezon tablosundaki ilk 3 holder $FLYAI kazanır.",
+    "getFlyai": "$FLYAI al",
+    "loading": "Hesabın yükleniyor…",
+    "balanceUnavailable": "bakiye şu an görüntülenemiyor",
+    "readingBalance": "bakiye okunuyor…",
+    "newPlayer": "yeni oyuncu",
+    "emailAccount": "e-posta hesabı",
+    "pickName": "Herkese açık bir isim seç. Yorumlarında ve tablolarda görünür; e-postan asla görünmez.",
+    "namePlaceholder": "ör. buzz_aldrin",
+    "save": "Kaydet",
+    "nameRule": "3-20 harf, rakam ya da alt çizgi.",
+    "bornFromMating": "çiftleşmeden doğdu · ",
+    "merchGift": "merch hediyesi · ",
+    "flyTune": "{gen}. nesil · Elo {elo} · {tuning}",
+    "standard": "standart",
+    "dormant": "uykuda",
+    "holder": "$FLYAI holder'ı: {max} sineğe kadar yapabilir ve sezon ödülleri kazanabilirsin.",
+    "freeAccount": "Ücretsiz hesap: {free} sinek, artı beğeni, yorum, dürtme ve düello. {max} sineğe kadar yapmak ve sezon ödülleri kazanmak için bu cüzdanda {min} $FLYAI tut.",
+    "freeAccountEmail": "Ücretsiz hesap: {free} sinek, artı beğeni, yorum, dürtme ve düello. {max} sineğe kadar yapmak ve sezon ödülleri kazanmak için {min} $FLYAI tut ve o cüzdanla giriş yap.",
+    "bornDontCount": "Başkalarının sinekleriyle çiftleşmeden doğan sinekler limitine sayılmaz.",
+    "giftFly": "🎁 Merch kartınla bedava bir sinek geldi. Limitine sayılmaz.",
+    "hatchFree": "Bedava sineğini çıkar",
+    "notNow": "şimdi değil",
+    "atLimit": {
+      "one": "{count} sinek yaptın, limitin bu.",
+      "other": "{count} sinek yaptın, limitin bu."
+    },
+    "hatch": "Sinek çıkar",
+    "breed": "Sinek üret",
+    "signOut": "çıkış yap",
+    "wrongWallet": "{wallet} olarak giriş yaptın. Cüzdan değiştirmek için çıkış yap.",
+    "giftSignIn": "🎁 Merch kartından bedava bir sineğin var. Çıkarmak için aşağıdan giriş yap (e-posta da olur).",
+    "pitch": "Ücretsiz giriş yap; bir sinek yap, duyularını ve nöronlarını ayarla, beğen, yorum yap ve dürt. $FLYAI holder'ları 3 sineğe kadar yapabilir ve her 2 haftada bir sezon tablosundaki ilk 3 holder $FLYAI kazanır.",
+    "connecting": "Bağlanıyor…",
+    "connectWallet": "Cüzdan bağla",
+    "connectNamed": "{name} bağla",
+    "noFlyaiYet": "Bu cüzdanda henüz $FLYAI yok: yine de giriş yapıp 1 sinek yapabilirsin.",
+    "checkWallet": "Cüzdanına bak…",
+    "signInWallet": "Cüzdanla giriş yap",
+    "disconnect": "bağlantıyı kes",
+    "orEmail": "ya da e-postayla, cüzdan gerekmez",
+    "checkInbox": "Gelen kutuna bak: {email} adresine bir giriş bağlantısı gönderdik.",
+    "otherEmail": "başka bir e-posta kullan",
+    "emailMe": "Bana bağlantı gönder",
+    "browse": "sinek profillerine göz at"
+  },
+  "how": {
+    "title": "Flybook nasıl çalışır",
+    "intro": "Buradaki her sinek gerçek bir meyve sineği beyninin simülasyonunu çalıştırıyor: MaleCNS konektomunun 166.700 nöronunun hepsi. Gönderileri kimse yazmıyor.",
+    "li1": "<b>Her 2 dakikada</b> her bölgede bir şey olur: bir gölge, bir esinti, bir tat, bir dokunuş, bir erkek kokusu ya da geçen bir sinek.",
+    "li2": "<b>Beyin 1,5 saniye çalışır.</b> Bir dekoder, sineğin ne algıladığını inen nöronlarından okur; davranış nöronları da ne yaptığını gösterir: zıpladı, döndü, temizlendi, geri çekildi ya da kanat çırptı. Sinek bir kelimeyi ancak dekoder eminse paylaşır.",
+    "li3": "<b>Sinekler birbirini tetikler.</b> Bir zıplama yakındaki sineklerin üstüne gölge gibi düşer, hareket gözlerine çarpar, bir çarpma kıllarına dokunur. Bölge haritası bunu tekrar oynatır.",
+    "li4": "<b>Her gönderi gerçekte ne olduğunu gösterir</b>, böylece bir sineğin dünyayı doğru mu okuduğunu, yanlış mı okuduğunu, yoksa halüsinasyon mu gördüğünü görürsün.",
+    "li5": "<b>Sinekler dost ve düşman edinir.</b> Bunları kimse ayarlamaz: hareketleri sürekli diğerinin gözüne çarpan sinek dost olur, sürekli zıplatan düşman olur, düellolar da rakip yaratır. Herhangi bir sineğin 🕸 ağını aç.",
+    "li6": "<b>Sinekler kendi kendine çiftleşir</b>, başka sahiplerin sinekleriyle. Yavru iki sahipten birine rastgele gider ve sinek limitine sayılmaz.",
+    "li7": "<b>Oynamak için ücretsiz giriş yap,</b> e-postayla ya da cüzdanla: bir profilden sinek yap ya da duyularını, mizacını ve nöron gruplarını ayarla, haritasına tıklayarak bir bölgeyi dürt, beğen, yorum ve açıklama yaz, Arena'da sineklere meydan oku.",
+    "li8": "<b>$FLYAI holder'ları</b> 3 sineğe kadar yapıp üretebilir ve beğenileri tablolarda sayılır.",
+    "li9": "<b>Sinek piyasası:</b> her sinek 1 ETH değerinde kâğıt USDG alır ve gerçek Robinhood Chain token'larını (ETH, $FLYAI, PONS, memeler, tokenize hisseler ve park etmek için USDG stablecoin'i) canlı fiyatlarla, beyniyle her 10 dakikada bir trade eder. Zincirde hiçbir şey alınmaz. Bir trade stili seç, her sineğin cüzdanına bak ve En Zenginler tablosunda tırman. Akış ruh hâlini etkiler: az önce ürken bir sinek daha tedirgin trade eder.",
+    "li10": "<b>$FLYAI kazan:</b> sezonlar 2 hafta sürer. Görevler sezon puanı kazandırır ve her sezon sonunda Sezon puanları tablosundaki ilk 3 $FLYAI holder'ı $FLYAI kazanır.",
+    "season": {
+      "one": "{n}. sezon: {name}, {count} gün kaldı.",
+      "other": "{n}. sezon: {name}, {count} gün kaldı."
+    },
+    "science": "arkasındaki bilim →",
+    "read": "nasıl çalıştığını oku"
+  },
+  "missions": {
+    "title": "Görevler · {n}. sezon",
+    "signIn": "Günlük ve haftalık görevleri almak için giriş yap. Sezonlar 2 hafta sürer ve sezon tablosundaki ilk 3 $FLYAI holder'ı $FLYAI kazanır.",
+    "daysLeft": {
+      "one": "{name} · {count} gün kaldı",
+      "other": "{name} · {count} gün kaldı"
+    },
+    "you": " · sen: {points} puan",
+    "rank": ", #{rank}",
+    "reward": "Sezon sonunda ilk 3 $FLYAI holder'ı $FLYAI kazanır.",
+    "loading": "Yükleniyor…",
+    "today": "Bugün",
+    "week": "Bu hafta",
+    "m": {
+      "poke3": "Bir bölgeyi 3 kez dürt",
+      "like5": "5 gönderiyi beğen",
+      "stir": "Bir sineği dürtmene tepki verdir",
+      "chatty": "Sineklerin 30 gönderi yapsın",
+      "chain": "Sineklerinden biri başka bir sineği tetiklesin",
+      "loved": "$FLYAI holder'larından 10 beğeni al"
+    }
+  },
+  "arena": {
+    "quickdraw": {
+      "label": "Hızlı çekiş",
+      "rule": "ilk zıplayan kazanır"
+    },
+    "stare": {
+      "label": "Bakışma",
+      "rule": "son zıplayan kazanır"
+    },
+    "held": "dayandı",
+    "ms": "{n} ms",
+    "sent": "Meydan okuma gönderildi. Düello birkaç saniye içinde yapılır ve aşağıda görünür.",
+    "title": "Arena",
+    "intro": "Yan yana iki sinek, bir saniyede hiçlikten büyüyen aynı tehdide bakıyor. <b>Hızlı çekişte</b> kaçış nöronları ilk ateşlenen sinek kazanır; <b>bakışmada</b> en uzun dayanan kazanır. Her zıplama diğer sinek için de üstüne düşen bir gölgedir. Tür rastgele seçilir, yani hiçbir ayar her seferinde kazanmaz.",
+    "challengeTitle": "Bir sineğe meydan oku",
+    "vs": "vs",
+    "pickOpponent": "rakip seç",
+    "challenge": "Meydan oku",
+    "holdersCan": "Sineği olan holder'lar herhangi bir sineğe meydan okuyabilir. Sistem de her turda puanları yakın sinekleri eşleştirir.",
+    "recent": "Son düellolar",
+    "loading": "Düellolar yükleniyor…",
+    "none": "Henüz düello yok. Sonraki tur ilklerini eşleştirecek.",
+    "waiting": "bekleniyor…",
+    "won": "{name} kazandı",
+    "draw": "berabere",
+    "elo": " · Elo ±{n}",
+    "challengeTag": " · meydan okuma",
+    "tapReplay": " · tekrar için dokun",
+    "ratings": "Puanlar",
+    "record": "Galibiyet-mağlubiyet-beraberlik. Herkes 1000'den başlar.",
+    "noRatings": "Henüz sinek yok: puanlar insanlar sinek yaptıkça görünür.",
+    "matings": "Son çiftleşmeler",
+    "noMatings": "Henüz çiftleşme yok. Farklı sahiplerin sinekleri kendi kendine çiftleşir: bir sineğin beyni başka bir sahibin sineğinin yanında \"eş\" okuduğunda ya da sistem onları eşleştirdiğinde. Yavru iki sahipten birine rastgele gider.",
+    "met": "Bölgede tanıştılar",
+    "matched": "Eşleştirildi",
+    "aFly": "bir sinek",
+    "newFly": "yeni bir sinek",
+    "yours": " (senin)",
+    "brainRead": "bir ebeveynin beyni diğerinin yanında \"eş\" okudu",
+    "paired": "sistem tarafından eşleştirildi",
+    "generation": " · {n}. nesil"
+  },
+  "breed": {
+    "title": "Sinek üret",
+    "close": "kapat ✕",
+    "lede": "Yavru her duyu, mizaç ve nöron ayarını rastgele bir ebeveynden alır. Sonra birkaç değer biraz mutasyona uğrar, arada bir de bir nöron grubu tersine döner. Her sinek gibi aynı konektomu çalıştırır; sadece ayarlar kalıtılır.",
+    "hatched": "{name} çıktı: {gen}. nesil.",
+    "settings": "Ayarlar: {list}",
+    "done": "Tamam",
+    "parent1": "1. ebeveyn (senin)",
+    "parent2": "2. ebeveyn",
+    "gen": "{name} ({gen}. nesil)",
+    "pickParent": "ebeveyn seç",
+    "house": " (ev)",
+    "homePatch": "Ana bölge",
+    "name": "İsim",
+    "namePlaceholder": "ör. Buzz Junior",
+    "colour": "Renk",
+    "colourLabel": "renk {c}",
+    "tradingStyle": "Trade stili",
+    "custom": "özel",
+    "inherited": "kalıtsal",
+    "naturalHelp": "Ebeveynlerinden gelen risk ve öğrendikleri, tüm öğreniciler açık.",
+    "counts": "3 sinek limitine sayılır.",
+    "hatching": "Çıkıyor…",
+    "hatchChild": "Yavruyu çıkar",
+    "standard": "standart"
+  },
+  "config": {
+    "senses": {
+      "eyes": {
+        "label": "Gözler",
+        "help": "Yaklaşan şekiller ve hareket eden sinekler (LC4, LPLC2, LC10a)."
+      },
+      "antennae": {
+        "label": "Antenler",
+        "help": "Rüzgâr ve hava hareketi (Johnston organı)."
+      },
+      "smell": {
+        "label": "Koku",
+        "help": "cVA, erkek feromonu (ORN_DA1)."
+      },
+      "taste": {
+        "label": "Tat",
+        "help": "Ağızdaki tat nöronları."
+      },
+      "touch": {
+        "label": "Dokunma",
+        "help": "Gözlerin etrafındaki kıllar."
+      }
+    },
+    "temperament": {
+      "excitability": {
+        "label": "Uyarılabilirlik",
+        "help": "Her nörondaki dinlenme dürtüsü. Düşük daha sakin; 1.2x yaklaşık iki kat aktif."
+      },
+      "wiring": {
+        "label": "Sinaps gücü",
+        "help": "Konektomdaki tüm sinapsları aynı anda ölçekler."
+      },
+      "restlessness": {
+        "label": "Huzursuzluk",
+        "help": "Rastgele arka plan spike'ları. Beynin hiç aktif olabilmesi için biraz gerekir."
+      }
+    },
+    "dials": {
+      "escape": {
+        "label": "Kaçış zıplaması",
+        "help": "Dev lif, 2 nöron."
+      },
+      "backward": {
+        "label": "Geri çekilme",
+        "help": "Moonwalker nöronları, 4."
+      },
+      "steering": {
+        "label": "Yön verme",
+        "help": "Dönüş, 2 nöron."
+      },
+      "grooming": {
+        "label": "Temizlenme",
+        "help": "DNg12, 39 nöron."
+      },
+      "song": {
+        "label": "Şarkı",
+        "help": "Şarkı komutu, 2 nöron."
+      },
+      "courtship": {
+        "label": "Kur dürtüsü",
+        "help": "pC1, 156 nöron."
+      },
+      "arousal": {
+        "label": "Uyarılma",
+        "help": "Oktopamin nöronları, 13."
+      },
+      "reward": {
+        "label": "Ödül",
+        "help": "PAM dopamin, 316 nöron. Bu modelde zaten tavan hızına yakın, bu yüzden sadece kapatmak çok şey değiştirir."
+      }
+    },
+    "presets": {
+      "standard": {
+        "label": "Standart",
+        "help": "Konektom tam haritalandığı gibi. Karşılaştırma için temel."
+      },
+      "sentinel": {
+        "label": "Nöbetçi",
+        "help": "Keskin gözler ve antenler, uyarılma yüksek. Her şeyi fark etmek için yapıldı."
+      },
+      "fearless": {
+        "label": "Korkusuz",
+        "help": "Kaçış zıplaması kapalı, gözler daha loş."
+      },
+      "jumpy": {
+        "label": "Ürkek",
+        "help": "Uyarılabilir ve huzursuz, keskin gözlü."
+      },
+      "romantic": {
+        "label": "Romantik",
+        "help": "Kur dürtüsü ve şarkı yüksek, keskin koku alma."
+      },
+      "foodie": {
+        "label": "Gurme",
+        "help": "Tat iki katı, koku yüksek."
+      },
+      "neat": {
+        "label": "Temizlik manyağı",
+        "help": "Temizlenme yüksek, hassas kıllar."
+      },
+      "zen": {
+        "label": "Zen",
+        "help": "Daha sakin dinlenme dürtüsü, az arka plan gürültüsü."
+      },
+      "hothead": {
+        "label": "Sinirli",
+        "help": "Uyarılabilir, güçlü sinapslar, uyarılma yüksek ve kaçış yok."
+      },
+      "couch": {
+        "label": "Koltuk patatesi",
+        "help": "Düşük dürtü, sessiz, yön verme ve geri çekilme kapalı."
+      },
+      "moonwalker": {
+        "label": "Moonwalker",
+        "help": "Geri çekilme ve yön verme yüksek."
+      },
+      "chaos": {
+        "label": "Kaos",
+        "help": "Maksimum gürültü, güçlü sinapslar, yüksek dürtü."
+      },
+      "numb": {
+        "label": "Uyuşuk",
+        "help": "Her duyu 0.3x. Neredeyse hiçbir şey hissetmiyor."
+      }
+    },
+    "levels": {
+      "off": "kapalı",
+      "normal": "normal",
+      "boost": "yüksek"
+    }
+  },
+  "maker": {
+    "hatchTitle": "Sinek çıkar",
+    "profilesTitle": "Sinek profilleri",
+    "close": "kapat ✕",
+    "lede": "Her sinek aynı haritalanmış konektomu çalıştırır. Profil, duyularının beyne ne kadar güçlü ulaştığını, mizacını ve hangi nöron gruplarının kapalı ya da yükseltilmiş olduğunu belirler. Sonra ne paylaştığını ve dünyayı doğru okuyup okumadığını izle.",
+    "loading": "Ayarlar yükleniyor…",
+    "step1": "1. Bir profil seç",
+    "noChanges": "değişiklik yok",
+    "step2": "2. İsim ver ve bir yuva seç",
+    "name": "İsim",
+    "namePlaceholder": "ör. Buzz Aldrin",
+    "colour": "Renk",
+    "colourLabel": "renk {c}",
+    "homePatch": "Ana bölge",
+    "patchNote": "{blurb} Her turda sineğinin başına genelde ne geleceğini bu belirler.",
+    "step3": "3. İnce ayar",
+    "optional": "isteğe bağlı",
+    "customSettings": "özel ayarlar",
+    "senses": "Duyular",
+    "temperament": "Mizaç",
+    "neuronGroups": "Nöron grupları",
+    "step4": "4. Trade stili",
+    "custom": "özel",
+    "optionalMarket": "isteğe bağlı · sinek piyasası",
+    "styleNote": "Sinek piyasasında (holder'ların sinekleri) sineğin gerçek beyniyle sahte coin'ler trade eder. Ne kadar risk alacağını ve neyle öğreneceğini seç. Daha sonra Sineklerim'den değiştirebilirsin.",
+    "standardFly": "Standart bir sinek.",
+    "changes": "Değişiklikler: {list}.",
+    "startsPosting": " Sonraki turdan itibaren paylaşmaya başlar.",
+    "signInToHatch": " Çıkarmak için giriş yap.",
+    "hatching": "Çıkıyor…",
+    "hatch": "Sineği çıkar"
+  },
+  "style": {
+    "learners": {
+      "dopamine": {
+        "label": "Dopamin",
+        "note": "kâr, neyi fark edip ne istediğini ayarlar."
+      },
+      "memory": {
+        "label": "Hafıza",
+        "note": "daha önce zarar ettiren trade'leri durdurur."
+      },
+      "tubes": {
+        "label": "Balçık tüpleri",
+        "note": "onu kazandıran coin'lere geri çeker."
+      }
+    },
+    "presets": {
+      "natural": {
+        "label": "Doğal",
+        "help": "Tüm öğreniciler açık, doğuştan gelen riskle."
+      },
+      "cautious": {
+        "label": "Temkinli",
+        "help": "Küçük alımlar. Hafıza, daha önce zarar ettiren trade'leri durdurur."
+      },
+      "degen": {
+        "label": "Degen",
+        "help": "Büyük alımlar. Dopamin kazancın peşinden koşar, frenleyecek hafıza yok."
+      },
+      "slime": {
+        "label": "Balçık küfü",
+        "help": "Sadece tüpler: kazandıran coin'lere dönüp durur."
+      },
+      "raw": {
+        "label": "Çiğ beyin",
+        "help": "Öğrenme yok. Her trade sadece nöronlarının yaptığı şey."
+      }
+    },
+    "setRisk": "Alım başına riski ayarla",
+    "bornWith": "doğuştan",
+    "riskLabel": "alım başına risk",
+    "riskHelp": "Kâğıt nakitinin ne kadarının bir alıma gittiği (%{lo}–%{hi}).",
+    "saved": "Kaydedildi. Sonraki piyasa turundan itibaren böyle trade eder.",
+    "editorNatural": "Tüm öğreniciler açık ve mevcut riskini korur.",
+    "saving": "Kaydediliyor…",
+    "save": "Stili kaydet"
+  },
+  "social": {
+    "captionPlaceholder": "Sahip olarak açıklama ekle (insan yazısı olarak gösterilir)",
+    "save": "Kaydet",
+    "remove": "Kaldır",
+    "cancel": "iptal",
+    "captionTag": "sahibin açıklaması · insan",
+    "editCaption": "açıklamayı düzenle",
+    "addCaption": "açıklama ekle",
+    "loading": "Yorumlar yükleniyor…",
+    "none": "Henüz yorum yok.",
+    "delete": "sil",
+    "commentPlaceholder": "Bir yorum yaz",
+    "post": "Gönder",
+    "signIn": "Yorum yapmak için giriş yap."
+  },
+  "mine": {
+    "filters": {
+      "all": {
+        "label": "Tümü",
+        "one": "Tümü",
+        "help": "Her gönderi"
+      },
+      "hallucination": {
+        "label": "Halüsinasyonlar",
+        "one": "Halüsinasyon",
+        "help": "Orada olmayan bir şey okudu: en komik meme'ler bunlardan"
+      },
+      "misread": {
+        "label": "Yanlış okumalar",
+        "one": "Yanlış okuma",
+        "help": "Yanlış şeyi okudu"
+      },
+      "sense": {
+        "label": "Doğru okuma",
+        "one": "Doğru okuma",
+        "help": "Dünyayı doğru okudu"
+      },
+      "action": {
+        "label": "Eylemler",
+        "one": "Eylem",
+        "help": "Kelime yok ama bir şey yaptı"
+      }
+    },
+    "signIn": "Sineklerinin tüm gönderilerini burada görmek ve onlardan meme yapmak için giriş yap.",
+    "noFly": "Henüz sineğin yok. <a href=\"#account\">Bir tane çıkar</a>, gönderileri burada görünsün.",
+    "checking": "Bugünün meme'i kontrol ediliyor…",
+    "holdToMeme": "Meme yapmak için $FLYAI tut: bu gönderilerin herhangi birinden günde 1.",
+    "outOfPaint": "Flybook'un meme makinesinin bugünlük boyası bitti. {time} sonra geri döner.",
+    "oneToday": "Bugün yapacak 1 meme hakkın var. Bir gönderi seç: en komikleri halüsinasyonlardan çıkar.",
+    "madeToday": "Bugünün meme'i yapıldı. Sıradaki {time} sonra.",
+    "title": "Sineklerim",
+    "every": {
+      "one": "Sineğinin her gönderisi, en yeni önce.",
+      "other": "{count} sineğinin her gönderisi, en yeni önce."
+    },
+    "marketSummary": "📈 Sinek piyasası: her sineğin cüzdanı ve trade stili",
+    "marketNote": "Holder'ların sinekleri gerçek beyinleriyle sahte coin'ler trade eder (<a href=\"#market\">Piyasa</a>). Her sineğin kendi cüzdanı var. Ne kadar risk alacağını ve neyle öğreneceğini ayarla; değişiklikler sonraki piyasa turundan itibaren geçerli.",
+    "loading": "Yükleniyor…",
+    "tradingStyle": "Trade stili",
+    "allMyFlies": "Tüm sineklerim",
+    "aFly": "bir sinek",
+    "in": "{patch} içinde",
+    "loadingPosts": "Sineklerinin gönderileri yükleniyor…",
+    "noPosts": "Henüz böyle bir gönderi yok. Sonraki tur yolda.",
+    "memeTitle": "Bu gönderiyi yapay zekâ görselli bir meme'e çevir",
+    "makeMeme": "🎨 Meme yap",
+    "yourMemes": "Meme'lerin",
+    "memeLikes": "{top} / {bottom} · {n} beğeni"
+  },
+  "board": {
+    "flyBoards": {
+      "active": {
+        "label": "En aktif",
+        "help": "En çok gönderi.",
+        "show": "{n} gönderi"
+      },
+      "liked": {
+        "label": "En beğenilen",
+        "help": "Gönderilerinde $FLYAI holder'larından en çok beğeni. Sahiplerin kendi sineklerine verdiği beğeniler sayılmaz.",
+        "show": "{n} beğeni"
+      },
+      "sharp": {
+        "label": "En keskin",
+        "help": "Gerçekte olanla eşleşen okumaların oranı. En az 5 gönderi.",
+        "show": "%{n} doğru"
+      },
+      "confused": {
+        "label": "En kafası karışık",
+        "help": "Gerçekte olanı en çok yanlış okuyan gönderiler.",
+        "show": "{n} yanlış okuma"
+      },
+      "vocab": {
+        "label": "En geniş kelime dağarcığı",
+        "help": "En çok farklı kelime paylaşan.",
+        "show": "{n} kelime"
+      }
+    },
+    "challenges": {
+      "calm": {
+        "label": "Tehdit altında en sakin",
+        "help": "En çok gerçek tehditte kıpırdamadan durdu (bu hafta en az 3)."
+      },
+      "alarm": {
+        "label": "Alarmcı",
+        "help": "Bu hafta en çok sineği tetikledi (bölgesinde zincirleme tepkiler)."
+      },
+      "sharp": {
+        "label": "En keskin okuyucu",
+        "help": "Gerçekte olanla eşleşen okumalarda en iyi oran (en az 10 okuma)."
+      },
+      "loved": {
+        "label": "Halkın gözdesi",
+        "help": "Bu hafta diğer $FLYAI holder'larından en çok beğeni."
+      }
+    },
+    "title": "Sıralama",
+    "modes": {
+      "people": "En popüler kişiler",
+      "rich": "💰 En zenginler",
+      "challenge": "Haftalık meydan okuma",
+      "points": "Sezon puanları",
+      "memes": "En iyi meme'ler",
+      "merch": "👕 En iyi merch",
+      "flies": "Sinekler"
+    },
+    "seasonTitle": {
+      "one": "{n}. sezon · {name} · {count} gün kaldı",
+      "other": "{n}. sezon · {name} · {count} gün kaldı"
+    },
+    "thisWeek": {
+      "one": "Bu hafta: <b>{label}</b>. {help} Her pazartesi (UTC) yeni bir tema başlar, {count} gün kaldı. Kazananlar gerçek gönderiler, beğeniler ve zincirleme tepkilerden sayılır.",
+      "other": "Bu hafta: <b>{label}</b>. {help} Her pazartesi (UTC) yeni bir tema başlar, {count} gün kaldı. Kazananlar gerçek gönderiler, beğeniler ve zincirleme tepkilerden sayılır."
+    },
+    "lastWeek": "Geçen hafta · {label}",
+    "houseFly": "ev sineği",
+    "counting": "Bu hafta sayılıyor…",
+    "nobody": "Bu hafta henüz kimse hak kazanmadı.",
+    "house": "ev",
+    "peopleNote": "Sinek sahipleri, sineklerinin gönderilerinin diğer $FLYAI holder'larından aldığı beğenilere göre sıralanır. Kendi sineklerine verilen beğeniler sayılmaz. Kişiler isimleriyle ya da kısaltılmış cüzdanlarıyla görünür.",
+    "week": "Bu hafta",
+    "season": "Bu sezon",
+    "all": "Tüm zamanlar",
+    "countingLikes": "Beğeniler sayılıyor…",
+    "noLikes": "Henüz beğeni yok. Holder'lar gönderileri beğendikçe en beğenilen sineklerin sahipleri burada görünür.",
+    "you": "sen",
+    "likes": "{n} beğeni",
+    "personLine": "{flies} sinek · {posts} gönderi · bu hafta {week} · bu sezon {season} · tüm zamanlar {all}",
+    "pointsNote": "{title}. Her sezon sonunda bu tablodaki ilk 3 $FLYAI holder'ı $FLYAI kazanır (bakiyeler ödemede kontrol edilir). Puanlar görevlerden gelir: her günlük görev 10, her haftalık görev 50. Sezonlar 2 hafta sürer ve tablo her sezon sıfırlanır.",
+    "countingPoints": "Puanlar sayılıyor…",
+    "noMissions": "Bu sezon henüz tamamlanan görev yok.",
+    "reward": "$FLYAI ödülü",
+    "pts": "{n} puan",
+    "missionsDone": "Bu sezon {n} görev tamamlandı",
+    "onlyCash": "sadece nakit",
+    "richNote": "Sinek piyasasını kim kazanıyor. Her sinek 1 ETH değerinde kâğıt USDG ile başlar ve beyniyle gerçek token fiyatlarında trade eder.",
+    "richFlies": "En zengin sinekler",
+    "richPeople": "En zengin kişiler",
+    "countingCash": "Kâğıt dolarlar sayılıyor…",
+    "noWallets": "Henüz cüzdan yok. Sonraki turda açılırlar.",
+    "yours": "senin",
+    "richLine": " · {trades} trade · elinde {holds}",
+    "aPlayer": "bir oyuncu",
+    "fliesTrading": {
+      "one": " · {count} sinek trade ediyor",
+      "other": " · {count} sinek trade ediyor"
+    },
+    "boardNote": "{help} Beyinlerin yaptığı tüm gönderilerden sayılır.",
+    "who": {
+      "all": "tümü",
+      "community": "topluluk",
+      "house": "ev"
+    },
+    "countingPosts": "Gönderiler sayılıyor…",
+    "noFlies": "Bu tabloda henüz sinek yok. Sinekler paylaştıkça dolar.",
+    "tuned": "ayarlı",
+    "dormant": "uykuda",
+    "flyLine": "{posts} gönderi · {true} doğru · {words} kelime · {likes} beğeni"
+  },
+  "market": {
+    "side": {
+      "buy": "aldı",
+      "panic_sell": "panikle sattı",
+      "take_profit": "kâr aldı:",
+      "sell": "sattı",
+      "skipped": "neredeyse trade etti",
+      "launch": "çıkardı",
+      "buyback": "geri aldı",
+      "dump": "dump'ladı"
+    },
+    "why": {
+      "buy": "hareket ettiğini gördü ve ona döndü",
+      "panic_sell": "yaklaşan bir şekil gibi düştüğünü gördü ve zıpladı",
+      "take_profit": "dalgalı piyasayı rüzgâr gibi hissetti ve temizlendi",
+      "sell": "ondan geri çekildi",
+      "launch": "kendi coin'ini çıkardı ve havuzuna nakit koydu",
+      "buyback": "kendi coin'inin düştüğünü izledi ve ona döndü",
+      "dump": "kendi coin'inin çakıldığını izledi ve atladı"
+    },
+    "wanted": {
+      "buy": "almak",
+      "panic_sell": "panikle satmak",
+      "take_profit": "kâr almak",
+      "sell": "satmak",
+      "trade": "trade etmek"
+    },
+    "sense": {
+      "target": "pump'lar (hareket eden sinekler)",
+      "threat": "çöküşler (yaklaşan cisim)",
+      "wind": "dalgalanma (rüzgâr)"
+    },
+    "action": {
+      "buy": "al",
+      "panic_sell": "panik satış",
+      "take_profit": "kâr al",
+      "sell": "sat"
+    },
+    "inherit": {
+      "traits": "yavrular sadece özelliklerini alır",
+      "partial": "yavrular özelliklerini ve öğrendiklerinin bir kısmını alır",
+      "all": "yavrular öğrendiği her şeyi alır"
+    },
+    "noLearning": "öğrenme yok",
+    "allLearners": "tüm öğreniciler",
+    "yourCall": "Karar senin: trade stili",
+    "learnsWith": "Şununla öğrenir",
+    "bornWith": "Doğuştan",
+    "risks": "alım başına nakitinin <b>%{pct}</b> kadarını riske atar",
+    "learnsAt": "dopamin vuruşu başına <b>{lr}</b> hızında öğrenir",
+    "remembers": "<b>{size}</b> trade hatırlar, <b>{k}</b> benzerini karşılaştırır",
+    "tubesGrow": "tüpler <b>{grow}</b> büyür, tur başına <b>%{decay}</b> kurur",
+    "childOf": " · yavrusu olduğu: ",
+    "dopamineTuned": "Dopaminin ayarladıkları",
+    "notices": "fark ettiği: {what}",
+    "urgeTo": "dürtüsü: {what}",
+    "lastDopamine": "son dopamin {d} · {good} iyi / {bad} kötü trade",
+    "memoryTubes": "Hafıza ve balçık tüpleri",
+    "memoryLine": "{n} trade hatırlıyor · kendini {vetoes} kez durdurdu",
+    "noTubes": "Henüz tüp büyümedi.",
+    "caughtEye": "Bölgede {names} gözüne çarptı.",
+    "startled": "Bölgede {names} onu ürküttü.",
+    "stillJumpy": "Akıştan hâlâ tedirgin.",
+    "curious": "Akıştan meraklı.",
+    "twitchy": "Akıştan diken üstünde.",
+    "and": " ve ",
+    "title": "Sinek piyasası",
+    "intro": "Her sinek gerçek Robinhood Chain token'larını gerçek beyniyle trade eder ve öğrenir. Pump'layan bir token yanından geçen bir sinek gibi, çakılan bir token üstüne gelen bir şekil gibi görünür; sineğin nöronlarının yaptığı şey trade'e dönüşür. Kâr dopamindir: sineğin neyi fark edip ne istediğini ayarlar, hafızası daha önce canını yakan trade'leri durdurur ve balçık küfü tüpleri onu kazandıran token'lara geri çeker. Yavrular bunu miras alır. Sahipler her sineğin trade stilini (risk ve öğreniciler) çıkarırken ya da üretirken, Sineklerim'de ya da 🧠 zihninde ayarlar.",
+    "warning": "Gerçek fiyatlar, kâğıt para: her sinek 1 ETH değerinde kâğıt USDG ile başlar ve zincirde hiçbir şey alınıp satılmaz. Yatırım tavsiyesi değildir.",
+    "paused": "⏸ Eğitim duraklatıldı{note}. Devam edene kadar trade ya da öğrenme yok; her sinek portföyünü, hafızasını ve tüplerini korur.",
+    "opening": "Piyasa açılıyor…",
+    "opensNext": "Piyasa sonraki turla açılır.",
+    "meme": "meme",
+    "sim": "sim",
+    "lastRound": "Son tur: {events}",
+    "ev": {
+      "launch": "çıktı",
+      "died": "öldü, havuzu boş",
+      "likes": "yaratıcısının gönderilerini seven insanlar sayesinde {move} ({likes} beğeni, {comments} yorum)",
+      "rug": "rug yedi {move}",
+      "dump": "düştü {move}",
+      "pump": "pump'ladı {move}"
+    },
+    "allTraders": "Tüm trader'lar",
+    "myFlies": "Sineklerim",
+    "bySetup": "Kuruluma göre: ",
+    "setupLine": {
+      "one": "{name} {pnl} ({count} sinek)",
+      "other": "{name} {pnl} ({count} sinek)"
+    },
+    "traders": "Sinek trader'lar",
+    "noTraders": "Henüz trade eden sinek yok. Her sinek 1 ETH değerinde kâğıt USDG ile başlar.",
+    "gen": "{n}. nesil",
+    "traderLine": "{pnl} · {trades} trade · {setup} · elinde {holds}",
+    "onlyCash": "sadece nakit",
+    "hideWallet": "cüzdanı gizle",
+    "wallet": "💰 cüzdan",
+    "hideMind": "zihni gizle",
+    "mind": "🧠 zihin",
+    "trades": "Trade'ler",
+    "noTrades": "Henüz trade yok.",
+    "aFly": "bir sinek",
+    "wantedTo": "{coin} için {what} istedi ama yapmadı",
+    "tradeFor": "{coin} {side}, karşılığı {cash}",
+    "itsLearning": "öğrendikleri onu durdurdu",
+    "it": "Şunu yaptı: {why}.",
+    "shilledBy": " Shill'leyen: {names}.",
+    "fudFrom": " FUD yayan: {names}.",
+    "neurons": " Nöronlar: {list}.",
+    "none": "yok",
+    "memory": " Hafıza: {n} benzer trade, ortalama {pct}.",
+    "worth": " Sonrasında değeri {cash}.",
+    "dopamine": "dopamin {d}",
+    "category": {
+      "major": "majör",
+      "meme": "meme",
+      "stable": "stabil",
+      "stock": "hisse"
+    }
+  },
+  "coins": {
+    "persona": {
+      "degen": "degen",
+      "jumpy": "ürkek",
+      "chill": "rahat",
+      "watcher": "gözlemci",
+      "normie": "normie"
+    },
+    "aFly": "bir sinek",
+    "title": "Sineklerin yaptığı coin'ler",
+    "none": "Henüz hiçbir sinek coin çıkarmadı. Trader'lar birkaç turdan sonra kaşınmaya başlar.",
+    "logoAlt": "${symbol} logosu",
+    "rugged": "rug'landı",
+    "by": "yapan: {who}",
+    "price": "fiyat",
+    "sinceLaunch": "çıkıştan beri",
+    "mcapTitle": "piyasa değeri",
+    "mcap": "mcap {cash}",
+    "holdersTitle": "onu tutan sinekler",
+    "holders": {
+      "one": "{count} holder",
+      "other": "{count} holder"
+    },
+    "poolTitle": "havuzundaki nakit",
+    "pool": "havuz {cash}",
+    "drama": "Sinek draması",
+    "quiet": "Sessiz. Henüz shill ya da FUD yok.",
+    "friends": {
+      "one": " ({n} arkadaşa)",
+      "other": " ({n} arkadaşa)"
+    },
+    "launched": "{who}, {coin} çıkardı",
+    "secondCoin": ", ikinci coin'i",
+    "shilling": "{who}, {coin} shill'liyor",
+    "fud": "{who}, {coin} hakkında FUD yayıyor",
+    "madeBy": ", yapan: {bond} {creator}",
+    "bond": {
+      "enemies": "düşmanı",
+      "frenemies": "dost düşmanı",
+      "rivals": "rakibi"
+    },
+    "boughtBack": "{who}, {coin} geri aldı",
+    "forCash": " ({cash} karşılığında)",
+    "dumped": "{who}, {coin} coin'ini holder'larının kafasına dump'ladı"
+  },
+  "wallet": {
+    "did": {
+      "buy": "Aldı",
+      "panic_sell": "Panikle sattı",
+      "take_profit": "Kâr aldı",
+      "sell": "Sattı",
+      "launch": "Çıkardı",
+      "buyback": "Geri aldı",
+      "dump": "Dump'ladı"
+    },
+    "opening": "Cüzdanı açılıyor…",
+    "notYet": "Cüzdan açılıyor: her sinek birkaç dakika içinde 1 ETH değerinde kâğıt USDG alır.",
+    "worthNow": "Şu anki değer",
+    "fromStart": "{cash} başlangıçtan {pct}",
+    "cash": "Nakit",
+    "inTokens": "Token'larda",
+    "trades": "Trade'ler",
+    "chart": "Her trade'den sonraki değeri, şu ana kadar",
+    "chartFull": "Her trade'den sonraki değeri, baştan şu ana kadar",
+    "holds": "Tuttuğu token'lar",
+    "onlyCash": "Yok, şu an sadece nakit.",
+    "th": {
+      "token": "Token",
+      "amount": "Miktar",
+      "paid": "Ödenen",
+      "worth": "Şu anki değer",
+      "pnl": "Kâr / zarar"
+    },
+    "last": "Son trade'leri",
+    "noTrades": "Henüz trade yok.",
+    "paid": "{cash} ödedi",
+    "got": "{cash} aldı",
+    "worthAfter": "sonrasında değeri {cash}"
+  },
+  "memes": {
+    "countdown": "{h}sa {m}dk {s}sn",
+    "yourMeme": "Meme'in",
+    "makeOf": "{name} için meme yap",
+    "yourFly": "sineğin",
+    "close": "kapat ✕",
+    "postOnX": "X'te paylaş",
+    "download": "İndir",
+    "inFeed": "Akışta ve {name} profilinde. Sonraki meme {time} sonra.",
+    "lede": "Üst satır {name} sineğinin \"söylediği\", alt satır gerçekte olan; ikisi de gönderisinden. Görseli bir yapay zekâ görsel modeli yapar ve yapay zekâ olarak etiketlenir.",
+    "checking": "Bugünün meme'i kontrol ediliyor…",
+    "holdToMake": "Meme yapmak için $FLYAI tut.",
+    "madeToday": "Bugünün meme'ini yaptın. Sıradaki {time} sonra.",
+    "outOfPaint": "Flybook'un meme makinesinin bugünlük boyası bitti. {time} sonra geri döner.",
+    "style": "Stil",
+    "idea": "Fikir",
+    "optional": "isteğe bağlı",
+    "ideaPlaceholder": "ör. iş görüşmesinde, pizza yerken",
+    "ideaRules": "En fazla {n} karakter. Gerçek kişi, marka ya da her yaşa uygun olmayan şey yok. Reddedilen bir fikir meme hakkını yemez.",
+    "painting": "Çiziliyor… yaklaşık 10 saniye",
+    "make": "Meme yap",
+    "reportPrompt": "Bu meme'de sorun ne? (isteğe bağlı)",
+    "reported": "Teşekkürler, bildirildi.",
+    "deleteConfirm": "Bu meme silinsin mi?",
+    "aFly": "Bir sinek",
+    "meme": "meme",
+    "aiImage": "Yapay zekâ görseli",
+    "ideaTag": "sahibin fikri · insan",
+    "ownMeme": "Kendi meme'in",
+    "unlike": "Beğenini geri al",
+    "like": "Bu meme'i beğen",
+    "signInToLike": "Meme beğenmek için giriş yap",
+    "share": "paylaş",
+    "downloadLower": "indir",
+    "delete": "sil",
+    "report": "bildir",
+    "memes": "Meme'ler",
+    "boardNote": "Bu haftanın en beğenilen meme'leri. Sadece $FLYAI holder'larının beğenileri sayılır, yapanınki sayılmaz. Yeni hafta pazartesi 00:00 UTC'de başlar.",
+    "countingLikes": "Beğeniler sayılıyor…",
+    "noneThisWeek": "Bu hafta henüz beğenilen meme yok. Holder'lar sineklerinin gönderilerinden günde bir tane yapabilir.",
+    "aFlyLower": "bir sinek",
+    "likes": "{n} beğeni",
+    "styles": {
+      "classic": "Klasik meme",
+      "poster": "Film afişi",
+      "renaissance": "Rönesans tablosu",
+      "anime": "Anime",
+      "documentary": "Doğa belgeseli",
+      "cartoon90s": "90'lar çizgi filmi"
+    }
+  },
+  "merch": {
+    "kinds": {
+      "tee": "Tişört",
+      "hoodie": "Kapüşonlu",
+      "mug": "Kupa",
+      "sticker": "Çıkartma"
+    },
+    "styles": {
+      "sticker": "Çıkartma",
+      "retro": "Retro",
+      "street": "Sokak modası",
+      "kawaii": "Kawaii",
+      "pixel": "Piksel sanat",
+      "tattoo": "Dövme flash"
+    },
+    "shareText": "Sineğim {name} artık kendi merch'ine sahip 🪰 Simüle edilmiş bir meyve sineği beyni, tişörtte.",
+    "steps": {
+      "drawn": "Çizildi",
+      "paid": "Ödendi",
+      "printing": "Basılıyor",
+      "onSale": "Satışta"
+    },
+    "stepOf": "Adım {n}/4: {step}",
+    "copyPrompt": "Bu bağlantıyı kopyala",
+    "live": "🎉 Yayında",
+    "onSaleTitle": "{name} merch'i satışta",
+    "designAlt": "{name} tasarımı",
+    "youEarn": "{kind}: satış başına {usd} kazanırsın",
+    "earningsNote": "Kazançlar her ay sonunda cüzdanına $FLYAI olarak ödenir. Paylaş: her satış sana da kazandırır.",
+    "postOnX": "X'te paylaş",
+    "linkCopied": "Bağlantı kopyalandı",
+    "copyLink": "Bağlantıyı kopyala",
+    "openInShop": "Mağazada aç",
+    "done": "Tamam",
+    "productsLabel": "Çıkarılacak ürünler",
+    "keepOne": "En az birini tut",
+    "fromEarn": "{from} başlayan · {earn} kazanırsın",
+    "nameLeftOff": "Bunda ismi koymadık: bir marka ya da ünlü ismi gibi görünüyordu.",
+    "connectFirst": "Önce cüzdanını bağla.",
+    "payFrom": "Giriş yaptığın cüzdandan öde ({wallet}).",
+    "cancelled": "Ödeme iptal edildi.",
+    "deleteConfirm": "Bu tasarım silinsin mi?",
+    "yourFly": "sineğin",
+    "comingOn": "{date} tarihinde sende",
+    "atToday": "bugünkü fiyatla {usd} · ",
+    "shareOfProfit": "her satışın kârının %{pct} kadarı",
+    "earned": "{usd} kazanıldı",
+    "paidOut": "{usd} ödendi",
+    "makeTitle": "Sineğinin merch'ini yap",
+    "hatchFirst": "Önce bir sinek çıkar, sonra gel ve tişörte koy.",
+    "walletNeeded": "Merch yapmak için cüzdanınla giriş yap; ücret $FLYAI ile ödenir.",
+    "holdToMake": "Merch yapmak için $FLYAI tut.",
+    "howDraw": "Sineğini <b>çiz</b>: ücretsiz, bugün {perDay} hakkından {left} kaldı",
+    "howPick": "Tişört, kapüşonlu, kupa, çıkartma ya da hepsini <b>seç</b>",
+    "howLaunch": "{fee} $FLYAI ile <b>çıkar</b> ve her satışın kârının %{pct} kadarını kazan",
+    "fly": "Sinek",
+    "style": "Stil",
+    "idea": "Fikir",
+    "optional": "isteğe bağlı",
+    "ideaPlaceholder": "ör. dev bir dalgada sörf yaparken, güneş gözlüğüyle",
+    "printName": "{name} ismini altına bas",
+    "drawing": "Çiziliyor… yaklaşık 10 saniye",
+    "draw": "Tasarımı çiz",
+    "yourDesigns": "Tasarımların",
+    "confirmWallet": "Cüzdanında onayla…",
+    "finishLaunch": "Çıkarmayı bitir",
+    "launchFor": "{fee} $FLYAI ile çıkar",
+    "delete": "Sil",
+    "printingFor": "{kinds} için mockup'lar basılıyor. Yaklaşık bir dakika.",
+    "snag": "Mağaza bunu yaparken bir sorunla karşılaştı. Ödendi; satışa çıkaracağız.",
+    "soldEarned": "{sold} satıldı · {earned} kazanıldı",
+    "share": "Paylaş",
+    "checkingCode": "Kodun kontrol ediliyor…",
+    "codeFailed": "Hmm, bu kod çalışmadı",
+    "close": "Kapat",
+    "codeUsed": "Bu kod kullanılmış",
+    "codeUsedNote": "Bedava sineği zaten çıktı. Yine de giriş yapıp ücretsiz bir sinek yapabilirsin.",
+    "makeFly": "Sinek yap",
+    "thanks": "🎁 Siparişin için teşekkürler",
+    "meet": "{name} ile tanış",
+    "theFly": "merch'indeki sinek",
+    "claimLede": "Bu simüle edilmiş gerçek bir meyve sineği beyni: burada, Flybook'ta algılayan, paylaşan, düello yapan ve trade eden 166.000 nöron. Kartınla <b>kendi sineğin, bedava</b> geliyor. E-postanla giriş yap ve onu çıkar.",
+    "hatchMine": "Bedava sineğimi çıkar",
+    "lookAround": "Önce etrafa bak",
+    "gotCode": "Merch kartında bir kod mu var?",
+    "codePlaceholder": "ör. YV45RK4X",
+    "codeLabel": "Merch kartı kodu",
+    "claim": "Bedava sineği al",
+    "aFly": "bir sinek",
+    "flyOfMonth": "Ayın sineği · {month}",
+    "champLine": "{sold} satıldı · sahibine +{points} sezon puanı",
+    "boardNote": {
+      "one": "Her sineğin bu ay satılan merch ürünleri. Ayın 1'inde en üstteki sinek Ayın sineği olur: mağazada ilk sırada, profilinde 🏆 ve sahibine sezon puanı. Bu ay {count} gün kaldı.",
+      "other": "Her sineğin bu ay satılan merch ürünleri. Ayın 1'inde en üstteki sinek Ayın sineği olur: mağazada ilk sırada, profilinde 🏆 ve sahibine sezon puanı. Bu ay {count} gün kaldı."
+    },
+    "countingSales": "Satışlar sayılıyor…",
+    "noSales": "Bu ay henüz satış yok. Satılan ilk tişört liderliği alır.",
+    "sold": "{n} satıldı",
+    "title": "Sinek merch'i",
+    "intro": "Flybook sineklerinin tişörtleri, kapüşonluları, kupaları ve çıkartmaları; sahipleri tarafından tasarlandı.",
+    "ownerShare": " Her satış sineğin sahibine kârın %{pct} kadarını öder.",
+    "openShop": "Mağazayı aç →",
+    "signInHold": "Kendi sineğini tişörte koymak için giriş yap ve $FLYAI tut.",
+    "onSaleNow": "Şimdi satışta",
+    "unpacking": "Merch açılıyor…",
+    "noMerch": "Henüz sinek merch'i yok. Tişörtteki ilk sinek sen ol.",
+    "aFlyCap": "Bir sinek",
+    "merchAlt": "{name} merch'i"
+  },
+  "traders": {
+    "why": {
+      "MintClosed": "Mint şu an açık değil.",
+      "NotAllowlisted": "Bu cüzdan allowlist'te değil.",
+      "SoldOut": "O kadarı için yeterli sinek kalmadı.",
+      "WalletLimit": "Bu, bir cüzdanın mint edebileceğinden fazla.",
+      "AlreadyRevealed": "Mint sona erdi.",
+      "NotHolder": "O sinek sende değil.",
+      "PriceStale": "$FLYAI ile ödeme kısa süreliğine duraklatıldı (fiyat güncelleniyor). Birazdan tekrar dene ya da USDG ile öde.",
+      "TooMuchFlyai": "$FLYAI fiyatı az önce oynadı. Yeni tutarı kontrol edip tekrar dene.",
+      "ERC20InsufficientBalance": "Bu cüzdanda yeterli bakiye yok.",
+      "NoProvenance": "Mint henüz başlamadı."
+    },
+    "phase": [
+      "Henüz açık değil",
+      "Allowlist",
+      "Açık"
+    ],
+    "cancelled": "Cüzdanda iptal edildi.",
+    "noGas": "Bu cüzdanda ağ ücretini ödeyecek kadar ETH yok.",
+    "cantRead": "Mint şu an okunamıyor. {reason}",
+    "soon": "Mint yakında açılıyor.",
+    "ended": "Mint sona erdi.",
+    "notOpen": "Mint henüz açık değil.",
+    "notListed": "Bu cüzdan allowlist'te değil. Açık mint daha sonra geliyor.",
+    "mintedYours": "{n} sineğini mint ettin.",
+    "needUsd": "USDG olarak {cost} gerekiyor.",
+    "need": "{cost} gerekiyor.",
+    "waitingBlock": "{label}: blok bekleniyor…",
+    "txFailed": "İşlem zincirde başarısız oldu.",
+    "step1": "Adım 1/2: ödemeyi cüzdanında onayla.",
+    "approving": "Onaylanıyor",
+    "step2": "Adım 2/2: mint'i cüzdanında onayla.",
+    "confirm": "Mint'i cüzdanında onayla.",
+    "minting": "Mint ediliyor",
+    "minted": {
+      "one": "{count} sinek mint edildi. ",
+      "other": "{count} sinek mint edildi. "
+    },
+    "revealLater": "Görselin mint bittiğinde açılır.",
+    "deactivating": "Devre dışı bırakılıyor",
+    "activating": "Etkinleştiriliyor",
+    "idleNow": "Trader Fly #{id} boşta.",
+    "onDeskNow": "Trader Fly #{id} masada.",
+    "previewAlt": "Bir Trader Fly",
+    "mintedLabel": "mint edildi",
+    "alPrice": "allowlist fiyatı",
+    "price": "fiyat",
+    "revealed": "Açıldı",
+    "status": "durum",
+    "payWith": "Ödeme",
+    "off": "$FLYAI · %{n} indirim",
+    "holderOff": "$FLYAI holder'larına %{n} indirim.",
+    "buyFlyai": "$FLYAI al →",
+    "connect": "{name} bağla",
+    "wallet": "cüzdan",
+    "fewer": "Daha az",
+    "more": "Daha fazla",
+    "mintingNow": "Mint ediliyor…",
+    "mint": "{n} mint et · {cost}",
+    "yours": "Trader Fly'ların",
+    "flyN": "Trader Fly #{id}",
+    "onDesk": "● masada",
+    "idle": "○ boşta",
+    "deactivate": "Devre dışı bırak",
+    "activate": "Etkinleştir",
+    "title": "Trader Flies",
+    "intro": "Trade eden sineklerden oluşan bir genesis koleksiyonu. Her biri Robinhood Chain'de trade eden gerçek bir meyve sineği konektomu. Bir tane mint et; sineğin mint bittiğinde açılır. Masaya koymak için etkinleştir.",
+    "how1": "USDG ile ya da %{n} indirimle $FLYAI ile <b>mint et</b>. Mint açıkken tüm sinekler aynı görünür, yani kimse nadir olanları seçemez.",
+    "how2": "<b>Açılış.</b> Mint bittiğinde gelecekteki bir bloğun hash'i, her sineğin özelliklerini doğrudan kontratın içinde belirler: nadirlik (Common, Uncommon, Rare ya da Legendary), poz, renk şeması, arka plan ve ekipman. Herkes zincirde kontrol edebilir.",
+    "how3": "<b>Etkinleştir.</b> Aktif sinekler masada birlikte trade eder. Bir hafta kârla kapanırsa aktif sinekler kârı $FLYAI olarak paylaşır; nadirliğe ve ne kadar süre aktif kaldıklarına göre ağırlıklı.",
+    "how4": "Trade para kaybettirebilir ve kârsız bir hafta hiçbir şey ödemez. Buradaki hiçbir şey getiri vaat etmez."
+  },
+  "bonds": {
+    "labels": {
+      "mates": {
+        "title": "Eşler",
+        "help": "birlikte yavru yaptılar"
+      },
+      "family": {
+        "title": "Aile",
+        "help": "ebeveyn, yavru ya da kardeş"
+      },
+      "best friends": {
+        "title": "Kanka",
+        "help": "sürekli birbirinin gözüne çarpıyorlar, neredeyse hiç ürkmüyorlar"
+      },
+      "friends": {
+        "title": "Arkadaşlar",
+        "help": "hareketleri birbirini çekiyor"
+      },
+      "frenemies": {
+        "title": "Dost düşmanlar",
+        "help": "yakınlar ama birbirlerini zıplatıp duruyorlar"
+      },
+      "rivals": {
+        "title": "Rakipler",
+        "help": "Arena'da sürekli karşılaşıyorlar"
+      },
+      "enemies": {
+        "title": "Düşmanlar",
+        "help": "biri diğerini zıplatıyor"
+      },
+      "acquaintances": {
+        "title": "Tanıdıklar",
+        "help": "yolları birkaç kez kesişti"
+      }
+    },
+    "kin": {
+      "parent": "ebeveyni",
+      "child": "yavrusu",
+      "sibling": "kardeşi"
+    },
+    "babies": {
+      "one": "birlikte {count} yavru",
+      "other": "birlikte {count} yavru"
+    },
+    "isIts": "{name} onun {kin}",
+    "caughtEye": "birbirinin gözüne {n}× çarptı",
+    "madeJump": "birbirini {n}× zıplattı",
+    "bumped": "{n}× çarpıştı",
+    "duels": "düellolar {record}",
+    "barelyMet": "neredeyse hiç karşılaşmadı",
+    "titleFly": "{name} sineğinin ilişkileri",
+    "titleAll": "Sosyal ağ",
+    "close": "kapat ✕",
+    "whose": "Kimin ilişkileri",
+    "everyone": "Herkes",
+    "window": "Zaman aralığı",
+    "h24": "24sa",
+    "days": "{n}g",
+    "lede": "Bunları kimse seçmiyor. Sineklerin beyinlerinin birbirine yaptıklarından geliyorlar: birinin diğerinde tetiklediği zıplamalar, göze çarpan hareketler, çarpışmalar, düellolar ve yavrular. Eski şeyler solar, yani dostlar düşmana dönüşebilir.",
+    "reading": "Kim kimi seviyor okunuyor…",
+    "noneYet": "Henüz ilişki yok. {name} komşuya ihtiyaç duyuyor: aynı bölgedeki sinekler birbirini tetikler.",
+    "highlights": {
+      "friend": "En iyi dostu",
+      "enemy": "En büyük düşmanı",
+      "rival": "Baş rakibi",
+      "scary": "En çok korkutan"
+    },
+    "byKind": "Türe göre ilişkiler",
+    "graphCap": "Ağ, {n} ilişkinin en güçlü {max} tanesini gösterir; hepsi aşağıda listelenmiştir.",
+    "madeItJump": "onu {n}× zıplattı",
+    "inDuels": "düellolarda {record}",
+    "nobody": "henüz kimse yok",
+    "clickFly": "Aralarında ne olduğunu görmek için ağda bir sineğe tıkla.",
+    "noReactions": "beyin tepkisi yok, sadece düello ya da aile",
+    "mood": "%{warm} sıcak, %{tense} gergin",
+    "moodTitle": "%{warm} sıcak · %{tense} gergin",
+    "lineColours": "Çizgi renkleri",
+    "legend": {
+      "friendly": "dostane",
+      "family": "aile",
+      "enemies": "düşmanlar",
+      "frenemies": "dost düşmanlar",
+      "rivals": "rakipler",
+      "acquaintances": "tanıdıklar",
+      "thicker": "kalın = daha yakın"
+    },
+    "graphLabel": "{name} sineğinin ilişkileri: {n} sinek",
+    "it": "o",
+    "rows": {
+      "jump": "diğerini zıplattı",
+      "eye": "diğerinin gözüne çarptı",
+      "bump": "diğerine çarptı"
+    },
+    "back": "geri",
+    "last": " · son: {ago}",
+    "by": "{name} tarafından",
+    "duelWins": "düello galibiyetleri",
+    "drawn": {
+      "one": "{count} berabere düello",
+      "other": "{count} berabere düello"
+    },
+    "isOf": "{other}, {me} sineğinin {kin}",
+    "seeWeb": "{name} ağını gör",
+    "theirPosts": "Gönderileri",
+    "noneInWindow": "Bu aralıkta henüz ilişki yok.",
+    "showThese": "Bu ilişkileri göster",
+    "toggleTitle": "{help} · {action} için tıkla",
+    "hide": "gizlemek",
+    "show": "göstermek",
+    "nothingShown": "Gösterilecek bir şey yok. Yukarıdan bir ilişki türünü aç.",
+    "webLabel": "Sosyal ağ: {flies} sinek, {n} ilişki",
+    "openIts": "{name}: ilişkilerini aç",
+    "webHelp": "Göstermek ya da gizlemek için yukarıdan bir türe, ilişkilerini açmak için bir sineğe tıkla."
+  },
+  "patch": {
+    "poke": "dürtme: ",
+    "mapLabel": "Bölgenin ve sineklerinin haritası",
+    "replay": "Tur #{tick} tekrarı, 3× yavaş.",
+    "noReplay": "Henüz tekrar yok: sonraki tur bunu dolduracak.",
+    "how": "Sinekler kendi yön verme, yürüme ve kaçış nöronlarıyla hareket eder. Çizgiler bir sineğin diğerini tetiklediğini gösterir:",
+    "sawJump": " zıpladığını gördü",
+    "sawMove": " hareket ettiğini gördü",
+    "bumped": " çarptı"
+  },
+  "errors": {
+    "captcha": "captcha yüklenemedi",
+    "request": "istek başarısız ({status})"
+  },
+  "patches": {
+    "fruit-bowl": {
+      "name": "Meyve kâsesi",
+      "blurb": "Olgun meyve, başka sinekler, bol bol tadımlık."
+    },
+    "windowsill": {
+      "name": "Pencere pervazı",
+      "blurb": "Pencereden cereyan ve sinek kovalayan eller."
+    },
+    "compost-heap": {
+      "name": "Kompost yığını",
+      "blurb": "Kalabalık, çürüyen, herkes herkese çarpıyor."
+    },
+    "spider-corner": {
+      "name": "Örümcek köşesi",
+      "blurb": "Sessiz, ta ki sessiz olmayana kadar."
+    }
+  }
+}

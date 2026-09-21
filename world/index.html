@@ -14,11 +14,13 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@flydotai" />
     <meta name="twitter:image" content="https://flyaiworld.com/assets/dashboard.png" />
-    <title>fly.ai world — flies with spiking brains</title>
+    <title data-i18n="sim.meta.title">fly.ai world — flies with spiking brains</title>
     <meta
       name="description"
       content="A low-poly world of flies, each flying on its own spiking neural network, with a live view of the brain."
+      data-i18n-attr="content:sim.meta.description"
     />
+    <script src="/assets/i18n/boot.js"></script>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='%233ed8ff'/%3E%3C/svg%3E" />
   </head>
   <body>
@@ -27,40 +29,40 @@
 
     <header id="top">
       <a id="back" href="/">&larr; fly.ai</a>
-      <h1>fly.ai <b>world</b></h1>
-      <div class="sub" id="stats">starting…</div>
+      <h1 data-i18n-html="sim.top.title">fly.ai <b>world</b></h1>
+      <div class="sub" id="stats" data-i18n="sim.top.starting">starting…</div>
     </header>
 
     <aside id="panel">
       <section class="card about">
-        <h2><span>What this is</span><span id="abouttoggle" class="link">hide</span></h2>
+        <h2><span data-i18n="sim.about.title">What this is</span><span id="abouttoggle" class="link">hide</span></h2>
         <div id="aboutbody">
-          <p>A field of fruit flies, each one flying on its own <b>spiking neural network</b> &mdash;
+          <p data-i18n-html="sim.about.p1">A field of fruit flies, each one flying on its own <b>spiking neural network</b> &mdash;
             748 leaky integrate-and-fire neurons named after real <i>Drosophila</i> cell types and
             wired in the shape of the pathways measured in the MaleCNS connectome.</p>
-          <p>Each fly has a <b>mushroom body</b>: its Kenyon cells give every smell its own signature, and
+          <p data-i18n-html="sim.about.p2">Each fly has a <b>mushroom body</b>: its Kenyon cells give every smell its own signature, and
             dopamine neurons that fire on a looming threat, a knock, alarm CO<sub>2</sub> or a taste of
             juice rewrite which smells it is drawn to. Switch it in the Data card.</p>
-          <p><b>Nothing in a fly's behaviour is scripted.</b> Light, odour puffs, airflow and leg
+          <p data-i18n-html="sim.about.p3"><b>Nothing in a fly's behaviour is scripted.</b> Light, odour puffs, airflow and leg
             contact are injected into sensory neurons; the network runs; and flight is read back out
             of the <b>motor neurons</b>. There is no <code>if (nearFruit) goToFruit</code>. Feeding,
             landing, escaping the swatter, plume tracking, courtship and egg-laying all fall out of
             the wiring &mdash; or fail to, which is reported just as plainly.</p>
-          <p>A full life runs here: flies <b>eat, mate, lay eggs, hatch, hunt for food, get
+          <p data-i18n-html="sim.about.p4">A full life runs here: flies <b>eat, mate, lay eggs, hatch, hunt for food, get
             eaten by spiders and die</b> &mdash; each of those drops a marker on the map where it
             happened. The clock runs a 300-second day, and night is real to the flies: it dims the
             luminance their photoreceptors see, rather than setting any &ldquo;it is night&rdquo; flag.</p>
-          <p>Click any fly to watch its brain fire. Every bar, tag and number in this panel is a
+          <p data-i18n-html="sim.about.p5">Click any fly to watch its brain fire. Every bar, tag and number in this panel is a
             readout of population firing rates, never a driver of them.</p>
-          <p class="warn">It is <b>not</b> the real connectome: 748 neurons against 166,700, with real
+          <p class="warn" data-i18n-html="sim.about.warn">It is <b>not</b> the real connectome: 748 neurons against 166,700, with real
             cell-type names but invented counts and weights. Nothing here is trained.
             <a href="https://github.com/alextitonis/fly.ai/blob/main/world/README.md" target="_blank" rel="noreferrer">What is and isn't real →</a></p>
         </div>
       </section>
 
       <section class="card">
-        <h2><span>Wiz · a fly working a monkey</span><span id="wizstatus">asleep</span></h2>
-        <p class="note">A giant monkey wizard puppeted by the <b>full fruit fly connectome</b> &mdash; 166,700
+        <h2><span data-i18n="sim.wiz.title">Wiz · a fly working a monkey</span><span id="wizstatus">asleep</span></h2>
+        <p class="note" data-i18n-html="sim.wiz.note">A giant monkey wizard puppeted by the <b>full fruit fly connectome</b> &mdash; 166,700
           neurons and 25 M synapses, running in your browser. <b>The strings are real neurons:</b> what he sees
           goes into the fly's looming, threat and target cells, his footsteps into its leg-touch cells, and the
           descending neurons that fire raise his arms, kick his feet into missteps, turn his head, steer him and
@@ -70,114 +72,114 @@
           Downloads about 58 MB.</p>
         <div id="wizbars"></div>
         <div class="buttons">
-          <button id="wiz">summon Wiz</button>
-          <button id="wizcam">wiz cam</button>
+          <button id="wiz" data-i18n="sim.wiz.summon">summon Wiz</button>
+          <button id="wizcam" data-i18n="sim.wiz.cam">wiz cam</button>
         </div>
       </section>
 
       <section class="card">
-        <h2><span>Nervous system</span><span id="flyid">fly —</span></h2>
+        <h2><span data-i18n="sim.brain.title">Nervous system</span><span id="flyid" data-i18n="sim.brain.flyNone">fly —</span></h2>
         <canvas id="brain"></canvas>
         <div class="legend">
-          <span><i style="background:#3ed8ff"></i>vision</span>
-          <span><i style="background:#ffb23e"></i>olfaction</span>
-          <span><i style="background:#7ce0c0"></i>mechanosensory</span>
-          <span><i style="background:#9fb4c8"></i>central</span>
-          <span><i style="background:#6cf08a"></i>descending</span>
-          <span><i style="background:#b8ffcf"></i>motor</span>
-          <span><i style="background:#b07cff"></i>inhibitory (GABA)</span>
+          <span><i style="background:#3ed8ff"></i><span data-i18n="sim.modality.vision">vision</span></span>
+          <span><i style="background:#ffb23e"></i><span data-i18n="sim.modality.olfaction">olfaction</span></span>
+          <span><i style="background:#7ce0c0"></i><span data-i18n="sim.modality.mechanosensory">mechanosensory</span></span>
+          <span><i style="background:#9fb4c8"></i><span data-i18n="sim.modality.central">central</span></span>
+          <span><i style="background:#6cf08a"></i><span data-i18n="sim.modality.descending">descending</span></span>
+          <span><i style="background:#b8ffcf"></i><span data-i18n="sim.modality.motor">motor</span></span>
+          <span><i style="background:#b07cff"></i><span data-i18n="sim.modality.inhibitory">inhibitory (GABA)</span></span>
         </div>
-        <h3>spike raster · last 5 s</h3>
+        <h3 data-i18n="sim.brain.raster">spike raster · last 5 s</h3>
         <canvas id="raster"></canvas>
       </section>
 
       <section class="card">
-        <h2><span>Senses → brain</span><span>left · right</span></h2>
+        <h2><span data-i18n="sim.senses.title">Senses → brain</span><span data-i18n="sim.senses.sides">left · right</span></h2>
         <div id="eyes"></div>
       </section>
 
       <section class="card">
-        <h2><span>Firing rate</span><span>Hz per neuron · L · R</span></h2>
+        <h2><span data-i18n="sim.rates.title">Firing rate</span><span data-i18n="sim.rates.unit">Hz per neuron · L · R</span></h2>
         <div id="rates"></div>
       </section>
 
       <section class="card">
-        <h2><span>Brain → body</span><span>descending → VNC → muscle</span></h2>
-        <h3>descending neurons</h3>
+        <h2><span data-i18n="sim.body.title">Brain → body</span><span data-i18n="sim.body.path">descending → VNC → muscle</span></h2>
+        <h3 data-i18n="sim.body.dn">descending neurons</h3>
         <div id="dn"></div>
-        <h3>motor neurons — flight is read here</h3>
+        <h3 data-i18n="sim.body.mn">motor neurons — flight is read here</h3>
         <div id="motor"></div>
       </section>
 
       <section class="card">
-        <h2><span>The field</span><span>what is out there</span></h2>
+        <h2><span data-i18n="sim.field.title">The field</span><span data-i18n="sim.field.sub">what is out there</span></h2>
         <div class="legend" id="worldlegend"></div>
       </section>
 
       <section class="card">
-        <h2><span>Happening now</span><span id="clock">—</span></h2>
+        <h2><span data-i18n="sim.feed.title">Happening now</span><span id="clock">—</span></h2>
         <div id="feed"></div>
       </section>
 
       <section class="card">
-        <h2><span>Population</span><span id="popnow">—</span></h2>
+        <h2><span data-i18n="sim.population.title">Population</span><span id="popnow">—</span></h2>
         <canvas id="popgraph"></canvas>
         <div class="legend">
-          <span><i style="background:#6cf08a"></i>adults</span>
-          <span><i style="background:#ffb23e"></i>eggs + larvae</span>
+          <span><i style="background:#6cf08a"></i><span data-i18n="sim.population.adults">adults</span></span>
+          <span><i style="background:#ffb23e"></i><span data-i18n="sim.population.brood">eggs + larvae</span></span>
         </div>
         <div id="popstats"></div>
       </section>
 
       <section class="card datacard">
-        <h2><span>Data &amp; findings</span><span id="datanow">—</span></h2>
+        <h2><span data-i18n-html="sim.data.title">Data &amp; findings</span><span id="datanow">—</span></h2>
         <div class="learn">
-          <label title="synapses active just before a meal grow; before a knock or a spider strike they shrink"><input type="checkbox" id="learnReward"> reward learning</label>
-          <label title="a synapse grows when its input fires just before its output"><input type="checkbox" id="learnHebb"> hebbian learning</label>
-          <label title="mushroom body: a dopamine teacher depresses the Kenyon cells that were firing, so the odour they code for changes meaning"><input type="checkbox" id="learnMemory"> odour memory (mushroom body)</label>
+          <label title="synapses active just before a meal grow; before a knock or a spider strike they shrink" data-i18n-attr="title:sim.data.rewardTip"><input type="checkbox" id="learnReward"> <span data-i18n="sim.data.reward">reward learning</span></label>
+          <label title="a synapse grows when its input fires just before its output" data-i18n-attr="title:sim.data.hebbTip"><input type="checkbox" id="learnHebb"> <span data-i18n="sim.data.hebb">hebbian learning</span></label>
+          <label title="mushroom body: a dopamine teacher depresses the Kenyon cells that were firing, so the odour they code for changes meaning" data-i18n-attr="title:sim.data.memoryTip"><input type="checkbox" id="learnMemory"> <span data-i18n="sim.data.memory">odour memory (mushroom body)</span></label>
         </div>
-        <h3>do they gather?</h3>
+        <h3 data-i18n="sim.data.gather">do they gather?</h3>
         <canvas id="chartGroups"></canvas>
         <div class="kv" id="groupNote"></div>
-        <h3>friends and enemies</h3>
+        <h3 data-i18n="sim.data.friends">friends and enemies</h3>
         <div id="socialNow"></div>
-        <h3>do brains change?</h3>
+        <h3 data-i18n="sim.data.drift">do brains change?</h3>
         <canvas id="chartDrift"></canvas>
-        <h3>do babies take after their parents?</h3>
+        <h3 data-i18n="sim.data.herit">do babies take after their parents?</h3>
         <select id="traitPick"></select>
         <canvas id="chartHerit"></canvas>
         <div class="note" id="heritNote"></div>
-        <h3>eggs and larvae: what became of them</h3>
+        <h3 data-i18n="sim.data.fates">eggs and larvae: what became of them</h3>
         <div class="fates" id="broodBars"></div>
         <div class="buttons">
-          <button id="report">report (PDF)</button>
+          <button id="report" data-i18n="sim.data.report">report (PDF)</button>
           <button id="csvWorld">world.csv</button>
           <button id="csvFlies">flies.csv</button>
           <button id="csvLineage">lineage.csv</button>
           <button id="csvBrood">eggs.csv</button>
           <button id="csvPairs">relationships.csv</button>
-          <button id="csvBlocks">brain blocks.csv</button>
+          <button id="csvBlocks" data-i18n="sim.data.blocks">brain blocks.csv</button>
           <button id="csvEvents">events.csv</button>
         </div>
       </section>
 
       <section class="card">
-        <h2><span>Leaderboard</span><span>live</span></h2>
+        <h2><span data-i18n="sim.board.title">Leaderboard</span><span data-i18n="sim.board.live">live</span></h2>
         <div id="board"></div>
       </section>
 
       <section class="card">
-        <h2><span>Controls</span><span id="reset" class="link">reset</span></h2>
+        <h2><span data-i18n="sim.controls.title">Controls</span><span id="reset" class="link" data-i18n="sim.controls.reset">reset</span></h2>
         <div id="sliders"></div>
         <div class="buttons">
-          <button id="threat">SWAT!</button>
-          <button id="gust">gust of wind</button>
-          <button id="flycam">fly cam</button>
-          <button id="drama">drama cam</button>
-          <button id="next">next fly</button>
-          <button id="follow">follow: off</button>
+          <button id="threat" data-i18n="sim.controls.swat">SWAT!</button>
+          <button id="gust" data-i18n="sim.controls.gust">gust of wind</button>
+          <button id="flycam" data-i18n="sim.controls.flycam">fly cam</button>
+          <button id="drama" data-i18n="sim.controls.drama">drama cam</button>
+          <button id="next" data-i18n="sim.controls.next">next fly</button>
+          <button id="follow" data-i18n="sim.controls.followOff">follow: off</button>
         </div>
-        <p class="note">
+        <p class="note" data-i18n-html="sim.controls.note">
           Click a fly to select it. Drag to orbit, scroll to zoom. Every fly runs its own
           leaky integrate-and-fire network: eyes, antennae, Johnston's organ and leg
           bristles in, motor neurons out. Nothing in its flight is scripted.
@@ -186,7 +188,7 @@
       </section>
     </aside>
 
-    <button id="toggle" aria-label="toggle panel">☰</button>
+    <button id="toggle" aria-label="toggle panel" data-i18n-attr="aria-label:sim.top.togglePanel">☰</button>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

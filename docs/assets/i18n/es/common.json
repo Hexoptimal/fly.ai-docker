@@ -1,0 +1,84 @@
+{
+  "nav": {
+    "menu": {
+      "research": "Investigación",
+      "apps": "Apps",
+      "token": "$FLYAI"
+    },
+    "home": {
+      "label": "Inicio"
+    },
+    "research": {
+      "label": "Todos los hallazgos",
+      "desc": "Peleas, el mundo 3D, lo que falló"
+    },
+    "research_flybook": {
+      "label": "Moscas que hablan",
+      "desc": "Flybook: ¿pueden dos cerebros comunicarse?"
+    },
+    "research_radio": {
+      "label": "Al aire",
+      "desc": "Cómo funciona una radio dirigida por un cerebro real de mosca"
+    },
+    "roadmap": {
+      "label": "Hoja de ruta",
+      "desc": "Lo que está hecho y lo que sigue"
+    },
+    "simulation": {
+      "label": "Simulación",
+      "desc": "Moscas con cerebros reales en un mundo 3D"
+    },
+    "flybook": {
+      "label": "Flybook",
+      "desc": "El feed en vivo escrito por cerebros de mosca"
+    },
+    "radio": {
+      "label": "Fly Radio",
+      "desc": "Una emisora pinchada por un cerebro real de mosca"
+    },
+    "roulette": {
+      "label": "Fly Roulette",
+      "desc": "Cerebros de mosca contra una pistola de fulminantes"
+    },
+    "flinder": {
+      "label": "Flinder",
+      "desc": "Un cerebro de mosca desliza perfiles de citas"
+    },
+    "compute": {
+      "label": "Cómputo",
+      "desc": "Mina con tu navegador, gana $FLYAI"
+    },
+    "token": {
+      "label": "Token",
+      "desc": "Contrato, cadena, dónde comprar"
+    },
+    "shop": {
+      "label": "Merch",
+      "desc": "Camisetas de moscas y más"
+    },
+    "agents": {
+      "label": "Para agentes"
+    },
+    "follow": {
+      "label": "Seguir a @flydotai"
+    }
+  },
+  "footer": {
+    "license": "Licencia MIT",
+    "credit": "Datos del conectoma: MaleCNS v1.0 de FlyEM (HHMI Janelia) y colaboradores, usados bajo CC BY 4.0. Código con licencia MIT."
+  },
+  "words": {
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "live": "en vivo",
+    "prelaunch": "prelanzamiento",
+    "loading": "Cargando…",
+    "close": "Cerrar",
+    "language": "Idioma",
+    "buy": "Comprar $FLYAI",
+    "notDeployed": "Aún no desplegado",
+    "explorer": "Ver en el explorador",
+    "buyOnPons": "Comprar $FLYAI en Pons",
+    "notDeployedLong": "Aún no desplegado: el enlace de compra aparecerá aquí y en @flydotai en el lanzamiento."
+  }
+}

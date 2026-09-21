@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { db, type FlySettings, type Learning, type Meme } from "./feed";
 
 /** The Flybook API on fly.io (flybook/worker/api.py): accounts, flies and everything people do. */
@@ -43,7 +44,7 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
     },
   });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.error ?? `request failed (${res.status})`);
+  if (!res.ok) throw new Error(body.error ?? t("flybook.errors.request", { status: res.status }));
   return body as T;
 }
 

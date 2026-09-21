@@ -7,13 +7,17 @@
  */
 import { DateNight } from "./datenight.ts";
 import { Fx } from "./fx.ts";
-import { DATE_END, EX_OPENERS, UNSENT, botSay, endLine, nervousOpener, opener, say, seenAt, voiceNote } from "./lines.ts";
+import { setupI18n, t } from "./i18n.ts";
+import { EX_OPENERS, UNSENT, botSay, dateOutcome, endLine, nervousOpener, opener, say, seenAt, voiceNote } from "./lines.ts";
 import { Portrait } from "./portrait.ts";
-import { TRAIT_LABEL, flyFromHash, randomProfile, type Profile } from "./profiles.ts";
+import { flyFromHash, randomProfile, traitLabel, type Profile } from "./profiles.ts";
 import {
   CHAT, READOUT, TRAITS, carried, dateEnd, ending, sensed, type ChatCounts, type Ending, type Reply, type Traits,
 } from "./readout.ts";
-import { CATEGORIES, emptyStats, flyLink, loadBoard, saveBoard, statsCard, thumb, tweetText, type BoardRow, type Stats } from "./share.ts";
+import { categories, emptyStats, flyLink, loadBoard, saveBoard, statsCard, thumb, tweetText, type BoardRow, type Stats } from "./share.ts";
+
+// the page's language first: every text below is in it
+await setupI18n();
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const statusEl = $("status"), deckEl = $("deck"), legEl = $("leg"), toastEl = $("toast"), matchEl = $("match"), phoneEl = $("phone");
@@ -37,11 +41,11 @@ const replies = new Map<string, (r: Replied) => void>();
 
 worker.onmessage = (e: MessageEvent) => {
   const m = e.data;
-  if (m.type === "progress") statusEl.textContent = `loading the fly brain: ${m.text}`;
-  else if (m.type === "error") statusEl.textContent = `couldn't load the brain: ${m.text}`;
+  if (m.type === "progress") statusEl.textContent = t("flinder.status.progress", { text: progressText(m.text) });
+  else if (m.type === "error") statusEl.textContent = t("flinder.status.error", { text: m.text });
   else if (m.type === "ready") {
     brainReady = true;
-    statusEl.textContent = `brain ready · ${m.n.toLocaleString()} neurons`;
+    statusEl.textContent = t("flinder.status.ready", { n: m.n.toLocaleString() });
     startBtn.disabled = false;
   } else if (m.type === "replied") {
     const key = `c${m.id}${m.reader}`;
@@ -57,6 +61,12 @@ worker.onmessage = (e: MessageEvent) => {
   }
 };
 worker.postMessage({ type: "load", base });
+
+/** The worker's progress ("fly brain 40 / 210 MB") in the page's language. */
+function progressText(text: string): string {
+  if (text === "wiring 25 M synapses") return t("flinder.status.wiring");
+  return text.replace(/^labels/, t("flinder.status.labels")).replace(/^fly brain/, t("flinder.status.brain"));
+}
 
 /** What a swiper senses from a profile: its traits, plus a rival's smell if it just left another date. */
 const smellOf = (p: Profile) => sensed(p.traits, p.rival);
@@ -130,7 +140,7 @@ const photoOf = (p: Profile) => {
 const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" })[c]!);
 const anyOf = <T>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)];
 const dots = (v: number) => "●".repeat(Math.round(v * 5)) + "○".repeat(5 - Math.round(v * 5));
-const chips = (t: Traits) => TRAITS.map((k) => `<span class="chip${t[k] >= 0.6 ? " hot" : ""}">${TRAIT_LABEL[k]}<i>${dots(t[k])}</i></span>`).join("");
+const chips = (t: Traits) => TRAITS.map((k) => `<span class="chip${t[k] >= 0.6 ? " hot" : ""}">${traitLabel(k)}<i>${dots(t[k])}</i></span>`).join("");
 
 let deck: Profile[] = [];
 const cards = new Map<number, HTMLElement>();
@@ -141,17 +151,17 @@ function cardEl(p: Profile): HTMLElement {
   const flags = [
     ...p.red.map((f) => `<span class="flag red">🚩 ${escapeHtml(f)}</span>`),
     ...p.green.map((f) => `<span class="flag green">💚 ${escapeHtml(f)}</span>`),
-    p.rival ? `<span class="flag rival">👀 smells like another fly</span>` : "",
+    p.rival ? `<span class="flag rival">${t("flinder.card.rival")}</span>` : "",
   ].join("");
   el.innerHTML = `<img class="photo" alt="">
-    <div class="stamp like">LIKE</div><div class="stamp nope">NOPE</div><div class="stamp super">SUPER<br>LIKE</div>
-    ${p.bot ? `<div class="botbadge">⚠️ possible mosquito</div>` : ""}
+    <div class="stamp like">${t("flinder.card.like")}</div><div class="stamp nope">${t("flinder.card.nope")}</div><div class="stamp super">${t("flinder.card.super")}</div>
+    ${p.bot ? `<div class="botbadge">${t("flinder.card.mosquito")}</div>` : ""}
     <div class="info"><div class="nm"></div><div class="meta"></div><p class="bio"></p>
       <div class="prompt"><b></b><span></span></div>
       <div class="flags">${flags}</div><div class="chips">${chips(p.traits)}</div></div>`;
   (el.querySelector(".photo") as HTMLImageElement).src = photoOf(p);
-  el.querySelector(".nm")!.innerHTML = `${escapeHtml(p.name)} <span>${p.age}d</span>`;
-  el.querySelector(".meta")!.textContent = `${p.job} · ${p.cm} cm away`;
+  el.querySelector(".nm")!.innerHTML = `${escapeHtml(p.name)} <span>${t("flinder.card.age", { age: p.age })}</span>`;
+  el.querySelector(".meta")!.textContent = t("flinder.card.meta", { job: p.job, cm: p.cm });
   el.querySelector(".bio")!.textContent = p.bio;
   el.querySelector(".prompt b")!.textContent = p.prompt[0];
   el.querySelector(".prompt span")!.textContent = p.prompt[1];
@@ -223,12 +233,12 @@ function newSwiper(from: Profile | null = null): void {
   ($("me-pic") as HTMLImageElement).src = swiperPic;
   ($("mine-pic") as HTMLImageElement).src = swiperPic;
   $("me-name").textContent = swiper.name;
-  $("mine-name").textContent = `${swiper.name}, ${swiper.age}d`;
+  $("mine-name").textContent = t("flinder.swiper.nameAge", { name: swiper.name, age: swiper.age });
   $("mine-chips").innerHTML = chips(swiper.traits);
-  matchesEl.innerHTML = `<li class="empty">no matches yet</li>`;
+  matchesEl.innerHTML = `<li class="empty">${t("flinder.panels.noMatches")}</li>`;
   chatEl.hidden = true; shown = null; reading = false;
   logEl.innerHTML = "";
-  meterName.textContent = "nobody yet";
+  meterName.textContent = t("flinder.meter.nobodyYet");
   setMeter({ heart: 0, vpo: 0 });
   setChatMeter(null);
   verdictEl.textContent = "";
@@ -241,12 +251,12 @@ function bump(k: keyof Stats): void {
 }
 function showStats(): void {
   const s = stats;
-  $("mine-stats").textContent = `${s.swipes} swipes · ${s.matches} matches · ${s.dates} dates · 👻 ${s.ghosted} · 💔 ${s.unmatched} · ⭐ ${s.supers}`;
+  $("mine-stats").textContent = t("flinder.swiper.stats", { ...s });
 }
 function renderBoard(rows: BoardRow[] = loadBoard()): void {
-  if (!rows.length) { boardEl.innerHTML = `<li class="empty">run a fly to get on the board</li>`; return; }
+  if (!rows.length) { boardEl.innerHTML = `<li class="empty">${t("flinder.panels.boardEmpty")}</li>`; return; }
   boardEl.innerHTML = "";
-  for (const [label, score] of CATEGORIES) {
+  for (const [label, score] of categories()) {
     const best = [...rows].sort((a, b) => score(b) - score(a))[0];
     if (!best || score(best) === 0) continue;
     const li = document.createElement("li");
@@ -259,7 +269,7 @@ function renderBoard(rows: BoardRow[] = loadBoard()): void {
     li.querySelector(".n")!.textContent = String(score(best));
     boardEl.appendChild(li);
   }
-  if (!boardEl.children.length) boardEl.innerHTML = `<li class="empty">no heartbreaks yet</li>`;
+  if (!boardEl.children.length) boardEl.innerHTML = `<li class="empty">${t("flinder.panels.noHeartbreaks")}</li>`;
 }
 
 // ---- meters, log, tally ----------------------------------------------------------------------------------
@@ -303,7 +313,7 @@ const store = {
 };
 function showTally(): void {
   const s = store.get();
-  tallyEl.textContent = s.swipes ? `all time here: ${s.swipes} swipes · ${s.matches} matches · ${s.dates} dates` : "";
+  tallyEl.textContent = s.swipes ? t("flinder.tally", { swipes: s.swipes, matches: s.matches, dates: s.dates }) : "";
 }
 
 // ---- a match, then their chat ----------------------------------------------------------------------------
@@ -336,7 +346,7 @@ async function itsAMatch(p: Profile): Promise<void> {
   sfx.match();
   ($("m-me") as HTMLImageElement).src = photoOf(swiper!);
   ($("m-them") as HTMLImageElement).src = photoOf(p);
-  $("m-line").textContent = p.bot ? `You matched with a mosquito. Good luck 🩸` : lastSuper ? `${p.name} got super liked and said yes 😳` : `You and ${p.name} like each other.`;
+  $("m-line").textContent = t(p.bot ? "flinder.match.bot" : lastSuper ? "flinder.match.super" : "flinder.match.mutual", { name: p.name });
   matchEl.hidden = false;
   for (let k = 0; k < 14; k++) {
     const h = document.createElement("span");
@@ -348,7 +358,7 @@ async function itsAMatch(p: Profile): Promise<void> {
     matchEl.appendChild(h);
     h.addEventListener("animationend", () => h.remove());
   }
-  log(`<span class="m">💖 match with ${escapeHtml(p.name)}</span>`);
+  log(`<span class="m">${t("flinder.match.log", { name: escapeHtml(p.name) })}</span>`);
   await wait(2200);
   matchEl.hidden = true;
   const chat: Chat = { p, lines: [], end: null, endText: "", li: matchRow(p) };
@@ -363,7 +373,7 @@ function openChat(chat: Chat, read = false): void {
   reading = read;
   ($("chat-pic") as HTMLImageElement).src = (chat.li.querySelector("img") as HTMLImageElement).src;
   $("chat-name").textContent = chat.p.name;
-  $("chat-sub").textContent = chat.ex ? "your ex 💀" : chat.end ? "matched earlier" : chat.p.bot ? "⚠️ this account may be a mosquito" : "matched just now";
+  $("chat-sub").textContent = t(chat.ex ? "flinder.chat.ex" : chat.end ? "flinder.chat.earlier" : chat.p.bot ? "flinder.chat.bot" : "flinder.chat.justNow");
   chatBody.innerHTML = "";
   chatBody.classList.toggle("faded", chat.end === "ghosted");
   for (const l of chat.lines) bubble(l);
@@ -398,11 +408,11 @@ chatBack.onclick = () => { chatEl.hidden = true; reading = false; shown = null; 
 
 const WHY: Record<Reply, (r: Replied) => string> = {
   flirt: (r) => `pC1 ${r.heart}`,
-  spooked: (r) => `giant fibre ${r.gf}`,
-  groom: (r) => `grooming ${r.groom}`,
+  spooked: (r) => t("flinder.chat.giantFibre", { n: r.gf }),
+  groom: (r) => t("flinder.chat.grooming", { n: r.groom }),
   dry: (r) => `pC1 ${r.heart}`,
 };
-const VERDICT: Record<Reply, string> = { flirt: "FLIRTS 😘", spooked: "SPOOKED 😱", groom: "GROOMING 🧼", dry: "DRY 😐" };
+const verdict = (r: Reply) => t(`flinder.verdict.${r}`);
 
 /**
  * The two brains take turns, each reading the other's last message (readout.ts runReply), until ending() says
@@ -423,30 +433,30 @@ async function runChat(chat: Chat, ex: boolean): Promise<void> {
 
   let msg: { flirt: number; loom: number };
   if (ex) {
-    const t = typing(false);
+    const tp = typing(false);
     await wait(900);
-    t.remove();
-    add({ me: false, text: anyOf(EX_OPENERS), why: "an ex", kind: "flirt", strong: false });
+    tp.remove();
+    add({ me: false, text: anyOf(EX_OPENERS), why: t("flinder.chat.anEx"), kind: "flirt", strong: false });
     msg = carried("flirt", READOUT.heart);             // a lukewarm "hey stranger"
   } else {
     // a second look before typing: the swiper's brain reads the match's profile again
     const look = await brainReply(p, "swiper", smellOf(p), NONE);
-    let t = typing(true);
+    let tp = typing(true);
     await wait(800);
-    t.remove();
+    tp.remove();
     if (look.reply === "flirt") {
-      add({ me: true, text: opener(p.traits), why: `pC1 ${lastSwipe}${lastSuper ? " · super like" : ""}`, kind: "flirt", strong: lastSwipe >= CHAT.comeOn });
+      add({ me: true, text: opener(p.traits), why: `pC1 ${lastSwipe}${lastSuper ? ` · ${t("flinder.chat.superLike")}` : ""}`, kind: "flirt", strong: lastSwipe >= CHAT.comeOn });
     } else {
       // nerves: it types something, unsends it, types again, and goes with a limp "hey"
       add({ me: true, text: `${anyOf(UNSENT)}…`, why: "", kind: "system", strong: false });
       await wait(700);
       if (shown === chat) chatBody.lastElementChild?.classList.add("unsent");
-      chat.lines[chat.lines.length - 1].text = "🚫 message unsent";
+      chat.lines[chat.lines.length - 1].text = t("flinder.chat.unsent");
       await wait(600);
-      t = typing(true);
+      tp = typing(true);
       await wait(900);
-      t.remove();
-      add({ me: true, text: nervousOpener(), why: `pC1 ${look.heart} · nervous`, kind: "flirt", strong: false });
+      tp.remove();
+      add({ me: true, text: nervousOpener(), why: `pC1 ${look.heart} · ${t("flinder.chat.nervous")}`, kind: "flirt", strong: false });
       hearts.me = look.heart;
     }
     msg = carried("flirt", hearts.me);
@@ -457,14 +467,14 @@ async function runChat(chat: Chat, ex: boolean): Promise<void> {
   for (let turn = 1; !end; turn++) {
     const mine = ex ? turn % 2 === 1 : turn % 2 === 0;   // whoever didn't just text answers
     const reader = mine ? me : p, sender = mine ? p : me;
-    meterName.textContent = `${reader.name} reads…`;
-    verdictEl.textContent = "typing…";
+    meterName.textContent = t("flinder.meter.reads", { name: reader.name });
+    verdictEl.textContent = t("flinder.meter.typing");
     verdictEl.className = "";
     let dots = typing(mine);
     const [r] = await Promise.all([brainReply(p, mine ? "swiper" : "match", mine ? smellOf(sender) : sender.traits, msg), wait(1000)]);
     dots.remove();
     if (r.reply === "dry") {                              // the tease: typing… stopped… typing…
-      add({ me: mine, text: "stopped typing…", why: "", kind: "system", strong: false });
+      add({ me: mine, text: t("flinder.chat.stoppedTyping"), why: "", kind: "system", strong: false });
       await wait(700);
       dots = typing(mine);
       await wait(600);
@@ -472,7 +482,7 @@ async function runChat(chat: Chat, ex: boolean): Promise<void> {
     }
     setMeter({ heart: r.heart, vpo: 0 });
     setChatMeter(r);
-    verdictEl.textContent = VERDICT[r.reply];
+    verdictEl.textContent = verdict(r.reply);
     verdictEl.className = r.reply === "flirt" ? "right" : "left";
     add({ me: mine, text: words(r.reply, reader, r.heart), why: WHY[r.reply](r), kind: r.reply, strong: r.heart >= CHAT.comeOn });
     sfx.tap();
@@ -512,10 +522,10 @@ async function dateNight(chat: Chat, hearts: { me: number; them: number }): Prom
     brainReply(p, "match", me.traits, full(hearts.me)),
   ]);
   const end = dateEnd(a.reply, b.reply);
-  const how = anyOf(DATE_END[end]);
+  const how = dateOutcome(end);
   chat.endText += ` → ${how}`;
   chat.li.querySelector(".msg")!.textContent = how;
-  log(`<span class="m">🌙 date night: ${escapeHtml(how)}</span> <span class="dim">(${escapeHtml(me.name)} ${a.reply}, ${escapeHtml(p.name)} ${b.reply})</span>`);
+  log(`<span class="m">${t("flinder.date.log", { how: escapeHtml(how) })}</span> <span class="dim">(${escapeHtml(me.name)} ${t(`flinder.reply.${a.reply}`)}, ${escapeHtml(p.name)} ${t(`flinder.reply.${b.reply}`)})</span>`);
   if (shown !== chat) return;
   const el = $("date");
   dates ??= new DateNight();
@@ -541,7 +551,7 @@ async function exReturns(p: Profile): Promise<void> {
   worker.postMessage({ type: "revive", id: p.id, seed: p.seed });
   toast(`📩 ${p.name}: ${anyOf(["hey stranger 👀", "u up?", "…hi"])}`, 2200);
   fx.shake(phoneEl, "pulse");
-  log(`<span class="m">🔁 ${escapeHtml(p.name)} is back in the DMs</span>`);
+  log(`<span class="m">${t("flinder.chat.exBack", { name: escapeHtml(p.name) })}</span>`);
   await wait(1400);
   const chat: Chat = { p, lines: [], end: null, endText: "", li: matchRow(p, "🔁"), ex: true };
   chat.li.onclick = () => openChat(chat, true);
@@ -553,7 +563,7 @@ let nextSwat = 25 + Math.floor(Math.random() * 10);
 async function swipeOne(): Promise<void> {
   const p = deck[0];
   meterName.textContent = p.name;
-  verdictEl.textContent = "thinking…";
+  verdictEl.textContent = t("flinder.meter.thinking");
   verdictEl.className = "";
   setMeter({ heart: 0, vpo: 0 });
   setChatMeter(null);
@@ -578,20 +588,21 @@ async function swipeOne(): Promise<void> {
   leg.wiggle = 0;
   const right = c.choice === "right", superLike = c.heart >= READOUT.super;
   lastSuper = superLike;
-  verdictEl.textContent = superLike ? "SUPER LIKE ⭐" : right ? "SWIPED RIGHT ♥" : "SWIPED LEFT ✕";
+  verdictEl.textContent = t(superLike ? "flinder.meter.superLikeV" : right ? "flinder.meter.rightV" : "flinder.meter.leftV");
   verdictEl.className = c.choice;
   (superLike ? starBtn : right ? likeBtn : nopeBtn).classList.add("on");
   store.add("swipes");
   bump("swipes");
   if (right) { store.add("rights"); bump("rights"); }
   if (superLike) bump("supers");
-  log(`<span class="${right ? "r" : "l"}">${superLike ? "⭐ super like" : right ? "♥ right" : "✕ left"}</span> on ${escapeHtml(p.name)} <span class="dim">(pC1 ${c.heart})</span>`);
+  const what = `<span class="${right ? "r" : "l"}">${t(superLike ? "flinder.swipe.super" : right ? "flinder.swipe.right" : "flinder.swipe.left")}</span>`;
+  log(`${t("flinder.swipe.log", { what, name: escapeHtml(p.name) })} <span class="dim">(pC1 ${c.heart})</span>`);
 
   // the fly on the card reacts, then the leg flicks the card away and drops back out of sight
   portrait.react(right ? "happy" : "sad");
   const card = fx.at(deckEl);
   if (!right) fx.burst(["💧", "😢"], 5, card.x, card.y - 60, 60);
-  if (superLike) { sfx.star(); fx.burst(["⭐", "🌟", "💙", "✨"], 16, card.x, card.y, 190); void fx.stamp("SUPER LIKE ⭐", "super"); }
+  if (superLike) { sfx.star(); fx.burst(["⭐", "🌟", "💙", "✨"], 16, card.x, card.y, 190); void fx.stamp(t("flinder.meter.superLikeV"), "super"); }
   await wait(superLike ? 700 : 380);
   sfx.swipe(right);
   fx.burst(right ? ["❤️", "💖", "😍", "🔥"] : ["💨", "🙄", "✕", "🥱"], right ? 10 : 7, card.x, card.y, 150);
@@ -612,7 +623,7 @@ async function swipeOne(): Promise<void> {
   for (const b of [likeBtn, nopeBtn, starBtn]) b.classList.remove("on");
 
   if (right) {
-    toast(`💌 waiting for ${p.name}…`, 5000);
+    toast(t("flinder.swipe.waiting", { name: p.name }), 5000);
     const back = await brainJudge(p, swiper!.traits);
     if (back.choice === "right") { toastEl.classList.remove("on"); await itsAMatch(p); }
     else {
@@ -620,9 +631,10 @@ async function swipeOne(): Promise<void> {
       sfx.sad();
       fx.shake();
       fx.burst(["💀", "😭", "💀"], 6, phoneEl.clientWidth / 2, 80, 110);
-      toast(anyOf([`${p.name} left you on read 💀`, `no match… ${p.name} swiped left`, `${p.name} is "focusing on their career"`,
-        superLike ? `${p.name} ignored your super like 💀` : `${p.name} said "ew"`]));
-      log(`<span class="dim">${escapeHtml(p.name)} swiped left on ${escapeHtml(swiper!.name)} (pC1 ${back.heart})</span>`);
+      const name = p.name;
+      toast(anyOf([...[0, 1, 2].map((k) => t(`flinder.swipe.rejected.${k}`, { name })),
+        t(superLike ? "flinder.swipe.ignoredSuper" : "flinder.swipe.ew", { name })]));
+      log(`<span class="dim">${t("flinder.swipe.leftOn", { name: escapeHtml(p.name), swiper: escapeHtml(swiper!.name) })} (pC1 ${back.heart})</span>`);
     }
   }
   if (!exes.some((e) => e.p.id === p.id)) photos.delete(p.id);   // matches keep their <img>; exes need theirs later
@@ -654,7 +666,7 @@ async function loop(): Promise<void> {
 startBtn.onclick = () => {
   if (!audio) { try { audio = new AudioContext(); } catch { audio = null; } }
   running = !running;
-  startBtn.textContent = running ? "Pause" : "Keep swiping";
+  startBtn.textContent = t(running ? "flinder.controls.pause" : "flinder.controls.keepGoing");
   if (running) {
     const r = box.getBoundingClientRect();
     if (r.top < 0 || r.bottom > innerHeight) box.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -665,16 +677,16 @@ newBtn.onclick = () => {
   if (looping) return;
   newSwiper();
   history.replaceState(null, "", location.pathname);
-  startBtn.textContent = "Start swiping";
-  toast(`meet ${swiper!.name} 🪰`);
+  startBtn.textContent = t("flinder.controls.start");
+  toast(t("flinder.swipe.meet", { name: swiper!.name }));
 };
 speedBtn.onclick = () => {
   speed = speed === 1 ? 2.5 : 1;
-  speedBtn.textContent = speed === 1 ? "Speed: normal" : "Speed: fast";
+  speedBtn.textContent = t(speed === 1 ? "flinder.controls.speedNormal" : "flinder.controls.speedFast");
 };
 soundBtn.onclick = () => {
   muted = !muted;
-  soundBtn.textContent = muted ? "Sound: off" : "Sound: on";
+  soundBtn.textContent = t(muted ? "flinder.controls.soundOff" : "flinder.controls.soundOn");
 };
 
 // ---- sharing ---------------------------------------------------------------------------------------------
@@ -694,14 +706,14 @@ $("share-x").onclick = () => {
 };
 $("share-link").onclick = async () => {
   if (!swiper) return;
-  try { await navigator.clipboard.writeText(flyLink(swiper)); toast("🔗 link copied: send it to a friend"); }
-  catch { prompt("Send this link to a friend:", flyLink(swiper)); }
+  try { await navigator.clipboard.writeText(flyLink(swiper)); toast(t("flinder.swipe.copied")); }
+  catch { prompt(t("flinder.swipe.sendLink"), flyLink(swiper)); }
 };
 
 // a friend's fly from a shared link, or a new one
 const shared = flyFromHash(location.hash);
 newSwiper(shared);
-if (shared) toast(`🔗 ${shared.name} was sent to you. can you beat its score?`, 3000);
+if (shared) toast(t("flinder.swipe.sharedFly", { name: shared.name }), 3000);
 fillDeck();
 showTally();
 renderBoard();

@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "title": "Sinek Radyo",
+    "description": "166.700 nöronlu gerçek bir meyve sineği konektomunun çaldığı, tarayıcında canlı çalışan bir radyo istasyonu. Dört program, beş sinek; önceden hazırlanmış ya da döngüye alınmış hiçbir şey yok."
+  },
+  "head": {
+    "eyebrow": "Şimdi canlı &middot; Sinek Radyo",
+    "title": "Sinek <span class=\"accent\">Radyo</span>",
+    "lede": "Dört program, beş sinek, 166.700 nöronlu gerçek konektom, tarayıcında canlı çalışıyor. Duyduğun her vızıltı o beynin kendi kanat motor nöronu aktivitesi; ölçüldüğü anda çalınıyor &mdash; önceden hazırlanmış hiçbir şey yok, döngü yok.",
+    "statusLabel": "istasyon durumu:"
+  },
+  "unit": {
+    "label": "Radyo",
+    "onAir": "YAYINDA",
+    "scene": "Masada oturmuş, mikrofona konuşan bir sinek",
+    "channels": "Kanal seç",
+    "tuneIn": "Frekansı yakala",
+    "turnOff": "Kapat"
+  },
+  "captions": {
+    "label": "Canlı çeviri",
+    "title": "Çeviri &mdash; canlı çözümlenen okuma",
+    "before": "Frekansı yakaladığında altyazılar görünür.",
+    "listening": "Dinleniyor. İlk okuma programın ilk saniyesinden sonra gelir.",
+    "reads": "okuma: {context}"
+  },
+  "context": {
+    "baseline": "taban",
+    "mate": "eş",
+    "threat": "tehdit",
+    "food": "yiyecek"
+  },
+  "note": "Yukarıdaki her vızıltı gerçek: genlik doğrudan 166.700 nöronlu gerçek MaleCNS konektomundan geliyor; bir kez indiriliyor (58&nbsp;MB, Simülasyon ile aynı dosyalar) ve cihazında canlı adım adım çalıştırılıyor &mdash; tam olarak da her oyuncunun kendi kanat motor nöronlarının dinlenme seviyesinin üzerindeki spike'ları (<code>flytalk.py</code>'nin ölçtüğü \"şarkı\"). Hiçbir şey önceden hazırlanmış ya da döngüye alınmış değil. Bu zarfın üzerine bindiği ~190&nbsp;Hz'lik sinüs tonu ile program adları/markalama, üste eklenmiş bir seslendirme katmanı &mdash; açıkça uydurma, bu projenin diğer demolarında olduğu gibi. Altyazılar gerçek bir canlı kod çözme (gerçek bağlamlar üzerinde kalibre edilmiş, çapraz doğrulanmış bir okuma katmanı); bir sineği hangi bağlam sürüyorsa onun yankısı değil. Bu yüzden düşük güvenle ya da \"yanlış\" bağlam olarak okumaları tamamen meşru.",
+  "status": {
+    "press": "Frekansı yakala'ya bas",
+    "loading": "sinek beyni yükleniyor: {progress}",
+    "error": "beyin yüklenemedi: {error}",
+    "ready": "hazır: {n} nöron",
+    "onAir": "yayında",
+    "onAirPerf": "yayında · beyin adımı başına {ms} ms",
+    "loadingOnce": "sinek beyni yükleniyor (58 MB, bir kez)",
+    "off": "kapalı",
+    "labels": "etiketler {mb} MB",
+    "connectome": "konektom {mb} MB",
+    "wiring": "25 M sinaps bağlanıyor"
+  },
+  "shows": {
+    "static": {
+      "name": "Beyaz Gürültü",
+      "tagline": "Hatta kimse yok. Sadece sürülmeyen bir sinek beyninin dinlenme cızırtısı.",
+      "cast": {
+        "0": "Kimse"
+      }
+    },
+    "buzzkill": {
+      "name": "Buzzkill",
+      "tagline": "Sinek boyutunda gerçek suç. Bu gece: bir şey büyüyerek yaklaşıyor.",
+      "cast": {
+        "0": "Şüpheli"
+      }
+    },
+    "rotten_and_tasty": {
+      "name": "Çürük ve Lezzetli",
+      "tagline": "Bir sinek, bir tabak, sıfır sakinlik.",
+      "cast": {
+        "0": "Eleştirmen"
+      }
+    },
+    "mating_call": {
+      "name": "Çiftleşme Çağrısı",
+      "tagline": "Buzzy Buzz soruyor. Dr. Buzziam Buzz cevaplıyor.",
+      "cast": {
+        "0": "Buzzy Buzz",
+        "1": "Dr. Buzziam Buzz"
+      }
+    }
+  }
+}

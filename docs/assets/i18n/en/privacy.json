@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "title": "Privacy — fly.ai",
+    "description": "What the fly.ai compute website and the fly.ai compute browser extension store, and what they never collect."
+  },
+  "head": {
+    "eyebrow": "Privacy",
+    "title": "Privacy policy",
+    "lede": "For fly.ai compute: the website pages under flyaiworld.com/compute and the \"fly.ai compute\" browser extension. Last updated 18 September 2026."
+  },
+  "main": {
+    "h31": "In short",
+    "p1": "fly.ai compute lends your computer's spare GPU or CPU to fruit-fly brain research. To do that it needs a random token for your device and, if you want rewards, a wallet address. It never reads the pages you visit, your history, your keystrokes or anything else on your computer. We don't sell data, show ads or run analytics.",
+    "h32": "What the extension stores on your computer",
+    "li1": "<b>Your settings:</b> the on/off switch, GPU or CPU, intensity, an optional display name and the server address.",
+    "li2": "<b>A device token:</b> a random code the server gave this device, so its work is counted. It isn't linked to who you are.",
+    "p2": "These stay in the browser's extension storage and are removed when you uninstall the extension.",
+    "h33": "What our server keeps",
+    "li3": "<b>Your device:</b> a hash of the device token, the optional display name you typed, and when it was created and last seen.",
+    "li4": "<b>The work:</b> which simulation jobs the device ran, their results and whether they checked out, and the points they earned.",
+    "li5": "<b>A wallet address, only if you link one:</b> to pay rewards. It's a public blockchain address, proven by a signature in your wallet; we never see your keys. Its stake in the staking contract is read from the public blockchain.",
+    "li6": "<b>Orders, if you buy compute:</b> the order's settings, the wallet that paid, the payment transaction, and the files you upload for your jobs (kept for 14 days unless they're part of our own research).",
+    "p3": "IP addresses are used only in memory, for an hour at most, to limit abuse (for example, how many new devices one address can register). We don't store them. Our hosting providers (Fly.io for the server, Vercel for the website) may keep standard connection logs of their own.",
+    "h34": "What we never collect",
+    "p4": "No browsing history, no page content, no clicks or keystrokes, no location beyond the above, no personal messages, no email address and no payment card details. The extension has no access to the pages you visit.",
+    "h35": "Who sees what",
+    "li7": "<b>Public:</b> the leaderboard shows linked wallet addresses (shortened) with their points. Research results from our own experiments are published.",
+    "li8": "<b>Miners:</b> anyone who takes a job can see that job's inputs. That's how distributed computing works, so buyers are told not to send secrets.",
+    "li9": "<b>Nobody else:</b> we don't sell or share data with third parties, and don't use it for anything but running the network, paying rewards and preventing abuse.",
+    "h36": "Your choices",
+    "li10": "The extension does nothing until you switch it on, and stops at once when you switch it off.",
+    "li11": "Uninstalling the extension deletes its settings and token from your browser.",
+    "li12": "To have your device's or wallet's records deleted from our server, contact us with the wallet address or display name. Records already written to a public blockchain (claims and stakes) can't be deleted by anyone.",
+    "h37": "Contact",
+    "p5": "Message <a href=\"https://x.com/flydotai\" target=\"_blank\" rel=\"noopener\">@flydotai on X</a> or open an issue on <a href=\"https://github.com/alextitonis/fly.ai/issues\" target=\"_blank\" rel=\"noopener\">GitHub</a>. If this policy changes, this page changes with it, and the date above is updated."
+  },
+  "notice": "This translation is provided for convenience; the English version is the binding one."
+}

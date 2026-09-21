@@ -1,0 +1,345 @@
+{
+  "meta": {
+    "title": "fly.ai 世界 — 拥有脉冲大脑的果蝇",
+    "description": "一个低多边形的果蝇世界，每只果蝇都靠自己的脉冲神经网络飞行，还能实时查看它的大脑。"
+  },
+  "top": {
+    "title": "fly.ai <b>世界</b>",
+    "starting": "启动中…",
+    "togglePanel": "显示/隐藏面板"
+  },
+  "stats": {
+    "line": "{clock} {phase} · {flies} 只果蝇 × {neurons} 个神经元（每只 {synapses} 个突触）· {fps} fps · {where}{puffs} 次气味喷放 · 风速 {wind} m/s · 交配 {matings} 次，产卵 {eggs} 枚，孵化 {hatched} 只 · 死亡：老死 {old}，饿死 {starved}，被吃 {eaten}，被拍 {swatted}",
+    "whereLive": "{status} · {viewers} 人在看 · ",
+    "wherePrivate": "私人场地 · 大脑步长 {ms} ms · ",
+    "empty": "直播中 · 场地里空无一蝇",
+    "connecting": "正在连接实时世界…"
+  },
+  "status": {
+    "live": "直播中",
+    "connecting": "连接中…",
+    "reconnecting": "重新连接中…",
+    "failed": "连接失败…"
+  },
+  "phase": {
+    "night": "夜晚",
+    "dawn": "黎明",
+    "morning": "上午",
+    "midday": "正午",
+    "afternoon": "下午",
+    "dusk": "黄昏"
+  },
+  "state": {
+    "PANIC": "惊慌",
+    "SURGING": "冲刺",
+    "CASTING": "搜寻",
+    "FEEDING": "进食",
+    "LANDED": "落地",
+    "TAKE-OFF": "起飞",
+    "FLYING": "飞行"
+  },
+  "shared": {
+    "note": "这片场地是共享的：这个页面上的每个人看的都是同一批果蝇，由服务器实时直播。Wiz 只属于你：他在你的屏幕上走动，共享的果蝇看不到他。",
+    "unreachable": "无法连接到共享世界，所以这是一片在你浏览器里运行的私人场地。"
+  },
+  "about": {
+    "title": "这是什么",
+    "hide": "隐藏",
+    "show": "这是什么？",
+    "p1": "一片果蝇场地，每只果蝇都靠自己的<b>脉冲神经网络</b>飞行 &mdash; 748 个漏积分发放神经元，以真实的<i>果蝇</i>细胞类型命名，按照 MaleCNS 连接组中测得的通路形状连接。",
+    "p2": "每只果蝇都有一个<b>蘑菇体</b>：它的 Kenyon 细胞给每种气味一个专属的特征，而多巴胺神经元会在遇到逼近的威胁、一次撞击、报警 CO<sub>2</sub> 或尝到果汁时放电，改写它会被哪些气味吸引。可以在“数据”卡片里开关它。",
+    "p3": "<b>果蝇的行为没有任何一条是写死的。</b>光线、气味喷放、气流和腿部接触被注入感觉神经元；网络运行；飞行动作再从<b>运动神经元</b>里读出来。这里没有 <code>if (nearFruit) goToFruit</code>。进食、降落、躲避苍蝇拍、追踪气味羽流、求偶和产卵，全都是从连接方式里自然产生的 &mdash; 或者没能产生，我们也会同样坦白地报告。",
+    "p4": "这里运行着完整的一生：果蝇会<b>进食、交配、产卵、孵化、觅食、被蜘蛛吃掉，然后死去</b> &mdash; 每件事发生的地方都会在地图上留下标记。时钟按 300 秒一天运行，而夜晚对果蝇来说是真实的：它会调暗光感受器看到的亮度，而不是设置某个&ldquo;现在是夜晚&rdquo;的标志。",
+    "p5": "点击任意一只果蝇，看它的大脑放电。这个面板里的每根柱子、每个标签和每个数字，都是群体放电率的读数，从不驱动放电。",
+    "warn": "这<b>不是</b>真实的连接组：只有 748 个神经元，而真实的是 166,700 个；细胞类型名称是真的，但数量和权重是编的。这里没有任何东西经过训练。<a href=\"https://github.com/alextitonis/fly.ai/blob/main/world/README.md\" target=\"_blank\" rel=\"noreferrer\">哪些是真的，哪些不是 →</a>"
+  },
+  "wiz": {
+    "title": "Wiz · 一只操纵猴子的果蝇",
+    "note": "一只巨大的猴子巫师，由<b>完整的果蝇连接组</b>操纵 &mdash; 166,700 个神经元、2500 万个突触，在你的浏览器里运行。<b>提线是真实的神经元：</b>他看到的东西进入果蝇的逼近、威胁和目标细胞，他的脚步进入果蝇的腿部触觉细胞，而放电的下行神经元会抬起他的手臂、让他踢脚踩空、转头、转向和跳起来。<b>只有他想四处走走的念头是写出来的</b>；他的平衡、步伐和摔倒是模拟的（弹簧和 IK）&mdash; 果蝇大脑里没有任何东西懂得怎么让猴子走路。头顶上的果蝇是那颗大脑的卡通形象：神经元放电时，对应的提线会亮成绿色。果蝇们会看到他逼近。需下载约 58 MB。",
+    "summon": "召唤 Wiz",
+    "cam": "Wiz 视角",
+    "status": {
+      "asleep": "睡着了",
+      "loading": "加载中",
+      "failed": "失败：{error}",
+      "ready": "{n} 个神经元 · {m} M 个突触",
+      "labels": "标签 {mb} MB",
+      "connectome": "连接组 {mb} MB",
+      "wiring": "正在连接 2500 万个突触"
+    },
+    "doing": {
+      "stand": "在研究腿是怎么用的",
+      "walk": "在努力走路",
+      "stumble": "快站不稳了",
+      "fallen": "摔倒了",
+      "getup": "正在爬起来"
+    },
+    "line": "{doing} · 已摔倒 {falls} 次 · 这一步有 {fired} 个神经元放电 · {ms} ms/步（实时的 {rt}%）",
+    "rows": {
+      "arms": {
+        "label": "手臂提线",
+        "tip": "DNp02/03/04/11、DNg40：逼近和威胁会猛拉手臂 · 左 · 右"
+      },
+      "legs": {
+        "label": "腿部提线",
+        "tip": "DNge104/122、DNg20、DNge102：触碰会让腿踢出去 · 左 · 右"
+      },
+      "head": {
+        "label": "头部提线",
+        "tip": "DNa05/07、DNg111、DNae002：让头猛地一转 · 左 · 右"
+      },
+      "steer": "转向：让他转身 · 左 · 右",
+      "escape": "巨纤维：跳跃 · 左 · 右"
+    }
+  },
+  "brain": {
+    "title": "神经系统",
+    "flyNone": "果蝇 —",
+    "raster": "脉冲光栅图 · 最近 5 秒",
+    "fly": "{name} {sex} · 第 {gen} 代{parents} · {age} 秒大{mated} · 大脑变化 {drift}%{courting}",
+    "childOf": " · {mother} 与 {father} 的孩子",
+    "founder": " · 始祖",
+    "mated": " · 已交配",
+    "courting": " · P1 {hz} Hz"
+  },
+  "modality": {
+    "vision": "视觉",
+    "olfaction": "嗅觉",
+    "mechanosensory": "机械感觉",
+    "central": "中枢",
+    "descending": "下行",
+    "motor": "运动",
+    "memory": "记忆",
+    "inhibitory": "抑制性（GABA）"
+  },
+  "senses": {
+    "title": "感觉 → 大脑",
+    "sides": "左 · 右",
+    "food": "嗅觉 — 食物",
+    "cva": "嗅觉 — cVA（其他果蝇）",
+    "aversive": "嗅觉 — 厌恶性",
+    "loom": "逼近：有东西在变大",
+    "threat": "快速逼近 / 威胁",
+    "small": "靠近的小物体",
+    "chase": "近距离目标",
+    "jo": "江氏器：气流、空速、振翅",
+    "leg": "跗节接触（相位性）",
+    "load": "毛板 / 钟形感受器：撞击",
+    "taste": "唇瓣味觉：食物",
+    "flow": "腹侧光流：飞得多低、多快"
+  },
+  "ligand": {
+    "ORN_DM1": "乙酸乙酯：成熟的水果",
+    "ORN_VM5d": "丁酸乙酯：发酵的水果",
+    "ORN_VL2a": "乙酸：醋",
+    "IR92a": "氨和胺类：腐肉、粪便、排泄物",
+    "ORN_DA1": "cVA：其他果蝇释放的信息素",
+    "ORN_VA1d": "cVA：其他果蝇释放的信息素",
+    "Or56a": "土臭素：霉菌。厌恶性。",
+    "Gr21a": "CO2：堆肥，还有受惊的果蝇。厌恶性。"
+  },
+  "rates": {
+    "title": "放电率",
+    "unit": "每个神经元的 Hz · 左 · 右"
+  },
+  "pop": {
+    "R1_6": "光感受器（组胺，抑制性）",
+    "L1_L2": "视板中继",
+    "LPLC2": "逼近",
+    "LC4": "快速逼近 / 威胁",
+    "LPLC1": "靠近的小物体",
+    "LC10a": "目标追踪，近距离接近",
+    "VS": "小叶板 VS：腹侧光流（高度）",
+    "ORN_DM1": "ORN DM1：乙酸乙酯，成熟的水果",
+    "ORN_VM5d": "ORN VM5d：丁酸乙酯，发酵的水果",
+    "ORN_VL2a": "ORN VL2a：乙酸，醋",
+    "IR92a": "IR92a：氨和胺类，腐肉和粪便",
+    "ORN_DA1": "ORN DA1：cVA，果蝇信息素",
+    "ORN_VA1d": "ORN VA1d：cVA，果蝇信息素",
+    "Or56a": "Or56a -> DA2：土臭素，有害微生物。厌恶性。",
+    "Gr21a": "Gr21a/Gr63a -> V：CO2。厌恶性。",
+    "Gr68a": "Gr68a/ppk23：前腿接触化学感受器，雌性信息素",
+    "AL_LN": "触角叶局部神经元（GABA）",
+    "lPN": "投射神经元，触角叶 -> 前脑（转向和推力）",
+    "DA2_PN": "DA2 和 V 小球 PN：厌恶通路",
+    "LH": "侧角：先天效价",
+    "JO": "江氏器：风、空速、振翅",
+    "WED": "楔形区 / AMMC，江氏器的投射目标",
+    "SNta": "跗节感觉神经元（腿部接触）",
+    "LgLG": "毛板 / 钟形感受器（负荷、撞击）",
+    "LB3": "唇瓣味觉毛（果汁）",
+    "PVLP": "视小球中间神经元",
+    "PLP": "后外侧前脑",
+    "LPi": "小叶板内在神经元（GABA）",
+    "LAL": "侧副叶，前运动区",
+    "PFL3": "中央复合体转向",
+    "P1": "P1：雄性求偶指令神经元",
+    "DNa02": "转向（同侧转弯）",
+    "DNp01": "巨纤维，逃逸起飞",
+    "DNg100": "向前飞行",
+    "MDN": "向后行走",
+    "pIP10": "pIP10：求偶歌指令",
+    "VNC_IN": "VNC 前运动中间神经元（通用）",
+    "IN19A": "19A 半谱系中间神经元（GABA）",
+    "DLM_MN": "背纵肌：翅膀动力",
+    "b1_MN": "基节下肌 b1：翅膀转向",
+    "b2_MN": "基节下肌 b2：翅膀转向",
+    "Ti_flexor_MN": "胫节屈肌",
+    "Ti_extensor_MN": "胫节伸肌（跳跃）",
+    "Tr_flexor_MN": "转节屈肌",
+    "Sternotrochanter_MN": "胸板转节肌：起飞",
+    "uPN": "投向蘑菇体的单小球 PN：每个小球两个",
+    "KC": "Kenyon 细胞：气味的稀疏编码",
+    "APL": "APL（GABA）：让 KC 编码保持稀疏的反馈抑制",
+    "MBON_g2a1": "MBON-g2a'1（胆碱能）：“靠近气味”的输出",
+    "MBON_g5b2a": "MBON-g5b2a：“远离气味”的输出",
+    "PPL1_g2a1": "PPL1-g2a1：惩罚老师（多巴胺）",
+    "PAM_g5": "PAM-g5：奖励老师（多巴胺）"
+  },
+  "body": {
+    "title": "大脑 → 身体",
+    "path": "下行 → VNC → 肌肉",
+    "dn": "下行神经元",
+    "mn": "运动神经元 — 飞行在这里读出",
+    "turn": "转向：右减左",
+    "thrust": "向前飞行",
+    "back": "后退",
+    "escape": "巨纤维逃逸",
+    "dlm": "翅膀动力，也就是升力",
+    "b1": "基节下肌：翅膀转向",
+    "jump": "胫节伸肌 + 胸板转节肌：起飞",
+    "flex": "腿部屈肌：后撤",
+    "flexLabel": "Ti/Tr 屈曲",
+    "motor": "DLM {dlm} Hz → 升力 {lift} m/s²（重力 {gravity}）· 转向 {turn} rad/s · 速度 {speed} m/s · 高度 {height} m · {state}"
+  },
+  "field": {
+    "title": "场地",
+    "sub": "外面有什么"
+  },
+  "ecology": {
+    "fruit": "发酵的水果",
+    "mould": "发霉的水果（土臭素）",
+    "carrion": "腐肉（胺类）",
+    "dung": "粪便（胺类）",
+    "compost": "堆肥（食物 + CO2）",
+    "plant": "植物",
+    "spider": "蜘蛛",
+    "egg": "卵",
+    "larva": "幼虫",
+    "poop": "果蝇排泄物",
+    "obstacle": "石头",
+    "threat": "苍蝇拍",
+    "fly": "果蝇"
+  },
+  "feed": {
+    "title": "正在发生",
+    "empty": "暂时还没有动静 — 交配、产卵、进食、蜘蛛袭击和死亡都会出现在这里，也会出现在当事果蝇的头顶。",
+    "now": "刚刚",
+    "ago": "{s} 秒前"
+  },
+  "population": {
+    "title": "种群",
+    "adults": "成虫",
+    "brood": "卵 + 幼虫",
+    "now": "{adults} 只成虫 · {brood} 个后代",
+    "waiting": "等待第一分钟…",
+    "axisNow": "现在",
+    "stats": "<span>成虫 <b>{adults}</b>（{males} 雄 / {females} 雌）</span><span>平均年龄 <b>{age} 秒</b></span><span>交配 <b>{matings}</b> · 产卵 <b>{eggs}</b></span><span>孵化 <b>{hatched}</b></span><span>老死 <b>{old}</b> · 饿死 <b>{starved}</b></span><span>被吃 <b>{eaten}</b> · 被拍 <b>{swatted}</b></span>"
+  },
+  "data": {
+    "title": "数据 &amp; 发现",
+    "reward": "奖励学习",
+    "rewardTip": "进食前刚活跃过的突触会增强；撞击或蜘蛛袭击前活跃过的会减弱",
+    "hebb": "赫布学习",
+    "hebbTip": "当输入恰好在输出之前放电时，突触会增强",
+    "memory": "气味记忆（蘑菇体）",
+    "memoryTip": "蘑菇体：多巴胺老师会抑制刚才在放电的 Kenyon 细胞，于是它们编码的气味就改变了意义",
+    "gather": "它们会聚集吗？",
+    "friends": "朋友与敌人",
+    "drift": "大脑会变化吗？",
+    "herit": "孩子会像父母吗？",
+    "fates": "卵和幼虫：后来怎么样了",
+    "report": "报告（PDF）",
+    "blocks": "brain blocks.csv",
+    "collecting": "收集中…",
+    "shareInGroups": "成群比例（0-1）",
+    "nnRatio": "最近邻比率",
+    "random": "随机分布 = 1",
+    "meanDrift": "平均突触变化 %",
+    "maxDrift": "变化最大的果蝇 %",
+    "now": "{clock} · 学习 {learning}",
+    "groupNote": "<span>群体 <b>{groups}</b></span><span>最大 <b>{largest}</b></span><span>在群体中 <b>{inGroup}%</b></span><span>其中在食物旁 <b>{atFood}%</b></span><span>比率 <b>{ratio}</b>（低于 1 = 聚集）</span>",
+    "died": "死亡：{cause}（{stage}）",
+    "emerged": "长成了成虫",
+    "still": "仍是{fate}",
+    "noEggs": "还没有产卵",
+    "stage": {
+      "egg": "卵",
+      "larva": "幼虫"
+    },
+    "cause": {
+      "background": "自然死亡",
+      "mould": "霉菌",
+      "bare_substrate": "基质贫瘠",
+      "crowding": "过于拥挤",
+      "spider": "蜘蛛",
+      "trampled": "被踩死"
+    },
+    "waitFamilies": "等待家族数据：已知双亲的果蝇有 {n} 只",
+    "parentsAxis": "父母平均值 →",
+    "childAxis": "孩子 ↑",
+    "heritNote": "{n} 个孩子 · 斜率 <b>{slope}</b> · r <b>{r}</b>（斜率 1 = 孩子和父母一样，0 = 毫无相似；虚线 = 相等）",
+    "rel": {
+      "mates": "配偶",
+      "family": "家人",
+      "enemies": "敌人",
+      "friends": "朋友",
+      "acquaintances": "熟蝇"
+    },
+    "clashes": "冲突 {n} 次",
+    "together": "相处 {n} 秒",
+    "noFriends": "活着的果蝇之间还没有朋友或敌人",
+    "trait": {
+      "lifespan": "基因：寿命",
+      "flight": "基因：飞行力量",
+      "clutch": "基因：每窝产卵数",
+      "gene_loom_escape": "基因：逼近 → 逃逸",
+      "gene_odour_steer": "基因：气味 → 转向",
+      "gene_contact_courtship": "基因：接触 → 求偶",
+      "olfaction_gain": "基因：嗅觉增益",
+      "reward_rate": "基因：奖励学习率",
+      "memory_rate": "基因：气味记忆率",
+      "meals_per_min": "生平：每分钟进食次数",
+      "age_at_death": "生平：死亡年龄",
+      "final_drift": "生平：死亡时的大脑变化"
+    }
+  },
+  "board": {
+    "title": "排行榜",
+    "live": "直播中",
+    "fed": "进食 {s} 秒 · 飞行 {m} 米",
+    "panics": "惊慌 {n} 次",
+    "swatted": " · 被拍"
+  },
+  "controls": {
+    "title": "控制",
+    "reset": "重置",
+    "swat": "拍！",
+    "gust": "吹一阵风",
+    "flycam": "果蝇视角",
+    "drama": "戏剧镜头",
+    "next": "下一只果蝇",
+    "followOn": "跟随：开",
+    "followOff": "跟随：关",
+    "note": "点击一只果蝇选中它。拖动旋转视角，滚轮缩放。每只果蝇都运行着自己的漏积分发放网络：眼睛、触角、江氏器和腿部刚毛作为输入，运动神经元作为输出。它的飞行没有任何一处是写死的。<a href=\"https://github.com/alextitonis/fly-streetfighter\" target=\"_blank\" rel=\"noreferrer\">fly.ai</a>",
+    "slider": {
+      "flies": "果蝇数量",
+      "wind": "风速（m/s）",
+      "odour": "气味强度",
+      "tonic": "紧张性驱动",
+      "gain": "突触增益",
+      "noise": "噪声率（Hz）",
+      "speed": "模拟速度"
+    }
+  }
+}

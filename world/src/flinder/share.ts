@@ -2,6 +2,7 @@
  * Flinder's bragging rights, all in this browser: each swiper's stats, a leaderboard of the flies you've run,
  * a PNG card to post, and a link that runs the same fly on a friend's page.
  */
+import { t } from "./i18n.ts";
 import { rizz } from "./lines.ts";
 import { flyToHash, type Profile } from "./profiles.ts";
 
@@ -21,13 +22,13 @@ export function saveBoard(p: Profile, s: Stats, pic: string): BoardRow[] {
   try { localStorage.setItem(KEY, JSON.stringify(rows.slice(0, 20))); } catch { /* private mode: no board */ }
   return rows.slice(0, 20);
 }
-/** The leaderboard's categories: who wins each, among the flies run here. */
-export const CATEGORIES: [string, (r: BoardRow) => number][] = [
-  ["😎 Biggest player", (r) => r.matches],
-  ["📍 Most dates", (r) => r.dates],
-  ["👻 Most ghosted", (r) => r.ghosted],
-  ["💔 Most unmatched", (r) => r.unmatched],
-  ["⭐ Super liker", (r) => r.supers],
+/** The leaderboard's categories: who wins each, among the flies run here (labels in the page's language). */
+export const categories = (): [string, (r: BoardRow) => number][] => [
+  [t("flinder.board.player"), (r) => r.matches],
+  [t("flinder.board.dates"), (r) => r.dates],
+  [t("flinder.board.ghosted"), (r) => r.ghosted],
+  [t("flinder.board.unmatched"), (r) => r.unmatched],
+  [t("flinder.board.supers"), (r) => r.supers],
 ];
 
 /** A small square thumbnail of a photo, to keep the board light. */
@@ -73,7 +74,7 @@ export async function statsCard(p: Profile, s: Stats, pic: string): Promise<Blob
   g.fillText(p.name, W / 2, 800);
   g.font = "600 44px Inter, sans-serif";
   g.fillText(rizz(s.swipes, s.matches, s.dates), W / 2, 870);
-  const cells: [string, number][] = [["swipes", s.swipes], ["matches", s.matches], ["dates", s.dates], ["ghosted", s.ghosted], ["unmatched", s.unmatched], ["super likes", s.supers]];
+  const cells: [string, number][] = [["swipes", s.swipes], ["matches", s.matches], ["dates", s.dates], ["ghosted", s.ghosted], ["unmatched", s.unmatched], ["superLikes", s.supers]];
   cells.forEach(([label, n], i) => {
     const x = 200 + (i % 3) * 340, y = 990 + Math.floor(i / 3) * 170;
     g.fillStyle = "rgba(255,255,255,.18)";
@@ -82,13 +83,12 @@ export async function statsCard(p: Profile, s: Stats, pic: string): Promise<Blob
     g.font = "700 64px 'Space Grotesk', sans-serif";
     g.fillText(String(n), x, y);
     g.font = "500 30px Inter, sans-serif";
-    g.fillText(label, x, y + 44);
+    g.fillText(t(`flinder.share.${label}`), x, y + 44);
   });
   g.font = "500 32px Inter, sans-serif";
-  g.fillText("a real fly brain swiping · flyaiworld.com/flinder", W / 2, 1310);
+  g.fillText(t("flinder.share.footer"), W / 2, 1310);
   return new Promise((r) => c.toBlob((b) => r(b!), "image/png"));
 }
 
 export const tweetText = (p: Profile, s: Stats) =>
-  `my fly ${p.name} swiped ${s.swipes} times on Flinder: ${s.matches} matches, ${s.dates} dates, ghosted ${s.ghosted}x 💀 ` +
-  `rizz: ${rizz(s.swipes, s.matches, s.dates)}. a real fly brain decides every swipe. beat my fly 👇`;
+  t("flinder.share.tweet", { name: p.name, swipes: s.swipes, matches: s.matches, dates: s.dates, ghosted: s.ghosted, rizz: rizz(s.swipes, s.matches, s.dates) });

@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-ns="researchRadio">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fly Radio &mdash; a radio station run by a real fly brain</title>
-<meta name="description" content="Four live shows, five flies, the real 166,700-neuron connectome running in your browser. Every buzz you hear is real wing-motor-neuron activity, played the instant it's measured &mdash; nothing pre-rendered, nothing looped.">
-<meta property="og:title" content="Fly Radio &mdash; a radio station run by a real fly brain">
-<meta property="og:description" content="Four live shows, five flies, the real 166,700-neuron connectome running in your browser. Every buzz you hear is real wing-motor-neuron activity, played the instant it's measured.">
+<title data-i18n="researchRadio.meta.title">Fly Radio &mdash; a radio station run by a real fly brain</title>
+<meta name="description" content="Four live shows, five flies, the real 166,700-neuron connectome running in your browser. Every buzz you hear is real wing-motor-neuron activity, played the instant it's measured &mdash; nothing pre-rendered, nothing looped." data-i18n-attr="content:researchRadio.meta.description">
+<meta property="og:title" content="Fly Radio &mdash; a radio station run by a real fly brain" data-i18n-attr="content:researchRadio.meta.ogTitle">
+<meta property="og:description" content="Four live shows, five flies, the real 166,700-neuron connectome running in your browser. Every buzz you hear is real wing-motor-neuron activity, played the instant it's measured." data-i18n-attr="content:researchRadio.meta.ogDescription">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@flydotai">
@@ -27,6 +27,7 @@
   "publisher": { "@type": "Organization", "name": "fly.ai" }
 }
 </script>
+<script src="../assets/i18n/boot.js"></script>
 <link rel="icon" href="../assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,9 +69,9 @@
 </nav>
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">Live now &middot; Fly Radio</p>
-    <h1>A radio station run by an actual fly brain</h1>
-    <p class="lede">Four shows, five flies, the real 166,700-neuron MaleCNS connectome &mdash; running live in your
+    <p class="eyebrow" data-i18n="researchRadio.head.p1">Live now &middot; Fly Radio</p>
+    <h1 data-i18n="researchRadio.head.h11">A radio station run by an actual fly brain</h1>
+    <p class="lede" data-i18n="researchRadio.head.p2">Four shows, five flies, the real 166,700-neuron MaleCNS connectome &mdash; running live in your
       browser, the same brain files as the Simulation. Every buzz you hear is that brain's own wing-motor-neuron
       activity, played the instant it's measured: nothing is pre-rendered, nothing loops.</p>
   </div>
@@ -78,47 +79,47 @@
 <section class="firstsec">
   <div class="wrap">
     <div class="band" style="margin-bottom: 26px;">
-      <div><b>166,700</b><span>real neurons, live</span></div>
-      <div><b>5</b><span>flies broadcasting at once</span></div>
-      <div><b>4</b><span>shows on the dial</span></div>
-      <div><b>0</b><span>clips pre-rendered or looped</span></div>
+      <div><b>166,700</b><span data-i18n="researchRadio.s1.span1">real neurons, live</span></div>
+      <div><b>5</b><span data-i18n="researchRadio.s1.span2">flies broadcasting at once</span></div>
+      <div><b>4</b><span data-i18n="researchRadio.s1.span3">shows on the dial</span></div>
+      <div><b>0</b><span data-i18n="researchRadio.s1.span4">clips pre-rendered or looped</span></div>
     </div>
     <div class="cta" style="margin-bottom: 40px;">
-      <a class="btn red" href="/radio/">Tune in &mdash; open Fly Radio</a>
-      <a class="btn" href="https://github.com/alextitonis/fly.ai/tree/main/radio" target="_blank" rel="noopener">Read the code</a>
+      <a class="btn red" href="/radio/" data-i18n="researchRadio.s1.a1">Tune in &mdash; open Fly Radio</a>
+      <a class="btn" href="https://github.com/alextitonis/fly.ai/tree/main/radio" target="_blank" rel="noopener" data-i18n="researchRadio.s1.a2">Read the code</a>
     </div>
   </div>
 </section>
 <section id="lineup">
   <div class="wrap">
-    <p class="eyebrow">The lineup</p>
-    <h2>Every show reuses a real, already-measured stimulus</h2>
-    <p class="lede">No new neuron-population mappings were invented for radio: each show just points a fixed
+    <p class="eyebrow" data-i18n="researchRadio.lineup.p1">The lineup</p>
+    <h2 data-i18n="researchRadio.lineup.h21">Every show reuses a real, already-measured stimulus</h2>
+    <p class="lede" data-i18n-html="researchRadio.lineup.p2">No new neuron-population mappings were invented for radio: each show just points a fixed
       real stimulus context (the same ones <code>flytalk.py</code> uses) at a live copy of the brain, for as long
       as you listen.</p>
     <div class="grid2">
       <div class="card pad">
-        <span class="num">CH 1 &middot; WHITE NOISE</span>
-        <h3>Nobody</h3>
-        <p><code>baseline</code>, no stimulus. Actual hiss, no tone &mdash; the resting activity of an undriven
+        <span class="num" data-i18n="researchRadio.lineup.span1">CH 1 &middot; WHITE NOISE</span>
+        <h3 data-i18n="researchRadio.lineup.h31">Nobody</h3>
+        <p data-i18n-html="researchRadio.lineup.p3"><code>baseline</code>, no stimulus. Actual hiss, no tone &mdash; the resting activity of an undriven
           fly brain, with the carrier turned off entirely so it reads as static rather than a quiet buzz.</p>
       </div>
       <div class="card pad">
-        <span class="num">CH 2 &middot; BUZZKILL</span>
-        <h3>The Suspect</h3>
-        <p><code>threat</code> (LC4 + LPLC2, looming). True crime, fly-sized: a real looming-detection circuit,
+        <span class="num" data-i18n="researchRadio.lineup.span2">CH 2 &middot; BUZZKILL</span>
+        <h3 data-i18n="researchRadio.lineup.h32">The Suspect</h3>
+        <p data-i18n-html="researchRadio.lineup.p4"><code>threat</code> (LC4 + LPLC2, looming). True crime, fly-sized: a real looming-detection circuit,
           live, reacting to something closing in.</p>
       </div>
       <div class="card pad">
-        <span class="num">CH 3 &middot; ROTTEN AND TASTY</span>
-        <h3>The Critic</h3>
-        <p><code>food</code> (ORN_DM1 + ORN_DM2). One fly, one plate, zero chill &mdash; real odour-receptor
+        <span class="num" data-i18n="researchRadio.lineup.span3">CH 3 &middot; ROTTEN AND TASTY</span>
+        <h3 data-i18n="researchRadio.lineup.h33">The Critic</h3>
+        <p data-i18n-html="researchRadio.lineup.p5"><code>food</code> (ORN_DM1 + ORN_DM2). One fly, one plate, zero chill &mdash; real odour-receptor
           neurons doing the reviewing.</p>
       </div>
       <div class="card pad">
-        <span class="num">CH 4 &middot; THE MATING CALL</span>
-        <h3>Buzzy Buzz &amp; Dr. Buzziam Buzz</h3>
-        <p>A talk show, <code>baseline</code> / <code>mate</code> (LC10a): the mic alternates between a presenter
+        <span class="num" data-i18n="researchRadio.lineup.span4">CH 4 &middot; THE MATING CALL</span>
+        <h3 data-i18n="researchRadio.lineup.h34">Buzzy Buzz &amp; Dr. Buzziam Buzz</h3>
+        <p data-i18n-html="researchRadio.lineup.p6">A talk show, <code>baseline</code> / <code>mate</code> (LC10a): the mic alternates between a presenter
           and an expert, 2.5 s and 4 s at a time, on a loop. Both flies keep running the whole time.</p>
       </div>
     </div>
@@ -126,29 +127,29 @@
 </section>
 <section id="how">
   <div class="wrap">
-    <p class="eyebrow">How it works</p>
-    <h2>Real neurons in, a made-up tone on top, plainly</h2>
-    <p class="lede">Nobody programmed this brain and nobody scripted the show. Only the sonification &mdash; how
+    <p class="eyebrow" data-i18n="researchRadio.how.p1">How it works</p>
+    <h2 data-i18n="researchRadio.how.h21">Real neurons in, a made-up tone on top, plainly</h2>
+    <p class="lede" data-i18n="researchRadio.how.p2">Nobody programmed this brain and nobody scripted the show. Only the sonification &mdash; how
       loudness becomes a tone &mdash; is a made-up choice, same honesty as this project's other demos.</p>
     <div class="grid3">
       <div class="card pad">
-        <span class="num">01 &middot; STIMULUS IN</span>
-        <h3>One fixed input per fly</h3>
-        <p>Each cast member of the show you tune to is its own copy of the brain, running on your device. Each gets
+        <span class="num" data-i18n="researchRadio.how.span1">01 &middot; STIMULUS IN</span>
+        <h3 data-i18n="researchRadio.how.h31">One fixed input per fly</h3>
+        <p data-i18n="researchRadio.how.p3">Each cast member of the show you tune to is its own copy of the brain, running on your device. Each gets
           its show's real stimulus injected into the real neurons that carry it, on every 20&nbsp;ms step &mdash;
           nothing scripted, timed, or scored.</p>
       </div>
       <div class="card pad">
-        <span class="num">02 &middot; SOUND OUT</span>
-        <h3>Real loudness, a made-up carrier</h3>
-        <p>Every step, the page measures how hard that fly's real wing-motor neurons fire above rest. That
+        <span class="num" data-i18n="researchRadio.how.span2">02 &middot; SOUND OUT</span>
+        <h3 data-i18n="researchRadio.how.h32">Real loudness, a made-up carrier</h3>
+        <p data-i18n="researchRadio.how.p4">Every step, the page measures how hard that fly's real wing-motor neurons fire above rest. That
           one real number amplitude-modulates a synthetic ~190&nbsp;Hz tone so it's audible &mdash; the only
           invented ingredient.</p>
       </div>
       <div class="card pad">
-        <span class="num">03 &middot; TEXT OUT</span>
-        <h3>A genuine live decode</h3>
-        <p>A small cross-validated classifier, calibrated on the real contexts, is handed a rolling window of a cast member's real
+        <span class="num" data-i18n="researchRadio.how.span3">03 &middot; TEXT OUT</span>
+        <h3 data-i18n="researchRadio.how.h33">A genuine live decode</h3>
+        <p data-i18n="researchRadio.how.p5">A small cross-validated classifier, calibrated on the real contexts, is handed a rolling window of a cast member's real
           measured envelope &mdash; no label attached &mdash; and guesses which context it resembles. Often wrong,
           on purpose: it's a real decode, not an echo.</p>
       </div>
@@ -157,18 +158,18 @@
 </section>
 <section id="more">
   <div class="wrap">
-    <p class="eyebrow">Read on</p>
-    <h2>The rest of it</h2>
+    <p class="eyebrow" data-i18n="researchRadio.more.p1">Read on</p>
+    <h2 data-i18n="researchRadio.more.h21">The rest of it</h2>
     <div class="next-pages">
-      <a class="card pad" href="/radio/"><h3>Tune in</h3>
-        <p>Open the live station: pick a channel, press Tune in, and read the translation panel as the
-          station's readout decodes each on-mic fly's buzz.</p><p class="go">Open Fly Radio &rarr;</p></a>
-      <a class="card pad" href="flybook.html"><h3>Talking flies</h3>
-        <p>A related experiment: two copies of the connectome, one signalling through wing song, the other
-          listening.</p><p class="go">Read the experiment &rarr;</p></a>
-      <a class="card pad" href="https://github.com/alextitonis/fly.ai/blob/main/radio/README.md" target="_blank" rel="noopener"><h3>Full write-up</h3>
-        <p>The complete technical README: the simulation loop, the audio synthesis, the caption calibration,
-          and how to run it yourself.</p><p class="go">Read on GitHub &rarr;</p></a>
+      <a class="card pad" href="/radio/"><h3 data-i18n="researchRadio.more.h31">Tune in</h3>
+        <p data-i18n="researchRadio.more.p2">Open the live station: pick a channel, press Tune in, and read the translation panel as the
+          station's readout decodes each on-mic fly's buzz.</p><p class="go" data-i18n="researchRadio.more.p3">Open Fly Radio &rarr;</p></a>
+      <a class="card pad" href="flybook.html"><h3 data-i18n="researchRadio.more.h32">Talking flies</h3>
+        <p data-i18n="researchRadio.more.p4">A related experiment: two copies of the connectome, one signalling through wing song, the other
+          listening.</p><p class="go" data-i18n="researchRadio.more.p5">Read the experiment &rarr;</p></a>
+      <a class="card pad" href="https://github.com/alextitonis/fly.ai/blob/main/radio/README.md" target="_blank" rel="noopener"><h3 data-i18n="researchRadio.more.h33">Full write-up</h3>
+        <p data-i18n="researchRadio.more.p6">The complete technical README: the simulation loop, the audio synthesis, the caption calibration,
+          and how to run it yourself.</p><p class="go" data-i18n="researchRadio.more.p7">Read on GitHub &rarr;</p></a>
     </div>
   </div>
 </section>
@@ -185,5 +186,6 @@
 
 <script src="../assets/site.js"></script>
 <script src="../assets/nav.js"></script>
+<script type="module" src="../assets/i18n/page.js"></script>
 </body>
 </html>

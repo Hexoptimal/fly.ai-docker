@@ -8,6 +8,7 @@
  * just shows the signed-in address stays light.
  */
 import { API, WALLETCONNECT_PROJECT_ID } from "./config.ts";
+import { t } from "./i18n.ts";
 import { api, ApiError } from "./mine-core.ts";
 import { shortAddress } from "./wallet.ts";
 import type * as KitModule from "./wallet/kit.js";
@@ -55,7 +56,7 @@ window.addEventListener("storage", (e) => {
 /** A wallet error in words; a refusal in the wallet reads as a cancel. */
 export function errorText(err: unknown): string {
   const e = err as { code?: number; name?: string; shortMessage?: string; message?: string; cause?: { code?: number } };
-  if (e?.code === 4001 || e?.cause?.code === 4001 || /UserRejected/.test(e?.name ?? "") || /rejected|denied|cancel/i.test(e?.shortMessage ?? "")) return "cancelled in the wallet";
+  if (e?.code === 4001 || e?.cause?.code === 4001 || /UserRejected/.test(e?.name ?? "") || /rejected|denied|cancel/i.test(e?.shortMessage ?? "")) return t("compute.account.cancelled");
   return e?.shortMessage ?? e?.message ?? String(err);
 }
 
@@ -94,7 +95,7 @@ function picker() {
   root.className = "acct-sheet";
   root.hidden = true;
   root.innerHTML = `<div class="acct-panel card pad" role="dialog" aria-modal="true" aria-labelledby="acct-title">
-    <div class="acct-head"><h3 id="acct-title"></h3><button type="button" class="btn sm acct-close" aria-label="Close">✕</button></div>
+    <div class="acct-head"><h3 id="acct-title"></h3><button type="button" class="btn sm acct-close" aria-label="${t("compute.account.close")}">✕</button></div>
     <p class="caption acct-text"></p>
     <div class="acct-list"></div>
     <p class="codeline acct-status"></p>
@@ -124,12 +125,12 @@ async function chooseWallet(title: string, text: string, problem = ""): Promise<
   s.title.textContent = title;
   s.text.textContent = text;
   say(problem, !!problem);
-  s.list.replaceChildren(Object.assign(document.createElement("p"), { className: "caption", textContent: "looking for wallets…" }));
+  s.list.replaceChildren(Object.assign(document.createElement("p"), { className: "caption", textContent: t("compute.account.lookingForWallets") }));
   s.root.hidden = false;
   settle?.(null);
   const chosen = new Promise<string | null>((resolve) => { settle = resolve; });
   try {
-    const slow = setTimeout(() => say("Still looking. A wallet extension may be stuck: turn off wallet extensions you don't use and reload.", true), 8_000);
+    const slow = setTimeout(() => say(t("compute.account.stillLooking"), true), 8_000);
     const k = await kit().finally(() => clearTimeout(slow));
     say(problem, !!problem);
     await new Promise((r) => setTimeout(r, 150)); // wallets announce themselves (EIP-6963) just after load
@@ -143,26 +144,26 @@ async function chooseWallet(title: string, text: string, problem = ""): Promise<
       const label = document.createElement("span");
       label.innerHTML = "<b></b><small></small>";
       label.querySelector("b")!.textContent = w.name;
-      label.querySelector("small")!.textContent = w.kind === "walletconnect" ? (isPhone() ? "open a wallet app on this phone" : "scan with a wallet app on your phone") : "in this browser";
+      label.querySelector("small")!.textContent = w.kind === "walletconnect" ? (isPhone() ? t("compute.account.wcPhone") : t("compute.account.wcScan")) : t("compute.account.inBrowser");
       b.append(label);
       b.addEventListener("click", () => { settle?.(w.uid); settle = null; });
       return b;
     });
     const browserWallets = options.some((w) => w.kind === "browser");
     if (isPhone() && !browserWallets) {
-      const head = Object.assign(document.createElement("p"), { className: "caption", textContent: options.length ? "Or open this page inside your wallet app:" : "Open this page inside your wallet app:" });
+      const head = Object.assign(document.createElement("p"), { className: "caption", textContent: options.length ? t("compute.account.orOpenInApp") : t("compute.account.openInApp") });
       const apps = document.createElement("div");
       apps.className = "acct-apps";
       apps.append(...walletApps().map((a) => Object.assign(document.createElement("a"), { className: "btn sm", href: a.href, textContent: a.name })));
       rows.push(head, apps);
     }
     if (!options.length && !isPhone()) {
-      rows.push(Object.assign(document.createElement("p"), { className: "caption", textContent: "No wallet found in this browser. Install MetaMask or Rabby, then reload this page." }));
+      rows.push(Object.assign(document.createElement("p"), { className: "caption", textContent: t("compute.account.noWallet") }));
     }
     s.list.replaceChildren(...rows);
   } catch (err) {
     s.list.replaceChildren();
-    say(`couldn't load wallets: ${errorText(err)}`, true);
+    say(t("compute.account.couldntLoad", { error: errorText(err) }), true);
   }
   return chosen;
 }
@@ -172,7 +173,7 @@ async function connectWith(k: Kit, uid: string) {
   const wc = k.wallets().find((w) => w.uid === uid)?.kind === "walletconnect";
   // WalletConnect draws its own modal; ours would sit on top of it
   if (wc) s.root.hidden = true;
-  say(wc ? "" : "approve the connection in your wallet");
+  say(wc ? "" : t("compute.account.approveConnection"));
   try {
     return await k.connect(uid);
   } finally {
@@ -185,14 +186,14 @@ async function connectWith(k: Kit, uid: string) {
  * open showing the error when something fails, so the person can pick again.
  */
 export async function signIn(): Promise<string | null> {
-  let text = "Connect a wallet and sign one message. It's free and sends no transaction, and it keeps you signed in on every compute page for 30 days.";
-  let uid = await chooseWallet("Sign in", text);
+  let text = t("compute.account.signInText");
+  let uid = await chooseWallet(t("compute.account.signIn"), text);
   for (;;) {
     if (!uid) return null;
     // the list stays usable while a wallet is asked: a wallet extension that never answers (they can break each
     // other) mustn't trap the person, who can pick another wallet or close
     const repick = new Promise<string | null>((resolve) => { settle = resolve; });
-    const slow = setTimeout(() => say("No answer from that wallet yet. If no wallet window opened, pick another wallet above, or turn off wallet extensions you don't use and reload.", true), 15_000);
+    const slow = setTimeout(() => say(t("compute.account.noAnswer"), true), 15_000);
     try {
       const outcome = await Promise.race([signInWith(uid).then((wallet) => ({ wallet })), repick.then((next) => ({ next }))]);
       if ("wallet" in outcome) {
@@ -203,8 +204,8 @@ export async function signIn(): Promise<string | null> {
       uid = outcome.next;
     } catch (err) {
       clearTimeout(slow);
-      text = "Pick a wallet to try again.";
-      uid = await chooseWallet("Sign in", text, errorText(err));
+      text = t("compute.account.tryAgain");
+      uid = await chooseWallet(t("compute.account.signIn"), text, errorText(err));
     } finally {
       clearTimeout(slow);
     }
@@ -214,10 +215,10 @@ export async function signIn(): Promise<string | null> {
 async function signInWith(uid: string): Promise<string> {
   const k = await kit();
   const c = await connectWith(k, uid);
-  say("sign the message in your wallet (free, no transaction)");
+  say(t("compute.account.signMessage"));
   const { nonce, message } = await api(API, "/api/session/nonce", null, { address: c.address });
   const signature = await k.sign(message);
-  say("checking the signature");
+  say(t("compute.account.checkingSignature"));
   const s = await api(API, "/api/session", null, { nonce, signature }) as { session: string; wallet: string; expires_at: number };
   save({ token: s.session, wallet: s.wallet, expires_at: s.expires_at });
   return s.wallet;
@@ -247,12 +248,12 @@ export function sessionLost(err: unknown): boolean {
 /** The kit with the signed-in wallet connected (connecting it first if this page hasn't yet). */
 async function walletFor(): Promise<Kit> {
   const wallet = await requireWallet();
-  if (!wallet) throw new Error("sign in first");
+  if (!wallet) throw new Error(t("compute.account.signInFirst"));
   const k = await kit();
   let c = k.connection();
   if (!c) {
-    const uid = await chooseWallet("Connect your wallet", `You're signed in as ${shortAddress(wallet)}. Connect that wallet to continue.`);
-    if (!uid) throw new Error("cancelled");
+    const uid = await chooseWallet(t("compute.account.connectTitle"), t("compute.account.connectText", { wallet: shortAddress(wallet) }));
+    if (!uid) throw new Error(t("compute.account.cancelledShort"));
     try {
       c = await connectWith(k, uid);
     } finally {
@@ -260,7 +261,7 @@ async function walletFor(): Promise<Kit> {
     }
   }
   if (c.address.toLowerCase() !== wallet.toLowerCase()) {
-    throw new Error(`your wallet is on ${shortAddress(c.address)} but you're signed in as ${shortAddress(wallet)}: switch accounts in the wallet, or sign out and in again`);
+    throw new Error(t("compute.account.wrongAccount", { connected: shortAddress(c.address), wallet: shortAddress(wallet) }));
   }
   return k;
 }
@@ -271,7 +272,7 @@ async function walletFor(): Promise<Kit> {
  */
 export async function transact(to: string, data: string, step: (text: string) => void = () => {}, chainId?: number): Promise<string> {
   const k = await walletFor();
-  step("confirm in your wallet…");
+  step(t("compute.account.confirmInWallet"));
   return k.send(to, data, chainId);
 }
 
@@ -282,7 +283,7 @@ export async function mined(hash: string, chainId?: number): Promise<void> {
 /** EIP-712 typed data signed by the signed-in wallet (free: nothing is sent). */
 export async function signTyped(typed: Parameters<Kit["signTyped"]>[0], step: (text: string) => void = () => {}): Promise<string> {
   const k = await walletFor();
-  step("sign in your wallet (free, no gas)…");
+  step(t("compute.account.signTyped"));
   return k.signTyped(typed);
 }
 
@@ -309,11 +310,11 @@ export function mountAccount(): void {
     button.className = wallet ? "btn sm" : "btn red sm";
     if (wallet) {
       const who = Object.assign(document.createElement("span"), { className: "acct-who mono", textContent: shortAddress(wallet), title: wallet });
-      button.textContent = "Sign out";
+      button.textContent = t("compute.account.signOut");
       button.addEventListener("click", () => void signOut());
       box.append(who, button);
     } else {
-      button.textContent = "Sign in";
+      button.textContent = t("compute.account.signIn");
       button.addEventListener("click", () => void signIn());
       box.append(button);
     }

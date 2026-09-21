@@ -20,8 +20,17 @@ import { WizView } from "./wizview.ts";
 import { PuppeteerView } from "./puppeteer.ts";
 import { DataPanel } from "./datapanel.ts";
 import { LIVE_URL, LiveWorld } from "./live.ts";
+import { keyOf, progress, setupSim, t, tx } from "./i18n.ts";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+
+// the page's language first: everything below writes text. The language menu sits in the header, by the back link.
+{
+  const menu = document.createElement("span");
+  menu.id = "langmenu";
+  $("back").after(menu);
+  await setupSim(menu);
+}
 
 const START_FLIES = 36;
 // brains start frozen: with learning on the flies forage worse and the population dies out (world/README, tools/lifedata.ts).
@@ -43,8 +52,7 @@ if (!new URLSearchParams(location.search).has("local")) {
   for (const id of LIVE_ONLY) $(id).style.display = "none";
   const note = document.createElement("p");
   note.className = "note";
-  note.textContent = "This field is shared: everyone on this page watches the same flies, live from the server. " +
-    "Wiz is yours alone: he walks on your screen, and the shared flies do not see him.";
+  note.textContent = t("sim.shared.note");
   $("wizbars").before(note);
   setTimeout(() => {
     if (!live || live.status !== "connecting") return;
@@ -53,7 +61,7 @@ if (!new URLSearchParams(location.search).has("local")) {
     live = null;
     dataPanel.remote = null;
     for (const id of LIVE_ONLY) $(id).style.display = "";
-    note.textContent = "The shared world could not be reached, so this is a private field running in your browser.";
+    note.textContent = t("sim.shared.unreachable");
     for (const id of ["learnReward", "learnHebb", "learnMemory"]) $<HTMLInputElement>(id).disabled = false;
     world.setFlyCount(START_FLIES);
   }, 10_000);
@@ -86,75 +94,66 @@ function heading(host: HTMLElement, text: string, color: string): void {
   host.appendChild(h);
 }
 
-const LIGAND: Record<string, string> = {
-  ORN_DM1: "ethyl acetate: ripe fruit",
-  ORN_VM5d: "ethyl butyrate: fermenting fruit",
-  ORN_VL2a: "acetic acid: vinegar",
-  IR92a: "ammonia and amines: carrion, dung, droppings",
-  ORN_DA1: "cVA: the pheromone other flies release",
-  ORN_VA1d: "cVA: the pheromone other flies release",
-  Or56a: "geosmin: mould. Aversive.",
-  Gr21a: "CO2: compost, and frightened flies. Aversive.",
-};
+const LIGAND = (type: string) => tx(`sim.ligand.${type}`, type);
 
-heading($("eyes"), "vision", MODALITY_COLOR.vision);
+heading($("eyes"), t("sim.modality.vision"), MODALITY_COLOR.vision);
 const eyeRows = {
-  loom: makeRow($("eyes"), "LPLC2", "looming: something getting bigger", POP_COLOR.LPLC2),
-  threat: makeRow($("eyes"), "LC4", "fast looming / threat", POP_COLOR.LC4),
-  small: makeRow($("eyes"), "LPLC1", "small approaching objects", POP_COLOR.LPLC1),
-  chase: makeRow($("eyes"), "LC10a", "a target at close range", POP_COLOR.LC10a),
+  loom: makeRow($("eyes"), "LPLC2", t("sim.senses.loom"), POP_COLOR.LPLC2),
+  threat: makeRow($("eyes"), "LC4", t("sim.senses.threat"), POP_COLOR.LC4),
+  small: makeRow($("eyes"), "LPLC1", t("sim.senses.small"), POP_COLOR.LPLC1),
+  chase: makeRow($("eyes"), "LC10a", t("sim.senses.chase"), POP_COLOR.LC10a),
 };
-heading($("eyes"), "olfaction — food", MODALITY_COLOR.olfaction);
-const ornRows = ORN_FOOD.map((t) => ({ type: t, bars: makeRow($("eyes"), t.replace("ORN_", ""), LIGAND[t], POP_COLOR[t]) }));
-heading($("eyes"), "olfaction — cVA (other flies)", MODALITY_COLOR.olfaction);
-ornRows.push(...ORN_CVA.map((t) => ({ type: t, bars: makeRow($("eyes"), t.replace("ORN_", ""), LIGAND[t], POP_COLOR[t]) })));
-heading($("eyes"), "olfaction — aversive", "#ff7a7a");
-ornRows.push(...ORN_AVERSIVE.map((t) => ({ type: t, bars: makeRow($("eyes"), t, LIGAND[t], POP_COLOR[t] ?? "#ff7a7a") })));
-heading($("eyes"), "mechanosensory", MODALITY_COLOR.mechanosensory);
+heading($("eyes"), t("sim.senses.food"), MODALITY_COLOR.olfaction);
+const ornRows = ORN_FOOD.map((o) => ({ type: o, bars: makeRow($("eyes"), o.replace("ORN_", ""), LIGAND(o), POP_COLOR[o]) }));
+heading($("eyes"), t("sim.senses.cva"), MODALITY_COLOR.olfaction);
+ornRows.push(...ORN_CVA.map((o) => ({ type: o, bars: makeRow($("eyes"), o.replace("ORN_", ""), LIGAND(o), POP_COLOR[o]) })));
+heading($("eyes"), t("sim.senses.aversive"), "#ff7a7a");
+ornRows.push(...ORN_AVERSIVE.map((o) => ({ type: o, bars: makeRow($("eyes"), o, LIGAND(o), POP_COLOR[o] ?? "#ff7a7a") })));
+heading($("eyes"), t("sim.modality.mechanosensory"), MODALITY_COLOR.mechanosensory);
 const mechRows = {
-  jo: makeRow($("eyes"), "JO", "Johnston's organ: airflow, airspeed, wingbeat", POP_COLOR.JO),
-  leg: makeRow($("eyes"), "SNta", "tarsal contact (phasic)", POP_COLOR.SNta),
-  load: makeRow($("eyes"), "LgLG", "hair plate / campaniform: knocks", POP_COLOR.LgLG),
-  taste: makeRow($("eyes"), "LB3", "labellar taste: food", POP_COLOR.LB3, true),
-  flow: makeRow($("eyes"), "VS", "ventral optic flow: how low and how fast", POP_COLOR.VS ?? "#7fc8ff", true),
+  jo: makeRow($("eyes"), "JO", t("sim.senses.jo"), POP_COLOR.JO),
+  leg: makeRow($("eyes"), "SNta", t("sim.senses.leg"), POP_COLOR.SNta),
+  load: makeRow($("eyes"), "LgLG", t("sim.senses.load"), POP_COLOR.LgLG),
+  taste: makeRow($("eyes"), "LB3", t("sim.senses.taste"), POP_COLOR.LB3, true),
+  flow: makeRow($("eyes"), "VS", t("sim.senses.flow"), POP_COLOR.VS ?? "#7fc8ff", true),
 };
 
 const rateRows: { bars: Bars; iL: number; iR: number }[] = [];
 let lastModality: Modality | null = null;
 for (const p of POPULATIONS) {
   if (p.modality !== lastModality) {
-    heading($("rates"), p.modality, MODALITY_COLOR[p.modality]);
+    heading($("rates"), tx(`sim.modality.${p.modality}`, p.modality), MODALITY_COLOR[p.modality]);
     lastModality = p.modality;
   }
   rateRows.push({
-    bars: makeRow($("rates"), p.name, p.note, POP_COLOR[p.name] ?? "#9aa7b5"),
+    bars: makeRow($("rates"), p.name, tx(`sim.pop.${keyOf(p.name)}`, p.note), POP_COLOR[p.name] ?? "#9aa7b5"),
     iL: world.wiring.pops.findIndex((q) => q.name === p.name && q.side === "L"),
     iR: world.wiring.pops.findIndex((q) => q.name === p.name && q.side === "R"),
   });
 }
 
 const dnRows = {
-  turn: makeRow($("dn"), "DNa02", "steering: right minus left", MODALITY_COLOR.descending),
-  thrust: makeRow($("dn"), "DNg100", "forward flight", MODALITY_COLOR.descending, true),
-  back: makeRow($("dn"), "MDN", "backward", MODALITY_COLOR.descending, true),
-  escape: makeRow($("dn"), "DNp01", "giant fibre escape", MODALITY_COLOR.descending, true),
+  turn: makeRow($("dn"), "DNa02", t("sim.body.turn"), MODALITY_COLOR.descending),
+  thrust: makeRow($("dn"), "DNg100", t("sim.body.thrust"), MODALITY_COLOR.descending, true),
+  back: makeRow($("dn"), "MDN", t("sim.body.back"), MODALITY_COLOR.descending, true),
+  escape: makeRow($("dn"), "DNp01", t("sim.body.escape"), MODALITY_COLOR.descending, true),
 };
 const mnRows = {
-  dlm: makeRow($("motor"), "DLM", "wing power, and therefore lift", MODALITY_COLOR.motor, true),
-  b1: makeRow($("motor"), "b1/b2", "basalar muscles: wing steering", MODALITY_COLOR.motor),
-  jump: makeRow($("motor"), "TiExt+St", "tibia extensor + sternotrochanter: take-off", MODALITY_COLOR.motor),
-  flex: makeRow($("motor"), "Ti/Tr flex", "leg flexors: backing off", MODALITY_COLOR.motor, true),
+  dlm: makeRow($("motor"), "DLM", t("sim.body.dlm"), MODALITY_COLOR.motor, true),
+  b1: makeRow($("motor"), "b1/b2", t("sim.body.b1"), MODALITY_COLOR.motor),
+  jump: makeRow($("motor"), "TiExt+St", t("sim.body.jump"), MODALITY_COLOR.motor),
+  flex: makeRow($("motor"), t("sim.body.flexLabel"), t("sim.body.flex"), MODALITY_COLOR.motor, true),
 };
 const motorText = document.createElement("div");
 motorText.className = "note";
 $("motor").appendChild(motorText);
 
 const wizRows = {
-  arms: makeRow($("wizbars"), "arm strings", "DNp02/03/04/11, DNg40: looming and threat yank the arms · left · right", MODALITY_COLOR.descending),
-  legs: makeRow($("wizbars"), "leg strings", "DNge104/122, DNg20, DNge102: touch kicks the legs · left · right", MODALITY_COLOR.descending),
-  head: makeRow($("wizbars"), "head string", "DNa05/07, DNg111, DNae002: jerks the head · left · right", MODALITY_COLOR.descending),
-  steer: makeRow($("wizbars"), "DNa02", "steering: turns him · left · right", MODALITY_COLOR.descending),
-  escape: makeRow($("wizbars"), "DNp01", "giant fibre: jump · left · right", MODALITY_COLOR.descending),
+  arms: makeRow($("wizbars"), t("sim.wiz.rows.arms.label"), t("sim.wiz.rows.arms.tip"), MODALITY_COLOR.descending),
+  legs: makeRow($("wizbars"), t("sim.wiz.rows.legs.label"), t("sim.wiz.rows.legs.tip"), MODALITY_COLOR.descending),
+  head: makeRow($("wizbars"), t("sim.wiz.rows.head.label"), t("sim.wiz.rows.head.tip"), MODALITY_COLOR.descending),
+  steer: makeRow($("wizbars"), "DNa02", t("sim.wiz.rows.steer"), MODALITY_COLOR.descending),
+  escape: makeRow($("wizbars"), "DNp01", t("sim.wiz.rows.escape"), MODALITY_COLOR.descending),
 };
 const wizText = document.createElement("div");
 wizText.className = "note";
@@ -168,7 +167,8 @@ const LEGEND_COLOR: Record<string, string> = {
 };
 for (const [kind, color] of Object.entries(LEGEND_COLOR)) {
   const s = document.createElement("span");
-  s.innerHTML = `<i style="background:${color}"></i>${ECOLOGY[kind].label}`;
+  s.innerHTML = `<i style="background:${color}"></i>`;
+  s.append(tx(`sim.ecology.${kind}`, ECOLOGY[kind].label));
   $("worldlegend").appendChild(s);
 }
 
@@ -179,13 +179,13 @@ interface SliderSpec {
 }
 
 const sliders: SliderSpec[] = [
-  { label: "flies", min: 1, max: 80, step: 1, value: START_FLIES, apply: (v) => world.setFlyCount(v) },
-  { label: "wind (m/s)", min: 0, max: 3, step: 0.05, value: world.wind.strength, apply: (v) => (world.wind.strength = v), fmt: (v) => v.toFixed(2) },
-  { label: "odour strength", min: 0, max: 3, step: 0.05, value: 1, apply: (v) => (world.odourStrength = v), fmt: (v) => v.toFixed(2) },
-  { label: "tonic drive", min: 0, max: 0.2, step: 0.005, value: world.params.tonic, apply: (v) => (world.params.tonic = v) },
-  { label: "synaptic gain", min: 0.2, max: 4, step: 0.05, value: world.params.gain, apply: (v) => (world.params.gain = v) },
-  { label: "noise rate (Hz)", min: 0, max: 8, step: 0.1, value: world.params.noiseHz, apply: (v) => (world.params.noiseHz = v) },
-  { label: "simulation speed", min: 0, max: 3, step: 0.05, value: 1, apply: (v) => (world.speedScale = v), fmt: (v) => v.toFixed(2) + "x" },
+  { label: t("sim.controls.slider.flies"), min: 1, max: 80, step: 1, value: START_FLIES, apply: (v) => world.setFlyCount(v) },
+  { label: t("sim.controls.slider.wind"), min: 0, max: 3, step: 0.05, value: world.wind.strength, apply: (v) => (world.wind.strength = v), fmt: (v) => v.toFixed(2) },
+  { label: t("sim.controls.slider.odour"), min: 0, max: 3, step: 0.05, value: 1, apply: (v) => (world.odourStrength = v), fmt: (v) => v.toFixed(2) },
+  { label: t("sim.controls.slider.tonic"), min: 0, max: 0.2, step: 0.005, value: world.params.tonic, apply: (v) => (world.params.tonic = v) },
+  { label: t("sim.controls.slider.gain"), min: 0.2, max: 4, step: 0.05, value: world.params.gain, apply: (v) => (world.params.gain = v) },
+  { label: t("sim.controls.slider.noise"), min: 0, max: 8, step: 0.1, value: world.params.noiseHz, apply: (v) => (world.params.noiseHz = v) },
+  { label: t("sim.controls.slider.speed"), min: 0, max: 3, step: 0.05, value: 1, apply: (v) => (world.speedScale = v), fmt: (v) => v.toFixed(2) + "x" },
 ];
 
 for (const s of sliders) {
@@ -238,7 +238,7 @@ $("drama").addEventListener("click", () => {
 });
 $("follow").addEventListener("click", () => {
   renderer.camMode = renderer.camMode === "orbit" ? "follow" : "orbit";
-  $("follow").textContent = "follow: " + (renderer.camMode === "follow" ? "on" : "off");
+  $("follow").textContent = t(renderer.camMode === "follow" ? "sim.controls.followOn" : "sim.controls.followOff");
   $("follow").classList.toggle("on", renderer.camMode === "follow");
 });
 // the "what this is" card: open by default, collapsible, remembered per browser
@@ -251,7 +251,7 @@ try {
 function setAbout(open: boolean): void {
   aboutOpen = open;
   aboutCard.classList.toggle("folded", !open);
-  aboutToggle.textContent = open ? "hide" : "what is this?";
+  aboutToggle.textContent = t(open ? "sim.about.hide" : "sim.about.show");
   try {
     localStorage.setItem("fly.about", open ? "open" : "closed");
   } catch { /* ignore */ }
@@ -381,7 +381,7 @@ function updateEvents(): void {
     if (!seenEvents.has(e)) {
       seenEvents.add(e);
       el.className = "ev " + e.kind;
-      el.innerHTML = `<i>${EVENT_FACE[e.kind]}</i>${e.text}`;
+      el.innerHTML = `<i>${EVENT_FACE[e.kind]}</i>${e.text}`; // what happened is the world's own log line: English
     }
     // it rises and fades over its 6 s life
     const k = Math.min(1, e.age / 6);
@@ -415,15 +415,19 @@ function updateLabels(): void {
     const cls = "tag " + f.state + (i === world.selected ? " sel" : "");
     if (el.className !== cls) {
       el.className = cls;
-      el.innerHTML = `<b>${f.name}</b> ${f.state}`;
+      el.innerHTML = `<b>${f.name}</b> ${STATE(f.state)}`;
     }
   }
 }
 
 /** what to call the current hour, for the header */
-const PHASE = (t: number): string =>
-  t < 0.21 ? "night" : t < 0.3 ? "dawn" : t < 0.46 ? "morning"
-  : t < 0.56 ? "midday" : t < 0.72 ? "afternoon" : t < 0.82 ? "dusk" : "night";
+const PHASE = (d: number): string => {
+  const phase = d < 0.21 ? "night" : d < 0.3 ? "dawn" : d < 0.46 ? "morning"
+    : d < 0.56 ? "midday" : d < 0.72 ? "afternoon" : d < 0.82 ? "dusk" : "night";
+  return tx(`sim.phase.${phase}`, phase);
+};
+/** a fly's state (FLYING, PANIC, ...), in the page's language */
+const STATE = (state: string): string => tx(`sim.state.${state}`, state);
 
 let frame = 0;
 const set = (b: HTMLElement, v: number) => (b.style.width = Math.max(0, Math.min(100, v * 100)) + "%");
@@ -431,7 +435,7 @@ const set = (b: HTMLElement, v: number) => (b.style.width = Math.max(0, Math.min
 function updatePanel(): void {
   const fly = world.flies[world.selected];
   const n = frame++; // read once: checking frame after the ++ only ever saw odd numbers
-  if (!fly && live && n % 30 === 0) $("stats").textContent = live.status === "live" ? "live · the field is empty" : "connecting to the live world…";
+  if (!fly && live && n % 30 === 0) $("stats").textContent = t(live.status === "live" ? "sim.stats.empty" : "sim.stats.connecting");
   if (!fly || n % 2) return;
 
   const d = fly.vision.drive;
@@ -471,27 +475,28 @@ function updatePanel(): void {
   set(mnRows.jump.R, (world.rate("Ti extensor MN", "R", fly) + world.rate("Sternotrochanter MN", "R", fly)) * 1.6);
   set(mnRows.flex.L, m.back * 4);
 
-  motorText.textContent =
-    `DLM ${(m.thrust * MOTOR.maxRate).toFixed(1)} Hz → lift ${(MOTOR.lift * m.thrust).toFixed(1)} m/s² ` +
-    `(gravity ${MOTOR.gravity}) · turn ${(m.turn * MOTOR.turn).toFixed(2)} rad/s · ` +
-    `speed ${fly.speed.toFixed(1)} m/s · height ${fly.y.toFixed(1)} m · ${fly.state}`;
+  motorText.textContent = t("sim.body.motor", {
+    dlm: (m.thrust * MOTOR.maxRate).toFixed(1), lift: (MOTOR.lift * m.thrust).toFixed(1), gravity: MOTOR.gravity,
+    turn: (m.turn * MOTOR.turn).toFixed(2), speed: fly.speed.toFixed(1), height: fly.y.toFixed(1), state: STATE(fly.state),
+  });
 
   const parents = fly.mother !== null
-    ? ` · child of ${world.log.lineage.get(fly.mother)?.name ?? "?"} & ${world.log.lineage.get(fly.father ?? -1)?.name ?? "?"}`
-    : " · founder";
-  $("flyid").textContent =
-    `${fly.name} ${fly.sex} · gen ${fly.generation}${parents} · ${fly.age.toFixed(0)}s old${fly.mated ? " · mated" : ""}` +
-    ` · brain changed ${(fly.brain.drift() * 100).toFixed(1)}%` +
-    `${fly.courting > 4 ? " · P1 " + fly.courting.toFixed(0) + " Hz" : ""}`;
+    ? t("sim.brain.childOf", { mother: String(world.log.lineage.get(fly.mother)?.name ?? "?"), father: String(world.log.lineage.get(fly.father ?? -1)?.name ?? "?") })
+    : t("sim.brain.founder");
+  $("flyid").textContent = t("sim.brain.fly", {
+    name: fly.name, sex: fly.sex, gen: fly.generation, parents, age: fly.age.toFixed(0),
+    mated: fly.mated ? t("sim.brain.mated") : "", drift: (fly.brain.drift() * 100).toFixed(1),
+    courting: fly.courting > 4 ? t("sim.brain.courting", { hz: fly.courting.toFixed(0) }) : "",
+  });
   const where = live
-    ? `${live.status === "live" ? "live" : live.status + "…"} · ${live.viewers} watching · `
-    : `private field · brain step ${simMs.toFixed(2)} ms · `;
-  $("stats").textContent =
-    `${world.clock} ${PHASE(world.timeOfDay)} · ${world.flies.length} flies × ${world.wiring.n} neurons (${world.wiring.nnz} synapses each) · ` +
-    `${fps.toFixed(0)} fps · ${where}${live ? live.puffs : world.field.puffCount} odour puffs · ` +
-    `wind ${world.wind.strength.toFixed(1)} m/s · ${world.matings} matings, ${world.eggsLaid} eggs, ` +
-    `${world.hatched} hatched · deaths: ${world.deaths.age} old, ${world.deaths.starved} starved, ` +
-    `${world.deaths.eaten} eaten, ${world.deaths.swatted} swatted`;
+    ? t("sim.stats.whereLive", { status: tx(`sim.status.${live.status}`, live.status), viewers: live.viewers })
+    : t("sim.stats.wherePrivate", { ms: simMs.toFixed(2) });
+  $("stats").textContent = t("sim.stats.line", {
+    clock: world.clock, phase: PHASE(world.timeOfDay), flies: world.flies.length, neurons: world.wiring.n,
+    synapses: world.wiring.nnz, fps: fps.toFixed(0), where, puffs: live ? live.puffs : world.field.puffCount,
+    wind: world.wind.strength.toFixed(1), matings: world.matings, eggs: world.eggsLaid, hatched: world.hatched,
+    old: world.deaths.age, starved: world.deaths.starved, eaten: world.deaths.eaten, swatted: world.deaths.swatted,
+  });
 
   if (n % 30 === 0) updateBoard();
   if (n % 60 === 0) updatePopulation();
@@ -500,7 +505,7 @@ function updatePanel(): void {
 }
 
 function updateWiz(): void {
-  $("wizstatus").textContent = wiz.status;
+  $("wizstatus").textContent = wizStatus(wiz.status);
   if (!wiz.ready) return;
   const hz = (name: string) => wiz.rate(name) / 25;
   const p = wiz.pull;
@@ -510,12 +515,19 @@ function updateWiz(): void {
   set(wizRows.steer.L, hz("DNa02 L")); set(wizRows.steer.R, hz("DNa02 R"));
   set(wizRows.escape.L, hz("DNp01 L")); set(wizRows.escape.R, hz("DNp01 R"));
   const realtime = Math.min(1, 20 / Math.max(20, wiz.ms));
-  const doing: Record<string, string> = {
-    stand: "working out how legs work", walk: "trying to walk", stumble: "losing his balance", fallen: "fell over", getup: "getting up",
-  };
-  wizText.textContent =
-    `${doing[wiz.mode]} · fallen ${wiz.falls}× · ${wiz.fired.toLocaleString()} neurons fired this step · ` +
-    `${wiz.ms.toFixed(1)} ms/step (${(realtime * 100).toFixed(0)}% real time)`;
+  wizText.textContent = t("sim.wiz.line", {
+    doing: tx(`sim.wiz.doing.${wiz.mode}`, wiz.mode), falls: wiz.falls, fired: wiz.fired.toLocaleString(),
+    ms: wiz.ms.toFixed(1), rt: (realtime * 100).toFixed(0),
+  });
+}
+
+/** Wiz's status line (wiz.ts keeps it in English: asleep, loading, the worker's progress, failed: ..., the brain's size) */
+function wizStatus(status: string): string {
+  if (status === "asleep" || status === "loading") return tx(`sim.wiz.status.${status}`, status);
+  if (status.startsWith("failed: ")) return t("sim.wiz.status.failed", { error: status.slice(8) });
+  const ready = /^([\d.,\s\u00a0\u202f]+) neurons · ([\d.]+) M synapses$/.exec(status);
+  if (ready) return t("sim.wiz.status.ready", { n: ready[1], m: ready[2] });
+  return progress("sim.wiz.status", status);
 }
 
 // --- population graph: the ecology over the last 5 minutes -------------------
@@ -553,7 +565,7 @@ function drawPopulation(): void {
 
   if (h.length < 2) {
     g.fillStyle = "#4a5666";
-    g.fillText("waiting for the first minute…", 8, POP_H / 2);
+    g.fillText(t("sim.population.waiting"), 8, POP_H / 2);
     return;
   }
 
@@ -579,20 +591,20 @@ function drawPopulation(): void {
   // time axis: the window is history.length seconds, oldest on the left
   g.fillStyle = "#4a5666";
   g.fillText(`-${h.length}s`, 2, POP_H - 2);
-  g.fillText("now", POP_W - 20, POP_H - 2);
+  const nowLabel = t("sim.population.axisNow");
+  g.fillText(nowLabel, POP_W - g.measureText(nowLabel).width - 2, POP_H - 2);
 }
 
 function updateFeed(): void {
   $("clock").textContent = `${world.clock} · ${PHASE(world.timeOfDay)}`;
   const recent = world.events.slice(-6).reverse();
   if (!recent.length) {
-    $("feed").innerHTML = `<div class="feed-empty">nothing yet — mating, eggs, meals,
-      spider strikes and deaths appear here and over the fly they happened to.</div>`;
+    $("feed").innerHTML = `<div class="feed-empty">${t("sim.feed.empty")}</div>`;
     return;
   }
   $("feed").innerHTML = recent.map((e) =>
     `<div class="feed-row ${e.kind}"><i>${EVENT_FACE[e.kind]}</i><span>${e.text}</span>` +
-    `<span>${e.age < 1 ? "now" : e.age.toFixed(0) + "s ago"}</span></div>`).join("");
+    `<span>${e.age < 1 ? t("sim.feed.now") : t("sim.feed.ago", { s: e.age.toFixed(0) })}</span></div>`).join("");
 }
 
 function updatePopulation(): void {
@@ -601,22 +613,20 @@ function updatePopulation(): void {
   const brood = world.props.filter((p) => p.kind === "egg" || p.kind === "larva").length;
   const meanAge = world.flies.reduce((s, f) => s + f.age, 0) / Math.max(1, world.flies.length);
   const d = world.deaths;
-  $("popnow").textContent = `${world.flies.length} adults · ${brood} brood`;
-  $("popstats").innerHTML =
-    `<span>adults <b>${world.flies.length}</b> (${males}M / ${world.flies.length - males}F)</span>` +
-    `<span>mean age <b>${meanAge.toFixed(0)}s</b></span>` +
-    `<span>matings <b>${world.matings}</b> · eggs <b>${world.eggsLaid}</b></span>` +
-    `<span>hatched <b>${world.hatched}</b></span>` +
-    `<span>died old <b>${d.age}</b> · starved <b>${d.starved}</b></span>` +
-    `<span>eaten <b>${d.eaten}</b> · swatted <b>${d.swatted}</b></span>`;
+  $("popnow").textContent = t("sim.population.now", { adults: world.flies.length, brood });
+  $("popstats").innerHTML = t("sim.population.stats", {
+    adults: world.flies.length, males, females: world.flies.length - males, age: meanAge.toFixed(0),
+    matings: world.matings, eggs: world.eggsLaid, hatched: world.hatched,
+    old: d.age, starved: d.starved, eaten: d.eaten, swatted: d.swatted,
+  });
 }
 
 function updateBoard(): void {
   const best = [...world.flies].sort((a, b) => b.stats.fed - a.stats.fed).slice(0, 5);
   const row = (i: number, f: Fly) =>
     `<div class="board-row"><span>${i + 1}</span><b>${f.name}</b>` +
-    `<span>${(f.stats.fed * DT).toFixed(0)}s fed · ${f.stats.distance.toFixed(0)}m</span>` +
-    `<span>${f.stats.panics} panics${f.stats.swatted ? " · swatted" : ""}</span></div>`;
+    `<span>${t("sim.board.fed", { s: (f.stats.fed * DT).toFixed(0), m: f.stats.distance.toFixed(0) })}</span>` +
+    `<span>${t("sim.board.panics", { n: f.stats.panics })}${f.stats.swatted ? t("sim.board.swatted") : ""}</span></div>`;
   $("board").innerHTML = best.map((f, i) => row(i, f)).join("");
 }
 

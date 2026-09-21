@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { loadBonds, type Bond, type BondLabel, type Fly } from "./feed";
+import { ago as agoAt, t, tAt } from "./i18n";
 
-/** How each relationship looks. tone picks the line colour (warm, kin, cold, neutral); dash tells mixed ones apart. */
+/** How each relationship looks. tone picks the line colour (warm, kin, cold, neutral); dash tells mixed ones apart.
+ * title and help are English; the UI shows flybook.bonds.labels.<label>.title / .help (bondTitle, bondHelp). */
 const LABELS: Record<BondLabel, { icon: string; title: string; tone: "warm" | "kin" | "cold" | "neutral"; dash?: string; help: string }> = {
   mates: { icon: "💘", title: "Mates", tone: "warm", help: "had a baby together" },
   family: { icon: "🧬", title: "Family", tone: "kin", help: "parent, child or sibling" },
@@ -13,6 +15,8 @@ const LABELS: Record<BondLabel, { icon: string; title: string; tone: "warm" | "k
   enemies: { icon: "💢", title: "Enemies", tone: "cold", help: "one makes the other jump" },
   acquaintances: { icon: "👋", title: "Acquaintances", tone: "neutral", help: "crossed paths a few times" },
 };
+const bondTitle = (l: BondLabel) => tAt("flybook.bonds.labels", l, "title");
+const bondHelp = (l: BondLabel) => tAt("flybook.bonds.labels", l, "help");
 const ORDER: BondLabel[] = ["mates", "family", "best friends", "friends", "frenemies", "rivals", "enemies", "acquaintances"];
 const DAYS = [1, 7, 30] as const;
 const GRAPH_MAX = 24;
@@ -39,27 +43,21 @@ function side(b: Bond, me: string): Side {
 }
 
 const weightOf = (b: Bond) => b.warmth + b.tension + 3 * (b.a_wins + b.b_wins + b.draws) + 20 * b.matings + (b.kin ? 10 : 0);
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const short = (s: string, n = 12) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
-function ago(iso: string | null): string {
-  if (!iso) return "";
-  const s = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
-  if (s < 3600) return `${Math.max(1, Math.floor(s / 60))}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  return `${Math.floor(s / 86400)}d ago`;
-}
+const ago = (iso: string | null): string => (iso ? agoAt(iso, Date.now(), "long") : "");
+const kinName = (kin: string) => tAt("flybook.bonds.kin", kin);
 
 /** One line on what happened between the two, the biggest things first. */
 function story(s: Side, name: string): string {
   const bits: string[] = [];
-  if (s.bond.matings) bits.push(`${plural(s.bond.matings, "baby", "babies")} together`);
-  if (s.kin) bits.push(`${name} is its ${s.kin}`);
-  if (s.drewMe + s.drewThem) bits.push(`caught each other's eye ${s.drewMe + s.drewThem}×`);
-  if (s.startledMe + s.startledThem) bits.push(`made each other jump ${s.startledMe + s.startledThem}×`);
-  if (s.touchedMe + s.touchedThem) bits.push(`bumped ${s.touchedMe + s.touchedThem}×`);
-  if (s.wins + s.losses + s.draws) bits.push(`duels ${s.wins}-${s.losses}${s.draws ? `-${s.draws}` : ""}`);
-  return bits.join(" · ") || "barely met";
+  if (s.bond.matings) bits.push(t("flybook.bonds.babies", { count: s.bond.matings }));
+  if (s.kin) bits.push(t("flybook.bonds.isIts", { name, kin: kinName(s.kin) }));
+  if (s.drewMe + s.drewThem) bits.push(t("flybook.bonds.caughtEye", { n: s.drewMe + s.drewThem }));
+  if (s.startledMe + s.startledThem) bits.push(t("flybook.bonds.madeJump", { n: s.startledMe + s.startledThem }));
+  if (s.touchedMe + s.touchedThem) bits.push(t("flybook.bonds.bumped", { n: s.touchedMe + s.touchedThem }));
+  if (s.wins + s.losses + s.draws) bits.push(t("flybook.bonds.duels", { record: `${s.wins}-${s.losses}${s.draws ? `-${s.draws}` : ""}` }));
+  return bits.join(" · ") || t("flybook.bonds.barelyMet");
 }
 
 /** The fly's relationships as a popup (or inline, the Friends tab): a web around the fly, the highlights, and every
@@ -94,7 +92,7 @@ export default function Relationships({ fly, flies, onClose, onFly, inline = fal
   }, [focus, days]);
 
   const me = focus ? flies.get(focus) : undefined;
-  const title = me ? `${me.name}'s relationships` : "The social web";
+  const title = me ? t("flybook.bonds.titleFly", { name: me.name }) : t("flybook.bonds.titleAll");
 
   const panel = (
       <div className={inline ? "bonds-inline" : "modal bonds"} role={inline ? "region" : "dialog"} aria-modal={inline ? undefined : true}
@@ -104,28 +102,25 @@ export default function Relationships({ fly, flies, onClose, onFly, inline = fal
             {me && <span className="dot big" style={{ background: me.color }} />}
             {title}
           </h3>
-          {!inline && <button className="more" type="button" onClick={onClose}>close ✕</button>}
+          {!inline && <button className="more" type="button" onClick={onClose}>{t("flybook.bonds.close")}</button>}
         </header>
         <div className="bonds-controls">
-          <div className="seg" role="group" aria-label="Whose relationships">
+          <div className="seg" role="group" aria-label={t("flybook.bonds.whose")}>
             {(me || fly) && (
               <button className={focus ? "on" : ""} onClick={() => !focus && fly && setFocus(fly.id)}>{short((me ?? fly)!.name, 16)}</button>
             )}
-            <button className={focus ? "" : "on"} onClick={() => setFocus(null)}>Everyone</button>
+            <button className={focus ? "" : "on"} onClick={() => setFocus(null)}>{t("flybook.bonds.everyone")}</button>
           </div>
-          <div className="seg" role="group" aria-label="Time window">
+          <div className="seg" role="group" aria-label={t("flybook.bonds.window")}>
             {DAYS.map((d) => (
-              <button key={d} className={days === d ? "on" : ""} onClick={() => setDays(d)}>{d === 1 ? "24h" : `${d}d`}</button>
+              <button key={d} className={days === d ? "on" : ""} onClick={() => setDays(d)}>{d === 1 ? t("flybook.bonds.h24") : t("flybook.bonds.days", { n: d })}</button>
             ))}
           </div>
         </div>
         <div className="modal-scroll">
-          <p className="modal-lede">
-            Nobody picks these. They come from what the flies' brains did to each other: jumps one set off in the other, moves that
-            caught an eye, bumps, duels and babies. Older stuff fades, so friends can turn into enemies.
-          </p>
+          <p className="modal-lede">{t("flybook.bonds.lede")}</p>
           {error && <p className="err">{error}</p>}
-          {!bonds && !error && <div className="empty">Reading who likes whom…</div>}
+          {!bonds && !error && <div className="empty">{t("flybook.bonds.reading")}</div>}
           {bonds && focus && me && (
             <FlyBonds me={me} bonds={bonds} flies={flies} picked={picked} hover={hover}
                       onPick={setPicked} onHover={setHover} onFocus={setFocus} onFly={(id) => { onFly(id); onClose(); }} />
@@ -149,30 +144,30 @@ function FlyBonds({ me, bonds, flies, picked, hover, onPick, onHover, onFocus, o
     [bonds, me.id],
   );
   if (sides.length === 0) {
-    return <div className="empty">No relationships yet. {me.name} needs neighbours: flies in the same patch set each other off.</div>;
+    return <div className="empty">{t("flybook.bonds.noneYet", { name: me.name })}</div>;
   }
   const best = (label: BondLabel[]) => sides.find((s) => label.includes(s.bond.label));
   const highlights = [
-    { key: "friend", label: "Best friend", s: best(["best friends", "friends"]) },
-    { key: "enemy", label: "Worst enemy", s: best(["enemies", "frenemies"]) },
-    { key: "rival", label: "Top rival", s: [...sides].filter((s) => s.wins + s.losses + s.draws > 0).sort((x, y) => (y.wins + y.losses + y.draws) - (x.wins + x.losses + x.draws))[0] },
-    { key: "scary", label: "Scares it most", s: [...sides].filter((s) => s.startledMe > 0).sort((x, y) => y.startledMe - x.startledMe)[0] },
+    { key: "friend", label: t("flybook.bonds.highlights.friend"), s: best(["best friends", "friends"]) },
+    { key: "enemy", label: t("flybook.bonds.highlights.enemy"), s: best(["enemies", "frenemies"]) },
+    { key: "rival", label: t("flybook.bonds.highlights.rival"), s: [...sides].filter((s) => s.wins + s.losses + s.draws > 0).sort((x, y) => (y.wins + y.losses + y.draws) - (x.wins + x.losses + x.draws))[0] },
+    { key: "scary", label: t("flybook.bonds.highlights.scary"), s: [...sides].filter((s) => s.startledMe > 0).sort((x, y) => y.startledMe - x.startledMe)[0] },
   ];
   const counts = ORDER.map((l) => [l, sides.filter((s) => s.bond.label === l).length] as const).filter(([, n]) => n > 0);
   const selected = sides.find((s) => s.other === picked) ?? null;
 
   return (
     <>
-      <ul className="bond-counts" aria-label="Relationships by kind">
+      <ul className="bond-counts" aria-label={t("flybook.bonds.byKind")}>
         {counts.map(([l, n]) => (
-          <li key={l} className={`tone-${LABELS[l].tone}`} title={LABELS[l].help}><span aria-hidden>{LABELS[l].icon}</span> <b>{n}</b> {LABELS[l].title.toLowerCase()}</li>
+          <li key={l} className={`tone-${LABELS[l].tone}`} title={bondHelp(l)}><span aria-hidden>{LABELS[l].icon}</span> <b>{n}</b> {bondTitle(l).toLowerCase()}</li>
         ))}
       </ul>
       <div className="bonds-grid">
         <div className="bond-graph-wrap">
           <EgoGraph me={me} sides={sides.slice(0, GRAPH_MAX)} flies={flies} picked={picked} hover={hover} onPick={onPick} onHover={onHover} />
           <Legend />
-          {sides.length > GRAPH_MAX && <p className="fine">The web shows the {GRAPH_MAX} strongest of {sides.length}; all are listed below.</p>}
+          {sides.length > GRAPH_MAX && <p className="fine">{t("flybook.bonds.graphCap", { max: GRAPH_MAX, n: sides.length })}</p>}
         </div>
         <div className="bond-side">
           {selected ? (
@@ -187,13 +182,13 @@ function FlyBonds({ me, bonds, flies, picked, hover, onPick, onHover, onFocus, o
                     {s && f ? (
                       <button className="who" onClick={() => onPick(s.other)}>
                         <span className="dot" style={{ background: f.color }} />{f.name}
-                        <span className="bond-why">{key === "scary" ? `made it jump ${s.startledMe}×` : key === "rival" ? `${s.wins}-${s.losses}${s.draws ? `-${s.draws}` : ""} in duels` : LABELS[s.bond.label].title}</span>
+                        <span className="bond-why">{key === "scary" ? t("flybook.bonds.madeItJump", { n: s.startledMe }) : key === "rival" ? t("flybook.bonds.inDuels", { record: `${s.wins}-${s.losses}${s.draws ? `-${s.draws}` : ""}` }) : bondTitle(s.bond.label)}</span>
                       </button>
-                    ) : <span className="bond-none">nobody yet</span>}
+                    ) : <span className="bond-none">{t("flybook.bonds.nobody")}</span>}
                   </li>
                 );
               })}
-              <li className="fine">Click a fly in the web to see what happened between them.</li>
+              <li className="fine">{t("flybook.bonds.clickFly")}</li>
             </ul>
           )}
         </div>
@@ -204,7 +199,7 @@ function FlyBonds({ me, bonds, flies, picked, hover, onPick, onHover, onFocus, o
           if (!group.length) return null;
           return (
             <section key={l}>
-              <h5><span aria-hidden>{LABELS[l].icon}</span> {LABELS[l].title} <small>{LABELS[l].help}</small></h5>
+              <h5><span aria-hidden>{LABELS[l].icon}</span> {bondTitle(l)} <small>{bondHelp(l)}</small></h5>
               <ul>
                 {group.map((s) => {
                   const f = flies.get(s.other)!;
@@ -228,11 +223,11 @@ function FlyBonds({ me, bonds, flies, picked, hover, onPick, onHover, onFocus, o
 /** Warmth vs tension as one diverging bar: red to the left of the middle, green to the right. */
 function Mood({ warmth, tension }: { warmth: number; tension: number }) {
   const total = warmth + tension;
-  if (total <= 0) return <span className="mood none" title="no brain reactions, only duels or family" />;
+  if (total <= 0) return <span className="mood none" title={t("flybook.bonds.noReactions")} />;
   const warm = warmth / total;
   return (
-    <span className="mood" role="img" aria-label={`${Math.round(warm * 100)}% warm, ${Math.round((1 - warm) * 100)}% tense`}
-          title={`${Math.round(warm * 100)}% warm · ${Math.round((1 - warm) * 100)}% tense`}>
+    <span className="mood" role="img" aria-label={t("flybook.bonds.mood", { warm: Math.round(warm * 100), tense: Math.round((1 - warm) * 100) })}
+          title={t("flybook.bonds.moodTitle", { warm: Math.round(warm * 100), tense: Math.round((1 - warm) * 100) })}>
       <i className="cold" style={{ width: `${(1 - warm) * 50}%` }} />
       <i className="warm" style={{ width: `${warm * 50}%` }} />
     </span>
@@ -241,14 +236,14 @@ function Mood({ warmth, tension }: { warmth: number; tension: number }) {
 
 function Legend() {
   return (
-    <ul className="bond-legend" aria-label="Line colours">
-      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-warm" /></svg>friendly</li>
-      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-kin" /></svg>family</li>
-      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-cold" /></svg>enemies</li>
-      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-cold" strokeDasharray="10 5" /></svg>frenemies</li>
-      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-cold" strokeDasharray="2 5" /></svg>rivals</li>
-      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-neutral" /></svg>acquaintances</li>
-      <li className="fine">thicker = closer</li>
+    <ul className="bond-legend" aria-label={t("flybook.bonds.lineColours")}>
+      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-warm" /></svg>{t("flybook.bonds.legend.friendly")}</li>
+      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-kin" /></svg>{t("flybook.bonds.legend.family")}</li>
+      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-cold" /></svg>{t("flybook.bonds.legend.enemies")}</li>
+      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-cold" strokeDasharray="10 5" /></svg>{t("flybook.bonds.legend.frenemies")}</li>
+      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-cold" strokeDasharray="2 5" /></svg>{t("flybook.bonds.legend.rivals")}</li>
+      <li><svg width="26" height="8" aria-hidden><line x1="1" y1="4" x2="25" y2="4" className="edge tone-neutral" /></svg>{t("flybook.bonds.legend.acquaintances")}</li>
+      <li className="fine">{t("flybook.bonds.legend.thicker")}</li>
     </ul>
   );
 }
@@ -275,7 +270,7 @@ function EgoGraph({ me, sides, flies, picked, hover, onPick, onHover }: {
   const tip = placed.find((p) => p.s.other === hover);
   return (
     <div className="bond-graph">
-      <svg viewBox={`0 0 ${EW} ${EH}`} role="img" aria-label={`${me.name}'s relationships: ${sides.length} flies`}>
+      <svg viewBox={`0 0 ${EW} ${EH}`} role="img" aria-label={t("flybook.bonds.graphLabel", { name: me.name, n: sides.length })}>
         {placed.map(({ s, x, y, close }) => {
           const meta = LABELS[s.bond.label];
           const on = picked === s.other || hover === s.other;
@@ -298,7 +293,7 @@ function EgoGraph({ me, sides, flies, picked, hover, onPick, onHover }: {
           const lx = x + cos * (dot + 6), ly = y + sin * (dot + 6) + (anchor === "middle" ? (sin > 0 ? 10 : -4) : 4);
           return (
             <g key={`n-${s.other}`} className={`node${on ? " on" : ""}${picked && !on ? " faded" : ""}`} tabIndex={0} role="button"
-               aria-label={`${f.name}: ${LABELS[s.bond.label].title}`}
+               aria-label={`${f.name}: ${bondTitle(s.bond.label)}`}
                onClick={() => onPick(picked === s.other ? null : s.other)}
                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onPick(s.other)}
                onMouseEnter={() => onHover(s.other)} onMouseLeave={() => onHover(null)}>
@@ -315,8 +310,8 @@ function EgoGraph({ me, sides, flies, picked, hover, onPick, onHover }: {
       </svg>
       {tip && (
         <div className="bond-tip" style={{ left: `${(tip.x / EW) * 100}%`, top: `${(tip.y / EH) * 100}%` }}>
-          <b>{flies.get(tip.s.other)?.name}</b> <span>{LABELS[tip.s.bond.label].icon} {LABELS[tip.s.bond.label].title}</span>
-          <small>{story(tip.s, flies.get(tip.s.other)?.name ?? "it")}</small>
+          <b>{flies.get(tip.s.other)?.name}</b> <span>{LABELS[tip.s.bond.label].icon} {bondTitle(tip.s.bond.label)}</span>
+          <small>{story(tip.s, flies.get(tip.s.other)?.name ?? t("flybook.bonds.it"))}</small>
         </div>
       )}
     </div>
@@ -329,27 +324,27 @@ function PairCard({ s, me, other, onClose, onFocus, onFly }: {
 }) {
   const meta = LABELS[s.bond.label];
   const rows = [
-    { label: "made the other jump", them: s.startledMe, mine: s.startledThem },
-    { label: "caught the other's eye", them: s.drewMe, mine: s.drewThem },
-    { label: "bumped the other", them: s.touchedMe, mine: s.touchedThem },
+    { label: t("flybook.bonds.rows.jump"), them: s.startledMe, mine: s.startledThem },
+    { label: t("flybook.bonds.rows.eye"), them: s.drewMe, mine: s.drewThem },
+    { label: t("flybook.bonds.rows.bump"), them: s.touchedMe, mine: s.touchedThem },
   ];
   const peak = Math.max(1, ...rows.flatMap((r) => [r.them, r.mine]));
   return (
     <div className="pair-card">
       <div className="pair-head">
-        <span className={`pair-label tone-${meta.tone}`}>{meta.icon} {meta.title}</span>
-        <button className="more" onClick={onClose}>back</button>
+        <span className={`pair-label tone-${meta.tone}`}>{meta.icon} {bondTitle(s.bond.label)}</span>
+        <button className="more" onClick={onClose}>{t("flybook.bonds.back")}</button>
       </div>
       <p className="pair-names">
         <span className="dot" style={{ background: me.color }} />{me.name}
         <span className="vs">&amp;</span>
         <span className="dot" style={{ background: other.color }} />{other.name}
       </p>
-      <p className="fine">{meta.help}{s.bond.last_at ? ` · last ${ago(s.bond.last_at)}` : ""}</p>
+      <p className="fine">{bondHelp(s.bond.label)}{s.bond.last_at ? t("flybook.bonds.last", { ago: ago(s.bond.last_at) }) : ""}</p>
       <Mood warmth={s.bond.warmth} tension={s.bond.tension} />
       <table className="pair-table">
         <thead>
-          <tr><th /><th scope="col">by {short(other.name, 10)}</th><th scope="col">by {short(me.name, 10)}</th></tr>
+          <tr><th /><th scope="col">{t("flybook.bonds.by", { name: short(other.name, 10) })}</th><th scope="col">{t("flybook.bonds.by", { name: short(me.name, 10) })}</th></tr>
         </thead>
         <tbody>
           {rows.map((r) => (
@@ -360,7 +355,7 @@ function PairCard({ s, me, other, onClose, onFocus, onFly }: {
             </tr>
           ))}
           <tr>
-            <th scope="row">duel wins</th>
+            <th scope="row">{t("flybook.bonds.duelWins")}</th>
             <td><span className="mono">{s.losses}</span></td>
             <td><span className="mono">{s.wins}</span></td>
           </tr>
@@ -368,13 +363,13 @@ function PairCard({ s, me, other, onClose, onFocus, onFly }: {
       </table>
       {(s.draws > 0 || s.bond.matings > 0 || s.kin) && (
         <p className="fine">
-          {[s.draws ? plural(s.draws, "drawn duel") : "", s.bond.matings ? `${plural(s.bond.matings, "baby", "babies")} together` : "",
-            s.kin ? `${other.name} is ${me.name}'s ${s.kin}` : ""].filter(Boolean).join(" · ")}
+          {[s.draws ? t("flybook.bonds.drawn", { count: s.draws }) : "", s.bond.matings ? t("flybook.bonds.babies", { count: s.bond.matings }) : "",
+            s.kin ? t("flybook.bonds.isOf", { other: other.name, me: me.name, kin: kinName(s.kin) }) : ""].filter(Boolean).join(" · ")}
         </p>
       )}
       <div className="row">
-        <button className="btn sm" onClick={() => onFocus(other.id)}>See {short(other.name, 14)}'s web</button>
-        <button className="btn sm" onClick={() => onFly(other.id)}>Their posts</button>
+        <button className="btn sm" onClick={() => onFocus(other.id)}>{t("flybook.bonds.seeWeb", { name: short(other.name, 14) })}</button>
+        <button className="btn sm" onClick={() => onFly(other.id)}>{t("flybook.bonds.theirPosts")}</button>
       </div>
     </div>
   );
@@ -389,7 +384,7 @@ function SocialWeb({ bonds, flies, hover, onHover, onFocus }: {
   const kindKey = [...kinds].sort().join("|");
   const shown = useMemo(() => bonds.filter((b) => kinds.has(b.label)), [bonds, kindKey]);
   const { nodes, degree } = useMemo(() => layout(shown), [shown]);
-  if (!bonds.length) return <div className="empty">No relationships in this window yet.</div>;
+  if (!bonds.length) return <div className="empty">{t("flybook.bonds.noneInWindow")}</div>;
   const max = Math.max(...shown.map(weightOf), 1);
   const near = hover ? new Set(shown.filter((b) => b.a === hover || b.b === hover).flatMap((b) => [b.a, b.b])) : null;
   const tally = ORDER.map((l) => [l, bonds.filter((b) => b.label === l).length] as const).filter(([, n]) => n > 0);
@@ -401,19 +396,19 @@ function SocialWeb({ bonds, flies, hover, onHover, onFocus }: {
   });
   return (
     <>
-      <ul className="bond-counts toggles" aria-label="Show these relationships">
+      <ul className="bond-counts toggles" aria-label={t("flybook.bonds.showThese")}>
         {tally.map(([l, n]) => (
           <li key={l}>
             <button className={`tone-${LABELS[l].tone}${kinds.has(l) ? " on" : ""}`} aria-pressed={kinds.has(l)} onClick={() => toggle(l)}
-                    title={`${LABELS[l].help} · click to ${kinds.has(l) ? "hide" : "show"}`}>
-              <span aria-hidden>{LABELS[l].icon}</span> <b>{n}</b> {LABELS[l].title.toLowerCase()}
+                    title={t("flybook.bonds.toggleTitle", { help: bondHelp(l), action: t(kinds.has(l) ? "flybook.bonds.hide" : "flybook.bonds.show") })}>
+              <span aria-hidden>{LABELS[l].icon}</span> <b>{n}</b> {bondTitle(l).toLowerCase()}
             </button>
           </li>
         ))}
       </ul>
-      {!nodes.size ? <div className="empty">Nothing to show. Switch on a kind of relationship above.</div> : (
+      {!nodes.size ? <div className="empty">{t("flybook.bonds.nothingShown")}</div> : (
       <div className="bond-graph web">
-        <svg viewBox={`0 0 ${WW} ${WH}`} role="img" aria-label={`Social web: ${nodes.size} flies, ${shown.length} relationships`}>
+        <svg viewBox={`0 0 ${WW} ${WH}`} role="img" aria-label={t("flybook.bonds.webLabel", { flies: nodes.size, n: shown.length })}>
           {shown.map((b) => {
             const p = nodes.get(b.a), q = nodes.get(b.b);
             if (!p || !q) return null;
@@ -430,7 +425,7 @@ function SocialWeb({ bonds, flies, hover, onHover, onFocus }: {
             const on = !near || near.has(id);
             const r = 6 + Math.min(8, Math.sqrt(degree.get(id) ?? 0) * 2);
             return (
-              <g key={id} className={`node${on ? "" : " faded"}`} tabIndex={0} role="button" aria-label={`${f.name}: open its relationships`}
+              <g key={id} className={`node${on ? "" : " faded"}`} tabIndex={0} role="button" aria-label={t("flybook.bonds.openIts", { name: f.name })}
                  onClick={() => onFocus(id)} onKeyDown={(e) => e.key === "Enter" && onFocus(id)}
                  onMouseEnter={() => onHover(id)} onMouseLeave={() => onHover(null)}>
                 <circle cx={p.x} cy={p.y} r={18} className="hit" />
@@ -445,7 +440,7 @@ function SocialWeb({ bonds, flies, hover, onHover, onFocus }: {
       </div>
       )}
       <Legend />
-      <p className="fine">Click a kind above to show or hide it, and a fly to open its relationships.</p>
+      <p className="fine">{t("flybook.bonds.webHelp")}</p>
     </>
   );
 }

@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-ns="research">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>fly.ai research &mdash; what the fly brain actually does</title>
-<meta name="description" content="Every measurement of the fly connectome model, including the ones that failed: ablation tables, plume tracking, the escape reflex under predation, and readouts against game-state baselines.">
-<meta property="og:title" content="fly.ai research">
-<meta property="og:description" content="What the fly brain does, what it does not, and the numbers behind both.">
+<title data-i18n="research.meta.title">fly.ai research &mdash; what the fly brain actually does</title>
+<meta name="description" content="Every measurement of the fly connectome model, including the ones that failed: ablation tables, plume tracking, the escape reflex under predation, and readouts against game-state baselines." data-i18n-attr="content:research.meta.description">
+<meta property="og:title" content="fly.ai research" data-i18n-attr="content:research.meta.ogTitle">
+<meta property="og:description" content="What the fly brain does, what it does not, and the numbers behind both." data-i18n-attr="content:research.meta.ogDescription">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@flydotai">
@@ -27,6 +27,7 @@
   "publisher": { "@type": "Organization", "name": "fly.ai" }
 }
 </script>
+<script src="assets/i18n/boot.js"></script>
 <link rel="icon" href="assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,9 +70,9 @@
 
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">Research</p>
-    <h1>What it does, and what it doesn't</h1>
-    <p class="lede">Every number here came out of code in the public repository, and the failures are on this
+    <p class="eyebrow" data-i18n="research.head.p1">Research</p>
+    <h1 data-i18n="research.head.h11">What it does, and what it doesn't</h1>
+    <p class="lede" data-i18n="research.head.p2">Every number here came out of code in the public repository, and the failures are on this
       page next to the successes. A result that goes the wrong way is still a result; the point of the
       project is what the connectome can do, not what we can script it into doing.</p>
   </div>
@@ -79,47 +80,47 @@
 
 <section class="firstsec">
   <div class="wrap">
-    <p class="eyebrow">In the fighting game</p>
-    <h2>The brain plays SSH Fighter</h2>
-    <p class="lede">The fly's senses are fed the game; its descending neurons press the buttons. The brain
+    <p class="eyebrow" data-i18n="research.s1.p1">In the fighting game</p>
+    <h2 data-i18n="research.s1.h21">The brain plays SSH Fighter</h2>
+    <p class="lede" data-i18n="research.s1.p2">The fly's senses are fed the game; its descending neurons press the buttons. The brain
       itself is never trained &mdash; only the encoder going in and the readout coming out.</p>
 
     <div class="finding good">
-      <h3>It chases, and it chases for the right reason</h3>
-      <p>Against a scripted dummy for 90 seconds, <b>64% of its moves went toward the opponent</b>, where
+      <h3 data-i18n="research.s1.h31">It chases, and it chases for the right reason</h3>
+      <p data-i18n-html="research.s1.p3">Against a scripted dummy for 90 seconds, <b>64% of its moves went toward the opponent</b>, where
         chance is 50%. The pathway doing it is LC10a &rarr; DNa02 &mdash; the same circuit a male fly uses to
         chase a mate. With eight copies of the brain voting, that rises to <b>72%</b> (against 63% for a
         single fly), with far fewer random moves.</p>
     </div>
 
     <div class="finding bad">
-      <h3>It does not dodge</h3>
-      <p><b>22% of its jumps</b> happened while a projectile was nearby, against <b>20%</b> for random
+      <h3 data-i18n="research.s1.h32">It does not dodge</h3>
+      <p data-i18n-html="research.s1.p4"><b>22% of its jumps</b> happened while a projectile was nearby, against <b>20%</b> for random
         jumping. That is chance. The escape pathway fires, but nothing has taught it when to use it.</p>
     </div>
 
     <div class="finding">
-      <h3>The readouts, against a baseline that sees the game directly</h3>
-      <p>A linear readout is trained on recorded matches to predict whether a press will connect, then scored
+      <h3 data-i18n="research.s1.h33">The readouts, against a baseline that sees the game directly</h3>
+      <p data-i18n="research.s1.p5">A linear readout is trained on recorded matches to predict whether a press will connect, then scored
         on held-out matches. The honest comparison is a baseline that just looks at the distance between the
         fighters &mdash; information the fly does not get cleanly.</p>
     </div>
 
     <div class="scroller">
       <table class="data">
-        <tr><th>Readout</th><th>Samples</th><th>Fly (held-out)</th><th>Game-state baseline</th><th>Chance</th></tr>
-        <tr class="hi"><td>Punch: will it connect?</td><td>407 presses, 41 connected</td><td>AUC 0.77</td><td>0.83</td><td>0.50</td></tr>
-        <tr><td>Kick: will it connect?</td><td>205 presses, 28 connected</td><td>AUC 0.67</td><td>0.88</td><td>0.50</td></tr>
+        <tr><th data-i18n="research.s1.th1">Readout</th><th data-i18n="research.s1.th2">Samples</th><th data-i18n="research.s1.th3">Fly (held-out)</th><th data-i18n="research.s1.th4">Game-state baseline</th><th data-i18n="research.s1.th5">Chance</th></tr>
+        <tr class="hi"><td data-i18n="research.s1.td1">Punch: will it connect?</td><td data-i18n="research.s1.td2">407 presses, 41 connected</td><td>AUC 0.77</td><td>0.83</td><td>0.50</td></tr>
+        <tr><td data-i18n="research.s1.td3">Kick: will it connect?</td><td data-i18n="research.s1.td4">205 presses, 28 connected</td><td>AUC 0.67</td><td>0.88</td><td>0.50</td></tr>
       </table>
     </div>
-    <p class="caption">At its chosen threshold the punch readout presses on 9% of chances and 19% of those
+    <p class="caption" data-i18n="research.s1.p6">At its chosen threshold the punch readout presses on 9% of chances and 19% of those
       connect, against 10% for random presses &mdash; but a one-line &ldquo;punch when in reach&rdquo; rule
       presses on 8% of chances and connects 50% of the time. The fly loses to the rule. We do not use the
       rule: a win from scripted rules would tell us nothing about the connectome.</p>
 
     <div class="finding">
-      <h3>Tuning the encoder, not the brain</h3>
-      <p>Searching how the game reaches the looming neurons moved the punch readout from
+      <h3 data-i18n="research.s1.h34">Tuning the encoder, not the brain</h3>
+      <p data-i18n-html="research.s1.p7">Searching how the game reaches the looming neurons moved the punch readout from
         <b>AUC 0.685</b> (hand-set) to <b>0.789</b> (looming scaled by size 0.6), replicated across three
         runs and flat up to 1.2 before collapsing at 1.8. The distance-only baseline still wins at
         <b>0.867</b>. <b>The interface, not the wiring, is the bottleneck</b> &mdash; which is why the
@@ -127,8 +128,8 @@
     </div>
 
     <div class="finding good">
-      <h3>It was thinking two frames late, and fixing that won a match</h3>
-      <p>Eight voting copies of the brain took <b>59&ndash;70 ms per frame</b> in a game that gives you 33 ms.
+      <h3 data-i18n="research.s1.h35">It was thinking two frames late, and fixing that won a match</h3>
+      <p data-i18n-html="research.s1.p8">Eight voting copies of the brain took <b>59&ndash;70 ms per frame</b> in a game that gives you 33 ms.
         Two copies take 16&ndash;27 ms, and with the same encoder and readout the fly won its first match,
         100&ndash;67 and 61&ndash;15. On recordings made with the tuned encoder, the trained punch readout
         reaches <b>AUC 0.863</b>, against 0.890 for the distance baseline, so the gap nearly closed.</p>
@@ -138,92 +139,92 @@
 
 <section>
   <div class="wrap">
-    <p class="eyebrow">Between two brains</p>
-    <h2>A fly's alarm call reaches another fly</h2>
-    <p class="lede">Two copies of the connectome. One lives through a situation, and its wing motor
+    <p class="eyebrow" data-i18n="research.s2.p1">Between two brains</p>
+    <h2 data-i18n="research.s2.h21">A fly's alarm call reaches another fly</h2>
+    <p class="lede" data-i18n="research.s2.p2">Two copies of the connectome. One lives through a situation, and its wing motor
       neurons sing. The other hears the song through its own ear neurons. Nothing between them is
       scripted, and the tests were fixed before any run.</p>
     <div class="scroller">
       <table class="data">
-        <tr><th>Measure</th><th>Run 1: original, 20&nbsp;ms</th><th>Run 2: smell fixed, 20&nbsp;ms</th><th>Run 3: smell fixed, 2&nbsp;ms</th></tr>
-        <tr class="hi"><td>Song carries what happened to the singer</td><td>0.30 bits</td><td>0.63 bits</td><td>0.83 bits</td></tr>
-        <tr><td>Same test, scrambled wiring</td><td>0.01 bits</td><td>0.01 bits</td><td>0.87 bits</td></tr>
-        <tr class="hi"><td>Listener reacts to a threat song, vs silence</td><td>23% vs 17%</td><td>21% vs 14%</td><td>77.5% vs 17.5%</td></tr>
+        <tr><th data-i18n="research.s2.th1">Measure</th><th data-i18n="research.s2.th2">Run 1: original, 20&nbsp;ms</th><th data-i18n="research.s2.th3">Run 2: smell fixed, 20&nbsp;ms</th><th data-i18n="research.s2.th4">Run 3: smell fixed, 2&nbsp;ms</th></tr>
+        <tr class="hi"><td data-i18n="research.s2.td1">Song carries what happened to the singer</td><td>0.30 bits</td><td>0.63 bits</td><td>0.83 bits</td></tr>
+        <tr><td data-i18n="research.s2.td2">Same test, scrambled wiring</td><td>0.01 bits</td><td>0.01 bits</td><td>0.87 bits</td></tr>
+        <tr class="hi"><td data-i18n="research.s2.td3">Listener reacts to a threat song, vs silence</td><td>23% vs 17%</td><td>21% vs 14%</td><td>77.5% vs 17.5%</td></tr>
       </table>
     </div>
-    <p class="caption">Threat is the clear word in every run, and a mate in view becomes partly readable at
+    <p class="caption" data-i18n="research.s2.p3">Threat is the clear word in every run, and a mate in view becomes partly readable at
       2&nbsp;ms. The listener's brain carries the singer's situation in every run and stays at chance in
       silence. Fixing the smell neurons &mdash; they were exciting each other into a runaway loop &mdash;
       lets a food odour reach the brain.</p>
     <div class="cta" style="margin-top: 20px;">
-      <a class="btn" href="research/flybook.html">Read the full experiment and the feed</a>
+      <a class="btn" href="research/flybook.html" data-i18n="research.s2.a1">Read the full experiment and the feed</a>
     </div>
   </div>
 </section>
 
 <section>
   <div class="wrap">
-    <p class="eyebrow">In the 3-D world</p>
-    <h2>Flies that forage, mate and die</h2>
-    <p class="lede">A second model, smaller and built to the same block diagram: 748 leaky
+    <p class="eyebrow" data-i18n="research.s3.p1">In the 3-D world</p>
+    <h2 data-i18n="research.s3.h21">Flies that forage, mate and die</h2>
+    <p class="lede" data-i18n="research.s3.p2">A second model, smaller and built to the same block diagram: 748 leaky
       integrate-and-fire neurons per fly, 5,716 synapses, and one part that learns: a mushroom body. Because every fly is cheap, whole
       pathways can be cut and the population measured with and without them.</p>
 
-    <h3 style="margin-bottom: 14px;">Cast-and-surge falls out of the wiring</h3>
-    <p>16 flies, wind 1.6 m/s, 180 s, binned by how long it has been since a puff of odour hit:</p>
+    <h3 style="margin-bottom: 14px;" data-i18n="research.s3.h31">Cast-and-surge falls out of the wiring</h3>
+    <p data-i18n="research.s3.p3">16 flies, wind 1.6 m/s, 180 s, binned by how long it has been since a puff of odour hit:</p>
     <div class="scroller">
       <table class="data">
-        <tr><th>Time since a puff</th><th>Speed</th><th>Upwind heading</th><th>Steering</th><th>Wing motor</th></tr>
-        <tr class="hi"><td>Under 0.25 s (a hit)</td><td>2.71 m/s</td><td>0.771</td><td>2.31</td><td>8.7 Hz</td></tr>
+        <tr><th data-i18n="research.s3.th1">Time since a puff</th><th data-i18n="research.s3.th2">Speed</th><th data-i18n="research.s3.th3">Upwind heading</th><th data-i18n="research.s3.th4">Steering</th><th data-i18n="research.s3.th5">Wing motor</th></tr>
+        <tr class="hi"><td data-i18n="research.s3.td1">Under 0.25 s (a hit)</td><td>2.71 m/s</td><td>0.771</td><td>2.31</td><td>8.7 Hz</td></tr>
         <tr><td>0.25&ndash;0.75 s</td><td>2.76</td><td>0.653</td><td>2.62</td><td>8.5</td></tr>
         <tr><td>0.75&ndash;1.5 s</td><td>2.55</td><td>0.616</td><td>2.72</td><td>8.1</td></tr>
         <tr><td>1.5&ndash;3 s</td><td>2.37</td><td>0.633</td><td>2.72</td><td>7.8</td></tr>
-        <tr class="hi"><td>Over 3 s (plume lost)</td><td>2.11</td><td>0.595</td><td>2.93</td><td>7.4</td></tr>
+        <tr class="hi"><td data-i18n="research.s3.td2">Over 3 s (plume lost)</td><td>2.11</td><td>0.595</td><td>2.93</td><td>7.4</td></tr>
       </table>
     </div>
-    <p class="caption">Monotonic in all four columns: on contact a fly speeds up, straightens, heads further
+    <p class="caption" data-i18n-html="research.s3.p4">Monotonic in all four columns: on contact a fly speeds up, straightens, heads further
       upwind and drives its wings harder; as the plume is lost it slows, turns more and drifts off the wind
       axis. That is textbook surge-and-cast, and nothing in the code says to do it. It falls out of receptors
       that report the <i>onset</i> of a puff feeding the same steering and thrust populations the wind
       pathway feeds.</p>
 
-    <h3 style="margin: 34px 0 14px;">The escape reflex is worth something under predation</h3>
-    <p>Spiders rear up &mdash; which the eyes see as real looming &mdash; and strike. 24 flies, 250 s, four
+    <h3 style="margin: 34px 0 14px;" data-i18n="research.s3.h32">The escape reflex is worth something under predation</h3>
+    <p data-i18n="research.s3.p5">Spiders rear up &mdash; which the eyes see as real looming &mdash; and strike. 24 flies, 250 s, four
       independent world seeds. Deaths are per 1,000 fly-seconds, so a run that loses flies early is not
       scored as safer.</p>
     <div class="scroller">
       <table class="data">
-        <tr><th>Wiring</th><th>Eaten / 1000 fly-s</th><th>Giant fibre</th><th>Near the ground</th></tr>
-        <tr class="hi"><td>Intact</td><td>0.30 &plusmn; 0.16</td><td>0.91 Hz</td><td>41.2%</td></tr>
-        <tr><td>Looming input cut</td><td>1.94 &plusmn; 0.96</td><td>0.00 Hz</td><td>78.1%</td></tr>
-        <tr class="hi"><td>Jump-muscle output cut</td><td>0.71 &plusmn; 0.29</td><td>1.06 Hz</td><td>36.8%</td></tr>
+        <tr><th data-i18n="research.s3.th6">Wiring</th><th data-i18n="research.s3.th7">Eaten / 1000 fly-s</th><th data-i18n="research.s3.th8">Giant fibre</th><th data-i18n="research.s3.th9">Near the ground</th></tr>
+        <tr class="hi"><td data-i18n="research.s3.td3">Intact</td><td>0.30 &plusmn; 0.16</td><td>0.91 Hz</td><td>41.2%</td></tr>
+        <tr><td data-i18n="research.s3.td4">Looming input cut</td><td>1.94 &plusmn; 0.96</td><td>0.00 Hz</td><td>78.1%</td></tr>
+        <tr class="hi"><td data-i18n="research.s3.td5">Jump-muscle output cut</td><td>0.71 &plusmn; 0.29</td><td>1.06 Hz</td><td>36.8%</td></tr>
       </table>
     </div>
-    <p class="caption">Cutting the looming input raises deaths 6.5&times;, but it also parks the flies near the
+    <p class="caption" data-i18n-html="research.s3.p6">Cutting the looming input raises deaths 6.5&times;, but it also parks the flies near the
       ground, so most of that is posture rather than a failed escape. Cutting the giant fibre's <i>output</i>
       is the clean test: the neuron still fires, time near the ground is unchanged, and deaths still more than
       double. That is the escape circuit doing its job, measured with the confound removed.</p>
 
-    <h3 style="margin: 34px 0 14px;">A memory for smells, and a world that never stops</h3>
-    <p>Every fly now has a mushroom body. Kenyon cells give each smell its own sparse signature: over a
+    <h3 style="margin: 34px 0 14px;" data-i18n="research.s3.h33">A memory for smells, and a world that never stops</h3>
+    <p data-i18n-html="research.s3.p7">Every fly now has a mushroom body. Kenyon cells give each smell its own sparse signature: over a
       quarter of them fire for a given odour, and fruit, carrion and mouldy fruit come out clearly different.
       Dopamine neurons are wired to the fly's own senses (a looming threat, a knock, alarm CO<sub>2</sub>, a
       taste of juice) and, only when they burst, weaken the synapses of whatever smell was present.</p>
     <div class="scroller">
       <table class="data">
-        <tr><th>Question</th><th>Result</th></tr>
-        <tr class="hi"><td>Is the smell code sparse and odour-specific?</td><td>Yes</td></tr>
-        <tr><td>Does punishment write a memory of that smell, and only that one?</td><td>Yes: its pull drops from 1.16 to 0.06 Hz; exposure alone leaves it alone</td></tr>
-        <tr><td>Do flies then avoid it?</td><td>Not measurably yet: the memory barely reaches the wings</td></tr>
-        <tr class="hi"><td>Can a fly learn a smell from another fly&rsquo;s fright?</td><td>No: onlookers learn from seeing the threat themselves</td></tr>
+        <tr><th data-i18n="research.s3.th10">Question</th><th data-i18n="research.s3.th11">Result</th></tr>
+        <tr class="hi"><td data-i18n="research.s3.td6">Is the smell code sparse and odour-specific?</td><td data-i18n="research.s3.td7">Yes</td></tr>
+        <tr><td data-i18n="research.s3.td8">Does punishment write a memory of that smell, and only that one?</td><td data-i18n="research.s3.td9">Yes: its pull drops from 1.16 to 0.06 Hz; exposure alone leaves it alone</td></tr>
+        <tr><td data-i18n="research.s3.td10">Do flies then avoid it?</td><td data-i18n="research.s3.td11">Not measurably yet: the memory barely reaches the wings</td></tr>
+        <tr class="hi"><td data-i18n="research.s3.td12">Can a fly learn a smell from another fly&rsquo;s fright?</td><td data-i18n="research.s3.td13">No: onlookers learn from seeing the threat themselves</td></tr>
       </table>
     </div>
-    <p class="caption">Every test had its pass mark written before it ran, and all four rounds are in the
+    <p class="caption" data-i18n="research.s3.p8">Every test had its pass mark written before it ran, and all four rounds are in the
       world README. The world itself now runs around the clock on a server and records every mating, egg,
       meal, death, family tree and relationship, with a live report and CSV exports.</p>
 
-    <h3 style="margin: 34px 0 14px;">The motor stage is real</h3>
-    <p>Cut the descending neurons off the premotor pool and the flies stop being flies: wing motor
+    <h3 style="margin: 34px 0 14px;" data-i18n="research.s3.h34">The motor stage is real</h3>
+    <p data-i18n="research.s3.p9">Cut the descending neurons off the premotor pool and the flies stop being flies: wing motor
       7.4 &rarr; 2.5 Hz, speed 1.89 &rarr; 0.07 m/s, altitude 3.51 &rarr; 0.42 m. They sit on the ground
       twitching. Cut the ventral optic-flow cells instead and altitude collapses from 3.5 m to 0.89 m &mdash;
       height in this model is held by the same optic-flow loop insects use, not by a controller.</p>
@@ -232,12 +233,12 @@
 
 <section>
   <div class="wrap">
-    <p class="eyebrow">Published either way</p>
-    <h2>What failed</h2>
+    <p class="eyebrow" data-i18n="research.s4.p1">Published either way</p>
+    <h2 data-i18n="research.s4.h21">What failed</h2>
 
     <div class="finding bad">
-      <h3>Aversion does not work</h3>
-      <p>The geosmin pathway &mdash; the labelled line a real fly uses to avoid mould &mdash; is wired in and
+      <h3 data-i18n="research.s4.h31">Aversion does not work</h3>
+      <p data-i18n="research.s4.p2">The geosmin pathway &mdash; the labelled line a real fly uses to avoid mould &mdash; is wired in and
         it fires: the receptor runs at 1.6 Hz and the lateral horn at 6.5&ndash;9 Hz next to mouldy fruit. But
         the flies do not avoid the mould. In a two-choice arena the side-swap variance is larger than any
         ablation effect. The aversive signal reaches steering at a few Hz against a much larger arousal
@@ -245,23 +246,23 @@
     </div>
 
     <div class="finding bad">
-      <h3>The aggregation pheromone does not attract</h3>
-      <p>Flies looked like they clustered around each other. Measured speed-independently &mdash; is a fly
+      <h3 data-i18n="research.s4.h32">The aggregation pheromone does not attract</h3>
+      <p data-i18n-html="research.s4.p3">Flies looked like they clustered around each other. Measured speed-independently &mdash; is a fly
         <i>heading</i> at its nearest neighbour? &mdash; the effect is &minus;0.049 intact and &minus;0.000
         with the pheromone cut. The clustering was arousal, not attraction. The original result did not
         survive a better measurement.</p>
     </div>
 
     <div class="finding bad">
-      <h3>Smell does not win foraging in a crowd</h3>
-      <p>Cutting the food odour channel entirely changes mean distance to fruit from 11.37 m to 11.21 m. In a
+      <h3 data-i18n="research.s4.h33">Smell does not win foraging in a crowd</h3>
+      <p data-i18n="research.s4.p4">Cutting the food odour channel entirely changes mean distance to fruit from 11.37 m to 11.21 m. In a
         32 m field with dozens of food sources, where flies settle dominates what they search for. Surge is
         real and measurable; it just does not show up in this particular metric.</p>
     </div>
 
     <div class="finding bad">
-      <h3>The courtship circuit does not decide who mates</h3>
-      <p>The male command neuron P1 and the song command pIP10 are wired in and respond to their
+      <h3 data-i18n="research.s4.h34">The courtship circuit does not decide who mates</h3>
+      <p data-i18n-html="research.s4.p5">The male command neuron P1 and the song command pIP10 are wired in and respond to their
         inputs: cutting the visual input drops P1 from 5.1 Hz to 1.8 Hz, cutting the contact input
         pushes it to 11.3 Hz. Across that six-fold range, <b>the number of matings does not change</b>
         &mdash; 6.0 &plusmn; 1.6 intact, and every ablation overlaps it. Mating in the simulation is
@@ -269,23 +270,23 @@
     </div>
 
     <div class="finding bad">
-      <h3>Scrambled wiring talks too, at 2&nbsp;ms</h3>
-      <p>At 20&nbsp;ms, a brain with the same neurons but scrambled connections sang nothing useful
+      <h3 data-i18n="research.s4.h35">Scrambled wiring talks too, at 2&nbsp;ms</h3>
+      <p data-i18n-html="research.s4.p6">At 20&nbsp;ms, a brain with the same neurons but scrambled connections sang nothing useful
         (0.01 bits). At 2&nbsp;ms its song carries <b>0.87 bits</b>, as much as the real brain's 0.83, so the
         test we set for &ldquo;the real wiring matters&rdquo; fails there. The two brains group the situations
         differently, but we only noticed that after seeing the data.</p>
     </div>
 
     <div class="finding bad">
-      <h3>Smell reaches the brain but not the wings</h3>
-      <p>With the smell loop fixed, a food odour drives the fly's odour relay neurons at 125&nbsp;Hz, against
+      <h3 data-i18n="research.s4.h36">Smell reaches the brain but not the wings</h3>
+      <p data-i18n="research.s4.p7">With the smell loop fixed, a food odour drives the fly's odour relay neurons at 125&nbsp;Hz, against
         4&nbsp;Hz without it. The signal then never reaches the wing motor neurons, so a food song looks the
         same as no song, and listeners ignore it.</p>
     </div>
 
     <div class="finding">
-      <h3>A caveat that applies to every ablation above</h3>
-      <p>Each neuron's incoming weights are normalised to sum to 1, so cutting one input <i>raises</i> the
+      <h3 data-i18n="research.s4.h37">A caveat that applies to every ablation above</h3>
+      <p data-i18n-html="research.s4.p8">Each neuron's incoming weights are normalised to sum to 1, so cutting one input <i>raises</i> the
         weight of the rest. These are not clean knockouts, and small differences between rows should not be
         trusted. Stated here rather than buried, because it limits every table on this page.</p>
     </div>
@@ -294,25 +295,25 @@
 
 <section>
   <div class="wrap">
-    <p class="eyebrow">Stated plainly</p>
-    <h2>What isn't real</h2>
+    <p class="eyebrow" data-i18n="research.s5.p1">Stated plainly</p>
+    <h2 data-i18n="research.s5.h21">What isn't real</h2>
     <div class="card pad notreal">
       <ul>
-        <li>The wiring is real; the neurons are simplified. One simple model per cell, no dendrites, no
+        <li data-i18n="research.s5.li1">The wiring is real; the neurons are simplified. One simple model per cell, no dendrites, no
           neuromodulators. The only learning is the 3-D world's small mushroom body.</li>
-        <li>The 3-D world is <b>not</b> the connectome: 748 neurons against 166,700, with real cell-type
+        <li data-i18n-html="research.s5.li2">The 3-D world is <b>not</b> the connectome: 748 neurons against 166,700, with real cell-type
           names but invented counts and weights.</li>
-        <li>The eye is a shortcut. Signals are fed into the fly's motion-detecting neurons rather than
+        <li data-i18n="research.s5.li3">The eye is a shortcut. Signals are fed into the fly's motion-detecting neurons rather than
           simulating its optics.</li>
-        <li>Which neurons press which game buttons was chosen by us.</li>
-        <li>Flybook's words are a decoder's labels for measured wing activity, with the decoder's accuracy
+        <li data-i18n="research.s5.li4">Which neurons press which game buttons was chosen by us.</li>
+        <li data-i18n="research.s5.li5">Flybook's words are a decoder's labels for measured wing activity, with the decoder's accuracy
           shown on every post. The flies have two words, not a language.</li>
       </ul>
     </div>
     <div class="cta" style="margin-top: 26px;">
-      <a class="btn" href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener">All of it on GitHub</a>
-      <a class="btn" href="/simulation/">Open the simulation</a>
-      <a class="btn" href="roadmap.html">What comes next</a>
+      <a class="btn" href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener" data-i18n="research.s5.a1">All of it on GitHub</a>
+      <a class="btn" href="/simulation/" data-i18n="research.s5.a2">Open the simulation</a>
+      <a class="btn" href="roadmap.html" data-i18n="research.s5.a3">What comes next</a>
     </div>
   </div>
 </section>
@@ -330,5 +331,6 @@
 
 <script src="assets/site.js"></script>
 <script src="assets/nav.js"></script>
+<script type="module" src="assets/i18n/page.js"></script>
 </body>
 </html>

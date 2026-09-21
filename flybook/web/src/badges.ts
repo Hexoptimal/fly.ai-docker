@@ -4,6 +4,7 @@ export type BoardRow = {
   hallucinations: number; jumps: number; grooms: number; buzzes: number; pokes_felt: number; best_streak: number;
 };
 
+/** label and help are English; the UI shows t(`flybook.badges.<key>.label`) and `.help`. */
 export type Badge = { key: string; label: string; help: string };
 
 const RULES: (Badge & { earned: (r: BoardRow) => boolean })[] = [

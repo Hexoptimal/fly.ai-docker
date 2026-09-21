@@ -2,6 +2,7 @@
  * /compute/leaderboard?month=YYYY-MM: wallets by points for a month, the days left, the pool once announced
  * or snapshotted, and the visitor's own row if this browser has a miner with a linked wallet.
  */
+import { locale, t } from "./i18n.ts";
 import { API } from "./config.ts";
 import { compact } from "./format.ts";
 import { mountAccount, signedIn } from "./account.ts";
@@ -10,7 +11,7 @@ import { shortAddress } from "./wallet.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
 const TOP = 50;
-const fmt = (n: number, digits = 1) => n.toLocaleString("en-US", { maximumFractionDigits: digits });
+const fmt = (n: number, digits = 1) => n.toLocaleString(locale(), { maximumFractionDigits: digits });
 
 function shiftMonth(m: string, by: number): string {
   const [y, mo] = m.split("-").map(Number);
@@ -23,8 +24,8 @@ async function load(): Promise<void> {
   const m = asked && /^\d{4}-\d{2}$/.test(asked) ? asked : current;
   const data = await api(API, `/api/month?month=${m}`, null);
 
-  const name = new Date(`${m}-01T00:00:00Z`).toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
-  $("title").textContent = m === current ? `${name}, so far` : name;
+  const name = new Date(`${m}-01T00:00:00Z`).toLocaleString(locale(), { month: "long", year: "numeric", timeZone: "UTC" });
+  $("title").textContent = m === current ? t("compute.leaderboard.soFar", { month: name }) : name;
   ($("prev") as HTMLAnchorElement).href = `?month=${shiftMonth(m, -1)}`;
   const next = shiftMonth(m, 1);
   ($("next") as HTMLAnchorElement).href = `?month=${next}`;
@@ -32,10 +33,10 @@ async function load(): Promise<void> {
 
   $("wallets").textContent = String(data.wallets.length);
   $("points").textContent = fmt(data.total_points, 0);
-  $("days").textContent = data.closed ? "ended" : String(data.days_left);
-  $("days-label").textContent = data.closed ? new Date(data.ends_at).toLocaleDateString("en-US", { timeZone: "UTC" }) : "days left";
+  $("days").textContent = data.closed ? t("compute.leaderboard.ended") : String(data.days_left);
+  $("days-label").textContent = data.closed ? new Date(data.ends_at).toLocaleDateString(locale(), { timeZone: "UTC" }) : t("compute.leaderboard.daysLeft");
   const pool = data.snapshot?.pool ?? data.announced_pool;
-  $("pool").textContent = pool ? compact(Number(pool)) : "not set";
+  $("pool").textContent = pool ? compact(Number(pool)) : t("compute.leaderboard.notSet");
   // before the snapshot the pool is the announcement plus the buyers' part, which grows as orders are charged
   const buyers = Number(data.buyer_pool ?? 0);
   $("pool-parts").hidden = !!data.snapshot || buyers <= 0;
@@ -43,9 +44,9 @@ async function load(): Promise<void> {
     const announced = Number(data.announced_pool ?? 0) - buyers;
     const fromUsdc = Number(data.buyer_pool_from_usdc ?? 0);
     $("pool-parts").textContent = [
-      `Pool: ${announced > 0 ? `${compact(announced)} announced + ` : ""}${compact(buyers)} from buyers' orders`,
-      fromUsdc > 0 ? ` (${compact(fromUsdc)} of it from orders paid in USDC, ${Number(data.usdc_received).toLocaleString("en-US", { maximumFractionDigits: Number(data.usdc_received) < 1 ? 6 : 2 })} USDC received)` : "",
-      ". It grows as orders run.",
+      t("compute.leaderboard.poolBuyers", { announced: announced > 0 ? t("compute.leaderboard.poolAnnounced", { amount: compact(announced) }) : "", buyers: compact(buyers) }),
+      fromUsdc > 0 ? t("compute.leaderboard.poolUsdc", { amount: compact(fromUsdc), usdc: Number(data.usdc_received).toLocaleString(locale(), { maximumFractionDigits: Number(data.usdc_received) < 1 ? 6 : 2 }) }) : "",
+      t("compute.leaderboard.poolGrows"),
     ].join("");
   }
 
@@ -60,8 +61,9 @@ async function load(): Promise<void> {
   $("you").hidden = !mine;
   if (mine) {
     $("you-text").textContent = me
-      ? `You: #${me.rank} of ${rows.length} · ${fmt(me.points)} points · ${(me.share * 100).toFixed(2)}%${pool ? ` · ≈ ${compact(Number(pool) * me.share)} $FLYAI at this share` : ""}`
-      : `You: ${shortAddress(mine)} has no points this month yet`;
+      ? t("compute.leaderboard.you", { rank: me.rank, wallets: rows.length, points: fmt(me.points), share: (me.share * 100).toFixed(2) })
+        + (pool ? t("compute.leaderboard.youAtShare", { amount: compact(Number(pool) * me.share) }) : "")
+      : t("compute.leaderboard.youNone", { wallet: shortAddress(mine) });
   }
 
   const shown = rows.slice(0, TOP);

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leaderboard &mdash; fly.ai compute</title>
-<meta name="description" content="Wallets by points this month on fly.ai compute.">
+<title data-i18n="compute.leaderboard.metaTitle">Leaderboard &mdash; fly.ai compute</title>
+<meta name="description" content="Wallets by points this month on fly.ai compute." data-i18n-attr="content:compute.leaderboard.metaDescription">
 <meta property="og:title" content="Leaderboard &mdash; fly.ai compute">
 <meta property="og:description" content="Wallets by points this month on fly.ai compute.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/compute/leaderboard">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,16 +56,16 @@
 
 <section class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">fly.ai compute · leaderboard</p>
-    <h1>Leaderboard</h1>
-    <p class="lede">Points come from checked work, times each wallet's stake tier that day. After a month ends its pool is split by points.</p>
+    <p class="eyebrow" data-i18n="compute.leaderboard.flyAiComputeLeaderboard">fly.ai compute · leaderboard</p>
+    <h1 data-i18n="compute.leaderboard.leaderboard">Leaderboard</h1>
+    <p class="lede" data-i18n="compute.leaderboard.pointsComeFromChecked">Points come from checked work, times each wallet's stake tier that day. After a month ends its pool is split by points.</p>
     <div class="tabs">
-      <a href="/compute/">Mine</a>
-      <a href="/compute/jobs">Buy compute</a>
-      <a href="/compute/stake">Stake</a>
-      <a href="/compute/claim">Claims</a>
-      <a class="on" href="/compute/leaderboard">Leaderboard</a>
-      <a href="/compute/results">Results</a>
+      <a href="/compute/" data-i18n="compute.common.tab.mine">Mine</a>
+      <a href="/compute/jobs" data-i18n="compute.common.tab.jobs">Buy compute</a>
+      <a href="/compute/stake" data-i18n="compute.common.tab.stake">Stake</a>
+      <a href="/compute/claim" data-i18n="compute.common.tab.claims">Claims</a>
+      <a class="on" href="/compute/leaderboard" data-i18n="compute.common.tab.leaderboard">Leaderboard</a>
+      <a href="/compute/results" data-i18n="compute.common.tab.results">Results</a>
     </div>
   </div>
 </section>
@@ -72,20 +73,20 @@
 <section class="firstsec">
   <div class="wrap stack">
     <div class="board-head">
-      <h2 id="title">This month</h2>
-      <div class="board-nav"><a id="prev" class="btn sm" href="#">‹ Earlier</a><a id="next" class="btn sm" href="#">Later ›</a></div>
+      <h2 id="title" data-i18n="compute.leaderboard.thisMonth">This month</h2>
+      <div class="board-nav"><a id="prev" class="btn sm" href="#" data-i18n="compute.leaderboard.earlier">‹ Earlier</a><a id="next" class="btn sm" href="#" data-i18n="compute.leaderboard.later">Later ›</a></div>
     </div>
     <div class="band">
-      <div><b id="wallets">—</b><span>wallets</span></div>
-      <div><b id="points">—</b><span>points</span></div>
-      <div><b id="days">—</b><span id="days-label">days left</span></div>
-      <div><b id="pool">—</b><span>pool, $FLYAI</span></div>
+      <div><b id="wallets">—</b><span data-i18n="compute.leaderboard.wallets">wallets</span></div>
+      <div><b id="points">—</b><span data-i18n="compute.leaderboard.points">points</span></div>
+      <div><b id="days">—</b><span id="days-label" data-i18n="compute.leaderboard.daysLeft">days left</span></div>
+      <div><b id="pool">—</b><span data-i18n="compute.leaderboard.poolFlyai">pool, $FLYAI</span></div>
     </div>
     <p id="pool-parts" class="srcline" hidden></p>
     <p id="you" class="srcline" hidden><span id="you-text"></span></p>
     <div class="card pad">
-      <div class="scroller"><table class="data"><thead><tr><th>#</th><th>Wallet</th><th class="r">Points</th><th class="r">Share</th></tr></thead><tbody id="board"></tbody></table></div>
-      <p id="empty" class="caption" hidden>No points yet this month.</p>
+      <div class="scroller"><table class="data"><thead><tr><th>#</th><th data-i18n="compute.leaderboard.wallet">Wallet</th><th class="r" data-i18n="compute.leaderboard.points2">Points</th><th class="r" data-i18n="compute.leaderboard.share">Share</th></tr></thead><tbody id="board"></tbody></table></div>
+      <p id="empty" class="caption" hidden data-i18n="compute.leaderboard.noPointsYetThis">No points yet this month.</p>
     </div>
   </div>
 </section>

@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "title": "Sinek Ruleti koşulları — fly.ai",
+    "description": "Sinek Ruleti'nde $FLYAI ile bahis kuralları: oranlar, kasa avantajı, limitler, kanıtlanabilir adillik, bakiyeler ve para çekme."
+  },
+  "head": {
+    "eyebrow": "Sinek Ruleti",
+    "title": "Bahis koşulları",
+    "lede": "<a href=\"/roulette/\">Sinek Ruleti</a>'nde $FLYAI ile bahis yapmak için. Bahis yaparak bu koşulları kabul etmiş olursun. Son güncelleme: 19 Eylül 2026."
+  },
+  "main": {
+    "h31": "Kimler oynayabilir",
+    "li1": "<b>18 yaş ve üzeri.</b> İlk bahsinden önce yaşını onaylarsın.",
+    "li2": "<b>İzin verilen yerlerde.</b> Çevrimiçi bahis birçok ülkede ve eyalette kısıtlı ya da yasadışıdır. Yalnızca bulunduğun yerde yasalsa oyna; bu senin sorumluluğundadır.",
+    "li3": "<b>Kendi cüzdanın.</b> Kontrolü sende olan bir cüzdanla giriş yaparsın. Bir kişi, bir hesap.",
+    "h32": "Oyun ve oranlar",
+    "li4": "2 ila 10 sineğin olduğu bir masada bir koltuk seçer ve ona $FLYAI yatırırsın. Her sineğin gerçek konektomu, oyuncak tabancanın tetiğini sıkıp sıkmayacağına ya da uçup gideceğine karar verir; altı hazneden birinde kapsül vardır. Masada kalan son sinek kazanır.",
+    "li5": "<b>Her koltuğun kazanma olasılığı eşittir.</b> Sineklerin beyinleri bağımsız rastgele tohumlar alır ve ilk ateş eden rastgele bir koltuktur; yani n sinekle koltuğun n'de 1 kez kazanır.",
+    "li6": "<b>Kazanç, bahsin &times; n &times; 0.95 öder</b>: 2 sinek 1.9&times;, 5 sinek 4.75&times;, 10 sinek 9.5&times; öder. %5 kasa avantajıdır. Kayıp, bahsine mal olur.",
+    "li7": "Güncel limitler (en küçük ve en büyük bahis, bir günde yatırabileceğin en fazla miktar, tek seferde en büyük kazanç) bahis düğmesinin yanında gösterilir.",
+    "h33": "Kanıtlanabilir adillik",
+    "p1": "Bahis yapmadan önce sunucu gizli bir tohumun hash'ini (taahhüt) gösterir. Tarayıcın kendi tohumunu ekler. Oyundaki rastgele her şey bu ikisinin birleşiminden gelir. Oyun bittiğinde sunucu tohumunu açıklar: hash'i taahhütle eşleşmeli ve oyunu iki tohumdan yeniden oynatmak aynı turları vermelidir. <b>Bu oyunu doğrula</b> düğmesi her iki kontrolü de kendi sinek beyinlerin üzerinde, tarayıcında yapar (Chrome bit düzeyinde aynı sonuçları verir; diğer tarayıcılar beynin hesaplamalarını farklı yuvarlayabilir).",
+    "h34": "Bakiyen",
+    "li8": "<b>Yatırmalar</b>, giriş yaptığın cüzdandan Robinhood Chain'deki fly.ai yatırma adresine yapılan $FLYAI transferleridir. Transfer madenlendiğinde hesaba geçer.",
+    "li9": "<b>Kazançlar</b> bakiyene gider. Bakiyen senin adına fly.ai tarafından tutulur ve compute siparişlerinin kullandığı bakiyeyle aynıdır.",
+    "li10": "<b>Para çekme</b> talepleri sayfadan yapılır ve genellikle bir gün içinde elle cüzdanına gönderilir.",
+    "li11": "Sunucu bir oyunu tamamlayamazsa oyun geçersiz sayılır ve bahsin bakiyene geri döner.",
+    "h35": "Limitler, duraklatmalar ve değişiklikler",
+    "li12": "Kasa bir günde çok kaybettiyse bahis bir süreliğine kendiliğinden durabilir ve tamamen kapatılabilir. Bakiyeler ve para çekme çalışmaya devam eder.",
+    "li13": "Bu koşulları, limitleri ya da avantajı gelecekteki bahisler için değiştirebiliriz. Yapılmış bir bahis, yapıldığı koşullara göre sonuçlandırılır.",
+    "li14": "Hataları kötüye kullanan bahisleri reddedebilir ya da geçersiz sayabilir, dolandırıcılık için kullanılan hesapları kapatabiliriz.",
+    "h36": "Sorumlu oyna",
+    "p2": "Yalnızca kaybetmeyi göze alabileceğin kadarını yatır. $FLYAI'nin fiyatı değişir; bu yüzden bir bakiye ileride daha değerli ya da daha değersiz olabilir. Herhangi bir getiri garantisi yoktur. Bahis eğlenceli olmaktan çıkarsa, dur."
+  },
+  "notice": "Bu çeviri kolaylık amacıyla sunulmuştur; bağlayıcı olan İngilizce sürümdür."
+}

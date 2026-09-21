@@ -4,6 +4,7 @@
  * The summary is also left on `window.bench` for scripted runs.
  */
 import type { TaskParams, TaskResult } from "../src/runner.ts";
+import { t } from "./i18n.ts";
 import { API, CONNECTOME } from "./config.ts";
 import { fetchModelInfo } from "./download.ts";
 
@@ -49,13 +50,13 @@ const task = (seed: number, over: Partial<TaskParams> = {}): TaskParams =>
 async function bench() {
   const summary: Record<string, unknown> = {};
   (window as any).bench = summary;
-  status("fetching constants");
+  status(t("compute.bench.fetchingConstants"));
   const { fixed } = await fetchModelInfo(API);
 
   const workers = [new Worker(new URL("./gpu.worker.ts", import.meta.url), { type: "module" }), new Worker(new URL("./miner.worker.ts", import.meta.url), { type: "module" })];
   failed = () => { for (const w of workers) w.terminate(); };
-  const gpu = channel(workers[0], (t) => status(`GPU: ${t}`));
-  const cpu = channel(workers[1], (t) => status(`CPU: ${t}`));
+  const gpu = channel(workers[0], (text) => status(`GPU: ${text}`));
+  const cpu = channel(workers[1], (text) => status(`CPU: ${text}`));
   // one after the other: the second load reads the connectome from the browser cache
   const ready = await gpu.load({ fixed, brains: 32, connectome: CONNECTOME });
   await cpu.load({ fixed, connectome: CONNECTOME });
@@ -69,13 +70,13 @@ async function bench() {
     task(13, { channel: "SNta", side: "R", amount: 0.8, gain: 4, tonic: 0.18 }),
     task(14, { channel: "LC10a", side: "L", amount: 0.1, warm: 120 }),
   ];
-  status("exactness: CPU reference");
+  status(t("compute.bench.exactCpu"));
   const t0 = performance.now();
   const reference: TaskResult[] = [];
   for (const p of probes) reference.push(await cpu.call({ params: p }, "job"));
   const cpuMsPerStep = (performance.now() - t0) / probes.reduce((s, p) => s + p.steps, 0);
 
-  status("exactness: GPU");
+  status(t("compute.bench.exactGpu"));
   const alone: TaskResult[] = await gpu.call({ tasks: probes }, "batch");
   // the same four at scattered positions in a full batch of 32
   const full = Array.from({ length: 32 }, (_, k) => task(1000 + k, { amount: 0.1 + (k % 4) * 0.2 }));
@@ -93,7 +94,7 @@ async function bench() {
   });
   summary.exact = exact;
   if (!exact) {
-    status("the GPU disagrees with the CPU");
+    status(t("compute.bench.disagrees"));
     return;
   }
 
@@ -103,17 +104,17 @@ async function bench() {
   summary.cpu = { msPerStep: cpuMsPerStep, jobsPerHour: perHour(cpuMsPerStep) };
   const rows: { brains: number; msPerStep: number; jobsPerHour: number }[] = [];
   for (const brains of [1, 4, 16, 32]) {
-    status(`throughput: GPU with ${brains} at once`);
+    status(t("compute.bench.throughput", { count: brains }));
     const tasks = Array.from({ length: brains }, (_, k) => task(500 + k, { steps: 120 }));
-    const t = performance.now();
+    const started = performance.now();
     await gpu.call({ tasks }, "batch");
-    const msPerStep = (performance.now() - t) / 120;
+    const msPerStep = (performance.now() - started) / 120;
     const row = { brains, msPerStep, jobsPerHour: perHour(msPerStep / brains) };
     rows.push(row);
     log(`GPU, ${String(brains).padStart(2)} at once: ${msPerStep.toFixed(2)} ms per step · ${row.jobsPerHour} jobs/hour · ${(row.jobsPerHour / perHour(cpuMsPerStep)).toFixed(1)}x one CPU thread`);
   }
   summary.gpu = rows;
-  status("done");
+  status(t("compute.bench.done"));
 }
 
 /** stops the workers, so a late progress message can't overwrite the failure */
@@ -123,7 +124,7 @@ $("go").addEventListener("click", () => {
   ($("go") as HTMLButtonElement).disabled = true;
   bench().catch((err) => {
     failed();
-    status(`failed: ${err instanceof Error ? err.message : String(err)}`);
+    status(t("compute.bench.failed", { error: err instanceof Error ? err.message : String(err) }));
     (window as any).bench = { error: String(err) };
   });
 });

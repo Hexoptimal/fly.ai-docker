@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   base: "/radio/",
   publicDir: false,
+  server: { fs: { allow: [".."] } },  // the site's translations live in docs/assets/i18n/
   build: {
     target: "es2022",
     outDir: "dist-radio",

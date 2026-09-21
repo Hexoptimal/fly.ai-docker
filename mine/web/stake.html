@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stake &mdash; fly.ai compute</title>
-<meta name="description" content="Stake $FLYAI for a higher points multiplier on fly.ai compute. Unstaking takes 7 days.">
+<title data-i18n="compute.stake.metaTitle">Stake &mdash; fly.ai compute</title>
+<meta name="description" content="Stake $FLYAI for a higher points multiplier on fly.ai compute. Unstaking takes 7 days." data-i18n-attr="content:compute.stake.metaDescription">
 <meta property="og:title" content="Stake &mdash; fly.ai compute">
 <meta property="og:description" content="Stake $FLYAI for a higher points multiplier on fly.ai compute. Unstaking takes 7 days.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/compute/stake">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,16 +56,16 @@
 
 <section class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">fly.ai compute · staking</p>
-    <h1>Stake $FLYAI</h1>
-    <p class="lede">Staked $FLYAI raises your tier, and your tier multiplies each day's points. Unstaking stops counting at once and can be withdrawn after the cooldown.</p>
+    <p class="eyebrow" data-i18n="compute.stake.flyAiComputeStaking">fly.ai compute · staking</p>
+    <h1 data-i18n="compute.stake.stakeFlyai">Stake $FLYAI</h1>
+    <p class="lede" data-i18n="compute.stake.stakedFlyaiRaisesYour">Staked $FLYAI raises your tier, and your tier multiplies each day's points. Unstaking stops counting at once and can be withdrawn after the cooldown.</p>
     <div class="tabs">
-      <a href="/compute/">Mine</a>
-      <a href="/compute/jobs">Buy compute</a>
-      <a class="on" href="/compute/stake">Stake</a>
-      <a href="/compute/claim">Claims</a>
-      <a href="/compute/leaderboard">Leaderboard</a>
-      <a href="/compute/results">Results</a>
+      <a href="/compute/" data-i18n="compute.common.tab.mine">Mine</a>
+      <a href="/compute/jobs" data-i18n="compute.common.tab.jobs">Buy compute</a>
+      <a class="on" href="/compute/stake" data-i18n="compute.common.tab.stake">Stake</a>
+      <a href="/compute/claim" data-i18n="compute.common.tab.claims">Claims</a>
+      <a href="/compute/leaderboard" data-i18n="compute.common.tab.leaderboard">Leaderboard</a>
+      <a href="/compute/results" data-i18n="compute.common.tab.results">Results</a>
     </div>
   </div>
 </section>
@@ -73,39 +74,39 @@
   <div class="wrap stack">
     <div class="grid2">
       <div class="card pad">
-        <span class="num">YOUR STAKE</span>
-        <h3>Wallet</h3>
-        <div class="row"><span class="k">Wallet</span><span class="v rowbtn"><span id="account">not signed in</span><button id="connect" class="btn sm" type="button">Sign in</button></span></div>
-        <div class="row"><span class="k">Staked</span><span class="v" id="staked">—</span></div>
-        <div class="row"><span class="k">Tier</span><span class="v" id="tier">—</span></div>
-        <div class="row"><span class="k">In wallet</span><span class="v" id="balance">—</span></div>
+        <span class="num" data-i18n="compute.stake.yourStake">YOUR STAKE</span>
+        <h3 data-i18n="compute.stake.wallet">Wallet</h3>
+        <div class="row"><span class="k" data-i18n="compute.stake.wallet2">Wallet</span><span class="v rowbtn"><span id="account" data-i18n="compute.stake.notSignedIn">not signed in</span><button id="connect" class="btn sm" type="button" data-i18n="compute.stake.signIn">Sign in</button></span></div>
+        <div class="row"><span class="k" data-i18n="compute.stake.staked">Staked</span><span class="v" id="staked">—</span></div>
+        <div class="row"><span class="k" data-i18n="compute.stake.tier">Tier</span><span class="v" id="tier">—</span></div>
+        <div class="row"><span class="k" data-i18n="compute.stake.inWallet">In wallet</span><span class="v" id="balance">—</span></div>
         <p id="note" class="caption"></p>
       </div>
       <div class="card pad" id="actions">
-        <span class="num">STAKE OR UNSTAKE</span>
-        <h3>Amount</h3>
+        <span class="num" data-i18n="compute.stake.stakeOrUnstake">STAKE OR UNSTAKE</span>
+        <h3 data-i18n="compute.stake.amount">Amount</h3>
         <div class="controls">
-          <label class="grow">$FLYAI <input id="amount" inputmode="decimal" placeholder="0" autocomplete="off"></label>
-          <button id="stake" class="btn red" type="button">Stake</button>
-          <button id="unstake" class="btn" type="button">Unstake</button>
+          <label class="grow"><span data-i18n="compute.stake.flyai">$FLYAI</span> <input id="amount" inputmode="decimal" placeholder="0" autocomplete="off"></label>
+          <button id="stake" class="btn red" type="button" data-i18n="compute.stake.stake2">Stake</button>
+          <button id="unstake" class="btn" type="button" data-i18n="compute.stake.unstake">Unstake</button>
         </div>
-        <p class="caption">Unstaking stops counting straight away. You can withdraw after the cooldown (<span id="cooldown">—</span>). Unstaking more while some is waiting restarts the cooldown for all of it.</p>
+        <p class="caption" data-i18n-html="compute.stake.unstakingStopsCountingStraight">Unstaking stops counting straight away. You can withdraw after the cooldown (<span id="cooldown">—</span>). Unstaking more while some is waiting restarts the cooldown for all of it.</p>
         <div id="pending" hidden>
-          <div class="row"><span class="k">Unstaking</span><span class="v" id="pending-amount">—</span></div>
-          <div class="row"><span class="k">Unlocks</span><span class="v" id="unlocks">—</span></div>
+          <div class="row"><span class="k" data-i18n="compute.stake.unstaking">Unstaking</span><span class="v" id="pending-amount">—</span></div>
+          <div class="row"><span class="k" data-i18n="compute.stake.unlocks">Unlocks</span><span class="v" id="unlocks">—</span></div>
           <div class="cta" style="margin-top:14px">
-            <button id="withdraw" class="btn red sm" type="button">Withdraw</button>
-            <button id="cancel" class="btn sm" type="button">Stake it again</button>
+            <button id="withdraw" class="btn red sm" type="button" data-i18n="compute.stake.withdraw">Withdraw</button>
+            <button id="cancel" class="btn sm" type="button" data-i18n="compute.stake.stakeItAgain">Stake it again</button>
           </div>
         </div>
         <p id="tx" class="codeline" style="margin-top:14px"></p>
       </div>
     </div>
     <div class="card pad">
-      <span class="num">TIERS</span>
-      <div class="row"><span class="k">Staked by everyone</span><span class="v" id="total">—</span></div>
-      <div class="scroller"><table class="data"><thead><tr><th>Tier</th><th>Stake</th><th>Points</th></tr></thead><tbody id="tiers"></tbody></table></div>
-      <p class="caption">Staking boosts your points, not your mining speed: jobs/min stays the same, but each day's points are multiplied by your tier. A day (UTC) uses the lowest stake you held during it, so stake you add counts from the next day, 00:00 UTC. Staking contract: <a id="contract-link" class="mono" target="_blank" rel="noopener">—</a></p>
+      <span class="num" data-i18n="compute.stake.tiers">TIERS</span>
+      <div class="row"><span class="k" data-i18n="compute.stake.stakedByEveryone">Staked by everyone</span><span class="v" id="total">—</span></div>
+      <div class="scroller"><table class="data"><thead><tr><th data-i18n="compute.stake.tier2">Tier</th><th data-i18n="compute.stake.stake3">Stake</th><th data-i18n="compute.stake.points">Points</th></tr></thead><tbody id="tiers"></tbody></table></div>
+      <p class="caption" data-i18n-html="compute.stake.stakingBoostsYourPoints">Staking boosts your points, not your mining speed: jobs/min stays the same, but each day's points are multiplied by your tier. A day (UTC) uses the lowest stake you held during it, so stake you add counts from the next day, 00:00 UTC. Staking contract: <a id="contract-link" class="mono" target="_blank" rel="noopener">—</a></p>
     </div>
   </div>
 </section>

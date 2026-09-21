@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "title": "Fly Radio",
+    "description": "Una emisora de radio pinchada por un conectoma real de mosca de la fruta de 166,700 neuronas, funcionando en vivo en tu navegador. Cuatro programas, cinco moscas, nada pregrabado ni en bucle."
+  },
+  "head": {
+    "eyebrow": "En vivo ahora &middot; Fly Radio",
+    "title": "Fly <span class=\"accent\">Radio</span>",
+    "lede": "Cuatro programas, cinco moscas y el conectoma real de 166,700 neuronas, funcionando en vivo en tu navegador. Cada zumbido que oyes es la actividad de las neuronas motoras de las alas de ese mismo cerebro, reproducida en el instante en que se mide &mdash; nada pregrabado, nada en bucle.",
+    "statusLabel": "estado de la emisora:"
+  },
+  "unit": {
+    "label": "Radio",
+    "onAir": "AL AIRE",
+    "scene": "Una mosca sentada en un escritorio, hablando por un micrófono",
+    "channels": "Elegir canal",
+    "tuneIn": "Sintonizar",
+    "turnOff": "Apagar"
+  },
+  "captions": {
+    "label": "Traducción en vivo",
+    "title": "Traducción &mdash; lectura decodificada en vivo",
+    "before": "Los subtítulos aparecen cuando sintonizas.",
+    "listening": "Escuchando. La primera lectura llega tras un segundo de programa.",
+    "reads": "se lee como {context}"
+  },
+  "context": {
+    "baseline": "reposo",
+    "mate": "pareja",
+    "threat": "amenaza",
+    "food": "comida"
+  },
+  "note": "Cada zumbido de arriba es real: la amplitud sale directamente del conectoma MaleCNS real de 166,700 neuronas, descargado una sola vez (58&nbsp;MB, los mismos archivos que la Simulación) y ejecutado paso a paso en vivo en tu dispositivo &mdash; en concreto, los disparos de las neuronas motoras de las alas de cada miembro del reparto por encima del reposo (la \"canción\" que mide <code>flytalk.py</code>). Nada está pregrabado ni en bucle. El tono senoidal de ~190&nbsp;Hz sobre el que va esa envolvente, y los nombres y la imagen de los programas, son una sonificación añadida encima &mdash; inventada, sin rodeos, como en las demás demos del proyecto. Los subtítulos son una decodificación real en vivo (una lectura con validación cruzada, calibrada con los contextos reales), no un eco del contexto que mueve a cada mosca, así que pueden salir con poca confianza o con el contexto \"equivocado\" de forma legítima.",
+  "status": {
+    "press": "pulsa Sintonizar",
+    "loading": "cargando el cerebro de la mosca: {progress}",
+    "error": "no se pudo cargar el cerebro: {error}",
+    "ready": "listo: {n} neuronas",
+    "onAir": "al aire",
+    "onAirPerf": "al aire · {ms} ms por paso del cerebro",
+    "loadingOnce": "cargando el cerebro de la mosca (58 MB, una sola vez)",
+    "off": "apagado",
+    "labels": "etiquetas {mb} MB",
+    "connectome": "conectoma {mb} MB",
+    "wiring": "conectando 25 M de sinapsis"
+  },
+  "shows": {
+    "static": {
+      "name": "Ruido Blanco",
+      "tagline": "Nadie en la línea. Solo el siseo en reposo de un cerebro de mosca sin estímulo.",
+      "cast": { "0": "Nadie" }
+    },
+    "buzzkill": {
+      "name": "Buzzkill",
+      "tagline": "True crime a escala de mosca. Esta noche: algo se nos echa encima.",
+      "cast": { "0": "El Sospechoso" }
+    },
+    "rotten_and_tasty": {
+      "name": "Podrido y Sabroso",
+      "tagline": "Una mosca, un plato, cero calma.",
+      "cast": { "0": "El Crítico" }
+    },
+    "mating_call": {
+      "name": "La Llamada del Amor",
+      "tagline": "Buzzy Buzz pregunta. El Dr. Buzziam Buzz responde.",
+      "cast": { "0": "Buzzy Buzz", "1": "Dr. Buzziam Buzz" }
+    }
+  }
+}

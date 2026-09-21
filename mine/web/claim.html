@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Claims &mdash; fly.ai compute</title>
-<meta name="description" content="Claim your monthly $FLYAI from fly.ai compute on Robinhood Chain.">
+<title data-i18n="compute.claim.metaTitle">Claims &mdash; fly.ai compute</title>
+<meta name="description" content="Claim your monthly $FLYAI from fly.ai compute on Robinhood Chain." data-i18n-attr="content:compute.claim.metaDescription">
 <meta property="og:title" content="Claims &mdash; fly.ai compute">
 <meta property="og:description" content="Claim your monthly $FLYAI from fly.ai compute on Robinhood Chain.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/compute/claim">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,16 +56,16 @@
 
 <section class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">fly.ai compute · claims</p>
-    <h1>Monthly claims</h1>
-    <p class="lede">Points build up over each UTC month. After it ends, a pool of $FLYAI is split by points and each wallet claims its share here, on Robinhood Chain.</p>
+    <p class="eyebrow" data-i18n="compute.claim.flyAiComputeClaims">fly.ai compute · claims</p>
+    <h1 data-i18n="compute.claim.monthlyClaims">Monthly claims</h1>
+    <p class="lede" data-i18n="compute.claim.pointsBuildUpOver">Points build up over each UTC month. After it ends, a pool of $FLYAI is split by points and each wallet claims its share here, on Robinhood Chain.</p>
     <div class="tabs">
-      <a href="/compute/">Mine</a>
-      <a href="/compute/jobs">Buy compute</a>
-      <a href="/compute/stake">Stake</a>
-      <a class="on" href="/compute/claim">Claims</a>
-      <a href="/compute/leaderboard">Leaderboard</a>
-      <a href="/compute/results">Results</a>
+      <a href="/compute/" data-i18n="compute.common.tab.mine">Mine</a>
+      <a href="/compute/jobs" data-i18n="compute.common.tab.jobs">Buy compute</a>
+      <a href="/compute/stake" data-i18n="compute.common.tab.stake">Stake</a>
+      <a class="on" href="/compute/claim" data-i18n="compute.common.tab.claims">Claims</a>
+      <a href="/compute/leaderboard" data-i18n="compute.common.tab.leaderboard">Leaderboard</a>
+      <a href="/compute/results" data-i18n="compute.common.tab.results">Results</a>
     </div>
   </div>
 </section>
@@ -72,14 +73,14 @@
 <section class="firstsec">
   <div class="wrap stack">
     <div class="card pad">
-      <span class="num">YOUR WALLET</span>
-      <div class="row"><span class="k">Wallet</span><span class="v rowbtn"><span id="account">not signed in</span><button id="connect" class="btn sm" type="button">Sign in</button></span></div>
-      <div class="row"><span class="k">This month</span><span class="v" id="this-month">—</span></div>
-      <p class="caption">Claiming is a transaction on Robinhood Chain and costs a little gas. Each month's split is posted on-chain by the fly.ai treasury, which can't change it or take it back once posted. Claims contract: <a id="contract-link" class="mono" target="_blank" rel="noopener">—</a></p>
+      <span class="num" data-i18n="compute.claim.yourWallet">YOUR WALLET</span>
+      <div class="row"><span class="k" data-i18n="compute.claim.wallet">Wallet</span><span class="v rowbtn"><span id="account" data-i18n="compute.claim.notSignedIn">not signed in</span><button id="connect" class="btn sm" type="button" data-i18n="compute.claim.signIn">Sign in</button></span></div>
+      <div class="row"><span class="k" data-i18n="compute.claim.thisMonth">This month</span><span class="v" id="this-month">—</span></div>
+      <p class="caption" data-i18n-html="compute.claim.claimingIsATransaction">Claiming is a transaction on Robinhood Chain and costs a little gas. Each month's split is posted on-chain by the fly.ai treasury, which can't change it or take it back once posted. Claims contract: <a id="contract-link" class="mono" target="_blank" rel="noopener">—</a></p>
     </div>
     <div class="card pad">
-      <span class="num">CLAIMS</span>
-      <p id="note" class="caption">Sign in to see your claims.</p>
+      <span class="num" data-i18n="compute.claim.claims2">CLAIMS</span>
+      <p id="note" class="caption" data-i18n="compute.claim.signInToSee">Sign in to see your claims.</p>
       <div id="claims" class="list"></div>
     </div>
   </div>

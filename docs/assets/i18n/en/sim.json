@@ -1,0 +1,345 @@
+{
+  "meta": {
+    "title": "fly.ai world — flies with spiking brains",
+    "description": "A low-poly world of flies, each flying on its own spiking neural network, with a live view of the brain."
+  },
+  "top": {
+    "title": "fly.ai <b>world</b>",
+    "starting": "starting…",
+    "togglePanel": "toggle panel"
+  },
+  "stats": {
+    "line": "{clock} {phase} · {flies} flies × {neurons} neurons ({synapses} synapses each) · {fps} fps · {where}{puffs} odour puffs · wind {wind} m/s · {matings} matings, {eggs} eggs, {hatched} hatched · deaths: {old} old, {starved} starved, {eaten} eaten, {swatted} swatted",
+    "whereLive": "{status} · {viewers} watching · ",
+    "wherePrivate": "private field · brain step {ms} ms · ",
+    "empty": "live · the field is empty",
+    "connecting": "connecting to the live world…"
+  },
+  "status": {
+    "live": "live",
+    "connecting": "connecting…",
+    "reconnecting": "reconnecting…",
+    "failed": "failed…"
+  },
+  "phase": {
+    "night": "night",
+    "dawn": "dawn",
+    "morning": "morning",
+    "midday": "midday",
+    "afternoon": "afternoon",
+    "dusk": "dusk"
+  },
+  "state": {
+    "PANIC": "PANIC",
+    "SURGING": "SURGING",
+    "CASTING": "CASTING",
+    "FEEDING": "FEEDING",
+    "LANDED": "LANDED",
+    "TAKE-OFF": "TAKE-OFF",
+    "FLYING": "FLYING"
+  },
+  "shared": {
+    "note": "This field is shared: everyone on this page watches the same flies, live from the server. Wiz is yours alone: he walks on your screen, and the shared flies do not see him.",
+    "unreachable": "The shared world could not be reached, so this is a private field running in your browser."
+  },
+  "about": {
+    "title": "What this is",
+    "hide": "hide",
+    "show": "what is this?",
+    "p1": "A field of fruit flies, each one flying on its own <b>spiking neural network</b> &mdash; 748 leaky integrate-and-fire neurons named after real <i>Drosophila</i> cell types and wired in the shape of the pathways measured in the MaleCNS connectome.",
+    "p2": "Each fly has a <b>mushroom body</b>: its Kenyon cells give every smell its own signature, and dopamine neurons that fire on a looming threat, a knock, alarm CO<sub>2</sub> or a taste of juice rewrite which smells it is drawn to. Switch it in the Data card.",
+    "p3": "<b>Nothing in a fly's behaviour is scripted.</b> Light, odour puffs, airflow and leg contact are injected into sensory neurons; the network runs; and flight is read back out of the <b>motor neurons</b>. There is no <code>if (nearFruit) goToFruit</code>. Feeding, landing, escaping the swatter, plume tracking, courtship and egg-laying all fall out of the wiring &mdash; or fail to, which is reported just as plainly.",
+    "p4": "A full life runs here: flies <b>eat, mate, lay eggs, hatch, hunt for food, get eaten by spiders and die</b> &mdash; each of those drops a marker on the map where it happened. The clock runs a 300-second day, and night is real to the flies: it dims the luminance their photoreceptors see, rather than setting any &ldquo;it is night&rdquo; flag.",
+    "p5": "Click any fly to watch its brain fire. Every bar, tag and number in this panel is a readout of population firing rates, never a driver of them.",
+    "warn": "It is <b>not</b> the real connectome: 748 neurons against 166,700, with real cell-type names but invented counts and weights. Nothing here is trained. <a href=\"https://github.com/alextitonis/fly.ai/blob/main/world/README.md\" target=\"_blank\" rel=\"noreferrer\">What is and isn't real →</a>"
+  },
+  "wiz": {
+    "title": "Wiz · a fly working a monkey",
+    "note": "A giant monkey wizard puppeted by the <b>full fruit fly connectome</b> &mdash; 166,700 neurons and 25 M synapses, running in your browser. <b>The strings are real neurons:</b> what he sees goes into the fly's looming, threat and target cells, his footsteps into its leg-touch cells, and the descending neurons that fire raise his arms, kick his feet into missteps, turn his head, steer him and make him hop. <b>Only his wish to wander is coded</b>; his balance, steps and falls are simulated (springs and IK) &mdash; nothing in a fly brain knows how to walk a monkey. The fly overhead is a cartoon of that brain: its strings light up green when their neurons fire. The flies see him loom. Downloads about 58 MB.",
+    "summon": "summon Wiz",
+    "cam": "wiz cam",
+    "status": {
+      "asleep": "asleep",
+      "loading": "loading",
+      "failed": "failed: {error}",
+      "ready": "{n} neurons · {m} M synapses",
+      "labels": "labels {mb} MB",
+      "connectome": "connectome {mb} MB",
+      "wiring": "wiring 25 M synapses"
+    },
+    "doing": {
+      "stand": "working out how legs work",
+      "walk": "trying to walk",
+      "stumble": "losing his balance",
+      "fallen": "fell over",
+      "getup": "getting up"
+    },
+    "line": "{doing} · fallen {falls}× · {fired} neurons fired this step · {ms} ms/step ({rt}% real time)",
+    "rows": {
+      "arms": {
+        "label": "arm strings",
+        "tip": "DNp02/03/04/11, DNg40: looming and threat yank the arms · left · right"
+      },
+      "legs": {
+        "label": "leg strings",
+        "tip": "DNge104/122, DNg20, DNge102: touch kicks the legs · left · right"
+      },
+      "head": {
+        "label": "head string",
+        "tip": "DNa05/07, DNg111, DNae002: jerks the head · left · right"
+      },
+      "steer": "steering: turns him · left · right",
+      "escape": "giant fibre: jump · left · right"
+    }
+  },
+  "brain": {
+    "title": "Nervous system",
+    "flyNone": "fly —",
+    "raster": "spike raster · last 5 s",
+    "fly": "{name} {sex} · gen {gen}{parents} · {age}s old{mated} · brain changed {drift}%{courting}",
+    "childOf": " · child of {mother} & {father}",
+    "founder": " · founder",
+    "mated": " · mated",
+    "courting": " · P1 {hz} Hz"
+  },
+  "modality": {
+    "vision": "vision",
+    "olfaction": "olfaction",
+    "mechanosensory": "mechanosensory",
+    "central": "central",
+    "descending": "descending",
+    "motor": "motor",
+    "memory": "memory",
+    "inhibitory": "inhibitory (GABA)"
+  },
+  "senses": {
+    "title": "Senses → brain",
+    "sides": "left · right",
+    "food": "olfaction — food",
+    "cva": "olfaction — cVA (other flies)",
+    "aversive": "olfaction — aversive",
+    "loom": "looming: something getting bigger",
+    "threat": "fast looming / threat",
+    "small": "small approaching objects",
+    "chase": "a target at close range",
+    "jo": "Johnston's organ: airflow, airspeed, wingbeat",
+    "leg": "tarsal contact (phasic)",
+    "load": "hair plate / campaniform: knocks",
+    "taste": "labellar taste: food",
+    "flow": "ventral optic flow: how low and how fast"
+  },
+  "ligand": {
+    "ORN_DM1": "ethyl acetate: ripe fruit",
+    "ORN_VM5d": "ethyl butyrate: fermenting fruit",
+    "ORN_VL2a": "acetic acid: vinegar",
+    "IR92a": "ammonia and amines: carrion, dung, droppings",
+    "ORN_DA1": "cVA: the pheromone other flies release",
+    "ORN_VA1d": "cVA: the pheromone other flies release",
+    "Or56a": "geosmin: mould. Aversive.",
+    "Gr21a": "CO2: compost, and frightened flies. Aversive."
+  },
+  "rates": {
+    "title": "Firing rate",
+    "unit": "Hz per neuron · L · R"
+  },
+  "pop": {
+    "R1_6": "photoreceptors (histamine, inhibitory)",
+    "L1_L2": "lamina relay",
+    "LPLC2": "looming",
+    "LC4": "fast looming / threat",
+    "LPLC1": "small approaching objects",
+    "LC10a": "target tracking, close approach",
+    "VS": "lobula plate VS: ventral optic flow (height)",
+    "ORN_DM1": "ORN DM1: ethyl acetate, ripe fruit",
+    "ORN_VM5d": "ORN VM5d: ethyl butyrate, fermenting fruit",
+    "ORN_VL2a": "ORN VL2a: acetic acid, vinegar",
+    "IR92a": "IR92a: ammonia and amines, carrion and dung",
+    "ORN_DA1": "ORN DA1: cVA, the fly pheromone",
+    "ORN_VA1d": "ORN VA1d: cVA, the fly pheromone",
+    "Or56a": "Or56a -> DA2: geosmin, harmful microbes. Aversive.",
+    "Gr21a": "Gr21a/Gr63a -> V: CO2. Aversive.",
+    "Gr68a": "Gr68a/ppk23: foreleg contact chemoreceptors, female pheromone",
+    "AL_LN": "antennal lobe local neurons (GABA)",
+    "lPN": "projection neurons, AL -> protocerebrum (steering and thrust)",
+    "DA2_PN": "DA2 and V glomerulus PNs: the aversive line",
+    "LH": "lateral horn: innate valence",
+    "JO": "Johnston's organ: wind, airspeed, wingbeat",
+    "WED": "wedge / AMMC, the JO target",
+    "SNta": "tarsal sensory neurons (leg contact)",
+    "LgLG": "hair plate / campaniform (load, knocks)",
+    "LB3": "labellar taste bristles (juice)",
+    "PVLP": "optic glomeruli interneurons",
+    "PLP": "posterior lateral protocerebrum",
+    "LPi": "lobula plate intrinsic (GABA)",
+    "LAL": "lateral accessory lobe, premotor",
+    "PFL3": "central complex steering",
+    "P1": "P1: the male courtship command neurons",
+    "DNa02": "steering (ipsiversive turn)",
+    "DNp01": "giant fibre, escape take-off",
+    "DNg100": "forward flight",
+    "MDN": "backward walking",
+    "pIP10": "pIP10: courtship song command",
+    "VNC_IN": "VNC premotor interneurons (generic)",
+    "IN19A": "19A hemilineage interneurons (GABA)",
+    "DLM_MN": "dorsal longitudinal muscle: wing power",
+    "b1_MN": "basalar b1: wing steering",
+    "b2_MN": "basalar b2: wing steering",
+    "Ti_flexor_MN": "tibia flexor",
+    "Ti_extensor_MN": "tibia extensor (jump)",
+    "Tr_flexor_MN": "trochanter flexor",
+    "Sternotrochanter_MN": "sternotrochanter: take-off",
+    "uPN": "uniglomerular PNs to the mushroom body: two per glomerulus",
+    "KC": "Kenyon cells: a sparse code for the odour",
+    "APL": "APL (GABA): feedback inhibition that keeps the KC code sparse",
+    "MBON_g2a1": "MBON-g2a'1 (cholinergic): the toward-the-odour output",
+    "MBON_g5b2a": "MBON-g5b2a: the away-from-the-odour output",
+    "PPL1_g2a1": "PPL1-g2a1: the punishment teacher (dopamine)",
+    "PAM_g5": "PAM-g5: the reward teacher (dopamine)"
+  },
+  "body": {
+    "title": "Brain → body",
+    "path": "descending → VNC → muscle",
+    "dn": "descending neurons",
+    "mn": "motor neurons — flight is read here",
+    "turn": "steering: right minus left",
+    "thrust": "forward flight",
+    "back": "backward",
+    "escape": "giant fibre escape",
+    "dlm": "wing power, and therefore lift",
+    "b1": "basalar muscles: wing steering",
+    "jump": "tibia extensor + sternotrochanter: take-off",
+    "flex": "leg flexors: backing off",
+    "flexLabel": "Ti/Tr flex",
+    "motor": "DLM {dlm} Hz → lift {lift} m/s² (gravity {gravity}) · turn {turn} rad/s · speed {speed} m/s · height {height} m · {state}"
+  },
+  "field": {
+    "title": "The field",
+    "sub": "what is out there"
+  },
+  "ecology": {
+    "fruit": "fermenting fruit",
+    "mould": "mouldy fruit (geosmin)",
+    "carrion": "carrion (amines)",
+    "dung": "dung (amines)",
+    "compost": "compost (food + CO2)",
+    "plant": "plant",
+    "spider": "spider",
+    "egg": "egg",
+    "larva": "larva",
+    "poop": "fly dropping",
+    "obstacle": "rock",
+    "threat": "swatter",
+    "fly": "fly"
+  },
+  "feed": {
+    "title": "Happening now",
+    "empty": "nothing yet — mating, eggs, meals, spider strikes and deaths appear here and over the fly they happened to.",
+    "now": "now",
+    "ago": "{s}s ago"
+  },
+  "population": {
+    "title": "Population",
+    "adults": "adults",
+    "brood": "eggs + larvae",
+    "now": "{adults} adults · {brood} brood",
+    "waiting": "waiting for the first minute…",
+    "axisNow": "now",
+    "stats": "<span>adults <b>{adults}</b> ({males}M / {females}F)</span><span>mean age <b>{age}s</b></span><span>matings <b>{matings}</b> · eggs <b>{eggs}</b></span><span>hatched <b>{hatched}</b></span><span>died old <b>{old}</b> · starved <b>{starved}</b></span><span>eaten <b>{eaten}</b> · swatted <b>{swatted}</b></span>"
+  },
+  "data": {
+    "title": "Data &amp; findings",
+    "reward": "reward learning",
+    "rewardTip": "synapses active just before a meal grow; before a knock or a spider strike they shrink",
+    "hebb": "hebbian learning",
+    "hebbTip": "a synapse grows when its input fires just before its output",
+    "memory": "odour memory (mushroom body)",
+    "memoryTip": "mushroom body: a dopamine teacher depresses the Kenyon cells that were firing, so the odour they code for changes meaning",
+    "gather": "do they gather?",
+    "friends": "friends and enemies",
+    "drift": "do brains change?",
+    "herit": "do babies take after their parents?",
+    "fates": "eggs and larvae: what became of them",
+    "report": "report (PDF)",
+    "blocks": "brain blocks.csv",
+    "collecting": "collecting…",
+    "shareInGroups": "share in groups (0-1)",
+    "nnRatio": "nearest-neighbour ratio",
+    "random": "random placement = 1",
+    "meanDrift": "mean synapse change %",
+    "maxDrift": "most-changed fly %",
+    "now": "{clock} · learning {learning}",
+    "groupNote": "<span>groups <b>{groups}</b></span><span>largest <b>{largest}</b></span><span>in a group <b>{inGroup}%</b></span><span>of those at food <b>{atFood}%</b></span><span>ratio <b>{ratio}</b> (below 1 = gathered)</span>",
+    "died": "died: {cause} ({stage})",
+    "emerged": "became an adult",
+    "still": "still {fate}",
+    "noEggs": "no eggs laid yet",
+    "stage": {
+      "egg": "egg",
+      "larva": "larva"
+    },
+    "cause": {
+      "background": "background",
+      "mould": "mould",
+      "bare_substrate": "bare substrate",
+      "crowding": "crowding",
+      "spider": "spider",
+      "trampled": "trampled"
+    },
+    "waitFamilies": "waiting for families: {n} flies with both parents known",
+    "parentsAxis": "parents' average →",
+    "childAxis": "child ↑",
+    "heritNote": "{n} children · slope <b>{slope}</b> · r <b>{r}</b> (slope 1 = children match their parents, 0 = no resemblance; dashed = equal)",
+    "rel": {
+      "mates": "mates",
+      "family": "family",
+      "enemies": "enemies",
+      "friends": "friends",
+      "acquaintances": "acquaintances"
+    },
+    "clashes": "{n} clashes",
+    "together": "{n} s together",
+    "noFriends": "no friends or enemies among the living yet",
+    "trait": {
+      "lifespan": "gene: lifespan",
+      "flight": "gene: flight power",
+      "clutch": "gene: clutch size",
+      "gene_loom_escape": "gene: looming → escape",
+      "gene_odour_steer": "gene: odour → steering",
+      "gene_contact_courtship": "gene: contact → courtship",
+      "olfaction_gain": "gene: smell gain",
+      "reward_rate": "gene: reward learning rate",
+      "memory_rate": "gene: odour memory rate",
+      "meals_per_min": "lived: meals per minute",
+      "age_at_death": "lived: age at death",
+      "final_drift": "lived: brain change at death"
+    }
+  },
+  "board": {
+    "title": "Leaderboard",
+    "live": "live",
+    "fed": "{s}s fed · {m}m",
+    "panics": "{n} panics",
+    "swatted": " · swatted"
+  },
+  "controls": {
+    "title": "Controls",
+    "reset": "reset",
+    "swat": "SWAT!",
+    "gust": "gust of wind",
+    "flycam": "fly cam",
+    "drama": "drama cam",
+    "next": "next fly",
+    "followOn": "follow: on",
+    "followOff": "follow: off",
+    "note": "Click a fly to select it. Drag to orbit, scroll to zoom. Every fly runs its own leaky integrate-and-fire network: eyes, antennae, Johnston's organ and leg bristles in, motor neurons out. Nothing in its flight is scripted. <a href=\"https://github.com/alextitonis/fly-streetfighter\" target=\"_blank\" rel=\"noreferrer\">fly.ai</a>",
+    "slider": {
+      "flies": "flies",
+      "wind": "wind (m/s)",
+      "odour": "odour strength",
+      "tonic": "tonic drive",
+      "gain": "synaptic gain",
+      "noise": "noise rate (Hz)",
+      "speed": "simulation speed"
+    }
+  }
+}

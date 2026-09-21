@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "title": "Privacidad — fly.ai",
+    "description": "Qué guardan el sitio web de fly.ai compute y la extensión de navegador fly.ai compute, y qué no recopilan nunca."
+  },
+  "head": {
+    "eyebrow": "Privacidad",
+    "title": "Política de privacidad",
+    "lede": "Para fly.ai compute: las páginas web en flyaiworld.com/compute y la extensión de navegador \"fly.ai compute\". Última actualización: 18 de septiembre de 2026."
+  },
+  "main": {
+    "h31": "En resumen",
+    "p1": "fly.ai compute presta la GPU o CPU que tu ordenador no está usando a la investigación del cerebro de la mosca de la fruta. Para ello necesita un token aleatorio para tu dispositivo y, si quieres recompensas, una dirección de wallet. Nunca lee las páginas que visitas, tu historial, lo que tecleas ni ninguna otra cosa de tu ordenador. No vendemos datos, no mostramos anuncios y no usamos analítica.",
+    "h32": "Qué guarda la extensión en tu ordenador",
+    "li1": "<b>Tus ajustes:</b> el interruptor de encendido/apagado, GPU o CPU, la intensidad, un nombre visible opcional y la dirección del servidor.",
+    "li2": "<b>Un token de dispositivo:</b> un código aleatorio que el servidor asignó a este dispositivo para contabilizar su trabajo. No está vinculado a quién eres.",
+    "p2": "Todo esto se queda en el almacenamiento de extensiones del navegador y se elimina cuando desinstalas la extensión.",
+    "h33": "Qué conserva nuestro servidor",
+    "li3": "<b>Tu dispositivo:</b> un hash del token de dispositivo, el nombre visible opcional que escribiste, y cuándo se creó y cuándo se vio por última vez.",
+    "li4": "<b>El trabajo:</b> qué trabajos de simulación ejecutó el dispositivo, sus resultados y si se verificaron, y los puntos que obtuvieron.",
+    "li5": "<b>Una dirección de wallet, solo si vinculas una:</b> para pagar recompensas. Es una dirección pública de blockchain, demostrada mediante una firma en tu wallet; nunca vemos tus claves. Su stake en el contrato de staking se lee de la blockchain pública.",
+    "li6": "<b>Pedidos, si compras cómputo:</b> la configuración del pedido, la wallet que pagó, la transacción de pago y los archivos que subas para tus trabajos (se conservan 14 días salvo que formen parte de nuestra propia investigación).",
+    "p3": "Las direcciones IP solo se usan en memoria, durante una hora como máximo, para limitar abusos (por ejemplo, cuántos dispositivos nuevos puede registrar una misma dirección). No las almacenamos. Nuestros proveedores de alojamiento (Fly.io para el servidor, Vercel para el sitio web) pueden guardar sus propios registros de conexión estándar.",
+    "h34": "Qué no recopilamos nunca",
+    "p4": "Ni historial de navegación, ni contenido de páginas, ni clics ni pulsaciones de teclas, ni ubicación más allá de lo anterior, ni mensajes personales, ni dirección de email ni datos de tarjetas de pago. La extensión no tiene acceso a las páginas que visitas.",
+    "h35": "Quién ve qué",
+    "li7": "<b>Público:</b> la clasificación muestra las direcciones de wallet vinculadas (acortadas) con sus puntos. Se publican los resultados de investigación de nuestros propios experimentos.",
+    "li8": "<b>Mineros:</b> quien acepta un trabajo puede ver los datos de entrada de ese trabajo. Así funciona la computación distribuida, por eso se avisa a los compradores de que no envíen secretos.",
+    "li9": "<b>Nadie más:</b> no vendemos ni compartimos datos con terceros, y no los usamos para nada que no sea operar la red, pagar recompensas y prevenir abusos.",
+    "h36": "Tus opciones",
+    "li10": "La extensión no hace nada hasta que la activas, y se detiene de inmediato cuando la desactivas.",
+    "li11": "Desinstalar la extensión borra sus ajustes y su token de tu navegador.",
+    "li12": "Para que se eliminen de nuestro servidor los registros de tu dispositivo o de tu wallet, contáctanos con la dirección de la wallet o el nombre visible. Los registros ya escritos en una blockchain pública (reclamaciones y stakes) no los puede borrar nadie.",
+    "h37": "Contacto",
+    "p5": "Escribe a <a href=\"https://x.com/flydotai\" target=\"_blank\" rel=\"noopener\">@flydotai en X</a> o abre un issue en <a href=\"https://github.com/alextitonis/fly.ai/issues\" target=\"_blank\" rel=\"noopener\">GitHub</a>. Si esta política cambia, esta página cambia con ella y se actualiza la fecha de arriba."
+  },
+  "notice": "Esta traducción se ofrece por comodidad; la versión en inglés es la vinculante."
+}

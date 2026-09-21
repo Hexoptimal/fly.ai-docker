@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Buy compute &mdash; fly.ai compute</title>
-<meta name="description" content="Run experiments on the full fly connectome: pick what the fly senses, pay in $FLYAI per finished run. Most of it goes to the miners.">
+<title data-i18n="compute.jobs.metaTitle">Buy compute &mdash; fly.ai compute</title>
+<meta name="description" content="Run experiments on the full fly connectome: pick what the fly senses, pay in $FLYAI per finished run. Most of it goes to the miners." data-i18n-attr="content:compute.jobs.metaDescription">
 <meta property="og:title" content="Buy compute &mdash; fly.ai compute">
 <meta property="og:description" content="Run experiments on the full fly connectome: pick what the fly senses, pay in $FLYAI per finished run. Most of it goes to the miners.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/compute/jobs">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,16 +56,16 @@
 
 <section class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">fly.ai compute · buy compute</p>
-    <h1 id="headline">Run an experiment on the fly brain</h1>
-    <p class="lede" id="lede">Choose what the fly senses. The network plays it into the full connectome, 166,700 neurons, over and over, and hands back what its muscles and escape neurons do. You pay only for runs that finish, and <span id="pool-share">most</span> of it goes to the miners.</p>
+    <p class="eyebrow" data-i18n="compute.jobs.flyAiComputeBuy">fly.ai compute · buy compute</p>
+    <h1 id="headline" data-i18n="compute.jobs.runAnExperimentOn">Run an experiment on the fly brain</h1>
+    <p class="lede" id="lede" data-i18n-html="compute.jobs.chooseWhatTheFly">Choose what the fly senses. The network plays it into the full connectome, 166,700 neurons, over and over, and hands back what its muscles and escape neurons do. You pay only for runs that finish, and <span id="pool-share">most</span> of it goes to the miners.</p>
     <div class="tabs">
-      <a href="/compute/">Mine</a>
-      <a class="on" href="/compute/jobs">Buy compute</a>
-      <a href="/compute/stake">Stake</a>
-      <a href="/compute/claim">Claims</a>
-      <a href="/compute/leaderboard">Leaderboard</a>
-      <a href="/compute/results">Results</a>
+      <a href="/compute/" data-i18n="compute.common.tab.mine">Mine</a>
+      <a class="on" href="/compute/jobs" data-i18n="compute.common.tab.jobs">Buy compute</a>
+      <a href="/compute/stake" data-i18n="compute.common.tab.stake">Stake</a>
+      <a href="/compute/claim" data-i18n="compute.common.tab.claims">Claims</a>
+      <a href="/compute/leaderboard" data-i18n="compute.common.tab.leaderboard">Leaderboard</a>
+      <a href="/compute/results" data-i18n="compute.common.tab.results">Results</a>
     </div>
   </div>
 </section>
@@ -72,160 +73,160 @@
 <section class="firstsec">
   <div class="wrap stack">
     <div class="card pad" id="pay-card" hidden>
-      <span class="num">PAY FOR AN ORDER</span>
-      <h3 id="pay-title">Your order</h3>
+      <span class="num" data-i18n="compute.jobs.payForAnOrder">PAY FOR AN ORDER</span>
+      <h3 id="pay-title" data-i18n="compute.jobs.yourOrder">Your order</h3>
       <p id="pay-text"></p>
-      <div class="cta" style="margin-top:14px"><button id="pay-btn" class="btn red" type="button">Pay with $FLYAI</button><button id="pay-usdc" class="btn red" type="button" hidden>Pay with card</button></div>
+      <div class="cta" style="margin-top:14px"><button id="pay-btn" class="btn red" type="button" data-i18n="compute.jobs.payWithFlyai">Pay with $FLYAI</button><button id="pay-usdc" class="btn red" type="button" hidden data-i18n="compute.jobs.payWithCard">Pay with card</button></div>
       <p id="pay-status" class="codeline" style="margin-top:14px"></p>
     </div>
     <div class="card pad">
-      <span class="num">WHAT TO RUN</span>
+      <span class="num" data-i18n="compute.jobs.whatToRun">WHAT TO RUN</span>
       <div id="modes" class="choices compact"></div>
     </div>
 
     <div class="card pad" id="brain-card">
-      <span class="num">1 · WHAT TO TEST</span>
-      <h3>Pick an experiment</h3>
+      <span class="num" data-i18n="compute.jobs.1WhatToTest">1 · WHAT TO TEST</span>
+      <h3 data-i18n="compute.jobs.pickAnExperiment">Pick an experiment</h3>
       <div id="presets" class="choices"></div>
     </div>
 
     <div class="card pad" id="program-card" hidden>
-      <span class="num">1 · YOUR PROGRAM</span>
-      <h3>Upload it</h3>
+      <span class="num" data-i18n="compute.jobs.1YourProgram">1 · YOUR PROGRAM</span>
+      <h3 data-i18n="compute.jobs.uploadIt">Upload it</h3>
       <div class="controls">
-        <label class="grow">Program: a .wasm module or a .wgsl compute shader <input id="program-file" type="file" accept=".wasm,.wgsl"></label>
+        <label class="grow"><span data-i18n="compute.jobs.programAWasmModule">Program: a .wasm module or a .wgsl compute shader</span> <input id="program-file" type="file" accept=".wasm,.wgsl"></label>
       </div>
-      <p id="program-status" class="codeline">No program yet. Start from <a href="https://github.com/alextitonis/fly.ai/tree/main/mine/examples" target="_blank" rel="noopener">the examples</a> (pi, hash search, Mandelbrot tiles, TSP, WASI, a GPU shader) or <a href="/compute/compute-api.md" download="flyai-compute-api.md">the guide</a>: Rust, C, Zig, Go or WGSL.</p>
-      <p class="caption">Jobs</p>
+      <p id="program-status" class="codeline" data-i18n-html="compute.jobs.noProgramYetStart">No program yet. Start from <a href="https://github.com/alextitonis/fly.ai/tree/main/mine/examples" target="_blank" rel="noopener">the examples</a> (pi, hash search, Mandelbrot tiles, TSP, WASI, a GPU shader) or <a href="/compute/compute-api.md" download="flyai-compute-api.md">the guide</a>: Rust, C, Zig, Go or WGSL.</p>
+      <p class="caption" data-i18n="compute.jobs.jobs">Jobs</p>
       <div id="input-modes" class="choices compact"></div>
       <div class="controls" id="count-field">
-        <label class="grow">Number of jobs (each is given its job number, 0, 1, 2… as its input) <input id="count" type="number" min="1" value="100"></label>
+        <label class="grow"><span data-i18n="compute.jobs.numberOfJobsEach">Number of jobs (each is given its job number, 0, 1, 2… as its input)</span> <input id="count" type="number" min="1" value="100"></label>
       </div>
       <div class="controls" id="files-field" hidden>
-        <label class="grow">Input files, one job each <input id="input-files" type="file" multiple></label>
+        <label class="grow"><span data-i18n="compute.jobs.inputFilesOneJob">Input files, one job each</span> <input id="input-files" type="file" multiple></label>
       </div>
       <p id="inputs-status" class="codeline"></p>
       <div class="controls">
-        <label class="grow">Time limit per job (seconds) <input id="timeout" type="number" min="1" max="600" value="60"></label>
-        <label class="grow">Miners who must agree <select id="redundancy"><option value="1">1 (trust the first)</option><option value="2" selected>2</option><option value="3">3</option></select></label>
+        <label class="grow"><span data-i18n="compute.jobs.timeLimitPerJob">Time limit per job (seconds)</span> <input id="timeout" type="number" min="1" max="600" value="60"></label>
+        <label class="grow"><span data-i18n="compute.jobs.minersWhoMustAgree">Miners who must agree</span> <select id="redundancy"><option value="1" data-i18n="compute.jobs.trustTheFirst">1 (trust the first)</option><option value="2" selected>2</option><option value="3">3</option></select></label>
       </div>
       <div id="gpu-fields" hidden>
         <div class="controls">
-          <label class="grow">Workgroups x <input id="dispatch-x" type="number" min="1" value="64"></label>
+          <label class="grow"><span data-i18n="compute.jobs.workgroupsX">Workgroups x</span> <input id="dispatch-x" type="number" min="1" value="64"></label>
           <label class="grow">y <input id="dispatch-y" type="number" min="1" value="1"></label>
           <label class="grow">z <input id="dispatch-z" type="number" min="1" value="1"></label>
         </div>
         <div class="controls">
-          <label class="grow">Output bytes <input id="output-bytes" type="number" min="4" value="256"></label>
-          <label class="grow">Float tolerance (blank: exact) <input id="tolerance" inputmode="decimal" placeholder="e.g. 0.0001"></label>
+          <label class="grow"><span data-i18n="compute.jobs.outputBytes">Output bytes</span> <input id="output-bytes" type="number" min="4" value="256"></label>
+          <label class="grow"><span data-i18n="compute.jobs.floatToleranceBlankExact">Float tolerance (blank: exact)</span> <input id="tolerance" inputmode="decimal" placeholder="e.g. 0.0001"></label>
         </div>
       </div>
-      <label class="chip"><input id="keep-open" type="checkbox"> Keep the order open to add jobs from code later</label>
-      <p class="caption">Programs run in miners' browsers, sandboxed: no network, no files, a memory cap and your time limit. Anyone who takes a job can see the program and its input, so don't send secrets. Outputs are kept for 14 days.</p>
+      <label class="chip"><input id="keep-open" type="checkbox"> <span data-i18n="compute.jobs.keepTheOrderOpen">Keep the order open to add jobs from code later</span></label>
+      <p class="caption" data-i18n="compute.jobs.programsRunInMiners">Programs run in miners' browsers, sandboxed: no network, no files, a memory cap and your time limit. Anyone who takes a job can see the program and its input, so don't send secrets. Outputs are kept for 14 days.</p>
     </div>
 
     <div class="card pad" id="embed-card" hidden>
-      <span class="num">1 · YOUR TEXTS</span>
-      <h3>Upload them</h3>
+      <span class="num" data-i18n="compute.jobs.1YourTexts">1 · YOUR TEXTS</span>
+      <h3 data-i18n="compute.jobs.uploadThem">Upload them</h3>
       <div class="controls">
-        <label class="grow">Texts: .txt (one per line), .json (an array) or .jsonl <input id="embed-file" type="file" accept=".txt,.json,.jsonl,.csv,.md"></label>
+        <label class="grow"><span data-i18n="compute.jobs.textsTxtOnePer">Texts: .txt (one per line), .json (an array) or .jsonl</span> <input id="embed-file" type="file" accept=".txt,.json,.jsonl,.csv,.md"></label>
       </div>
-      <p id="embed-status" class="codeline">No texts yet.</p>
+      <p id="embed-status" class="codeline" data-i18n="compute.jobs.noTextsYet">No texts yet.</p>
       <div class="controls">
-        <label class="grow">Model <select id="embed-model"></select></label>
-        <label>Texts per batch <select id="embed-batch"><option>64</option><option selected>128</option><option>256</option></select></label>
-        <label>Miners who must agree <select id="embed-redundancy"><option value="1">1 (trust the first)</option><option value="2" selected>2</option><option value="3">3</option></select></label>
+        <label class="grow"><span data-i18n="compute.jobs.model">Model</span> <select id="embed-model"></select></label>
+        <label><span data-i18n="compute.jobs.textsPerBatch">Texts per batch</span> <select id="embed-batch"><option>64</option><option selected>128</option><option>256</option></select></label>
+        <label><span data-i18n="compute.jobs.minersWhoMustAgree2">Miners who must agree</span> <select id="embed-redundancy"><option value="1" data-i18n="compute.jobs.trustTheFirst">1 (trust the first)</option><option value="2" selected>2</option><option value="3">3</option></select></label>
       </div>
-      <p class="caption">Each batch is one job. Its result is the batch's vectors, one per text, in order, as float32 numbers (384 per text; in Python: <code>numpy.frombuffer(data, "&lt;f4").reshape(-1, 384)</code>). Vectors from two miners agree when they are at least 0.9999 cosine-similar. Anyone who takes a job can read its texts, so don't send secrets.</p>
+      <p class="caption" data-i18n-html="compute.jobs.eachBatchIsOne">Each batch is one job. Its result is the batch's vectors, one per text, in order, as float32 numbers (384 per text; in Python: <code>numpy.frombuffer(data, "&lt;f4").reshape(-1, 384)</code>). Vectors from two miners agree when they are at least 0.9999 cosine-similar. Anyone who takes a job can read its texts, so don't send secrets.</p>
     </div>
 
     <div class="grid2">
       <div class="card pad" id="repeats-card">
-        <span class="num">2 · HOW SURE</span>
-        <h3>Repeats</h3>
+        <span class="num" data-i18n="compute.jobs.2HowSure">2 · HOW SURE</span>
+        <h3 data-i18n="compute.jobs.repeats">Repeats</h3>
         <div id="repeats" class="choices compact"></div>
-        <p class="caption">The brain has random noise, like a real one. Each repeat runs the whole experiment again with different noise, so more repeats give steadier averages.</p>
+        <p class="caption" data-i18n="compute.jobs.theBrainHasRandom">The brain has random noise, like a real one. Each repeat runs the whole experiment again with different noise, so more repeats give steadier averages.</p>
       </div>
       <div class="card pad" id="speed-card">
-        <span class="num">3 · HOW FAST</span>
-        <h3>Speed</h3>
+        <span class="num" data-i18n="compute.jobs.3HowFast">3 · HOW FAST</span>
+        <h3 data-i18n="compute.jobs.speed">Speed</h3>
         <div id="speeds" class="choices compact"></div>
-        <p class="caption">Miners pick orders at random, weighted by price. Paying more per run gets your runs picked more often. <span id="market"></span></p>
+        <p class="caption" data-i18n-html="compute.jobs.minersPickOrdersAt">Miners pick orders at random, weighted by price. Paying more per run gets your runs picked more often. <span id="market"></span></p>
       </div>
     </div>
 
     <div class="card pad">
-      <span class="num">4 · ORDER</span>
+      <span class="num" data-i18n="compute.jobs.4Order">4 · ORDER</span>
       <p id="summary" class="summary">—</p>
-      <div class="row"><span class="k">Wallet</span><span class="v rowbtn"><span id="account">not signed in</span><button id="connect" class="btn sm" type="button">Sign in</button></span></div>
-      <div class="row" id="balance-row" hidden><span class="k">Balance</span><span class="v" id="balance">—</span></div>
+      <div class="row"><span class="k" data-i18n="compute.jobs.wallet">Wallet</span><span class="v rowbtn"><span id="account" data-i18n="compute.jobs.notSignedIn">not signed in</span><button id="connect" class="btn sm" type="button" data-i18n="compute.jobs.signIn">Sign in</button></span></div>
+      <div class="row" id="balance-row" hidden><span class="k" data-i18n="compute.jobs.balance">Balance</span><span class="v" id="balance">—</span></div>
       <div class="cta" style="margin-top:16px">
-        <button id="buy" class="btn red" type="button" disabled>Pay with $FLYAI</button>
-        <button id="buy-usdc" class="btn red" type="button" disabled hidden>Pay with card</button>
-        <button id="use-balance" class="btn" type="button" hidden>Pay from balance</button>
+        <button id="buy" class="btn red" type="button" disabled data-i18n="compute.jobs.payWithFlyai2">Pay with $FLYAI</button>
+        <button id="buy-usdc" class="btn red" type="button" disabled hidden data-i18n="compute.jobs.payWithCard2">Pay with card</button>
+        <button id="use-balance" class="btn" type="button" hidden data-i18n="compute.jobs.payFromBalance">Pay from balance</button>
       </div>
       <p id="tx" class="codeline" style="margin-top:14px"></p>
       <div id="secret" class="hint" hidden>
-        <b>Your webhook secret, shown only this once.</b> Results POSTed to your URL are signed with it. Save it now:
-        <div class="ca"><code id="secret-value"></code><button id="secret-copy" class="btn sm" type="button">Copy</button></div>
+        <b data-i18n="compute.jobs.yourWebhookSecretShown">Your webhook secret, shown only this once.</b> <span data-i18n="compute.jobs.resultsPostedToYour">Results POSTed to your URL are signed with it. Save it now:</span>
+        <div class="ca"><code id="secret-value"></code><button id="secret-copy" class="btn sm" type="button" data-i18n="compute.jobs.copy">Copy</button></div>
       </div>
       <p id="note" class="caption"></p>
 
       <div id="key" class="hint" hidden>
-        <b>Your order key, shown only this once.</b> Use it from code to add jobs or stop the order (Authorization: Bearer). Save it now:
-        <div class="ca"><code id="key-value"></code><button id="key-copy" class="btn sm" type="button">Copy</button></div>
+        <b data-i18n="compute.jobs.yourOrderKeyShown">Your order key, shown only this once.</b> <span data-i18n="compute.jobs.useItFromCode">Use it from code to add jobs or stop the order (Authorization: Bearer). Save it now:</span>
+        <div class="ca"><code id="key-value"></code><button id="key-copy" class="btn sm" type="button" data-i18n="compute.jobs.copy2">Copy</button></div>
       </div>
 
       <details class="advanced">
-        <summary>Advanced settings</summary>
+        <summary data-i18n="compute.jobs.advancedSettings">Advanced settings</summary>
         <div id="brain-advanced">
-        <p class="caption">Senses to drive</p>
+        <p class="caption" data-i18n="compute.jobs.sensesToDrive">Senses to drive</p>
         <div id="channels" class="chips"></div>
-        <p class="caption">Sides</p>
+        <p class="caption" data-i18n="compute.jobs.sides">Sides</p>
         <div class="chips">
-          <label class="chip"><input type="checkbox" name="side" value="L" checked> Left</label>
-          <label class="chip"><input type="checkbox" name="side" value="R" checked> Right</label>
+          <label class="chip"><input type="checkbox" name="side" value="L" checked> <span data-i18n="compute.jobs.left">Left</span></label>
+          <label class="chip"><input type="checkbox" name="side" value="R" checked> <span data-i18n="compute.jobs.right">Right</span></label>
         </div>
         <div class="controls">
-          <label class="grow">Strengths <input id="amounts" autocomplete="off"></label>
-          <label class="grow">Gains <input id="gains" autocomplete="off"></label>
-          <label class="grow">Tonics <input id="tonics" autocomplete="off"></label>
+          <label class="grow"><span data-i18n="compute.jobs.strengths">Strengths</span> <input id="amounts" autocomplete="off"></label>
+          <label class="grow"><span data-i18n="compute.jobs.gains">Gains</span> <input id="gains" autocomplete="off"></label>
+          <label class="grow"><span data-i18n="compute.jobs.tonics">Tonics</span> <input id="tonics" autocomplete="off"></label>
         </div>
         <div class="controls">
-          <label class="grow">Repeats <input id="seeds" type="number" min="1" max="1000"></label>
-          <label class="grow">Rest steps before the stimulus <input id="warm" type="number" min="0"></label>
+          <label class="grow"><span data-i18n="compute.jobs.repeats2">Repeats</span> <input id="seeds" type="number" min="1" max="1000"></label>
+          <label class="grow"><span data-i18n="compute.jobs.restStepsBeforeThe">Rest steps before the stimulus</span> <input id="warm" type="number" min="0"></label>
         </div>
         </div>
         <div class="controls">
-          <label class="grow">Price per run ($FLYAI) <input id="bid" inputmode="decimal" autocomplete="off"></label>
-          <label class="grow">Budget ($FLYAI) <input id="budget" inputmode="decimal" placeholder="the whole experiment" autocomplete="off"></label>
+          <label class="grow"><span data-i18n="compute.jobs.pricePerRunFlyai">Price per run ($FLYAI)</span> <input id="bid" inputmode="decimal" autocomplete="off"></label>
+          <label class="grow"><span data-i18n="compute.jobs.budgetFlyai">Budget ($FLYAI)</span> <input id="budget" inputmode="decimal" placeholder="the whole experiment" autocomplete="off" data-i18n-attr="placeholder:compute.jobs.theWholeExperiment_placeholder"></label>
         </div>
         <div class="controls">
-          <label class="grow">Stop after (hours) <input id="hours" inputmode="decimal" placeholder="no limit" autocomplete="off"></label>
-          <label class="grow">Runs at once <input id="parallel" type="number" min="1"></label>
+          <label class="grow"><span data-i18n="compute.jobs.stopAfterHours">Stop after (hours)</span> <input id="hours" inputmode="decimal" placeholder="no limit" autocomplete="off" data-i18n-attr="placeholder:compute.jobs.noLimit_placeholder"></label>
+          <label class="grow"><span data-i18n="compute.jobs.runsAtOnce">Runs at once</span> <input id="parallel" type="number" min="1"></label>
         </div>
         <div class="controls">
-          <label class="grow">Send results to (webhook, optional) <input id="webhook" type="url" placeholder="https://your-server.com/flyai" autocomplete="off"></label>
+          <label class="grow"><span data-i18n="compute.jobs.sendResultsToWebhook">Send results to (webhook, optional)</span> <input id="webhook" type="url" placeholder="https://your-server.com/flyai" autocomplete="off" data-i18n-attr="placeholder:compute.jobs.httpsYourServerCom_placeholder"></label>
         </div>
-        <p class="caption">Strength is how hard the sense is driven. Gain scales every synapse, and tonic is a steady background drive for every neuron. Lists are comma separated. Each run is <span id="job-length">15 simulated seconds</span>: a rest, then the stimulus. A smaller budget or a time limit stops the order early, and what it didn't spend goes back to your balance.</p>
+        <p class="caption" data-i18n-html="compute.jobs.strengthIsHowHard">Strength is how hard the sense is driven. Gain scales every synapse, and tonic is a steady background drive for every neuron. Lists are comma separated. Each run is <span id="job-length">15 simulated seconds</span>: a rest, then the stimulus. A smaller budget or a time limit stops the order early, and what it didn't spend goes back to your balance.</p>
       </details>
     </div>
 
     <div class="card pad">
-      <span class="num">5 · RESULTS</span>
-      <h3>Your orders</h3>
-      <div id="orders" class="list"><p class="caption">Orders you pay for show up here.</p></div>
+      <span class="num" data-i18n="compute.jobs.5Results">5 · RESULTS</span>
+      <h3 data-i18n="compute.jobs.yourOrders">Your orders</h3>
+      <div id="orders" class="list"><p class="caption" data-i18n="compute.jobs.ordersYouPayFor">Orders you pay for show up here.</p></div>
     </div>
 
     <div class="card pad">
-      <span class="num">FOR DEVELOPERS</span>
-      <h3>Use it from code</h3>
-      <p class="caption">Everything on this page is a plain JSON API at <code>https://flyai-mine.fly.dev</code>. Results come to you as miners settle them, three ways. Every row has a <code>seq</code> that only goes up, so keep the last one you handled.</p>
+      <span class="num" data-i18n="compute.jobs.forDevelopers">FOR DEVELOPERS</span>
+      <h3 data-i18n="compute.jobs.useItFromCode2">Use it from code</h3>
+      <p class="caption" data-i18n-html="compute.jobs.everythingOnThisPage">Everything on this page is a plain JSON API at <code>https://flyai-mine.fly.dev</code>. Results come to you as miners settle them, three ways. Every row has a <code>seq</code> that only goes up, so keep the last one you handled.</p>
       <div class="cta" style="margin:10px 0 16px">
-        <a class="btn red sm" href="/compute/compute-api.md" download="flyai-compute-api.md">Download the API guide (.md)</a>
-        <a class="btn sm" href="https://github.com/alextitonis/fly.ai/tree/main/mine/examples" target="_blank" rel="noopener">Example programs on GitHub</a>
+        <a class="btn red sm" href="/compute/compute-api.md" download="flyai-compute-api.md" data-i18n="compute.jobs.downloadTheApiGuide">Download the API guide (.md)</a>
+        <a class="btn sm" href="https://github.com/alextitonis/fly.ai/tree/main/mine/examples" target="_blank" rel="noopener" data-i18n="compute.jobs.exampleProgramsOnGithub">Example programs on GitHub</a>
       </div>
-      <p class="caption"><b>1. Create and pay.</b> Create the order for your wallet, then send one $FLYAI transfer of exactly <code>budget_wei</code> to <code>pay_to</code> and hand over the transaction hash.</p>
+      <p class="caption" data-i18n-html="compute.jobs.1CreateAndPay"><b>1. Create and pay.</b> Create the order for your wallet, then send one $FLYAI transfer of exactly <code>budget_wei</code> to <code>pay_to</code> and hand over the transaction hash.</p>
 <pre class="codeblock"><code>curl -X POST https://flyai-mine.fly.dev/api/orders -H 'content-type: application/json' -d '{
   "wallet": "0xYourWallet", "bid": "20", "budget": "255", "webhook": "https://your-server.com/flyai",
   "spec": {"kind": "connectome-sweep", "channels": ["LPLC2", "none"], "sides": ["L", "R"],
@@ -234,26 +235,26 @@
 # → {"id": "…", "budget_wei": "…", "pay_to": "0x…", "webhook_secret": "…"}
 
 curl -X POST https://flyai-mine.fly.dev/api/orders/ORDER_ID/pay -H 'content-type: application/json' -d '{"tx": "0xTransferHash"}'</code></pre>
-      <p class="caption"><b>2. Stream results live</b> (server-sent events; a browser reconnects and resumes on its own):</p>
+      <p class="caption" data-i18n-html="compute.jobs.2StreamResultsLive"><b>2. Stream results live</b> (server-sent events; a browser reconnects and resumes on its own):</p>
 <pre class="codeblock"><code>const es = new EventSource("https://flyai-mine.fly.dev/api/orders/ORDER_ID/stream");
 es.addEventListener("result", (e) =&gt; save(JSON.parse(e.data)));   // one settled run
 es.addEventListener("status", (e) =&gt; {
   if (["done", "ended"].includes(JSON.parse(e.data).status)) es.close();
 });</code></pre>
-      <p class="caption"><b>3. Or pull pages</b>, asking again with <code>after=next</code>:</p>
+      <p class="caption" data-i18n-html="compute.jobs.3OrPullPages"><b>3. Or pull pages</b>, asking again with <code>after=next</code>:</p>
 <pre class="codeblock"><code>curl "https://flyai-mine.fly.dev/api/orders/ORDER_ID/results?after=0&amp;limit=5000"
 # → {"status": "live", "next": 1042, "more": false, "outputs": [...], "rows": [{"seq": 1031, "channel": "LPLC2", "base": [...], "stim": [...]}, ...]}</code></pre>
-      <p class="caption"><b>4. Or get a webhook.</b> Batches of up to 500 rows are POSTed to your URL, with <code>"final": true</code> on the last call. They're retried until your server answers 2xx, and signed with <code>X-Flyai-Signature: t=&lt;ms&gt;,v1=HMAC-SHA256(secret, "t.body")</code>. The guide has receivers for Node and Python, paying with viem, and every field.</p>
+      <p class="caption" data-i18n-html="compute.jobs.4OrGetA"><b>4. Or get a webhook.</b> Batches of up to 500 rows are POSTed to your URL, with <code>"final": true</code> on the last call. They're retried until your server answers 2xx, and signed with <code>X-Flyai-Signature: t=&lt;ms&gt;,v1=HMAC-SHA256(secret, "t.body")</code>. The guide has receivers for Node and Python, paying with viem, and every field.</p>
     </div>
 
     <div class="card pad">
-      <span class="num">HOW IT WORKS</span>
+      <span class="num" data-i18n="compute.jobs.howItWorks">HOW IT WORKS</span>
       <ul class="caption">
-        <li><b>You pay per finished run.</b> A run counts once <b id="h-redundancy">two</b> different miners return exactly the same answer, or the server runs it itself. A miner who answers wrong loses the day. Runs the network has already done cost <b id="h-cached">—</b> and are ready at once.</li>
-        <li><b>It stops when it's done,</b> or when the budget runs out, the time limit passes, or you press Stop. What it didn't spend goes back to your balance for your next order.</li>
-        <li><b><span id="h-pool">—</span> of what you spend goes to the miners</b> through this month's pool.</li>
-        <li>Paying is one $FLYAI transfer from your wallet. The amount ends in a few extra wei so it can be matched to your order, and your wallet fills it in. Paying from your balance or stopping an order needs only your sign-in: no extra signature.</li>
-        <li>Results are spike counts for each motor group, before and during the stimulus, as CSV or JSON. Anyone with an order's link can download them.</li>
+        <li data-i18n-html="compute.jobs.youPayPerFinished"><b>You pay per finished run.</b> A run counts once <b id="h-redundancy">two</b> different miners return exactly the same answer, or the server runs it itself. A miner who answers wrong loses the day. Runs the network has already done cost <b id="h-cached">—</b> and are ready at once.</li>
+        <li data-i18n-html="compute.jobs.itStopsWhenIt"><b>It stops when it's done,</b> or when the budget runs out, the time limit passes, or you press Stop. What it didn't spend goes back to your balance for your next order.</li>
+        <li data-i18n-html="compute.jobs.ofWhatYouSpend"><b><span id="h-pool">—</span> of what you spend goes to the miners</b> through this month's pool.</li>
+        <li data-i18n="compute.jobs.payingIsOneFlyai">Paying is one $FLYAI transfer from your wallet. The amount ends in a few extra wei so it can be matched to your order, and your wallet fills it in. Paying from your balance or stopping an order needs only your sign-in: no extra signature.</li>
+        <li data-i18n="compute.jobs.resultsAreSpikeCounts">Results are spike counts for each motor group, before and during the stimulus, as CSV or JSON. Anyone with an order's link can download them.</li>
       </ul>
     </div>
   </div>

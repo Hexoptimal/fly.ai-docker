@@ -6,6 +6,7 @@
  * for the signed-in wallet (account.ts), which spends the balance and stops orders without another signature. A
  * payment sent before a reload is remembered in this browser, so the order still gets funded.
  */
+import { locale, t } from "./i18n.ts";
 import { API } from "./config.ts";
 import { compact } from "./format.ts";
 import { errorText, mined, mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, transact } from "./account.ts";
@@ -32,25 +33,19 @@ interface Order {
 }
 
 /** What each sense is, in words (world/src/eyes.ts, world/src/wiring.ts). */
-const SENSES: Record<string, string> = {
-  LPLC2: "looming", LC4: "fast looming", LPLC1: "small approaching object", LC10a: "target up close", SNta: "leg touch", none: "nothing (control)",
-};
+const SENSES: Record<string, string> = Object.fromEntries(["LPLC2", "LC4", "LPLC1", "LC10a", "SNta", "none"].map((c) => [c, t(`compute.jobs.sense.${c}`)]));
 
 const STRENGTHS = [0.1, 0.2, 0.4, 0.8];
 const PRESETS = [
-  { id: "escape", name: "Escape", text: "Something big rushes at the fly. Does the giant-fiber escape fire, and how fast does it build with the threat?", channels: ["LPLC2", "LC4", "none"] },
-  { id: "collision", name: "Collision", text: "A small object on a collision course. Which way does the fly try to turn?", channels: ["LPLC1", "none"] },
-  { id: "chase", name: "Chase", text: "A target up close, the view courtship chasing starts from. What do the legs and head do?", channels: ["LC10a", "none"] },
-  { id: "touch", name: "Touch", text: "Its legs touch something. Which reflexes kick in, on which side?", channels: ["SNta", "none"] },
-  { id: "everything", name: "Full map", text: "Every sense, on both sides, at four strengths. The whole sensory-to-motor map in one order.", channels: ["LPLC2", "LC4", "LPLC1", "LC10a", "SNta", "none"] },
-  { id: "custom", name: "Custom", text: "Set the senses, strengths and brain settings yourself under Advanced settings.", channels: null },
-] as const;
-const REPEATS = [{ n: 3, name: "Quick" }, { n: 10, name: "Solid" }, { n: 30, name: "Thorough" }];
-const MODES = [
-  { key: "brain", title: "Brain experiment", small: "ready-made: pick what the fly senses" },
-  { key: "program", title: "Your own program", small: "WebAssembly or a GPU shader: anything" },
-  { key: "embed", title: "Embeddings", small: "text in, vectors out, on miners' GPUs" },
-];
+  { id: "escape", channels: ["LPLC2", "LC4", "none"] },
+  { id: "collision", channels: ["LPLC1", "none"] },
+  { id: "chase", channels: ["LC10a", "none"] },
+  { id: "touch", channels: ["SNta", "none"] },
+  { id: "everything", channels: ["LPLC2", "LC4", "LPLC1", "LC10a", "SNta", "none"] },
+  { id: "custom", channels: null },
+].map((p) => ({ ...p, name: t(`compute.jobs.preset.${p.id}.name`), text: t(`compute.jobs.preset.${p.id}.text`) }));
+const REPEATS = [{ n: 3, name: t("compute.jobs.repeat.quick") }, { n: 10, name: t("compute.jobs.repeat.solid") }, { n: 30, name: t("compute.jobs.repeat.thorough") }];
+const MODES = ["brain", "program", "embed"].map((key) => ({ key, title: t(`compute.jobs.mode.${key}.title`), small: t(`compute.jobs.mode.${key}.small`) }));
 /** "Your own program": the uploads so far */
 const upload = { program: null as null | { hash: string; kind: "wasm" | "wgsl"; name: string }, inputs: [] as string[] };
 /** "Embeddings": the text batches uploaded so far, one job each */
@@ -59,7 +54,7 @@ const isEmbed = () => pressed("modes") === "embed";
 // embeddings are priced like any program job: by their time limit (60 s)
 const isProgram = () => pressed("modes") === "program" || isEmbed();
 const timeoutS = () => (isEmbed() ? 60 : Number(input("timeout").value || 60));
-const SPEEDS = [{ x: 1, name: "Normal" }, { x: 2, name: "Faster" }, { x: 5, name: "Fastest" }];
+const SPEEDS = [{ x: 1, name: t("compute.jobs.speedChoice.normal") }, { x: 2, name: t("compute.jobs.speedChoice.faster") }, { x: 5, name: t("compute.jobs.speedChoice.fastest") }];
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const input = (id: string) => $<HTMLInputElement>(id);
@@ -72,7 +67,7 @@ let balance = 0;
 let fullCost = 0;
 
 const fmt = (tokens: string | number) => `${compact(Number(tokens))} $${config.token_symbol}`;
-const count = (n: number) => n.toLocaleString("en-US");
+const count = (n: number) => n.toLocaleString(locale());
 const numbers = (id: string) => input(id).value.split(",").map((x) => x.trim()).filter(Boolean).map(Number);
 const store = {
   get: (): { order: string; tx: string; chain?: "base" } | null => {
@@ -115,7 +110,7 @@ function pickPreset(id: string): void {
   const preset = PRESETS.find((p) => p.id === id)!;
   press("presets", id);
   if (preset.channels) {
-    for (const box of document.querySelectorAll<HTMLInputElement>("input[name=channel]")) box.checked = (preset.channels as readonly string[]).includes(box.value);
+    for (const box of document.querySelectorAll<HTMLInputElement>("input[name=channel]")) box.checked = preset.channels.includes(box.value);
     for (const box of document.querySelectorAll<HTMLInputElement>("input[name=side]")) box.checked = true;
     input("amounts").value = STRENGTHS.join(", ");
     input("gains").value = "3";
@@ -158,7 +153,7 @@ function readSpec() {
 async function uploadFile(file: Blob): Promise<string> {
   const res = await fetch(`${API}/api/blobs`, { method: "POST", body: file });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? `upload failed: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(data.error ?? t("compute.jobs.uploadFailed", { status: res.status }));
   return data.hash;
 }
 
@@ -186,18 +181,18 @@ function programSpec() {
  * text per line. Blank lines are skipped.
  */
 function parseTexts(name: string, body: string): string[] {
-  const clean = (xs: unknown[]) => xs.map((x) => (typeof x === "string" ? x : typeof (x as { text?: unknown })?.text === "string" ? (x as { text: string }).text : "")).map((t) => t.trim()).filter(Boolean);
+  const clean = (xs: unknown[]) => xs.map((x) => (typeof x === "string" ? x : typeof (x as { text?: unknown })?.text === "string" ? (x as { text: string }).text : "")).map((s) => s.trim()).filter(Boolean);
   let texts: string[];
   if (/\.json$/i.test(name)) {
     const data = JSON.parse(body);
-    if (!Array.isArray(data)) throw new Error("a .json file should be an array of texts");
+    if (!Array.isArray(data)) throw new Error(t("compute.jobs.jsonArray"));
     texts = clean(data);
   } else if (/\.jsonl$/i.test(name)) {
     texts = clean(body.split(/\r?\n/).filter((l) => l.trim()).map((l) => JSON.parse(l)));
   } else {
     texts = clean(body.split(/\r?\n/));
   }
-  if (!texts.length) throw new Error("no texts found in that file");
+  if (!texts.length) throw new Error(t("compute.jobs.noTexts"));
   return texts;
 }
 
@@ -205,18 +200,18 @@ function parseTexts(name: string, body: string): string[] {
 function speedLabels(): void {
   const min = isProgram() ? Number(config.min_bid) * Math.ceil(timeoutS() / 30) : Number(config.min_bid);
   for (const b of $("speeds").querySelectorAll<HTMLButtonElement>(".choice")) {
-    b.querySelector("small")!.textContent = `${fmt(min * Number(b.dataset.key))} per ${isProgram() ? "job" : "run"}`;
+    b.querySelector("small")!.textContent = t(isProgram() ? "compute.jobs.perJob" : "compute.jobs.perRun", { amount: fmt(min * Number(b.dataset.key)) });
   }
 }
 
 function setMode(key: string): void {
   press("modes", key);
   const program = key === "program" || key === "embed";
-  $("headline").textContent = key === "embed" ? "Embed your texts on the network" : program ? "Run your own code on the network" : "Run an experiment on the fly brain";
+  $("headline").textContent = key === "embed" ? t("compute.jobs.headlineEmbed") : program ? t("compute.jobs.headlineProgram") : t("compute.jobs.headlineBrain");
   $("lede").textContent = key === "embed"
-    ? "Upload texts and get back one vector per text, for search, clustering or RAG. Miners' GPUs run the model, and two of them must agree on every vector. You pay in $FLYAI only for batches that finish."
+    ? t("compute.jobs.ledeEmbed")
     : program
-    ? "Upload a WebAssembly program or a GPU shader and as many inputs as you like. Miners run it in their browsers, sandboxed, and send back the outputs. You pay in $FLYAI only for jobs that finish, and most of it goes straight to the miners who ran them."
+    ? t("compute.jobs.ledeProgram")
     : $("lede").dataset.brain!;
   $("speed-card").style.gridColumn = program ? "1 / -1" : "";
   speedLabels();
@@ -258,7 +253,7 @@ async function requote(): Promise<void> {
   const n = ++quoting;
   try {
     if (isEmbed()) {
-      if (!embedUpload.inputs.length) throw new Error("Upload a text file to see the price.");
+      if (!embedUpload.inputs.length) throw new Error(t("compute.jobs.uploadTextsForPrice"));
       const speed = Number(pressed("speeds") ?? 0);
       if (speed) input("bid").value = String(Number(config.min_bid) * Math.ceil(timeoutS() / 30) * speed);
       const q = await api(API, "/api/orders/quote", null, { spec: programSpec(), bid: input("bid").value.trim() || undefined });
@@ -267,16 +262,16 @@ async function requote(): Promise<void> {
       fullCost = Number(q.full_cost);
       const budget = input("budget").value.trim();
       $("summary").innerHTML = [
-        `<b>${count(embedUpload.texts)} texts</b> in ${count(q.jobs)} batches with ${$<HTMLSelectElement>("embed-model").value}, at ${fmt(q.bid)} a batch.`,
-        budget && Number(budget) < fullCost ? `It stops after spending <b>${fmt(budget)}</b>.` : `It costs at most <b>${fmt(q.full_cost)}</b>, and ${fmt(q.full_to_pool)} goes straight to the miners who run it.`,
+        t("compute.jobs.summaryEmbed", { texts: count(embedUpload.texts), batches: count(q.jobs), model: $<HTMLSelectElement>("embed-model").value, bid: fmt(q.bid) }),
+        budget && Number(budget) < fullCost ? t("compute.jobs.stopsAfter", { amount: fmt(budget) }) : t("compute.jobs.costsAtMost", { cost: fmt(q.full_cost), pool: fmt(q.full_to_pool) }),
       ].join(" ") + dollars(fullCost);
       $("note").textContent = "";
       setButtons();
       return;
     }
     if (isProgram()) {
-      if (!upload.program) throw new Error("Upload a program to see the price.");
-      if (pressed("input-modes") === "files" && !upload.inputs.length && !input("keep-open").checked) throw new Error("Upload input files, or pick a number of jobs.");
+      if (!upload.program) throw new Error(t("compute.jobs.uploadProgramForPrice"));
+      if (pressed("input-modes") === "files" && !upload.inputs.length && !input("keep-open").checked) throw new Error(t("compute.jobs.uploadInputs"));
       // a program's lowest price grows with its time limit; the speed choice multiplies it
       const speed = Number(pressed("speeds") ?? 0);
       const min = Number(config.min_bid) * Math.ceil(timeoutS() / 30);
@@ -287,9 +282,9 @@ async function requote(): Promise<void> {
       fullCost = Number(q.full_cost);
       const budget = input("budget").value.trim();
       $("summary").innerHTML = [
-        `<b>${count(q.jobs)} jobs</b> of your ${upload.program.kind === "wasm" ? "WebAssembly program" : "GPU shader"} at ${fmt(q.bid)} each (the lowest is ${fmt(q.min_bid)} for a ${input("timeout").value} s limit).`,
-        budget && Number(budget) < fullCost ? `It stops after spending <b>${fmt(budget)}</b>.` : `It costs at most <b>${fmt(q.full_cost)}</b>, and ${fmt(q.full_to_pool)} goes straight to the miners who run it.`,
-        input("keep-open").checked ? "It stays open for more jobs from code until the budget, a time limit or Stop." : "",
+        t(upload.program.kind === "wasm" ? "compute.jobs.summaryWasm" : "compute.jobs.summaryShader", { jobs: count(q.jobs), bid: fmt(q.bid), min: fmt(q.min_bid), limit: input("timeout").value }),
+        budget && Number(budget) < fullCost ? t("compute.jobs.stopsAfter", { amount: fmt(budget) }) : t("compute.jobs.costsAtMost", { cost: fmt(q.full_cost), pool: fmt(q.full_to_pool) }),
+        input("keep-open").checked ? t("compute.jobs.staysOpen") : "",
       ].filter(Boolean).join(" ") + dollars(fullCost);
       $("note").textContent = "";
       setButtons();
@@ -302,16 +297,16 @@ async function requote(): Promise<void> {
     fullCost = Number(q.full_cost);
     const perRepeat = q.jobs / (q.spec.seeds.length || 1);
     const preset = PRESETS.find((p) => p.id === pressed("presets"));
-    const name = preset && preset.id !== "custom" ? preset.name : "your experiment";
+    const name = preset && preset.id !== "custom" ? preset.name : t("compute.jobs.yourExperiment");
     const budget = input("budget").value.trim();
     const hours = input("hours").value.trim();
     const parts = [
-      `<b>${count(q.jobs)} runs</b> of ${name} (${count(perRepeat)} conditions × ${count(q.spec.seeds.length)} repeats) at ${fmt(q.bid)} each.`,
+      t("compute.jobs.summaryBrain", { jobs: count(q.jobs), name, conditions: count(perRepeat), repeats: count(q.spec.seeds.length), bid: fmt(q.bid) }),
       budget && Number(budget) < fullCost
-        ? `It stops after spending <b>${fmt(budget)}</b> of the ${fmt(q.full_cost)} the whole experiment would cost.`
-        : `The whole experiment costs at most <b>${fmt(q.full_cost)}</b>, and ${fmt(q.full_to_pool)} of it goes to miners.`,
-      q.cached ? `${count(q.cached)} of the runs are already done, so they're cheaper and ready at once.` : "",
-      hours ? `It stops after ${hours} hours if it isn't done.` : "",
+        ? t("compute.jobs.stopsAfterOf", { amount: fmt(budget), cost: fmt(q.full_cost) })
+        : t("compute.jobs.wholeCosts", { cost: fmt(q.full_cost), pool: fmt(q.full_to_pool) }),
+      q.cached ? t("compute.jobs.cachedRuns", { count: count(q.cached) }) : "",
+      hours ? t("compute.jobs.stopsAfterHours", { hours }) : "",
     ];
     // numbers and names here come from the server's normalized spec or our own constants
     $("summary").innerHTML = parts.filter(Boolean).join(" ") + dollars(fullCost);
@@ -356,13 +351,13 @@ async function signed(order: string, action: "fund" | "stop"): Promise<Order> {
   try {
     return await api(API, `/api/orders/${order}/${action}`, null, {}, sessionHeaders());
   } catch (err) {
-    if (sessionLost(err)) throw new Error("your sign-in expired: sign in again, then retry");
+    if (sessionLost(err)) throw new Error(t("compute.jobs.expired"));
     throw err;
   }
 }
 
 const started = (o: Order) =>
-  o.status === "done" ? "Done ✓ Your results are below." : o.status === "ended" ? `Ended (${o.end_reason}).` : "Running ✓ Miners are on it; results fill in below.";
+  o.status === "done" ? t("compute.jobs.startedDone") : o.status === "ended" ? t("compute.jobs.startedEnded", { reason: o.end_reason ?? "" }) : t("compute.jobs.startedRunning");
 
 async function order(method: "flyai" | "card" | "balance", tab: Window | null = null): Promise<void> {
   const buttons = [$<HTMLButtonElement>("buy"), $<HTMLButtonElement>("buy-usdc"), $<HTMLButtonElement>("use-balance")];
@@ -375,12 +370,12 @@ async function order(method: "flyai" | "card" | "balance", tab: Window | null = 
       account = await requireWallet();
       if (!account) return;
     }
-    if (!spec) throw new Error("pick what to run first");
-    const t = terms();
+    if (!spec) throw new Error(t("compute.jobs.pickFirst"));
+    const how = terms();
     const created: Order = await api(API, "/api/orders", null, {
       ...(method === "card" ? { guest: true } : { wallet: account }),
-      spec, bid: t.bid, budget: t.budget, hours: t.hours || undefined, max_parallel: t.max_parallel || undefined,
-      webhook: t.webhook || undefined,
+      spec, bid: how.bid, budget: how.budget, hours: how.hours || undefined, max_parallel: how.max_parallel || undefined,
+      webhook: how.webhook || undefined,
     });
     if (created.webhook_secret) {
       $("secret-value").textContent = created.webhook_secret;
@@ -400,17 +395,17 @@ async function order(method: "flyai" | "card" | "balance", tab: Window | null = 
     } else {
       const amount = BigInt(created.budget_wei);
       const held = BigInt(await rpc("eth_call", [{ to: config.token, data: `0x70a08231${word(account!)}` }, "latest"]));
-      if (held < amount) throw new Error(`this wallet holds ${fmt(Number(held / 10n ** 14n) / 10_000)}; the order needs ${fmt(created.budget)}`);
+      if (held < amount) throw new Error(t("compute.jobs.holdsTooLittle", { held: fmt(Number(held / 10n ** 14n) / 10_000), needed: fmt(created.budget) }));
       const tx = await transact(config.token, config.transfer_selector + word(config.pay_to!) + word(amount), (text) => {
-        $("tx").textContent = `Pay ${fmt(created.budget)}: ${text}`;
+        $("tx").textContent = t("compute.jobs.payStep", { amount: fmt(created.budget), text });
       });
       store.set({ order: created.id, tx });
-      $("tx").textContent = "Payment sent, waiting for the chain…";
+      $("tx").textContent = t("compute.jobs.paymentSent");
       await mined(tx).catch(() => {}); // the server's own read of the chain decides
       result = await confirmPayment(created.id, tx);
     }
     $("tx").dataset.standing = "ok";
-    $("tx").textContent = method === "card" ? `Paid ✓ ${started(result)} Your order is saved in this browser, under Your orders.` : started(result);
+    $("tx").textContent = method === "card" ? t("compute.jobs.paidCard", { started: started(result) }) : started(result);
   } catch (err) {
     tab?.close();
     $("tx").dataset.standing = "zeroed";
@@ -425,7 +420,7 @@ async function order(method: "flyai" | "card" | "balance", tab: Window | null = 
 let flyaiUsd = 0;
 const usd = (n: number) => (n >= 1 ? `$${n.toFixed(2)}` : `$${n.toPrecision(2)}`);
 /** " (about $X)" after a $FLYAI amount, once the price is known */
-const dollars = (tokens: number) => (flyaiUsd && tokens ? ` That's about <b>${usd(tokens * flyaiUsd)}</b>${config.usdc?.card ? ", and you can pay by card" : ""}.` : "");
+const dollars = (tokens: number) => (flyaiUsd && tokens ? t(config.usdc?.card ? "compute.jobs.aboutDollarsCard" : "compute.jobs.aboutDollars", { usd: usd(tokens * flyaiUsd) }) : "");
 
 /** Card orders made in this browser (a guest has no wallet to list them by), newest first, with their keys. */
 const CARD_ORDERS = "flyai-compute-card-orders";
@@ -446,14 +441,14 @@ const cardOrders = {
  * wait for the server to see the payment. No wallet or signature.
  */
 async function payByCard(orderId: string, tab: Window | null, say: (text: string) => void): Promise<Order> {
-  say("Opening the secure checkout…");
+  say(t("compute.jobs.openingCheckout"));
   const c = await api(API, `/api/orders/${orderId}/card`, null, {});
   if (!tab) {
     location.href = c.url; // pop-ups blocked: go to the checkout; it brings the buyer back to this order
     return new Promise(() => {});
   }
   tab.location.href = c.url;
-  say(`Pay $${c.usdc} in the checkout tab, by card or Apple Pay. This page continues by itself when the payment arrives.`);
+  say(t("compute.jobs.payInCheckout", { usdc: c.usdc }));
   return waitForCard(orderId, say);
 }
 
@@ -463,12 +458,12 @@ async function waitForCard(orderId: string, say: (text: string) => void): Promis
     const o: Order | null = await api(API, `/api/orders/${orderId}/card`, null).catch(() => null);
     if (o) {
       if (o.status !== "unpaid" && o.status !== "expired") return o;
-      if (o.card?.state === "failed") throw new Error(`The card payment didn't go through${o.card.reason ? ` (${o.card.reason})` : ""}. You can try again.`);
-      if (i === 36) say("Still waiting for the payment. It can take a few minutes after you pay; you can leave this page open or come back later.");
+      if (o.card?.state === "failed") throw new Error(o.card.reason ? t("compute.jobs.cardFailedWhy", { reason: o.card.reason }) : t("compute.jobs.cardFailed"));
+      if (i === 36) say(t("compute.jobs.stillWaiting"));
     }
     await new Promise((r) => setTimeout(r, 5000));
   }
-  throw new Error("No payment has arrived yet. If you paid, your order still starts: check back on this page.");
+  throw new Error(t("compute.jobs.noPaymentYet"));
 }
 
 /** An order someone made from code, waiting to be paid: one button, the exact transfer, then it starts. */
@@ -481,26 +476,26 @@ async function showPayCard(id: string): Promise<void> {
     o = await api(API, `/api/orders/${id}`, null);
   } catch (err) {
     card.hidden = false;
-    $("pay-text").textContent = `Couldn't find order ${id}: ${errorText(err)}`;
+    $("pay-text").textContent = t("compute.jobs.orderNotFound", { id, error: errorText(err) });
     button.hidden = true;
     return;
   }
   card.hidden = false;
   card.scrollIntoView({ block: "start" });
-  $("pay-title").textContent = `Pay ${fmt(o.budget)}`;
-  $("pay-text").textContent = `For order ${o.id}: ${describe(o)}. Pay by card, or with $FLYAI from ${shortAddress(o.wallet)}, the wallet it was made for.`;
+  $("pay-title").textContent = t("compute.jobs.payTitle", { amount: fmt(o.budget) });
+  $("pay-text").textContent = t("compute.jobs.payText", { id: o.id, what: describe(o), wallet: shortAddress(o.wallet) });
   const usdcButton = $<HTMLButtonElement>("pay-usdc");
   const paid = () => {
     button.hidden = true;
     usdcButton.hidden = true;
     status.dataset.standing = "ok";
-    status.textContent = `Paid ✓ ${started(o)} You can go back to the program that made the order.`;
+    status.textContent = t("compute.jobs.paidBack", { started: started(o) });
   };
   if (o.status !== "unpaid" && o.status !== "expired") return paid();
   /** signed in as the order's wallet, or an error saying how to get there */
   const orderWallet = async () => {
     const wallet = await requireWallet();
-    if (wallet && wallet.toLowerCase() !== o.wallet.toLowerCase()) throw new Error(`you're signed in as ${shortAddress(wallet)}, but this order is for ${shortAddress(o.wallet)}: sign out and in with that wallet`);
+    if (wallet && wallet.toLowerCase() !== o.wallet.toLowerCase()) throw new Error(t("compute.jobs.wrongWallet", { wallet: shortAddress(wallet), orderWallet: shortAddress(o.wallet) }));
     return wallet;
   };
   if (config.usdc?.card) {
@@ -532,10 +527,10 @@ async function showPayCard(id: string): Promise<void> {
       if (!wallet) return;
       const amount = BigInt(o.budget_wei);
       const held = BigInt(await rpc("eth_call", [{ to: config.token, data: `0x70a08231${word(wallet)}` }, "latest"]));
-      if (held < amount) throw new Error(`this wallet holds ${fmt(Number(held / 10n ** 14n) / 10_000)}; the order needs ${fmt(o.budget)}`);
+      if (held < amount) throw new Error(t("compute.jobs.holdsTooLittle", { held: fmt(Number(held / 10n ** 14n) / 10_000), needed: fmt(o.budget) }));
       const tx = await transact(config.token, config.transfer_selector + word(config.pay_to!) + word(amount), (text) => { status.textContent = text; });
       store.set({ order: o.id, tx });
-      status.textContent = "Payment sent, waiting for the chain…";
+      status.textContent = t("compute.jobs.paymentSent");
       o = await confirmPayment(o.id, tx);
       paid();
       await listOrders().catch(() => {});
@@ -551,10 +546,10 @@ async function showPayCard(id: string): Promise<void> {
 // ---- orders -------------------------------------------------------------------------------------------------
 function describe(o: Order): string {
   const s = o.spec;
-  if (o.kind === "wasm" || o.kind === "wgsl") return `your ${o.kind === "wasm" ? "WebAssembly program" : "GPU shader"}`;
-  if (o.kind === "embed") return `embeddings with ${(s as unknown as { program: string }).program}`;
+  if (o.kind === "wasm" || o.kind === "wgsl") return t(o.kind === "wasm" ? "compute.jobs.describeWasm" : "compute.jobs.describeShader");
+  if (o.kind === "embed") return t("compute.jobs.describeEmbed", { model: (s as unknown as { program: string }).program });
   const senses = s.channels.map((c) => SENSES[c] ?? c).join(", ");
-  return `${senses} · ${s.seeds.length} repeat${s.seeds.length === 1 ? "" : "s"}`;
+  return t("compute.jobs.describeBrain", { senses, count: s.seeds.length });
 }
 
 const link = (href: string, text: string, className = "") => {
@@ -592,40 +587,41 @@ async function listOrders(): Promise<void> {
     .sort((a, b) => b.created_at - a.created_at);
   const list = $("orders");
   if (!shown.length) {
-    list.innerHTML = `<p class="caption">${account ? "No orders from this wallet yet." : "Orders you pay for show up here."}</p>`;
+    list.replaceChildren(Object.assign(document.createElement("p"), { className: "caption", textContent: account ? t("compute.jobs.noOrdersWallet") : t("compute.jobs.ordersShowHere") }));
     return;
   }
   list.replaceChildren(...shown.map((o) => {
     const row = document.createElement("div");
     row.className = "item";
     row.innerHTML = `<div><b class="what"></b><div class="meta"></div></div><div class="amount"></div><div class="state"></div>`;
-    (row.querySelector(".what") as HTMLElement).textContent = `${count(o.settled)} of ${count(o.jobs)} runs done`;
-    (row.querySelector(".meta") as HTMLElement).textContent = `${new Date(o.created_at).toLocaleString()} · ${describe(o)} · ${fmt(o.bid)} per run · order ${o.id}`;
+    (row.querySelector(".what") as HTMLElement).textContent = t("compute.jobs.runsDone", { settled: count(o.settled), jobs: count(o.jobs) });
+    (row.querySelector(".meta") as HTMLElement).textContent = t("compute.jobs.orderMeta", { date: new Date(o.created_at).toLocaleString(locale()), what: describe(o), bid: fmt(o.bid), id: o.id });
     // a card order in dollars: the share of what was paid that the runs have used
     const paidUsd = o.card?.state === "paid" ? Number(o.card.usdc) : 0;
     (row.querySelector(".amount") as HTMLElement).textContent = paidUsd
-      ? `$${(paidUsd * Number(o.spent) / Math.max(Number(o.budget), 1e-18)).toFixed(2)} of $${paidUsd.toFixed(2)} used`
-      : `${fmt(o.spent)} of ${fmt(o.budget)}`;
+      ? t("compute.jobs.usdUsed", { used: (paidUsd * Number(o.spent) / Math.max(Number(o.budget), 1e-18)).toFixed(2), paid: paidUsd.toFixed(2) })
+      : t("compute.jobs.spentOf", { spent: fmt(o.spent), budget: fmt(o.budget) });
     const state = row.querySelector(".state") as HTMLElement;
     const status = document.createElement("span");
     status.dataset.standing = o.status === "live" ? "unchecked" : o.status === "done" ? "ok" : "";
     status.textContent = o.status === "unpaid" || o.status === "expired"
-      ? "waiting for the card payment"
+      ? t("compute.jobs.waitingCard")
       : o.status === "live"
-      ? `running · ${o.out} with miners now${o.ends_at ? ` · stops ${new Date(o.ends_at).toLocaleString()}` : ""}`
-      : `${o.status === "done" ? "done ✓" : `ended: ${o.end_reason === "budget" ? "budget spent" : o.end_reason === "time" ? "time's up" : "stopped"}`}${o.returned && Number(o.returned) > 0 ? ` · ${fmt(o.returned)} back to balance` : ""}`;
+      ? t("compute.jobs.runningNow", { out: o.out }) + (o.ends_at ? t("compute.jobs.stopsAt", { date: new Date(o.ends_at).toLocaleString(locale()) }) : "")
+      : (o.status === "done" ? t("compute.jobs.doneMark") : t(o.end_reason === "budget" ? "compute.jobs.endedBudget" : o.end_reason === "time" ? "compute.jobs.endedTime" : "compute.jobs.endedStopped"))
+        + (o.returned && Number(o.returned) > 0 ? t("compute.jobs.backToBalance", { amount: fmt(o.returned) }) : "");
     state.append(status);
     if (o.settled) {
-      const partial = o.status === "live" ? " so far" : "";
+      const partial = o.status === "live" ? t("compute.jobs.soFar") : "";
       state.append(link(`${API}/api/orders/${o.id}/results?format=csv`, `CSV${partial}`, "btn sm"), link(`${API}/api/orders/${o.id}/results`, `JSON${partial}`, "btn sm"));
     }
     if (o.status === "live" && (!o.guest || keys.get(o.id))) {
       const stop = document.createElement("button");
       stop.type = "button";
       stop.className = "btn sm";
-      stop.textContent = "Stop";
+      stop.textContent = t("compute.jobs.stop");
       stop.addEventListener("click", () => void (async () => {
-        if (!confirm("Stop this order? Runs with miners now are dropped, and what it hasn't spent goes back to your balance.")) return;
+        if (!confirm(t("compute.jobs.confirmStop"))) return;
         stop.disabled = true;
         try {
           if (o.guest) {
@@ -635,7 +631,7 @@ async function listOrders(): Promise<void> {
             await signed(o.id, "stop");
           }
           $("tx").dataset.standing = "ok";
-          $("tx").textContent = "Stopped ✓";
+          $("tx").textContent = t("compute.jobs.stopped");
         } catch (err) {
           $("tx").dataset.standing = "zeroed";
           $("tx").textContent = errorText(err);
@@ -646,14 +642,14 @@ async function listOrders(): Promise<void> {
     }
     if (o.webhook) {
       const hook = document.createElement("span");
-      hook.textContent = o.webhook.error ? `webhook failing (${o.webhook.error}), retrying` : o.webhook.done ? "webhook delivered ✓" : "webhook on";
+      hook.textContent = o.webhook.error ? t("compute.jobs.webhookFailing", { error: o.webhook.error }) : o.webhook.done ? t("compute.jobs.webhookDelivered") : t("compute.jobs.webhookOn");
       hook.dataset.standing = o.webhook.error ? "zeroed" : "";
       state.append(hook);
     }
-    if (o.tx) state.append(link(`${config.explorer}/tx/${o.tx}`, "payment"));
-    if (o.card?.state === "paid") state.append(Object.assign(document.createElement("span"), { textContent: `paid $${o.card.usdc} by card` }));
-    else if (o.usdc_payment) state.append(link(`${o.usdc_payment.explorer}/tx/${o.usdc_payment.tx}`, `paid ${o.usdc_payment.usdc} USDC`));
-    if (o.guest) state.append(link(`${location.pathname}?order=${o.id}`, "link to this order"));
+    if (o.tx) state.append(link(`${config.explorer}/tx/${o.tx}`, t("compute.jobs.payment")));
+    if (o.card?.state === "paid") state.append(Object.assign(document.createElement("span"), { textContent: t("compute.jobs.paidByCard", { usdc: o.card.usdc }) }));
+    else if (o.usdc_payment) state.append(link(`${o.usdc_payment.explorer}/tx/${o.usdc_payment.tx}`, t("compute.jobs.paidUsdc", { usdc: o.usdc_payment.usdc })));
+    if (o.guest) state.append(link(`${location.pathname}?order=${o.id}`, t("compute.jobs.orderLink")));
     return row;
   }));
   if (shown.some((o) => o.status === "live" || o.card?.state === "open")) polling = setTimeout(() => void listOrders().catch(() => {}), 15_000);
@@ -672,14 +668,14 @@ async function boot(): Promise<void> {
   }));
   const perRun = (x: number) => fmt(Number(config.min_bid) * x);
   choiceButtons("presets", PRESETS.map((p) => ({ key: p.id, title: p.name, text: p.text, small: p.channels ? p.channels.filter((c) => c !== "none").join(" · ") : undefined })), pickPreset);
-  choiceButtons("repeats", REPEATS.map((r) => ({ key: String(r.n), title: r.name, small: `${r.n} repeats` })), pickRepeats);
-  choiceButtons("speeds", SPEEDS.map((s) => ({ key: String(s.x), title: s.name, small: `${perRun(s.x)} per run` })), pickSpeed);
+  choiceButtons("repeats", REPEATS.map((r) => ({ key: String(r.n), title: r.name, small: t("compute.jobs.repeatsSmall", { count: r.n }) })), pickRepeats);
+  choiceButtons("speeds", SPEEDS.map((s) => ({ key: String(s.x), title: s.name, small: t("compute.jobs.perRun", { amount: perRun(s.x) }) })), pickSpeed);
 
   input("warm").max = String(config.steps - 1);
   input("parallel").max = String(config.max_parallel);
-  input("parallel").placeholder = `up to ${config.max_parallel}`;
+  input("parallel").placeholder = t("compute.jobs.upTo", { count: config.max_parallel });
   input("hours").max = String(config.max_hours);
-  if (config.dt) $("job-length").textContent = `${(config.steps * config.dt).toFixed(0)} simulated seconds`;
+  if (config.dt) $("job-length").textContent = t("compute.jobs.simSeconds", { count: (config.steps * config.dt).toFixed(0) });
   const share = `${Math.round(config.pool_share * 100)}%`;
   $("pool-share").textContent = share;
   $("h-pool").textContent = share;
@@ -687,9 +683,9 @@ async function boot(): Promise<void> {
   $("h-redundancy").textContent = String(config.redundancy);
   const m = config.market;
   $("market").textContent = m.live_orders
-    ? `${m.live_orders} other order${m.live_orders === 1 ? " is" : "s are"} running now, paying up to ${fmt(m.top_bid!)} per run.`
-    : "No other orders are running, so Normal gets the whole network.";
-  if (!config.open) $("note").textContent = "Paid orders aren't open yet.";
+    ? t("compute.jobs.market", { count: m.live_orders, bid: fmt(m.top_bid!) })
+    : t("compute.jobs.marketEmpty");
+  if (!config.open) $("note").textContent = t("compute.jobs.notOpen");
 
   // editing the raw fields un-picks the choice they came from
   const advanced = document.querySelector("details.advanced")!;
@@ -704,9 +700,9 @@ async function boot(): Promise<void> {
   mountAccount();
   onAccount((wallet) => {
     account = wallet;
-    $("account").textContent = wallet ? shortAddress(wallet) : "not signed in";
+    $("account").textContent = wallet ? shortAddress(wallet) : t("compute.common.notSignedIn");
     $("account").title = wallet ?? "";
-    $("connect").textContent = wallet ? "Refresh" : "Sign in";
+    $("connect").textContent = wallet ? t("compute.common.refresh") : t("compute.common.signIn");
     // signed in or not, the list shows this browser's card orders too
     void listOrders().catch((err) => { $("note").textContent = errorText(err); });
   });
@@ -718,13 +714,13 @@ async function boot(): Promise<void> {
     void order("card", tab);
   });
   if (config.usdc) void api(API, "/api/price", null).then((p) => { flyaiUsd = p.flyai_usd; changed(); }, () => {});
-  $("key-copy").addEventListener("click", () => void navigator.clipboard.writeText($("key-value").textContent ?? "").then(() => { $("key-copy").textContent = "Copied"; }));
+  $("key-copy").addEventListener("click", () => void navigator.clipboard.writeText($("key-value").textContent ?? "").then(() => { $("key-copy").textContent = t("compute.jobs.copied"); }));
 
   // your own program
   choiceButtons("modes", MODES.map((m) => ({ key: m.key, title: m.title, small: m.small })), setMode);
   choiceButtons("input-modes", [
-    { key: "count", title: "A number of jobs", small: "each gets its job number" },
-    { key: "files", title: "Input files", small: "one job per file" },
+    { key: "count", title: t("compute.jobs.inputByCount.title"), small: t("compute.jobs.inputByCount.small") },
+    { key: "files", title: t("compute.jobs.inputByFiles.title"), small: t("compute.jobs.inputByFiles.small") },
   ], (key) => {
     press("input-modes", key);
     $("count-field").hidden = key !== "count";
@@ -748,14 +744,15 @@ async function boot(): Promise<void> {
       const size = Number($<HTMLSelectElement>("embed-batch").value);
       const limit = config.embed?.max_text_chars ?? 8000;
       for (let i = 0; i < texts.length; i += size) {
-        $("embed-status").textContent = `uploading batch ${i / size + 1} of ${Math.ceil(texts.length / size)}…`;
-        const batch = texts.slice(i, i + size).map((t) => t.slice(0, limit));
+        $("embed-status").textContent = t("compute.jobs.uploadingBatch", { n: i / size + 1, total: Math.ceil(texts.length / size) });
+        const batch = texts.slice(i, i + size).map((text) => text.slice(0, limit));
         inputs.push(await uploadFile(new Blob([JSON.stringify(batch)], { type: "application/json" })));
         if (run !== embedRun) return;
       }
       embedUpload.inputs = inputs;
       embedUpload.texts = texts.length;
-      $("embed-status").textContent = `${file.name} · ${count(texts.length)} texts in ${count(embedUpload.inputs.length)} batches${texts.some((t) => t.length > limit) ? ` · texts over ${count(limit)} characters were cut` : ""}`;
+      $("embed-status").textContent = t("compute.jobs.embedStatus", { file: file.name, texts: count(texts.length), batches: count(embedUpload.inputs.length) })
+        + (texts.some((text) => text.length > limit) ? t("compute.jobs.embedCut", { limit: count(limit) }) : "");
     } catch (err) {
       if (run !== embedRun) return;
       embedUpload.inputs = [];
@@ -770,10 +767,10 @@ async function boot(): Promise<void> {
     const file = input("program-file").files?.[0];
     if (!file) return;
     const kind = file.name.toLowerCase().endsWith(".wgsl") ? "wgsl" : "wasm";
-    $("program-status").textContent = `uploading ${file.name}…`;
+    $("program-status").textContent = t("compute.jobs.uploadingFile", { file: file.name });
     try {
       upload.program = { hash: await uploadFile(file), kind, name: file.name };
-      $("program-status").textContent = `${file.name} · ${kind === "wasm" ? "WebAssembly" : "WGSL shader"} · ${Math.ceil(file.size / 1024)} KB · checked when you order`;
+      $("program-status").textContent = t(kind === "wasm" ? "compute.jobs.programStatusWasm" : "compute.jobs.programStatusWgsl", { file: file.name, kb: Math.ceil(file.size / 1024) });
       $("gpu-fields").hidden = kind !== "wgsl";
     } catch (err) {
       upload.program = null;
@@ -786,10 +783,10 @@ async function boot(): Promise<void> {
     upload.inputs = [];
     try {
       for (const [i, f] of files.entries()) {
-        $("inputs-status").textContent = `uploading ${i + 1} of ${files.length}…`;
+        $("inputs-status").textContent = t("compute.jobs.uploadingInput", { n: i + 1, total: files.length });
         upload.inputs.push(await uploadFile(f));
       }
-      $("inputs-status").textContent = `${files.length} input${files.length === 1 ? "" : "s"} uploaded`;
+      $("inputs-status").textContent = t("compute.jobs.inputsUploaded", { count: files.length });
     } catch (err) {
       $("inputs-status").textContent = errorText(err);
     }
@@ -798,7 +795,7 @@ async function boot(): Promise<void> {
   $("lede").dataset.brain = $("lede").textContent ?? "";
   input("timeout").addEventListener("input", speedLabels);
   for (const id of ["count", "timeout", "redundancy", "dispatch-x", "dispatch-y", "dispatch-z", "output-bytes", "tolerance", "keep-open"]) $(id).addEventListener("input", changed);
-  $("secret-copy").addEventListener("click", () => void navigator.clipboard.writeText($("secret-value").textContent ?? "").then(() => { $("secret-copy").textContent = "Copied"; }));
+  $("secret-copy").addEventListener("click", () => void navigator.clipboard.writeText($("secret-value").textContent ?? "").then(() => { $("secret-copy").textContent = t("compute.jobs.copied"); }));
   $("use-balance").addEventListener("click", () => void order("balance"));
 
   press("modes", "brain");
@@ -814,8 +811,8 @@ async function boot(): Promise<void> {
     void api(API, `/api/orders/${saved}/card`, null).then((o: Order) => {
       if (o.card?.state !== "open" || (o.status !== "unpaid" && o.status !== "expired")) return;
       const say = (text: string) => { delete $("tx").dataset.standing; $("tx").textContent = text; };
-      say("Checking your card payment…");
-      return waitForCard(saved, say).then((paidOrder) => { $("tx").dataset.standing = "ok"; $("tx").textContent = `Paid ✓ ${started(paidOrder)}`; });
+      say(t("compute.jobs.checkingCard"));
+      return waitForCard(saved, say).then((paidOrder) => { $("tx").dataset.standing = "ok"; $("tx").textContent = t("compute.jobs.paidShort", { started: started(paidOrder) }); });
     }).catch((err) => { $("tx").dataset.standing = "zeroed"; $("tx").textContent = errorText(err); }).finally(() => void listOrders().catch(() => {}));
   }
 
@@ -826,10 +823,10 @@ async function boot(): Promise<void> {
   // a payment sent before a reload
   const pending = store.get();
   if (pending) {
-    $("tx").textContent = "Finishing a payment sent earlier…";
+    $("tx").textContent = t("compute.jobs.finishingEarlier");
     confirmPayment(pending.order, pending.tx, pending.chain).then(
-      (o) => { $("tx").dataset.standing = "ok"; $("tx").textContent = `Earlier payment confirmed. ${started(o)}`; },
-      (err) => { store.set(null); $("tx").dataset.standing = "zeroed"; $("tx").textContent = `An earlier payment couldn't be matched: ${errorText(err)}`; },
+      (o) => { $("tx").dataset.standing = "ok"; $("tx").textContent = t("compute.jobs.earlierConfirmed", { started: started(o) }); },
+      (err) => { store.set(null); $("tx").dataset.standing = "zeroed"; $("tx").textContent = t("compute.jobs.earlierFailed", { error: errorText(err) }); },
     );
   }
 }

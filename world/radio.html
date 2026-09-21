@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-ns="radio">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fly Radio</title>
-<meta name="description" content="A radio station played by a real 166,700-neuron fruit-fly connectome, running live in your browser. Four shows, five flies, nothing pre-rendered or looped.">
+<title data-i18n="radio.meta.title">Fly Radio</title>
+<meta name="description" content="A radio station played by a real 166,700-neuron fruit-fly connectome, running live in your browser. Four shows, five flies, nothing pre-rendered or looped." data-i18n-attr="content:radio.meta.description">
 <meta property="og:title" content="Fly Radio">
 <meta property="og:description" content="A radio station played by a real fruit-fly connectome, running live in your browser.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/radio/">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -229,22 +230,22 @@
 
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">Live now &middot; Fly Radio</p>
-    <h1 class="display">Fly <span class="accent">Radio</span></h1>
-    <p class="lede">Four shows, five flies, the real 166,700-neuron connectome, running live in your browser.
+    <p class="eyebrow" data-i18n-html="radio.head.eyebrow">Live now &middot; Fly Radio</p>
+    <h1 class="display" data-i18n-html="radio.head.title">Fly <span class="accent">Radio</span></h1>
+    <p class="lede" data-i18n-html="radio.head.lede">Four shows, five flies, the real 166,700-neuron connectome, running live in your browser.
       Every buzz you hear is that brain's own wing-motor-neuron activity, played the instant
       it's measured &mdash; nothing pre-rendered, nothing looped.</p>
-    <p class="status-line"><span class="dot"></span>station status: <span id="status" class="mono">press Tune in</span></p>
+    <p class="status-line"><span class="dot"></span><span data-i18n="radio.head.statusLabel">station status:</span> <span id="status" class="mono">press Tune in</span></p>
   </div>
 </header>
 
 <section class="firstsec">
   <div class="wrap">
     <div class="stage">
-      <div class="card pad" id="radio-unit" aria-label="Radio">
+      <div class="card pad" id="radio-unit" aria-label="Radio" data-i18n-attr="aria-label:radio.unit.label">
         <div class="scene">
-          <span class="on-air-sign" id="on-air-sign">ON AIR</span>
-          <svg viewBox="0 0 480 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A fly sitting at a desk, talking into a microphone">
+          <span class="on-air-sign" id="on-air-sign" data-i18n="radio.unit.onAir">ON AIR</span>
+          <svg viewBox="0 0 480 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A fly sitting at a desk, talking into a microphone" data-i18n-attr="aria-label:radio.unit.scene">
             <!-- back wall -->
             <rect x="0" y="0" width="480" height="230" fill="var(--surface-2)"/>
             <!-- desk -->
@@ -288,7 +289,7 @@
         </div>
 
         <div class="tuner-wrap">
-          <div class="tuner-ticks" id="tuner-ticks" role="tablist" aria-label="Select channel"></div>
+          <div class="tuner-ticks" id="tuner-ticks" role="tablist" aria-label="Select channel" data-i18n-attr="aria-label:radio.unit.channels"></div>
         </div>
 
         <div class="now-row">
@@ -298,21 +299,21 @@
             <div class="cast-list" id="np-cast"></div>
           </div>
           <div class="tune">
-            <button id="tune-btn" class="btn red">Tune in</button>
+            <button id="tune-btn" class="btn red" data-i18n="radio.unit.tuneIn">Tune in</button>
             <canvas id="vu" width="180" height="44"></canvas>
           </div>
         </div>
       </div>
 
-      <div class="card pad translation-panel" id="translation-panel" aria-label="Live translation">
-        <p class="eyebrow">Translation &mdash; live decoded reading</p>
+      <div class="card pad translation-panel" id="translation-panel" aria-label="Live translation" data-i18n-attr="aria-label:radio.captions.label">
+        <p class="eyebrow" data-i18n-html="radio.captions.title">Translation &mdash; live decoded reading</p>
         <div class="captions" id="captions">
-          <div class="empty-hint">Captions appear once you've tuned in.</div>
+          <div class="empty-hint" data-i18n="radio.captions.before">Captions appear once you've tuned in.</div>
         </div>
       </div>
     </div>
 
-    <p class="radio-note">
+    <p class="radio-note" data-i18n-html="radio.note">
       Every buzz above is real: the amplitude comes straight from the actual 166,700-neuron
       MaleCNS connectome, downloaded once (58&nbsp;MB, the same files as the Simulation) and
       stepped live on your device &mdash; specifically each cast member's own wing-motor-neuron

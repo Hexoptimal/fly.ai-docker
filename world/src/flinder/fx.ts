@@ -3,6 +3,7 @@
  * swatter jump scare. All cosmetic: nothing here decides anything.
  */
 import type { Ending, Reply } from "./readout.ts";
+import { t } from "./i18n.ts";
 
 const anyOf = <T>(xs: readonly T[]) => xs[Math.floor(Math.random() * xs.length)];
 
@@ -68,18 +69,18 @@ export class Fx {
     ov.className = `fx-ov fx-${end}`;
     if (end === "ghosted") {
       faded.classList.add("faded");
-      ov.innerHTML = `<span class="big ghost">👻</span><span class="fx-stamp">GHOSTED</span>`;
+      ov.innerHTML = `<span class="big ghost">👻</span><span class="fx-stamp">${t("flinder.fx.ghosted")}</span>`;
     } else if (end === "unmatched") {
-      ov.innerHTML = `<span class="heartbreak"><i>❤️</i><i>❤️</i></span><span class="fx-stamp">UNMATCHED</span>`;
+      ov.innerHTML = `<span class="heartbreak"><i>❤️</i><i>❤️</i></span><span class="fx-stamp">${t("flinder.fx.unmatched")}</span>`;
       this.shake();
     } else if (end === "date") {
-      ov.innerHTML = `<span class="kiss"><img alt=""><b>💋</b><img alt=""></span><span class="fx-stamp">IT'S A DATE 📍</span>`;
+      ov.innerHTML = `<span class="kiss"><img alt=""><b>💋</b><img alt=""></span><span class="fx-stamp">${t("flinder.fx.date")}</span>`;
       const [a, b] = ov.querySelectorAll("img");
       a.src = pics[0]; b.src = pics[1];
       const x = this.phone.clientWidth / 2, y = this.phone.clientHeight / 2;
       for (let k = 0; k < 3; k++) setTimeout(() => this.burst(["🍌", "🪰", "💖", "🎉", "🍷"], 10, x, y, 180), k * 350 / this.speed());
     } else {
-      ov.innerHTML = `<span class="big">💬</span><span class="fx-stamp">STILL TEXTING</span>`;
+      ov.innerHTML = `<span class="big">💬</span><span class="fx-stamp">${t("flinder.fx.texting")}</span>`;
     }
     this.phone.appendChild(ov);
     await this.wait(2300);
@@ -101,7 +102,7 @@ export class Fx {
   async swatter(): Promise<void> {
     const ov = document.createElement("div");
     ov.className = "fx-ov fx-swat";
-    ov.innerHTML = `<span class="paper">🗞️</span><span class="fx-stamp">SWAT!</span><small>swipe session interrupted</small>`;
+    ov.innerHTML = `<span class="paper">🗞️</span><span class="fx-stamp">${t("flinder.fx.swat")}</span><small>${t("flinder.fx.swatSub")}</small>`;
     this.phone.appendChild(ov);
     await this.wait(250);
     this.shake();

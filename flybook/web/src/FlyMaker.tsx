@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { createFly, getConfig, type Config } from "./api";
 import { tuning, type FlySettings, type Patch } from "./feed";
 import { NATURAL, StylePicker, styleBody, type Style } from "./TradingStyle";
+import { t, tOr } from "./i18n";
 
 const COLORS = ["#e0342c", "#3ddc84", "#6cc4d8", "#f2b544", "#c77dff", "#ff7eb6", "#8bd450", "#ff9f5a"];
 const fromProfile = (s: Partial<FlySettings> = {}): FlySettings => ({
@@ -89,87 +90,85 @@ export default function FlyMaker({ patches, canHatch, onClose, onCreated, claim 
     <div className="modal-bg" onMouseDown={onClose}>
       <div className="modal" role="dialog" aria-modal="true" aria-labelledby="maker-title" onMouseDown={(e) => e.stopPropagation()}>
         <header className="modal-head">
-          <h3 id="maker-title">{canHatch ? "Hatch a fly" : "Fly profiles"}</h3>
-          <button className="more" type="button" onClick={onClose}>close ✕</button>
+          <h3 id="maker-title">{t(canHatch ? "flybook.maker.hatchTitle" : "flybook.maker.profilesTitle")}</h3>
+          <button className="more" type="button" onClick={onClose}>{t("flybook.maker.close")}</button>
         </header>
         <div className="modal-scroll">
-        <p className="modal-lede">
-          Every fly runs the same mapped connectome. A profile sets how strongly its senses reach the brain, its temperament,
-          and which neuron groups are switched off or pushed. Then watch what it posts, and whether it reads the world right.
-        </p>
+        <p className="modal-lede">{t("flybook.maker.lede")}</p>
 
-        {!spec && !error && <p className="fine">Loading settings…</p>}
+        {!spec && !error && <p className="fine">{t("flybook.maker.loading")}</p>}
         {!spec && error && <p className="err">{error}</p>}
 
         {spec && (
           <form id="maker-form" onSubmit={submit}>
-            <h4 className="step">1. Pick a profile</h4>
+            <h4 className="step">{t("flybook.maker.step1")}</h4>
             <div className="profiles">
               {spec.presets.map((p) => {
                 const list = tuning(fromProfile(p.settings));
                 return (
                   <button type="button" key={p.key} className={`profile${profile === p.key ? " on" : ""}`} onClick={() => pickProfile(p.key)}>
-                    <b>{p.label}</b>
-                    <span>{p.help}</span>
-                    <small>{list.length ? list.join(" · ") : "no changes"}</small>
+                    <b>{tOr(`flybook.config.presets.${p.key}.label`, p.label)}</b>
+                    <span>{tOr(`flybook.config.presets.${p.key}.help`, p.help)}</span>
+                    <small>{list.length ? list.join(" · ") : t("flybook.maker.noChanges")}</small>
                   </button>
                 );
               })}
             </div>
 
-            <h4 className="step">2. Name it and give it a home</h4>
+            <h4 className="step">{t("flybook.maker.step2")}</h4>
             <div className="identity">
               <label className="field">
-                <span>Name</span>
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Buzz Aldrin" maxLength={40} required={canHatch} />
+                <span>{t("flybook.maker.name")}</span>
+                <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("flybook.maker.namePlaceholder")} maxLength={40} required={canHatch} />
               </label>
               <div className="field">
-                <span>Colour</span>
+                <span>{t("flybook.maker.colour")}</span>
                 <div className="swatches">
                   {COLORS.map((c) => (
                     <button type="button" key={c} className={c === color ? "on" : ""} style={{ background: c }}
-                            onClick={() => setColor(c)} aria-label={`colour ${c}`} />
+                            onClick={() => setColor(c)} aria-label={t("flybook.maker.colourLabel", { c })} />
                   ))}
                 </div>
               </div>
               <label className="field">
-                <span>Home patch</span>
+                <span>{t("flybook.maker.homePatch")}</span>
                 <select value={patch} onChange={(e) => setPatch(e.target.value)}>
                   {patches.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
-                {home && <small>{home.blurb} It decides what tends to happen to your fly each tick.</small>}
+                {home && <small>{t("flybook.maker.patchNote", { blurb: home.blurb })}</small>}
               </label>
             </div>
 
             <button type="button" className="step toggle" onClick={() => setAdvanced(!advanced)} aria-expanded={advanced}>
-              3. Fine-tune {advanced ? "▾" : "▸"} <small>{profile ? "optional" : "custom settings"}</small>
+              {t("flybook.maker.step3")} {advanced ? "▾" : "▸"} <small>{t(profile ? "flybook.maker.optional" : "flybook.maker.customSettings")}</small>
             </button>
             {advanced && (
               <div className="maker-grid">
                 <section>
-                  <h4>Senses</h4>
+                  <h4>{t("flybook.maker.senses")}</h4>
                   {spec.senses.map((s) => (
-                    <Slider key={s.key} label={s.label} help={s.help} min={spec.sense_range[0]} max={spec.sense_range[1]}
+                    <Slider key={s.key} label={tOr(`flybook.config.senses.${s.key}.label`, s.label)} help={tOr(`flybook.config.senses.${s.key}.help`, s.help)} min={spec.sense_range[0]} max={spec.sense_range[1]}
                             value={tune.senses[s.key] ?? 1} onChange={(v) => setValue("senses", s.key, v)} />
                   ))}
                 </section>
                 <section>
-                  <h4>Temperament</h4>
-                  {spec.temperament.map((t) => (
-                    <Slider key={t.key} label={t.label} help={t.help} min={t.min} max={t.max}
-                            value={tune.temperament[t.key] ?? 1} onChange={(v) => setValue("temperament", t.key, v)} />
+                  <h4>{t("flybook.maker.temperament")}</h4>
+                  {spec.temperament.map((x) => (
+                    <Slider key={x.key} label={tOr(`flybook.config.temperament.${x.key}.label`, x.label)}
+                            help={tOr(`flybook.config.temperament.${x.key}.help`, x.help)} min={x.min} max={x.max}
+                            value={tune.temperament[x.key] ?? 1} onChange={(v) => setValue("temperament", x.key, v)} />
                   ))}
                 </section>
                 <section>
-                  <h4>Neuron groups</h4>
+                  <h4>{t("flybook.maker.neuronGroups")}</h4>
                   {spec.dials.map((d) => (
                     <div className="dial" key={d.key}>
-                      <span className="dial-name">{d.label}<small>{d.help}</small></span>
-                      <div className="seg" role="group" aria-label={d.label}>
+                      <span className="dial-name">{tOr(`flybook.config.dials.${d.key}.label`, d.label)}<small>{tOr(`flybook.config.dials.${d.key}.help`, d.help)}</small></span>
+                      <div className="seg" role="group" aria-label={tOr(`flybook.config.dials.${d.key}.label`, d.label)}>
                         {spec.dial_levels.map((level) => (
                           <button type="button" key={level} className={(tune.dials[d.key] ?? "normal") === level ? "on" : ""}
                                   onClick={() => setDial(d.key, level)}>
-                            {level}
+                            {tOr(`flybook.config.levels.${level}`, level)}
                           </button>
                         ))}
                       </div>
@@ -180,12 +179,11 @@ export default function FlyMaker({ patches, canHatch, onClose, onCreated, claim 
             )}
 
             <button type="button" className="step toggle" onClick={() => setTradeOpen(!tradeOpen)} aria-expanded={tradeOpen}>
-              4. Trading style {tradeOpen ? "▾" : "▸"} <small>{styleBody(trade) ? "custom" : "optional · fly market"}</small>
+              {t("flybook.maker.step4")} {tradeOpen ? "▾" : "▸"} <small>{t(styleBody(trade) ? "flybook.maker.custom" : "flybook.maker.optionalMarket")}</small>
             </button>
             {tradeOpen && (
               <div className="maker-style">
-                <p className="fine">In the fly market (holders' flies) your fly trades fake coins with its real brain. Pick how much it
-                  risks and what it learns with. You can change it later in My flies.</p>
+                <p className="fine">{t("flybook.maker.styleNote")}</p>
                 <StylePicker value={trade} onChange={setTrade} />
               </div>
             )}
@@ -197,11 +195,11 @@ export default function FlyMaker({ patches, canHatch, onClose, onCreated, claim 
         {spec && (
           <footer className="modal-foot">
             <span className="fine">
-              {changes.length === 0 ? "A standard fly." : `Changes: ${changes.join(", ")}.`}
-              {canHatch ? " It starts posting from the next tick." : " Sign in to hatch it."}
+              {changes.length === 0 ? t("flybook.maker.standardFly") : t("flybook.maker.changes", { list: changes.join(", ") })}
+              {t(canHatch ? "flybook.maker.startsPosting" : "flybook.maker.signInToHatch")}
             </span>
             <button className="btn red" form="maker-form" disabled={!canHatch || busy || !name.trim() || !patch}>
-              {busy ? "Hatching…" : "Hatch fly"}
+              {t(busy ? "flybook.maker.hatching" : "flybook.maker.hatch")}
             </button>
           </footer>
         )}

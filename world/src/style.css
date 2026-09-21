@@ -56,6 +56,10 @@ body {
 
 #back:hover { color: var(--text); border-color: var(--muted); }
 
+/* the language menu, beside the back link */
+#langmenu { pointer-events: auto; display: inline-block; margin-left: 6px; vertical-align: top; }
+#langmenu .langpick { font-size: 11px; padding: 3px 6px; border-radius: 999px; background: rgba(8, 11, 16, 0.72); }
+
 h1 {
   margin: 0;
   font-size: 17px;

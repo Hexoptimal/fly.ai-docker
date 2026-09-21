@@ -6,6 +6,7 @@
 import { toCsv, type Row } from "./datalog.ts";
 import { openReport, regression, TRAITS } from "./report.ts";
 import type { World } from "./sim.ts";
+import { keyOf, t, tx } from "./i18n.ts";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -48,7 +49,7 @@ function lines(g: CanvasRenderingContext2D, series: Series[], min: number, max: 
   }
   if (n < 2) {
     g.fillStyle = "#4a5666";
-    g.fillText("collecting…", 8, H / 2);
+    g.fillText(t("sim.data.collecting"), 8, H / 2);
     return;
   }
   const x = (i: number) => (W * i) / (n - 1);
@@ -105,7 +106,7 @@ export class DataPanel {
     mb.addEventListener("change", () => { if (!this.remote) world.learning.mb = mb.checked; });
 
     const pick = $<HTMLSelectElement>("traitPick");
-    for (const t of TRAITS) pick.add(new Option(t.label, t.key));
+    for (const tr of TRAITS) pick.add(new Option(tx(`sim.data.trait.${tr.key}`, tr.label), tr.key));
     pick.addEventListener("change", () => { this.trait = pick.value; this.update(); });
 
     const stamp = () => `t${Math.round(world.time)}s`;
@@ -139,22 +140,23 @@ export class DataPanel {
     const col = (k: string) => rows.map((r) => Number(r[k]));
 
     lines(this.groups, [
-      { values: col("share_in_groups"), color: "#6cf08a", label: "share in groups (0-1)" },
-      { values: col("aggregation"), color: "#3ed8ff", label: "nearest-neighbour ratio" },
-    ], 0, 1.6, { at: 1, label: "random placement = 1" });
+      { values: col("share_in_groups"), color: "#6cf08a", label: t("sim.data.shareInGroups") },
+      { values: col("aggregation"), color: "#3ed8ff", label: t("sim.data.nnRatio") },
+    ], 0, 1.6, { at: 1, label: t("sim.data.random") });
 
     lines(this.drift, [
-      { values: col("mean_drift").map((v) => v * 100), color: "#ffb23e", label: "mean synapse change %" },
-      { values: col("max_drift").map((v) => v * 100), color: "#ff7a7a", label: "most-changed fly %" },
+      { values: col("mean_drift").map((v) => v * 100), color: "#ffb23e", label: t("sim.data.meanDrift") },
+      { values: col("max_drift").map((v) => v * 100), color: "#ff7a7a", label: t("sim.data.maxDrift") },
     ], 0, Math.max(5, Math.ceil(Math.max(0, ...col("max_drift")) * 100)));
 
     const last = rows.at(-1);
-    $("datanow").textContent = last ? `${last.clock} · learning ${last.learning}` : "—";
+    $("datanow").textContent = last ? t("sim.data.now", { clock: String(last.clock), learning: String(last.learning) }) : "—";
     $("groupNote").innerHTML = last
-      ? `<span>groups <b>${last.groups}</b></span><span>largest <b>${last.largest_group}</b></span>` +
-        `<span>in a group <b>${Math.round(Number(last.share_in_groups) * 100)}%</b></span>` +
-        `<span>of those at food <b>${Math.round(Number(last.grouped_at_food) * 100)}%</b></span>` +
-        `<span>ratio <b>${Number(last.aggregation).toFixed(2)}</b> (below 1 = gathered)</span>`
+      ? t("sim.data.groupNote", {
+        groups: String(last.groups), largest: String(last.largest_group),
+        inGroup: Math.round(Number(last.share_in_groups) * 100), atFood: Math.round(Number(last.grouped_at_food) * 100),
+        ratio: Number(last.aggregation).toFixed(2),
+      })
       : "";
 
     this.renderFates();
@@ -163,29 +165,32 @@ export class DataPanel {
   }
 
   private renderFates(): void {
-    const counts = new Map<string, number>();
+    // label -> [count, colour]: green became an adult, amber still growing, red died
+    const counts = new Map<string, [number, string]>();
+    const stage = (v: unknown) => tx(`sim.data.stage.${v}`, String(v));
     for (const b of this.world.log.brood.values()) {
-      const key = b.fate === "died" ? `died: ${b.cause} (${b.stage})` : b.fate === "emerged" ? "became an adult" : `still ${b.fate}`;
-      counts.set(key, (counts.get(key) ?? 0) + 1);
+      const [key, color] = b.fate === "died"
+        ? [t("sim.data.died", { cause: tx(`sim.data.cause.${keyOf(String(b.cause))}`, String(b.cause)), stage: stage(b.stage) }), "#ff7a7a"]
+        : b.fate === "emerged" ? [t("sim.data.emerged"), "#6cf08a"] : [t("sim.data.still", { fate: stage(b.fate) }), "#ffb23e"];
+      counts.set(key, [(counts.get(key)?.[0] ?? 0) + 1, color]);
     }
-    const total = [...counts.values()].reduce((a, b) => a + b, 0);
-    const color = (k: string) => (k.startsWith("became") ? "#6cf08a" : k.startsWith("still") ? "#ffb23e" : "#ff7a7a");
-    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const total = [...counts.values()].reduce((a, [n]) => a + n, 0);
+    const sorted = [...counts.entries()].sort((a, b) => b[1][0] - a[1][0]);
     $("broodBars").innerHTML = total
-      ? sorted.map(([k, v]) => `<div><span>${k}</span><i style="width:${(100 * v) / total}%;background:${color(k)}"></i><b>${v}</b></div>`).join("")
-      : `<div class="note">no eggs laid yet</div>`;
+      ? sorted.map(([k, [v, color]]) => `<div><span>${k}</span><i style="width:${(100 * v) / total}%;background:${color}"></i><b>${v}</b></div>`).join("")
+      : `<div class="note">${t("sim.data.noEggs")}</div>`;
   }
 
   private renderHeritability(): void {
     const g = this.herit;
-    const t = TRAITS.find((x) => x.key === this.trait)!;
-    const pts = regression(this.world, t.key);
+    const trait = TRAITS.find((x) => x.key === this.trait)!;
+    const pts = regression(this.world, trait.key);
     g.fillStyle = "#0a0d12";
     g.fillRect(0, 0, W, H);
     g.font = "9px ui-monospace, monospace";
     if (pts.n < 3) {
       g.fillStyle = "#4a5666";
-      g.fillText(`waiting for families: ${pts.n} flies with both parents known`, 8, H / 2);
+      g.fillText(t("sim.data.waitFamilies", { n: pts.n }), 8, H / 2);
       $("heritNote").textContent = "";
       return;
     }
@@ -206,10 +211,10 @@ export class DataPanel {
     g.lineTo(sx(hi), sy(pts.intercept + pts.slope * hi));
     g.stroke();
     g.fillStyle = "#6b7684";
-    g.fillText("parents' average →", W - 100, H - 3);
-    g.fillText("child ↑", 2, 10);
-    $("heritNote").innerHTML = `${pts.n} children · slope <b>${pts.slope.toFixed(2)}</b> · r <b>${pts.r.toFixed(2)}</b> ` +
-      `(slope 1 = children match their parents, 0 = no resemblance; dashed = equal)`;
+    const xAxis = t("sim.data.parentsAxis");
+    g.fillText(xAxis, W - g.measureText(xAxis).width - 4, H - 3);
+    g.fillText(t("sim.data.childAxis"), 2, 10);
+    $("heritNote").innerHTML = t("sim.data.heritNote", { n: pts.n, slope: pts.slope.toFixed(2), r: pts.r.toFixed(2) });
   }
 
   private renderSocial(): void {
@@ -220,9 +225,9 @@ export class DataPanel {
     rows.sort((a, b) => (b.label === "enemies" ? Number(b.tension) : Number(b.near_s)) - (a.label === "enemies" ? Number(a.tension) : Number(a.near_s)));
     const icon: Record<string, string> = { friends: "🤝", enemies: "⚔️", mates: "♥" };
     $("socialNow").innerHTML =
-      `<div class="kv">${Object.entries(counts).map(([k, v]) => `<span>${k} <b>${v}</b></span>`).join("")}</div>` +
+      `<div class="kv">${Object.entries(counts).map(([k, v]) => `<span>${tx(`sim.data.rel.${k}`, k)} <b>${v}</b></span>`).join("")}</div>` +
       `<div class="pairs">${rows.slice(0, 6).map((r) =>
-        `<div><span>${icon[String(r.label)]} ${r.a_name} &amp; ${r.b_name}</span><span>${r.label === "enemies" ? `${r.tension} clashes` : `${Math.round(Number(r.near_s))} s together`}</span></div>`).join("")}</div>` +
-      (alive.size && !rows.length ? `<div class="note">no friends or enemies among the living yet</div>` : "");
+        `<div><span>${icon[String(r.label)]} ${r.a_name} &amp; ${r.b_name}</span><span>${r.label === "enemies" ? t("sim.data.clashes", { n: String(r.tension) }) : t("sim.data.together", { n: Math.round(Number(r.near_s)) })}</span></div>`).join("")}</div>` +
+      (alive.size && !rows.length ? `<div class="note">${t("sim.data.noFriends")}</div>` : "");
   }
 }

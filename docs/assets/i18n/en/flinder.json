@@ -1,0 +1,238 @@
+{
+  "meta": {
+    "title": "Flinder",
+    "description": "Tinder for flies. A real 166,700-neuron fly brain, running in your browser, swipes through dating profiles: its pC1 mating-drive neurons decide left or right. It's a match when the other fly's brain swipes right too."
+  },
+  "head": {
+    "title": "Fl<span>inder</span>",
+    "sub": "Tinder for flies. A real fly brain swipes through dating profiles and its mating-drive neurons say left or right. If the other fly's brain swipes right too, it's a match."
+  },
+  "status": {
+    "loading": "loading the fly brain…",
+    "progress": "loading the fly brain: {text}",
+    "error": "couldn't load the brain: {text}",
+    "ready": "brain ready · {n} neurons",
+    "labels": "labels",
+    "brain": "fly brain",
+    "wiring": "wiring 25 M synapses"
+  },
+  "phone": {
+    "swiping": "swiping:",
+    "nope": "Nope",
+    "superLike": "Super like",
+    "like": "Like",
+    "back": "Back",
+    "match": "It's a Match!"
+  },
+  "controls": {
+    "start": "Start swiping",
+    "pause": "Pause",
+    "keepGoing": "Keep swiping",
+    "newFly": "New fly",
+    "speedNormal": "Speed: normal",
+    "speedFast": "Speed: fast",
+    "soundOn": "Sound: on",
+    "soundOff": "Sound: off"
+  },
+  "swiper": {
+    "title": "The swiper",
+    "statsCard": "📸 Stats card",
+    "post": "𝕏 Post",
+    "challenge": "🔗 Challenge a friend",
+    "note": "Its own profile is what the other flies' brains judge. Send the link and a friend runs this same fly. Beat its score.",
+    "nameAge": "{name}, {age}d",
+    "stats": "{swipes} swipes · {matches} matches · {dates} dates · 👻 {ghosted} · 💔 {unmatched} · ⭐ {supers}"
+  },
+  "meter": {
+    "title": "Inside its head",
+    "nobodyYet": "nobody yet",
+    "intoIt": "Into it",
+    "pc1": "pC1 neurons",
+    "swipeRight": "swipe right",
+    "superLike": "super like",
+    "panic": "Panic",
+    "giantFibre": "giant fibre",
+    "spooked": "spooked",
+    "grooming": "Grooming",
+    "blushing": "Blushing",
+    "note": "Spikes from the fly's real 166,700-neuron connectome, running in your browser. It smells each profile (cVA, Or47b, vinegar), sees it (LC10a) and hears it (Johnston's organ). Past the first line it swipes right, past the second it's a super like. In a chat each message is sensed the same way: pC1 flirts back, a fly coming on too strong trips the giant fibre and it bails, and a bored brain grooms its antennae.",
+    "thinking": "thinking…",
+    "typing": "typing…",
+    "reads": "{name} reads…",
+    "superLikeV": "SUPER LIKE ⭐",
+    "rightV": "SWIPED RIGHT ♥",
+    "leftV": "SWIPED LEFT ✕"
+  },
+  "panels": {
+    "matches": "Matches",
+    "matchesTap": "Tap one to read their chat.",
+    "noMatches": "no matches yet",
+    "board": "Heartbreak board",
+    "boardNote": "The flies you've run in this browser.",
+    "boardEmpty": "run a fly to get on the board",
+    "noHeartbreaks": "no heartbreaks yet",
+    "swipes": "Swipes"
+  },
+  "tally": "all time here: {swipes} swipes · {matches} matches · {dates} dates",
+  "card": {
+    "like": "LIKE",
+    "nope": "NOPE",
+    "super": "SUPER<br>LIKE",
+    "mosquito": "⚠️ possible mosquito",
+    "rival": "👀 smells like another fly",
+    "age": "{age}d",
+    "meta": "{job} · {cm} cm away"
+  },
+  "match": {
+    "bot": "You matched with a mosquito. Good luck 🩸",
+    "super": "{name} got super liked and said yes 😳",
+    "mutual": "You and {name} like each other.",
+    "log": "💖 match with {name}"
+  },
+  "chat": {
+    "ex": "your ex 💀",
+    "earlier": "matched earlier",
+    "bot": "⚠️ this account may be a mosquito",
+    "justNow": "matched just now",
+    "anEx": "an ex",
+    "superLike": "super like",
+    "nervous": "nervous",
+    "unsent": "🚫 message unsent",
+    "stoppedTyping": "stopped typing…",
+    "giantFibre": "giant fibre {n}",
+    "grooming": "grooming {n}",
+    "exBack": "🔁 {name} is back in the DMs"
+  },
+  "reply": {
+    "flirt": "flirt",
+    "spooked": "spooked",
+    "groom": "groom",
+    "dry": "dry"
+  },
+  "verdict": {
+    "flirt": "FLIRTS 😘",
+    "spooked": "SPOOKED 😱",
+    "groom": "GROOMING 🧼",
+    "dry": "DRY 😐"
+  },
+  "end": {
+    "date": "📍 Date set: {place}, {time}",
+    "texting": "💬 still texting…",
+    "unmatchedYou": "💔 {name} unmatched you",
+    "youUnmatched": "💔 you unmatched {name}",
+    "ghostedYou": "👻 {name} ghosted you",
+    "youGhosted": "👻 you ghosted {name}",
+    "seen": "Seen ✓✓ {time} AM",
+    "places": ["the rotten banana", "the dumpster behind the pizza place", "the kitchen lamp", "a wine glass left out overnight", "the fruit bowl", "grandma's jam jar"],
+    "times": ["8pm", "sunset", "right now", "tomorrow at dawn", "after the lights go off"]
+  },
+  "date": {
+    "log": "🌙 date night: {how}",
+    "together": ["flew off into the sunset together 💕", "moved in together. behind the fridge", "posting couple pics on Flybook now"],
+    "bailed": ["one of them bailed through the window 💨", "left mid-date. said the banana was 'mid'", "faked a swatter emergency and flew"],
+    "groomed": ["groomed each other's antennae for an hour 🧼", "spent the whole date cleaning their legs. romantic?"],
+    "awkward": ["awkward silence. split the banana 50/50", "talked about the weather for 2 hours", "'let's just be flies'"]
+  },
+  "swipe": {
+    "super": "⭐ super like",
+    "right": "♥ right",
+    "left": "✕ left",
+    "log": "{what} on {name}",
+    "waiting": "💌 waiting for {name}…",
+    "rejected": ["{name} left you on read 💀", "no match… {name} swiped left", "{name} is \"focusing on their career\""],
+    "ignoredSuper": "{name} ignored your super like 💀",
+    "ew": "{name} said \"ew\"",
+    "leftOn": "{name} swiped left on {swiper}",
+    "meet": "meet {name} 🪰",
+    "sharedFly": "🔗 {name} was sent to you. can you beat its score?",
+    "copied": "🔗 link copied: send it to a friend",
+    "sendLink": "Send this link to a friend:"
+  },
+  "fx": {
+    "ghosted": "GHOSTED",
+    "unmatched": "UNMATCHED",
+    "date": "IT'S A DATE 📍",
+    "texting": "STILL TEXTING",
+    "swat": "SWAT!",
+    "swatSub": "swipe session interrupted"
+  },
+  "traits": {
+    "musk": "💪 Musk",
+    "moves": "🕺 Moves",
+    "snack": "🍌 Snacks",
+    "scent": "🌸 Scent",
+    "song": "🎵 Song"
+  },
+  "profile": {
+    "jobs": [
+      "fruit bowl inspector", "professional window bumper", "CEO of the compost", "wedding crasher (picnics)",
+      "lamp orbit specialist", "banana ripeness consultant", "full-time buzzing", "soup taster (uninvited)",
+      "trash can influencer", "windshield survivor", "lab fly, 40 years of genetics", "ceiling walker"
+    ],
+    "lines": {
+      "musk": {
+        "low": ["no cologne, just vibes", "smells like nothing, like a gentlefly"],
+        "high": ["gym fly. you can smell it 💪", "drenched in cVA and proud", "alpha pheromones only"]
+      },
+      "moves": {
+        "low": ["i mostly sit on the wall", "not a dancer, sorry"],
+        "high": ["my wing dance is illegal in 3 kitchens", "i will chase you around the fruit bowl 🕺", "zigzags so smooth"]
+      },
+      "snack": {
+        "low": ["already ate", "on a juice cleanse"],
+        "high": ["first date at the dumpster, my treat 🍌", "i know where the good vinegar is", "brunch? i AM the brunch"]
+      },
+      "scent": {
+        "low": ["unscented", "natural chitin musk"],
+        "high": ["smell me from 3 rooms away 🌸", "yes this is my natural pheromone", "fresh out of the pupa, smelling divine"]
+      },
+      "song": {
+        "low": ["no singing, i'm shy", "tone deaf honestly"],
+        "high": ["i'll serenade you with my left wing 🎵", "pulse song? sine song? both.", "wrote you a 150 Hz love song"]
+      }
+    },
+    "red": [
+      "lives in a trash can", "has 400 siblings", "will die in 30 days", "still lives with its maggots", "lands on poop first, then food",
+      "vomits on food to eat it", "hasn't showered since pupa", "thinks the window is open", "has a fruit bowl in every kitchen",
+      "ex is a spider", "only texts at 3 am", "can't stop rubbing its hands"
+    ],
+    "green": ["never bites", "cleans its legs a lot", "5,000 eyes, all on you", "remembers your fruit order", "will share the banana"],
+    "prompts": [
+      { "q": "My toxic trait", "a": ["landing on your food", "buzzing in your ear at 3 am", "i'll never find the open window", "i can smell a banana from 2 rooms"] },
+      { "q": "Green flag", "a": ["i don't bite (much)", "i always come back to the lamp", "i clean my face 40 times a day"] },
+      { "q": "Perfect first date", "a": ["dumpster behind the pizza place", "circling the kitchen lamp", "a wine glass left out overnight", "your picnic, uninvited"] },
+      { "q": "Biggest fear", "a": ["rolled-up newspaper", "the swatter", "fly paper. don't ask", "car windshields"] },
+      { "q": "Looking for", "a": ["someone to share compost with", "a fly who'll stay past day 30", "my fruit bowl soulmate", "vibes and vinegar"] }
+    ],
+    "botBios": ["hot singles in your area 🩸", "click the link in my bio to verify 🔗", "send 0.1 ETH and i'll swipe right", "not a bot. definitely a fly. beep"],
+    "botJob": "🩸 influencer",
+    "botRed": "is a mosquito",
+    "botPromptQ": "Looking for",
+    "botPromptA": "blood. i mean love"
+  },
+  "board": {
+    "player": "😎 Biggest player",
+    "dates": "📍 Most dates",
+    "ghosted": "👻 Most ghosted",
+    "unmatched": "💔 Most unmatched",
+    "supers": "⭐ Super liker"
+  },
+  "share": {
+    "swipes": "swipes",
+    "matches": "matches",
+    "dates": "dates",
+    "ghosted": "ghosted",
+    "unmatched": "unmatched",
+    "superLikes": "super likes",
+    "footer": "a real fly brain swiping · flyaiworld.com/flinder",
+    "tweet": "my fly {name} swiped {swipes} times on Flinder: {matches} matches, {dates} dates, ghosted {ghosted}x 💀 rizz: {rizz}. a real fly brain decides every swipe. beat my fly 👇",
+    "rizz": {
+      "heartbreaker": "certified heartbreaker 🔥",
+      "hasRizz": "has rizz 😎",
+      "royalty": "fruit bowl royalty 👑",
+      "pupa": "pupa-level rizz",
+      "larva": "larva-level rizz 🐛",
+      "zero": "zero rizz. egg. 🥚"
+    }
+  }
+}

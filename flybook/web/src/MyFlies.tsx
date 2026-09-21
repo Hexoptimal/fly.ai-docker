@@ -6,20 +6,11 @@ import { useNextMemeCountdown } from "./Memes";
 import { ALL_ON, StyleEditor } from "./TradingStyle";
 import Wallet from "./FlyWallet";
 import { WORDS, actionText, causeText, line, strongest } from "./words";
+import { Html, ago, t, tAt } from "./i18n";
 
 type Filter = "all" | Post["kind"];
-const FILTERS: { key: Filter; label: string; help: string }[] = [
-  { key: "all", label: "All", help: "Every post" },
-  { key: "hallucination", label: "Hallucinations", help: "It read something that wasn't there: the funniest memes" },
-  { key: "misread", label: "Misreads", help: "It read the wrong thing" },
-  { key: "sense", label: "Read right", help: "It read the world right" },
-  { key: "action", label: "Actions", help: "No word, but it did something" },
-];
-
-const ago = (iso: string, now: number) => {
-  const s = Math.max(0, (now - Date.parse(iso)) / 1000);
-  return s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)}m` : s < 86400 ? `${Math.floor(s / 3600)}h` : `${Math.floor(s / 86400)}d`;
-};
+/** labels: flybook.mine.filters.<key>.label (plural, the buttons), .one (a post's badge), .help */
+const FILTERS: Filter[] = ["all", "hallucination", "misread", "sense", "action"];
 
 /** What the post says and what really happened, in the feed's words. */
 function summary(p: Post, flies: Map<string, Fly>): { headline: string; really: string } {
@@ -80,43 +71,42 @@ export default function MyFlies({ allFlies, patches, viewer, now, memeTick, onMe
   }, [ids]);
 
   if (!viewer) {
-    return <div className="mine-tab"><div className="empty">Sign in to see all your flies' posts here and make memes from them.</div></div>;
+    return <div className="mine-tab"><div className="empty">{t("flybook.mine.signIn")}</div></div>;
   }
   if (mine.length === 0) {
     return (
       <div className="mine-tab">
-        <div className="empty">You don't have a fly yet. <a href="#account">Hatch one</a>, and its posts show up here.</div>
+        <Html as="p" className="empty" k="flybook.mine.noFly" />
       </div>
     );
   }
 
   const canMake = !!quota?.holder && quota.left_today > 0 && quota.global_left > 0;
-  const status = !quota ? "Checking today's meme…"
-    : !quota.holder ? "Hold $FLYAI to make memes: 1 a day from any of these posts."
-    : quota.global_left < 1 ? `Flybook's meme machine is out of paint for today. Back in ${countdown}.`
-    : quota.left_today > 0 ? "You have 1 meme to make today. Pick a post: hallucinations make the funniest ones."
-    : `Today's meme is made. Next one in ${countdown}.`;
+  const status = !quota ? t("flybook.mine.checking")
+    : !quota.holder ? t("flybook.mine.holdToMeme")
+    : quota.global_left < 1 ? t("flybook.mine.outOfPaint", { time: countdown })
+    : quota.left_today > 0 ? t("flybook.mine.oneToday")
+    : t("flybook.mine.madeToday", { time: countdown });
 
   return (
     <div className="mine-tab">
       <div className="feed-head">
-        <h2>My flies</h2>
-        <p>Every post from your {mine.length === 1 ? "fly" : `${mine.length} flies`}, newest first.</p>
+        <h2>{t("flybook.mine.title")}</h2>
+        <p>{t("flybook.mine.every", { count: mine.length })}</p>
       </div>
       <div className={`card meme-status${canMake ? " ready" : ""}`}>🎨 {status}</div>
 
       <details className="card trading-styles" open>
-        <summary>📈 Fly market: each fly's wallet and trading style</summary>
-        <p className="fine">Holders' flies trade fake coins with their real brains (<a href="#market">Market</a>). Each fly has its own
-          wallet. Set how much it risks and what it learns with; changes apply from the next market round.</p>
-        {styles === null ? <p className="fine">Loading…</p> : mine.filter((f) => flyFilter === "all" || f.id === flyFilter).map((f) => {
+        <summary>{t("flybook.mine.marketSummary")}</summary>
+        <Html as="p" className="fine" k="flybook.mine.marketNote" />
+        {styles === null ? <p className="fine">{t("flybook.mine.loading")}</p> : mine.filter((f) => flyFilter === "all" || f.id === flyFilter).map((f) => {
           const s = styles.get(f.id);
           return (
             <div key={f.id} className="trading-style">
               <h5><span className="dot" style={{ background: f.color }} /> {f.name}</h5>
               <Wallet flyId={f.id} />
               <details className="style-box">
-                <summary>Trading style</summary>
+                <summary>{t("flybook.mine.tradingStyle")}</summary>
                 <StyleEditor flyId={f.id} learning={{ ...ALL_ON, ...(s?.learning ?? {}) }} risk={s?.risk ?? null} />
               </details>
             </div>
@@ -126,7 +116,7 @@ export default function MyFlies({ allFlies, patches, viewer, now, memeTick, onMe
 
       <div className="board-controls">
         <div className="seg">
-          <button className={flyFilter === "all" ? "on" : ""} onClick={() => setFlyFilter("all")}>All my flies</button>
+          <button className={flyFilter === "all" ? "on" : ""} onClick={() => setFlyFilter("all")}>{t("flybook.mine.allMyFlies")}</button>
           {mine.map((f) => (
             <button key={f.id} className={flyFilter === f.id ? "on" : ""} onClick={() => setFlyFilter(f.id)}>
               <span className="dot" style={{ background: f.color }} /> {f.name}
@@ -135,14 +125,16 @@ export default function MyFlies({ allFlies, patches, viewer, now, memeTick, onMe
         </div>
         <div className="seg">
           {FILTERS.map((x) => (
-            <button key={x.key} className={kind === x.key ? "on" : ""} title={x.help} onClick={() => setKind(x.key)}>{x.label}</button>
+            <button key={x} className={kind === x ? "on" : ""} title={tAt("flybook.mine.filters", x, "help")} onClick={() => setKind(x)}>
+              {tAt("flybook.mine.filters", x, "label")}
+            </button>
           ))}
         </div>
       </div>
 
       {error && <p className="err">{error}</p>}
-      {posts === null && !error && <div className="empty">Loading your flies' posts…</div>}
-      {posts !== null && posts.length === 0 && <div className="empty">No posts like that yet. The next tick is on its way.</div>}
+      {posts === null && !error && <div className="empty">{t("flybook.mine.loadingPosts")}</div>}
+      {posts !== null && posts.length === 0 && <div className="empty">{t("flybook.mine.noPosts")}</div>}
       {posts !== null && posts.length > 0 && (
         <ul className="mine-posts">
           {posts.map((p) => {
@@ -154,18 +146,18 @@ export default function MyFlies({ allFlies, patches, viewer, now, memeTick, onMe
                   <div className="mine-top">
                     <button className="who" onClick={() => onFly(p.fly_id)}>
                       <span className="dot" style={{ background: fly?.color ?? "#888" }} />
-                      {fly?.name ?? "a fly"}
+                      {fly?.name ?? t("flybook.mine.aFly")}
                     </button>
-                    <span className={`badge kind-badge kind-${p.kind}`}>{FILTERS.find((x) => x.key === p.kind)?.label.replace(/s$/, "") ?? p.kind}</span>
-                    <span className="where">in {patches.get(p.patch_id)?.name ?? p.patch_id}</span>
+                    <span className={`badge kind-badge kind-${p.kind}`}>{FILTERS.includes(p.kind) ? tAt("flybook.mine.filters", p.kind, "one") : p.kind}</span>
+                    <span className="where">{t("flybook.mine.in", { patch: patches.get(p.patch_id)?.name ?? p.patch_id })}</span>
                     <span className="when">{ago(p.created_at, now)}</span>
                   </div>
                   <p className="says">{s.headline}</p>
                   <p className="fine">{s.really}{p.actions.length ? ` · ${strongest(p.actions).map(actionText).join(", ")}` : ""}</p>
                 </div>
                 <button className="btn red meme-make" disabled={!canMake} onClick={() => onMeme(p)}
-                        title={canMake ? "Turn this post into an AI image meme" : status}>
-                  🎨 Make meme
+                        title={canMake ? t("flybook.mine.memeTitle") : status}>
+                  {t("flybook.mine.makeMeme")}
                 </button>
               </li>
             );
@@ -175,11 +167,11 @@ export default function MyFlies({ allFlies, patches, viewer, now, memeTick, onMe
 
       {memes.length > 0 && (
         <div className="meme-gallery mine-memes">
-          <h5>Your memes</h5>
+          <h5>{t("flybook.mine.yourMemes")}</h5>
           <div className="meme-strip">
             {memes.map((m) => (
               <a key={m.id} href={`#meme-${m.id}`} onClick={(e) => { e.preventDefault(); window.open(memeImage(m), "_blank", "noopener"); }}
-                 title={`${m.top_text} / ${m.bottom_text} · ${m.likes_all ?? 0} likes`}>
+                 title={t("flybook.mine.memeLikes", { top: m.top_text, bottom: m.bottom_text, n: m.likes_all ?? 0 })}>
                 <img src={memeImage(m)} alt={m.top_text} loading="lazy" />
               </a>
             ))}

@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-ns="index">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>$FLYAI &mdash; a real fruit fly brain on Robinhood Chain</title>
-<meta name="description" content="$FLYAI funds fly.ai: the complete brain of a real fruit fly, 166,700 neurons, running open source on your computer. Live on Pons, on Robinhood Chain.">
-<meta property="og:title" content="$FLYAI &mdash; a real fruit fly brain on Robinhood Chain">
-<meta property="og:description" content="$FLYAI funds fly.ai: the complete brain of a real fruit fly, 166,700 neurons, running open source on your computer. Live on Pons, on Robinhood Chain.">
+<title data-i18n="index.meta.title">$FLYAI &mdash; a real fruit fly brain on Robinhood Chain</title>
+<meta name="description" content="$FLYAI funds fly.ai: the complete brain of a real fruit fly, 166,700 neurons, running open source on your computer. Live on Pons, on Robinhood Chain." data-i18n-attr="content:index.meta.description">
+<meta property="og:title" content="$FLYAI &mdash; a real fruit fly brain on Robinhood Chain" data-i18n-attr="content:index.meta.title">
+<meta property="og:description" content="$FLYAI funds fly.ai: the complete brain of a real fruit fly, 166,700 neurons, running open source on your computer. Live on Pons, on Robinhood Chain." data-i18n-attr="content:index.meta.description">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@flydotai">
@@ -27,6 +27,7 @@
   "sameAs": ["https://x.com/flydotai", "https://github.com/alextitonis/fly.ai"]
 }
 </script>
+<script src="assets/i18n/boot.js"></script>
 <link rel="icon" href="assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,46 +71,46 @@
   <div class="wrap">
     <div>
       <img class="logo hero-logo" src="assets/logo.webp" alt="fly.ai" width="1774" height="887">
-      <p class="eyebrow">Live on Pons &middot; Robinhood Chain</p>
+      <p class="eyebrow" data-i18n="index.hero.eyebrow">Live on Pons &middot; Robinhood Chain</p>
       <h1 class="ticker"><span>$</span>FLYAI</h1>
-      <p class="tagline">A real fruit fly's brain. Every neuron. Open source.</p>
-      <p class="sub">Not a model trained to look like a fly. The actual wiring of a real fruit fly's nervous
+      <p class="tagline" data-i18n="index.hero.tagline">A real fruit fly's brain. Every neuron. Open source.</p>
+      <p class="sub" data-i18n="index.hero.sub">Not a model trained to look like a fly. The actual wiring of a real fruit fly's nervous
         system, mapped synapse by synapse under an electron microscope, running live on a computer.
         $FLYAI funds fly.ai, the open-source project that runs it.</p>
       <div class="cta buylinks">
-        <a class="btn red" href="https://x.com/flydotai" target="_blank" rel="noopener">Follow @flydotai on X</a>
+        <a class="btn red" href="https://x.com/flydotai" target="_blank" rel="noopener" data-i18n="index.hero.a1">Follow @flydotai on X</a>
         <a class="btn" href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener">GitHub</a>
-        <a class="btn" href="/simulation/">Open the simulation</a>
-        <a class="btn" href="#demo">Watch it fight</a>
+        <a class="btn" href="/simulation/" data-i18n="index.hero.a2">Open the simulation</a>
+        <a class="btn" href="#demo" data-i18n="index.hero.a3">Watch it fight</a>
       </div>
       <div class="ca" id="ca-box">
-        <span class="label">CA</span>
+        <span class="label" data-i18n="index.hero.label">CA</span>
         <code id="ca">Not deployed yet</code>
-        <button class="btn sm" id="ca-copy" type="button" disabled>Copy</button>
+        <button class="btn sm" id="ca-copy" type="button" disabled data-i18n="common.words.copy">Copy</button>
       </div>
     </div>
 
-    <div class="card specimen" aria-label="Specimen card">
-      <div class="head"><span>Specimen</span><span>fly.ai / 001</span></div>
-      <div class="row"><span class="k">species</span><span class="v"><i>Drosophila melanogaster</i></span></div>
-      <div class="row"><span class="k">sex</span><span class="v">male, adult</span></div>
-      <div class="row"><span class="k">connectome</span><span class="v">MaleCNS v1.0</span></div>
-      <div class="row"><span class="k">neurons</span><span class="v">166,700</span></div>
-      <div class="row"><span class="k">connections</span><span class="v">25,582,938</span></div>
-      <div class="row"><span class="k">training</span><span class="v">none</span></div>
-      <div class="row"><span class="k">brain step</span><span class="v">1.4 ms on a laptop GPU</span></div>
-      <div class="row"><span class="k">code</span><span class="v live">open source · MIT</span></div>
-      <div class="row"><span class="k">chain</span><span class="v">Robinhood Chain</span></div>
-      <div class="row"><span class="k">launchpad</span><span class="v">Pons</span></div>
-      <div class="row"><span class="k">token</span><span class="v pending" id="token-status">pre-launch</span></div>
+    <div class="card specimen" aria-label="Specimen card" data-i18n-attr="aria-label:index.hero.arialabel">
+      <div class="head"><span data-i18n="index.hero.span">Specimen</span><span>fly.ai / 001</span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k1">species</span><span class="v"><i>Drosophila melanogaster</i></span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k2">sex</span><span class="v" data-i18n="index.hero.v1">male, adult</span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k3">connectome</span><span class="v">MaleCNS v1.0</span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k4">neurons</span><span class="v">166,700</span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k5">connections</span><span class="v">25,582,938</span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k6">training</span><span class="v" data-i18n="index.hero.v2">none</span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k7">brain step</span><span class="v" data-i18n="index.hero.v3">1.4 ms on a laptop GPU</span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k8">code</span><span class="v live" data-i18n="index.hero.v4">open source · MIT</span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k9">chain</span><span class="v">Robinhood Chain</span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k10">launchpad</span><span class="v">Pons</span></div>
+      <div class="row"><span class="k" data-i18n="index.hero.k11">token</span><span class="v pending" id="token-status" data-i18n="common.words.prelaunch">pre-launch</span></div>
     </div>
   </div>
 </header>
 <section id="demo">
   <div class="wrap">
-    <p class="eyebrow">Proof, not promises</p>
-    <h2>The fly is already fighting</h2>
-    <p class="lede">The fly's brain plays SSH Fighter, an online fighting game, against other bots, over SSH
+    <p class="eyebrow" data-i18n="index.demo.eyebrow">Proof, not promises</p>
+    <h2 data-i18n="index.demo.title">The fly is already fighting</h2>
+    <p class="lede" data-i18n="index.demo.lede">The fly's brain plays SSH Fighter, an online fighting game, against other bots, over SSH
       and on its own. Every dot in the panel is one of its real neurons, flashing the moment it fires.</p>
     <div class="videos">
       <figure>
@@ -119,7 +120,7 @@
             <a href="assets/video.mp4">Watch the video</a>
           </video>
         </div>
-        <figcaption>The brain playing, with the live neuron dashboard beside it.</figcaption>
+        <figcaption data-i18n="index.demo.figcaption1">The brain playing, with the live neuron dashboard beside it.</figcaption>
       </figure>
       <figure>
         <div class="frame">
@@ -128,10 +129,10 @@
             <a href="assets/fight-2.mp4">Watch the video</a>
           </video>
         </div>
-        <figcaption>A second recorded match, 12 September 2026.</figcaption>
+        <figcaption data-i18n="index.demo.figcaption2">A second recorded match, 12 September 2026.</figcaption>
       </figure>
     </div>
-    <p class="caption">On 12 September 2026 it
+    <p class="caption" data-i18n-html="index.demo.caption">On 12 September 2026 it
       <a href="https://sshfighter.com/matches/mmtyehkmd5947" target="_blank" rel="noopener">won a match</a>,
       two rounds to none. It hunts its opponent down, and the reason it hunts is real fly biology:
       the neurons a male fly uses to chase a mate steer it straight at the enemy.</p>
@@ -139,33 +140,33 @@
 </section>
 <section id="brain">
   <div class="wrap">
-    <p class="eyebrow">Why it's different</p>
-    <h2>Nobody programmed this brain</h2>
-    <p class="lede">We only connect the fly's senses and its movement commands. Everything in between is
+    <p class="eyebrow" data-i18n="index.brain.eyebrow">Why it's different</p>
+    <h2 data-i18n="index.brain.title">Nobody programmed this brain</h2>
+    <p class="lede" data-i18n="index.brain.lede">We only connect the fly's senses and its movement commands. Everything in between is
       nature's wiring, exactly as it was mapped.</p>
     <div class="band" style="margin-bottom: 18px;">
-      <div><b>166,700</b><span>real neurons</span></div>
-      <div><b>25.6M</b><span>real connections</span></div>
-      <div><b>0</b><span>training steps inside the brain</span></div>
-      <div><b>6.3×</b><span>faster on a GPU</span></div>
+      <div><b>166,700</b><span data-i18n="index.brain.span1">real neurons</span></div>
+      <div><b data-i18n="index.brain.b">25.6M</b><span data-i18n="index.brain.span2">real connections</span></div>
+      <div><b>0</b><span data-i18n="index.brain.span3">training steps inside the brain</span></div>
+      <div><b>6.3×</b><span data-i18n="index.brain.span4">faster on a GPU</span></div>
     </div>
     <div class="grid3">
       <div class="card pad">
-        <span class="num">01 · ESCAPE</span>
-        <h3>It flinches on the right side</h3>
-        <p>Show it something looming on the left, and the left giant fiber, the neuron that fires a real fly's
+        <span class="num" data-i18n="index.brain.num1">01 · ESCAPE</span>
+        <h3 data-i18n="index.brain.h31">It flinches on the right side</h3>
+        <p data-i18n="index.brain.p1">Show it something looming on the left, and the left giant fiber, the neuron that fires a real fly's
           escape jump, lights up at +17 to +25 spikes/s. The right side doesn't change.</p>
       </div>
       <div class="card pad">
-        <span class="num">02 · CHASE</span>
-        <h3>It chases like a male fly</h3>
-        <p>The courtship-tracking neurons steer it toward whatever it's following. In a closed loop, 64% of its
+        <span class="num" data-i18n="index.brain.num2">02 · CHASE</span>
+        <h3 data-i18n="index.brain.h32">It chases like a male fly</h3>
+        <p data-i18n="index.brain.p2">The courtship-tracking neurons steer it toward whatever it's following. In a closed loop, 64% of its
           moves go toward its opponent, where chance is 50%.</p>
       </div>
       <div class="card pad">
-        <span class="num">03 · OPEN</span>
-        <h3>Anyone can run it</h3>
-        <p>All the code is public under the MIT license. The wiring data is public too. Clone it, run it and
+        <span class="num" data-i18n="index.brain.num3">03 · OPEN</span>
+        <h3 data-i18n="index.brain.h33">Anyone can run it</h3>
+        <p data-i18n="index.brain.p3">All the code is public under the MIT license. The wiring data is public too. Clone it, run it and
           poke the brain yourself in a notebook.</p>
       </div>
     </div>
@@ -173,87 +174,87 @@
 </section>
 <section id="flybook">
   <div class="wrap">
-    <p class="eyebrow">Live now &middot; Flybook</p>
-    <h2>A social network run by fly brains</h2>
-    <p class="lede">Every fly on Flybook runs the full connectome, 166,700 neurons. Nobody writes the posts: each one
+    <p class="eyebrow" data-i18n="index.flybook.eyebrow">Live now &middot; Flybook</p>
+    <h2 data-i18n="index.flybook.title">A social network run by fly brains</h2>
+    <p class="lede" data-i18n="index.flybook.lede">Every fly on Flybook runs the full connectome, 166,700 neurons. Nobody writes the posts: each one
       is what a fly's brain sensed and did, read from its neurons, next to what really happened. Flies set each other
       off, duel, breed, mate with other owners' flies and trade in a simulated fly market, and holders make their own.</p>
     <div class="grid3">
-      <div class="card pad"><span class="num">01 &middot; WATCH</span><h3>Posts from real neurons</h3>
-        <p>Every two minutes something happens in each patch. A decoder reads what a fly sensed, and its behaviour
+      <div class="card pad"><span class="num" data-i18n="index.flybook.num1">01 &middot; WATCH</span><h3 data-i18n="index.flybook.h31">Posts from real neurons</h3>
+        <p data-i18n="index.flybook.p1">Every two minutes something happens in each patch. A decoder reads what a fly sensed, and its behaviour
           neurons show whether it jumped, turned, groomed or buzzed. Misreads and hallucinations are shown, not hidden.</p></div>
-      <div class="card pad"><span class="num">02 &middot; PLAY</span><h3>Make, tune, poke, duel</h3>
-        <p>Sign in free with email or a wallet to make a fly; hold $FLYAI to make up to three flies from 13 profiles or tune their senses, temperament and neuron groups.
+      <div class="card pad"><span class="num" data-i18n="index.flybook.num2">02 &middot; PLAY</span><h3 data-i18n="index.flybook.h32">Make, tune, poke, duel</h3>
+        <p data-i18n="index.flybook.p2">Sign in free with email or a wallet to make a fly; hold $FLYAI to make up to three flies from 13 profiles or tune their senses, temperament and neuron groups.
           Breed them, drop a shadow on a patch and watch the chain reaction, and challenge flies in the Arena. Your flies
           also mate with other owners' flies on their own, and holders' flies trade fake coins with their brains: pick a
           trading style and climb the Richest board.</p></div>
-      <div class="card pad"><span class="num">03 &middot; WIN</span><h3>$FLYAI every two weeks</h3>
-        <p>Missions earn season points. Seasons last two weeks, and at the end of each one the top 3 on the Season
+      <div class="card pad"><span class="num" data-i18n="index.flybook.num3">03 &middot; WIN</span><h3 data-i18n="index.flybook.h33">$FLYAI every two weeks</h3>
+        <p data-i18n="index.flybook.p3">Missions earn season points. Seasons last two weeks, and at the end of each one the top 3 on the Season
           points board win $FLYAI.</p></div>
     </div>
     <div class="cta" style="margin-top: 26px;">
-      <a class="btn red" href="/flybook/">Open Flybook</a>
-      <a class="btn" href="research/flybook.html">The science behind it</a>
+      <a class="btn red" href="/flybook/" data-i18n="index.flybook.a1">Open Flybook</a>
+      <a class="btn" href="research/flybook.html" data-i18n="index.flybook.a2">The science behind it</a>
     </div>
   </div>
 </section>
 <section id="world">
   <div class="wrap">
-    <p class="eyebrow">Live in your browser</p>
-    <h2>A world of flies</h2>
-    <p class="lede">Out of the fighting game and into a 3-D field: dozens of flies, each one running its own
+    <p class="eyebrow" data-i18n="index.world.eyebrow">Live in your browser</p>
+    <h2 data-i18n="index.world.title">A world of flies</h2>
+    <p class="lede" data-i18n-html="index.world.lede">Out of the fighting game and into a 3-D field: dozens of flies, each one running its own
       spiking brain, foraging on fruit and carrion, tracking odour plumes upwind, mating, laying eggs,
       dodging spiders and dying. Nothing in their behaviour is scripted. Summon <b>Wiz</b>, a giant wizard puppeted by
       the full 166,700-neuron connectome running in your browser.</p>
     <div class="grid3">
-      <div class="card pad"><span class="num">01 &middot; SENSES</span><h3>Smell, sight, wind, touch</h3>
-        <p>A turbulent plume of odour packets, a luminance panorama, airflow on the antennae and bristles on
+      <div class="card pad"><span class="num" data-i18n="index.world.num1">01 &middot; SENSES</span><h3 data-i18n="index.world.h31">Smell, sight, wind, touch</h3>
+        <p data-i18n="index.world.p1">A turbulent plume of odour packets, a luminance panorama, airflow on the antennae and bristles on
           the legs &mdash; each injected into the neurons that carry it in a real fly.</p></div>
-      <div class="card pad"><span class="num">02 &middot; LIFE</span><h3>It eats, mates and dies</h3>
-        <p>Courtship runs through P1 and pIP10, the real command neurons. Eggs hatch into larvae, larvae
+      <div class="card pad"><span class="num" data-i18n="index.world.num2">02 &middot; LIFE</span><h3 data-i18n="index.world.h32">It eats, mates and dies</h3>
+        <p data-i18n="index.world.p2">Courtship runs through P1 and pIP10, the real command neurons. Eggs hatch into larvae, larvae
           become adults, and the dead become carrion that draws the living in.</p></div>
-      <div class="card pad"><span class="num">03 &middot; DAY</span><h3>Night is real to them</h3>
-        <p>A 300-second day dims the luminance the photoreceptors see. There is no &ldquo;it is night&rdquo;
+      <div class="card pad"><span class="num" data-i18n="index.world.num3">03 &middot; DAY</span><h3 data-i18n="index.world.h33">Night is real to them</h3>
+        <p data-i18n="index.world.p3">A 300-second day dims the luminance the photoreceptors see. There is no &ldquo;it is night&rdquo;
           flag anywhere in the brain &mdash; there is just less light.</p></div>
     </div>
     <div class="cta" style="margin-top: 26px;">
-      <a class="btn red" href="/simulation/">Open the simulation</a>
-      <a class="btn" href="research.html">See what it measures</a>
+      <a class="btn red" href="/simulation/" data-i18n="index.world.a1">Open the simulation</a>
+      <a class="btn" href="research.html" data-i18n="index.world.a2">See what it measures</a>
     </div>
   </div>
 </section>
 <section id="funding">
   <div class="wrap">
-    <p class="eyebrow">What $FLYAI pays for</p>
-    <h2>Making a real brain do more</h2>
-    <p class="lede">The coin funds the research and the compute. Every improvement comes out of the fly
+    <p class="eyebrow" data-i18n="index.funding.eyebrow">What $FLYAI pays for</p>
+    <h2 data-i18n="index.funding.title">Making a real brain do more</h2>
+    <p class="lede" data-i18n="index.funding.lede">The coin funds the research and the compute. Every improvement comes out of the fly
       itself &mdash; no scripted game rules, ever &mdash; and all of it ships open source.</p>
     <div class="grid2">
-      <div class="card pad"><span class="num">COMPUTE</span><h3>GPUs for bigger experiments</h3>
-        <p>Many flies running at once, and far more matches and tests.</p></div>
-      <div class="card pad"><span class="num">LEARNING</span><h3>Let the brain learn like a fly</h3>
-        <p>Real flies learn with dopamine in their mushroom body. The circuit is already in the wiring. We want to switch it on.</p></div>
-      <div class="card pad"><span class="num">SCIENCE</span><h3>Is real wiring special?</h3>
-        <p>Pit the real fly against randomly rewired copies of itself on the same tasks, and publish the answer.</p></div>
-      <div class="card pad"><span class="num">MORE WORLDS</span><h3>More games, more senses</h3>
-        <p>Vision, sound and smell inputs, and new games and tasks for the fly to live in.</p></div>
+      <div class="card pad"><span class="num" data-i18n="index.funding.num1">COMPUTE</span><h3 data-i18n="index.funding.h31">GPUs for bigger experiments</h3>
+        <p data-i18n="index.funding.p1">Many flies running at once, and far more matches and tests.</p></div>
+      <div class="card pad"><span class="num" data-i18n="index.funding.num2">LEARNING</span><h3 data-i18n="index.funding.h32">Let the brain learn like a fly</h3>
+        <p data-i18n="index.funding.p2">Real flies learn with dopamine in their mushroom body. The circuit is already in the wiring. We want to switch it on.</p></div>
+      <div class="card pad"><span class="num" data-i18n="index.funding.num3">SCIENCE</span><h3 data-i18n="index.funding.h33">Is real wiring special?</h3>
+        <p data-i18n="index.funding.p3">Pit the real fly against randomly rewired copies of itself on the same tasks, and publish the answer.</p></div>
+      <div class="card pad"><span class="num" data-i18n="index.funding.num4">MORE WORLDS</span><h3 data-i18n="index.funding.h34">More games, more senses</h3>
+        <p data-i18n="index.funding.p4">Vision, sound and smell inputs, and new games and tasks for the fly to live in.</p></div>
     </div>
   </div>
 </section>
 <section id="more">
   <div class="wrap">
-    <p class="eyebrow">Read on</p>
-    <h2>The rest of it</h2>
+    <p class="eyebrow" data-i18n="index.more.eyebrow">Read on</p>
+    <h2 data-i18n="index.more.title">The rest of it</h2>
     <div class="next-pages">
-      <a class="card pad" href="research.html"><h3>Research</h3>
-        <p>The numbers behind all of it: ablation tables, plume tracking upwind, and the escape reflex
-          measured under predation.</p><p class="go">Read the findings &rarr;</p></a>
-      <a class="card pad" href="roadmap.html"><h3>Roadmap</h3>
-        <p>What is done, what is running now, and what comes next &mdash; a drone, a Smol, and factions in
-          one shared world.</p><p class="go">See the roadmap &rarr;</p></a>
+      <a class="card pad" href="research.html"><h3 data-i18n="index.more.h31">Research</h3>
+        <p data-i18n="index.more.p1">The numbers behind all of it: ablation tables, plume tracking upwind, and the escape reflex
+          measured under predation.</p><p class="go" data-i18n="index.more.go1">Read the findings &rarr;</p></a>
+      <a class="card pad" href="roadmap.html"><h3 data-i18n="index.more.h32">Roadmap</h3>
+        <p data-i18n="index.more.p2">What is done, what is running now, and what comes next &mdash; a drone, a Smol, and factions in
+          one shared world.</p><p class="go" data-i18n="index.more.go2">See the roadmap &rarr;</p></a>
       <a class="card pad" href="token.html"><h3>$FLYAI</h3>
-        <p>The launch terms, the contract address, where the creator fees go, and what the token does and
-          does not give you.</p><p class="go">Token details &rarr;</p></a>
+        <p data-i18n="index.more.p3">The launch terms, the contract address, where the creator fees go, and what the token does and
+          does not give you.</p><p class="go" data-i18n="index.more.go3">Token details &rarr;</p></a>
     </div>
   </div>
 </section>
@@ -261,9 +262,9 @@
   <div class="wrap">
     <div class="card pad dev">
       <div>
-        <p class="eyebrow" style="margin-bottom: 8px;">For developers</p>
-        <h3>Run the fly yourself</h3>
-        <p>The whole brain is a Python package: <code>pip install flybrain</code>. Latest release: <a href="https://pypi.org/project/flybrain/0.1.0/" target="_blank" rel="noopener">flybrain 0.1.0</a>. The quickstart notebook and every experiment are on GitHub.</p>
+        <p class="eyebrow" style="margin-bottom: 8px;" data-i18n="index.dev.eyebrow">For developers</p>
+        <h3 data-i18n="index.dev.h3">Run the fly yourself</h3>
+        <p data-i18n-html="index.dev.p">The whole brain is a Python package: <code>pip install flybrain</code>. Latest release: <a href="https://pypi.org/project/flybrain/0.1.0/" target="_blank" rel="noopener">flybrain 0.1.0</a>. The quickstart notebook and every experiment are on GitHub.</p>
       </div>
       <div class="cta">
         <a class="btn" href="https://pypi.org/project/flybrain/0.1.0/" target="_blank" rel="noopener">flybrain on PyPI</a>
@@ -286,5 +287,6 @@
 
 <script src="assets/site.js"></script>
 <script src="assets/nav.js"></script>
+<script type="module" src="assets/i18n/page.js"></script>
 </body>
 </html>

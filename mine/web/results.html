@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Results &mdash; fly.ai compute</title>
-<meta name="description" content="What the fly.ai compute network found: fly-brain tuning, colony simulations, brain-to-words probes and demos, worked out from miners' checked results.">
+<title data-i18n="compute.results.metaTitle">Results &mdash; fly.ai compute</title>
+<meta name="description" content="What the fly.ai compute network found: fly-brain tuning, colony simulations, brain-to-words probes and demos, worked out from miners' checked results." data-i18n-attr="content:compute.results.metaDescription">
 <meta property="og:title" content="Results &mdash; fly.ai compute">
 <meta property="og:description" content="What the fly.ai compute network found: fly-brain tuning, colony simulations, brain-to-words probes and demos, worked out from miners' checked results.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/compute/results">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,16 +56,16 @@
 
 <section class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">fly.ai compute · results</p>
-    <h1>What the network found</h1>
-    <p class="lede">Miners don't just earn points: every job is part of an experiment on the fly brain or the flies' world. These are the findings so far, worked out from checked results and updated every half hour.</p>
+    <p class="eyebrow" data-i18n="compute.results.flyAiComputeResults">fly.ai compute · results</p>
+    <h1 data-i18n="compute.results.whatTheNetworkFound">What the network found</h1>
+    <p class="lede" data-i18n="compute.results.minersDonTJust">Miners don't just earn points: every job is part of an experiment on the fly brain or the flies' world. These are the findings so far, worked out from checked results and updated every half hour.</p>
     <div class="tabs">
-      <a href="/compute/">Mine</a>
-      <a href="/compute/jobs">Buy compute</a>
-      <a href="/compute/stake">Stake</a>
-      <a href="/compute/claim">Claims</a>
-      <a href="/compute/leaderboard">Leaderboard</a>
-      <a class="on" href="/compute/results">Results</a>
+      <a href="/compute/" data-i18n="compute.common.tab.mine">Mine</a>
+      <a href="/compute/jobs" data-i18n="compute.common.tab.jobs">Buy compute</a>
+      <a href="/compute/stake" data-i18n="compute.common.tab.stake">Stake</a>
+      <a href="/compute/claim" data-i18n="compute.common.tab.claims">Claims</a>
+      <a href="/compute/leaderboard" data-i18n="compute.common.tab.leaderboard">Leaderboard</a>
+      <a class="on" href="/compute/results" data-i18n="compute.common.tab.results">Results</a>
     </div>
   </div>
 </section>
@@ -72,14 +73,14 @@
 <section class="firstsec">
   <div class="wrap stack">
     <div class="band">
-      <div><b id="n-exp">—</b><span>experiments</span></div>
-      <div><b id="n-runs">—</b><span>checked runs</span></div>
-      <div><b id="n-done">—</b><span>finished</span></div>
-      <div><b id="updated">—</b><span>updated</span></div>
+      <div><b id="n-exp">—</b><span data-i18n="compute.results.experiments">experiments</span></div>
+      <div><b id="n-runs">—</b><span data-i18n="compute.results.checkedRuns">checked runs</span></div>
+      <div><b id="n-done">—</b><span data-i18n="compute.results.finished">finished</span></div>
+      <div><b id="updated">—</b><span data-i18n="compute.results.updated">updated</span></div>
     </div>
     <div id="families" class="stack"></div>
-    <p id="empty" class="caption" hidden>No results yet: the first summaries appear a couple of minutes after the server starts.</p>
-    <p class="caption">Big experiments are summarized from a sample of their checked runs (the card says how many). Every run is in the CSV. Want to run your own? <a href="/compute/jobs">Buy compute</a>.</p>
+    <p id="empty" class="caption" hidden data-i18n="compute.results.noResultsYetThe">No results yet: the first summaries appear a couple of minutes after the server starts.</p>
+    <p class="caption" data-i18n-html="compute.results.bigExperimentsAreSummarized">Big experiments are summarized from a sample of their checked runs (the card says how many). Every run is in the CSV. Want to run your own? <a href="/compute/jobs">Buy compute</a>.</p>
   </div>
 </section>
 

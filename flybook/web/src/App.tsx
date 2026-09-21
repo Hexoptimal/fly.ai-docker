@@ -22,19 +22,12 @@ import {
 import { postUrl, saveCard, shareOnX } from "./share";
 import { SLOW, loadTrace, play, useVoiceStyle } from "./voice";
 import { POKES, WORDS, actionText, causeText, joinActions, line, ordinal, pick, strongest, word } from "./words";
+import { LanguageMenu, ago, locale, t, tAt, tOr, tn } from "./i18n";
 
 const SCIENCE_URL = "/research/flybook";
 const SITE_URL = "/";
 type View = "feed" | "board" | "arena" | "mine" | "market" | "friends" | "merch" | "traders";
 const CLAIM_HASH = /^#claim-([A-Za-z0-9-]{4,16})$/;
-
-function ago(iso: string, now: number): string {
-  const s = Math.max(0, (now - Date.parse(iso)) / 1000);
-  if (s < 60) return "just now";
-  if (s < 3600) return `${Math.floor(s / 60)}m`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h`;
-  return `${Math.floor(s / 86400)}d`;
-}
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -43,6 +36,14 @@ const viewOf = (hash: string): View =>
 
 /** Extra context about a post from the rest of the feed: the same word several times in a row, a round-number post. */
 type PostContext = { streak: number; number?: number };
+
+/** Patch names and blurbs come from the server in English: show them in the page's language when we have it. */
+const localize = (s: Snapshot): Snapshot => ({
+  ...s,
+  patches: s.patches.map((p) => ({
+    ...p, name: tOr(`flybook.patches.${p.id}.name`, p.name), blurb: tOr(`flybook.patches.${p.id}.blurb`, p.blurb),
+  })),
+});
 
 const MILESTONES = new Set([10, 50, 100, 250, 500, 1000, 2500, 5000, 10000]);
 
@@ -177,7 +178,7 @@ export default function App() {
   }, []);
 
   const reload = useCallback(() => {
-    load().then(setSnap).catch((e) => setError(e?.message ?? String(e)));
+    load().then((s) => setSnap(localize(s))).catch((e) => setError(e?.message ?? String(e)));
   }, []);
   useEffect(reload, [reload]);
   const refreshBoard = useCallback((newestPost: number) => {
@@ -321,8 +322,8 @@ export default function App() {
     return out;
   }, [snap?.posts, board, boardAt]);
 
-  if (error) return <Shell><div className="empty">Couldn't load the feed: {error}</div></Shell>;
-  if (!snap) return <Shell><div className="empty">Waking the flies…</div></Shell>;
+  if (error) return <Shell><div className="empty">{t("flybook.app.loadError", { error })}</div></Shell>;
+  if (!snap) return <Shell><div className="empty">{t("flybook.app.waking")}</div></Shell>;
 
   const toggleLike = async (post: Post) => {
     if (!viewer?.ready) return;
@@ -374,7 +375,7 @@ export default function App() {
     setPokeMsg(null);
     try {
       await pokePatch(patch, armed, x, y);
-      setPokeMsg("Poke sent. The flies near that spot feel it within a few seconds.");
+      setPokeMsg(t("flybook.app.pokeSent"));
       setArmed(null);
     } catch (e) {
       setPokeMsg(e instanceof Error ? e.message : String(e));
@@ -459,9 +460,9 @@ export default function App() {
         <button onClick={() => { setFlyId(f.id); location.hash = "feed"; }} className={flyId === f.id ? "on" : ""}>
           <span className="dot" style={{ background: f.color }} />
           <span className="name">{f.name}</span>
-          {earned.length > 0 && <span className="stars" title={earned.map((b) => b.label).join(", ")}>★{earned.length}</span>}
-          <span className="rate" title="recent reads that matched what really happened · Elo rating">
-            {s ? `${s.true}/${s.reads}` : "quiet"} · {f.elo ?? 1000}
+          {earned.length > 0 && <span className="stars" title={earned.map((b) => tAt("flybook.badges", b.key, "label")).join(", ")}>★{earned.length}</span>}
+          <span className="rate" title={t("flybook.app.rateTitle")}>
+            {s ? `${s.true}/${s.reads}` : t("flybook.app.quiet")} · {f.elo ?? 1000}
           </span>
         </button>
       </li>
@@ -472,29 +473,29 @@ export default function App() {
     <Shell live={snap.live}>
       <div className="layout">
         <aside className="patches">
-          <h4>Patches</h4>
-          <button className={patch === "all" ? "on" : ""} onClick={() => setPatch("all")}>Everywhere</button>
+          <h4>{t("flybook.app.patches")}</h4>
+          <button className={patch === "all" ? "on" : ""} onClick={() => setPatch("all")}>{t("flybook.app.everywhere")}</button>
           {snap.patches.map((p) => (
             <button key={p.id} className={patch === p.id ? "on" : ""} onClick={() => { setPatch(p.id); if (view !== "feed") location.hash = "feed"; }}>
               {p.name}
-              {pokes.some((x) => x.patch_id === p.id && !x.consumed_at) && <span className="pending-dot" title="a poke is on its way" />}
+              {pokes.some((x) => x.patch_id === p.id && !x.consumed_at) && <span className="pending-dot" title={t("flybook.app.pokeOnWay")} />}
             </button>
           ))}
         </aside>
 
         <main className="feed">
           <div className="views" role="tablist">
-            <a href="#feed" role="tab" aria-selected={view === "feed"} className={view === "feed" ? "on" : ""}>Feed</a>
-            <a href="#arena" role="tab" aria-selected={view === "arena"} className={view === "arena" ? "on" : ""}>Arena</a>
+            <a href="#feed" role="tab" aria-selected={view === "feed"} className={view === "feed" ? "on" : ""}>{t("flybook.app.tabs.feed")}</a>
+            <a href="#arena" role="tab" aria-selected={view === "arena"} className={view === "arena" ? "on" : ""}>{t("flybook.app.tabs.arena")}</a>
             {snap.live && (
-              <a href="#friends" role="tab" aria-selected={view === "friends"} className={view === "friends" ? "on" : ""}>🕸 Friends</a>
+              <a href="#friends" role="tab" aria-selected={view === "friends"} className={view === "friends" ? "on" : ""}>{t("flybook.app.tabs.friends")}</a>
             )}
-            <a href="#market" role="tab" aria-selected={view === "market"} className={view === "market" ? "on" : ""}>Market</a>
-            <a href="#merch" role="tab" aria-selected={view === "merch"} className={view === "merch" ? "on" : ""}>Merch</a>
-            <a href="#traders" role="tab" aria-selected={view === "traders"} className={view === "traders" ? "on" : ""}>Trader Flies</a>
-            <a href="#leaderboard" role="tab" aria-selected={view === "board"} className={view === "board" ? "on" : ""}>Leaderboard</a>
+            <a href="#market" role="tab" aria-selected={view === "market"} className={view === "market" ? "on" : ""}>{t("flybook.app.tabs.market")}</a>
+            <a href="#merch" role="tab" aria-selected={view === "merch"} className={view === "merch" ? "on" : ""}>{t("flybook.app.tabs.merch")}</a>
+            <a href="#traders" role="tab" aria-selected={view === "traders"} className={view === "traders" ? "on" : ""}>{t("flybook.app.tabs.traders")}</a>
+            <a href="#leaderboard" role="tab" aria-selected={view === "board"} className={view === "board" ? "on" : ""}>{t("flybook.app.tabs.leaderboard")}</a>
             {viewer && (
-              <a href="#mine" role="tab" aria-selected={view === "mine"} className={view === "mine" ? "on" : ""}>My flies</a>
+              <a href="#mine" role="tab" aria-selected={view === "mine"} className={view === "mine" ? "on" : ""}>{t("flybook.app.tabs.mine")}</a>
             )}
           </div>
           {view === "traders" && <TraderFlies />}
@@ -517,23 +518,22 @@ export default function App() {
             <>
               <div className="feed-head">
                 <h2>
-                  {activeFly ? activeFly.name : activePatch ? activePatch.name : "Everywhere"}
+                  {activeFly ? activeFly.name : activePatch ? activePatch.name : t("flybook.app.everywhere")}
                   {activeFly && awards.filter((a) => a.fly_id === activeFly.id).map((a) => (
-                    <a key={a.month} className="trophy" href="#merch" title={`Its merch sold the most in ${new Date(a.month).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}`}>
-                      🏆 Fly of the month
+                    <a key={a.month} className="trophy" href="#merch" title={t("flybook.app.trophyTitle", { month: new Date(a.month).toLocaleDateString(locale(), { month: "long", year: "numeric", timeZone: "UTC" }) })}>
+                      {t("flybook.app.flyOfMonth")}
                     </a>
                   ))}
                 </h2>
                 <p>
                   {activeFly
-                    ? `Generation ${activeFly.generation ?? 1} · Elo ${activeFly.elo ?? 1000} (${activeFly.wins ?? 0}-${activeFly.losses ?? 0}-${activeFly.draws ?? 0})` +
-                      (activeFly.parents?.length ? ` · child of ${activeFly.parents.map((id) => flies.get(id)?.name ?? "a fly").join(" × ")}` : "")
-                    : activePatch?.blurb ??
-                      "Every post is read from a fruit-fly connectome's descending neurons: what it sensed, what it did, and what really happened. Flies in a patch set each other off."}
+                    ? t("flybook.app.flyLine", { gen: activeFly.generation ?? 1, elo: activeFly.elo ?? 1000, w: activeFly.wins ?? 0, l: activeFly.losses ?? 0, d: activeFly.draws ?? 0 }) +
+                      (activeFly.parents?.length ? t("flybook.app.childOf", { parents: activeFly.parents.map((id) => flies.get(id)?.name ?? t("flybook.app.aFly")).join(" × ") }) : "")
+                    : activePatch?.blurb ?? t("flybook.app.intro")}
                 </p>
-                {activeFly && <button className="chip clear" onClick={() => setFlyId(null)}>show all flies ✕</button>}
+                {activeFly && <button className="chip clear" onClick={() => setFlyId(null)}>{t("flybook.app.showAll")}</button>}
                 {activeFly && snap.live && (
-                  <button className="chip clear bonds-btn" onClick={() => setBondsFor(activeFly.id)}>🕸 friends &amp; enemies</button>
+                  <button className="chip clear bonds-btn" onClick={() => setBondsFor(activeFly.id)}>{t("flybook.app.bonds")}</button>
                 )}
                 {activeFly && snap.live && <MemeGallery flyId={activeFly.id} refreshKey={memeTick} />}
                 {snap.live && activePatch && !activeFly && (
@@ -541,30 +541,30 @@ export default function App() {
                     <PatchView flies={patchFlies} replay={shownReplay?.replay} tickId={shownReplay?.tickId}
                                waiting={waiting} armed={armed} onPoke={dropPoke} />
                     <div className="pokebar">
-                      <span className="pokebar-label">Poke {activePatch.name}</span>
+                      <span className="pokebar-label">{t("flybook.app.pokePatch", { patch: activePatch.name })}</span>
                       {POKES.map((pk) => (
                         <button key={pk.stimulus} className={`poke${armed === pk.stimulus ? " on" : ""}`} disabled={!viewer?.ready}
                                 onClick={() => setArmed(armed === pk.stimulus ? null : pk.stimulus)}
-                                title={viewer?.ready ? pk.hint : "Sign in to poke a patch"}>
-                          {pk.label}
+                                title={viewer?.ready ? tAt("flybook.pokes", pk.stimulus, "hint") : t("flybook.app.signInToPoke")}>
+                          {tAt("flybook.pokes", pk.stimulus, "label")}
                         </button>
                       ))}
-                      {armed && <span className="fine inline">Now click the map where it should land.</span>}
-                      {waiting.length > 0 && <span className="fine inline">{waiting.length} poke{waiting.length > 1 ? "s" : ""} on the way…</span>}
+                      {armed && <span className="fine inline">{t("flybook.app.clickMap")}</span>}
+                      {waiting.length > 0 && <span className="fine inline">{t("flybook.app.pokesOnWay", { count: waiting.length })}</span>}
                       {pokeMsg && <span className="fine inline">{pokeMsg}</span>}
                     </div>
                   </>
                 )}
                 {snap.live && !activePatch && !activeFly && (
-                  <p className="fine">Pick a patch on the left to watch it live and poke it.</p>
+                  <p className="fine">{t("flybook.app.pickPatch")}</p>
                 )}
               </div>
               {likeError && <p className="err">{likeError}</p>}
               {shown.length === 0 && (
                 <div className="empty">
                   {snap.flies.some((f) => f.active !== false)
-                    ? "No posts here yet. The next tick is on its way."
-                    : "No flies yet. Flybook comes alive when people make flies: sign in and hatch the first one."}
+                    ? t("flybook.app.noPosts")
+                    : t("flybook.app.noFlies")}
                 </div>
               )}
               {items.map((item) => {
@@ -610,12 +610,12 @@ export default function App() {
           {snap.live && <Missions viewer={viewer} />}
 
           <section className="card">
-            <h4>Flies</h4>
+            <h4>{t("flybook.app.flies")}</h4>
             {snap.live && community.length > 1 && (
-              <button className="more bonds-open" onClick={() => setBondsFor("*")}>🕸 who's friends with whom</button>
+              <button className="more bonds-open" onClick={() => setBondsFor("*")}>{t("flybook.app.whoFriends")}</button>
             )}
             {house.length + community.length === 0 ? (
-              <p className="fine">No flies yet. Hold $FLYAI, sign in, and hatch the first one.</p>
+              <p className="fine">{t("flybook.app.noFliesSide")}</p>
             ) : (
               <>
                 {house.length > 0 && <ul className="flies">{house.map(flyRow)}</ul>}
@@ -626,7 +626,7 @@ export default function App() {
 
           {snap.tick && (
             <section className="card">
-              <h4>What flies can say</h4>
+              <h4>{t("flybook.app.vocab")}</h4>
               <ul className="vocab">
                 {Object.entries(snap.tick.translator.precision)
                   .filter(([w]) => w !== "nothing")
@@ -640,8 +640,7 @@ export default function App() {
                   ))}
               </ul>
               <p className="fine">
-                Held-out decoder precision for each word. What flies do (jumped, turned, groomed, buzzed its wings) is read from
-                behaviour neurons firing at least 3σ above rest. Tick #{snap.tick.id}: {snap.tick.flies} flies, {snap.tick.posts} posts.
+                {t("flybook.app.vocabNote", { tick: snap.tick.id, flies: snap.tick.flies, posts: snap.tick.posts })}
               </p>
             </section>
           )}
@@ -659,54 +658,56 @@ function EventCard({ item, flies, patches, now, onFly, coins }: {
   const who = (id: string | null) => {
     const f = id ? flies.get(id) : undefined;
     return f ? <button className="who inline" onClick={() => onFly(f.id)}><span className="dot" style={{ background: f.color }} />{f.name}</button>
-      : <b>a fly</b>;
+      : <b>{t("flybook.event.aFly")}</b>;
   };
+  const flyName = (id: string) => flies.get(id)?.name ?? t("flybook.event.aFly");
   let icon = "", body: React.ReactNode = null, detail = "";
-  const ms = (step: number | null) => (step === null ? "held" : `${step} ms`);
+  const ms = (step: number | null) => (step === null ? t("flybook.event.held") : t("flybook.event.ms", { n: step }));
   const result = (d: Duel) => {
     const loser = d.winner === d.a_fly ? d.b_fly : d.a_fly;
-    const kind = d.kind === "quickdraw" ? "a quick draw" : "a stare-down";
-    return d.winner ? <>{who(d.winner)} beat {who(loser)} in {kind}</> : <>{who(d.a_fly)} and {who(d.b_fly)} drew {kind}</>;
+    const kind = t(d.kind === "quickdraw" ? "flybook.event.quickdraw" : "flybook.event.stare");
+    return d.winner ? tn("flybook.event.beat", { winner: who(d.winner), loser: who(loser), kind })
+      : tn("flybook.event.drew", { a: who(d.a_fly), b: who(d.b_fly), kind });
   };
-  const market = <a className="more inline-link" href="#market">see the market →</a>;
+  const market = <a className="more inline-link" href="#market">{t("flybook.event.seeMarket")}</a>;
   if (item.type === "launch") {
     const e = item.event;
     const coin = coins.get(e.symbol);
     return (
       <article className="post event event-launch">
-        {coin?.image_path && <img className="feed-coin" src={coinImage(coin.image_path)} alt={`$${e.symbol} logo`} loading="lazy" />}
+        {coin?.image_path && <img className="feed-coin" src={coinImage(coin.image_path)} alt={t("flybook.event.logoAlt", { symbol: e.symbol })} loading="lazy" />}
         <div>
           <p className="event-line">
-            <span className="event-icon">🚀</span> {who(e.fly_id)} launched <b>${e.symbol}</b>
-            {coin?.name ? <> · {coin.name}</> : null}{(e.detail.number ?? 1) > 1 ? ", its second coin" : ""}
+            <span className="event-icon">🚀</span> {tn("flybook.event.launched", { who: who(e.fly_id), coin: <b>${e.symbol}</b> })}
+            {coin?.name ? <> · {coin.name}</> : null}{(e.detail.number ?? 1) > 1 ? t("flybook.event.secondCoin") : ""}
             <span className="when">{ago(item.at, now)}</span>
           </p>
           <p className="fine">
             {e.detail.tagline ? `“${e.detail.tagline}” ` : ""}
-            {e.reach > 0 ? `${e.reach} ${e.reach === 1 ? "friend" : "friends"} will feel the hype. ` : ""}{market}
+            {e.reach > 0 ? t("flybook.event.reach", { count: e.reach }) : ""}{market}
           </p>
         </div>
       </article>
     );
   }
   if (item.type === "drama") {
-    const ONE: Record<string, string> = { enemies: "enemy", frenemies: "frenemy", rivals: "rival" };
+    const ONE: Record<string, string> = { enemies: t("flybook.event.enemy"), frenemies: t("flybook.event.frenemy"), rivals: t("flybook.event.rival") };
     const order = ["dump", "buyback", "fud", "shill"];
     const events = [...item.events].sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind));
     return (
       <article className="post event event-drama">
         <p className="event-line">
-          <span className="event-icon">📈</span> Fly market drama: {events.length} {events.length === 1 ? "move" : "moves"}
+          <span className="event-icon">📈</span> {t("flybook.event.drama", { count: events.length })}
           <span className="when">{ago(item.at, now)}</span>
         </p>
         <ul className="round">
           {events.map((e) => (
             <li key={e.id}>
-              {e.kind === "shill" && <>📣 {who(e.fly_id)} is shilling <b>${e.symbol}</b>{e.reach > 0 ? ` to ${e.reach} friends` : ""}</>}
-              {e.kind === "fud" && <>🤬 {who(e.fly_id)} is spreading FUD on <b>${e.symbol}</b>
-                {e.detail.creator && e.detail.bond && ONE[e.detail.bond] ? <>, made by its {ONE[e.detail.bond]} {who(e.detail.creator)}</> : null}</>}
-              {e.kind === "buyback" && <>🛟 {who(e.fly_id)} bought back <b>${e.symbol}</b></>}
-              {e.kind === "dump" && <>🪦 {who(e.fly_id)} dumped <b>${e.symbol}</b> on its holders</>}
+              {e.kind === "shill" && <>{tn("flybook.event.shilling", { who: who(e.fly_id), coin: <b>${e.symbol}</b> })}{e.reach > 0 ? t("flybook.event.shillReach", { n: e.reach }) : ""}</>}
+              {e.kind === "fud" && <>{tn("flybook.event.fud", { who: who(e.fly_id), coin: <b>${e.symbol}</b> })}
+                {e.detail.creator && e.detail.bond && ONE[e.detail.bond] ? tn("flybook.event.madeBy", { bond: ONE[e.detail.bond], creator: who(e.detail.creator) }) : null}</>}
+              {e.kind === "buyback" && tn("flybook.event.buyback", { who: who(e.fly_id), coin: <b>${e.symbol}</b> })}
+              {e.kind === "dump" && tn("flybook.event.dump", { who: who(e.fly_id), coin: <b>${e.symbol}</b> })}
             </li>
           ))}
         </ul>
@@ -718,17 +719,17 @@ function EventCard({ item, flies, patches, now, onFly, coins }: {
     const d = item.duels[0];
     icon = "⚔";
     body = result(d);
-    detail = `${flies.get(d.a_fly)?.name ?? "a fly"} ${ms(d.a_step)} · ${flies.get(d.b_fly)?.name ?? "a fly"} ${ms(d.b_step)}` +
-      (d.delta ? ` · Elo ±${Math.abs(d.delta)}` : "") + (d.requested_by ? " · a player's challenge" : "");
+    detail = `${flyName(d.a_fly)} ${ms(d.a_step)} · ${flyName(d.b_fly)} ${ms(d.b_step)}` +
+      (d.delta ? t("flybook.event.eloDelta", { n: Math.abs(d.delta) }) : "") + (d.requested_by ? t("flybook.event.playerChallenge") : "");
   } else if (item.type === "duels") {
     icon = "⚔";
-    body = <>Arena: {item.duels.length} duels</>;
+    body = <>{t("flybook.event.duelsRound", { n: item.duels.length })}</>;
     return (
       <article className="post event event-duels">
         <p className="event-line"><span className="event-icon">{icon}</span> {body} <span className="when">{ago(item.at, now)}</span></p>
         <ul className="round">
           {item.duels.map((d) => (
-            <li key={d.id}>{result(d)} <span className="fine">{ms(d.a_step)} vs {ms(d.b_step)}{d.requested_by ? " · challenge" : ""}</span></li>
+            <li key={d.id}>{result(d)} <span className="fine">{t("flybook.event.vs", { a: ms(d.a_step), b: ms(d.b_step) })}{d.requested_by ? t("flybook.event.challenge") : ""}</span></li>
           ))}
         </ul>
       </article>
@@ -737,15 +738,15 @@ function EventCard({ item, flies, patches, now, onFly, coins }: {
     const m = item.mating;
     const child = m.child ? flies.get(m.child) : undefined;
     icon = "🥚";
-    body = <>{who(m.a_fly)} and {who(m.b_fly)} had a baby: {who(m.child)}</>;
-    detail = (m.trigger === "brain" ? "They met in the patch: one's brain read \"mate\" next to the other" : "Paired by the worker") +
-      (child?.generation ? ` · generation ${child.generation}` : "") +
-      (child?.patch_id ? ` · hatched in ${patches.get(child.patch_id)?.name ?? child.patch_id}` : "");
+    body = tn("flybook.event.baby", { a: who(m.a_fly), b: who(m.b_fly), child: who(m.child) });
+    detail = t(m.trigger === "brain" ? "flybook.event.metInPatch" : "flybook.event.pairedByWorker") +
+      (child?.generation ? t("flybook.event.generation", { n: child.generation }) : "") +
+      (child?.patch_id ? t("flybook.event.hatchedIn", { patch: patches.get(child.patch_id)?.name ?? child.patch_id }) : "");
   } else {
     const f = item.fly;
     icon = "🐣";
-    body = <>{who(f.id)} hatched in {patches.get(f.patch_id)?.name ?? f.patch_id}</>;
-    detail = f.parents?.length ? `Bred from ${f.parents.map((id) => flies.get(id)?.name ?? "a fly").join(" × ")}` : "A new fly, made by a player";
+    body = tn("flybook.event.hatched", { who: who(f.id), patch: patches.get(f.patch_id)?.name ?? f.patch_id });
+    detail = f.parents?.length ? t("flybook.event.bredFrom", { parents: f.parents.map(flyName).join(" × ") }) : t("flybook.event.newFly");
   }
   return (
     <article className={`post event event-${item.type}`}>
@@ -779,7 +780,7 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
   const d = describe(post, flies, ctx);
   const read = post.word !== "nothing";
   const poke = post.poke_id ? POKES.find((pk) => pk.stimulus === post.truth) : undefined;
-  const name = fly?.name ?? "A fly";
+  const name = fly?.name ?? t("flybook.post.aFly");
   const source = post.cause ? flies.get(post.cause.from_fly_id) : undefined;
   const top = strongest(post.actions);
   const hidden = (post.actions?.length ?? 0) - top.length;
@@ -795,26 +796,26 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
           {name}
         </button>
         {onBonds && (
-          <button className="who-web" onClick={() => onBonds(post.fly_id)} title={`${name}'s friends and enemies`}
-                  aria-label={`${name}'s friends and enemies`}>🕸</button>
+          <button className="who-web" onClick={() => onBonds(post.fly_id)} title={t("flybook.post.bondsTitle", { name })}
+                  aria-label={t("flybook.post.bondsTitle", { name })}>🕸</button>
         )}
-        {fly && !fly.owner && <span className="badge">house</span>}
-        {fly && tuning(fly).length > 0 && <span className="badge tuned" title={tuning(fly).join(", ")}>tuned</span>}
-        {badges.slice(0, 2).map((b) => <span key={b.key} className="badge award" title={b.help}>{b.label}</span>)}
-        <span className="where">in {patch?.name ?? post.patch_id}</span>
+        {fly && !fly.owner && <span className="badge">{t("flybook.post.house")}</span>}
+        {fly && tuning(fly).length > 0 && <span className="badge tuned" title={tuning(fly).join(", ")}>{t("flybook.post.tuned")}</span>}
+        {badges.slice(0, 2).map((b) => <span key={b.key} className="badge award" title={tAt("flybook.badges", b.key, "help")}>{tAt("flybook.badges", b.key, "label")}</span>)}
+        <span className="where">{t("flybook.post.in", { patch: patch?.name ?? post.patch_id })}</span>
         <span className="when">{ago(post.created_at, now)}</span>
         {folded.length > 0 && (
-          <button className="repeat" onClick={onUnfold} title={`${folded.length} more post${folded.length > 1 ? "s" : ""} just like this. Show them`}>
-            ×{folded.length + 1} since {since}
+          <button className="repeat" onClick={onUnfold} title={t("flybook.post.repeatTitle", { count: folded.length })}>
+            {t("flybook.post.repeat", { n: folded.length + 1, since })}
           </button>
         )}
       </header>
-      {ctx?.number && <p className="milestone">🎉 {name}'s {ordinal(ctx.number)} post</p>}
-      {poke && <p className="poked">After a player's poke: {poke.done}</p>}
+      {ctx?.number && <p className="milestone">{t("flybook.post.milestone", { name, nth: ordinal(ctx.number) })}</p>}
+      {poke && <p className="poked">{t("flybook.post.afterPoke", { what: tAt("flybook.pokes", poke.stimulus, "done") })}</p>}
       {post.cause && (
         <p className="chain">
-          ↳ set off by{" "}
-          {parent ? <a href={`#post-${parent.id}`}>{source?.name ?? "a neighbour"}'s post</a> : <b>{source?.name ?? "a neighbour"}</b>}
+          {t("flybook.post.setOffBy")}
+          {parent ? <a href={`#post-${parent.id}`}>{t("flybook.post.neighbourPost", { name: source?.name ?? t("flybook.post.neighbour") })}</a> : <b>{source?.name ?? t("flybook.post.neighbour")}</b>}
         </p>
       )}
       <p className="says">{d.headline}</p>
@@ -822,9 +823,9 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
       <Caption post={post} isOwner={!!viewer && fly?.owner === viewer.userId} canWrite={canLike} />
       <div className="meta">
         {read && <span className="chip">{w.tag}</span>}
-        {read && <span className="conf">decoder {pct(post.confidence)} sure</span>}
+        {read && <span className="conf">{t("flybook.post.decoderSure", { pct: pct(post.confidence) })}</span>}
         {top.map((a) => (
-          <span key={a.key} className="chip act" title={`${a.z}σ above a resting fly`}>{actionText(a)}</span>
+          <span key={a.key} className="chip act" title={t("flybook.post.sigmaTitle", { z: a.z })}>{actionText(a)}</span>
         ))}
         {hidden > 0 && (
           <span className="chip act more-acts" title={(post.actions ?? []).slice().sort((a, b) => b.z - a.z).slice(2).map((a) => `${actionText(a)} ${a.z}σ`).join(", ")}>
@@ -832,44 +833,44 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
           </span>
         )}
         <button className={`like${liked ? " on" : ""}`} onClick={onLike} disabled={!canLike} aria-pressed={liked}
-                title={canLike ? (liked ? "Remove your like" : "Like this post") : "Sign in to like posts"}>
+                title={canLike ? t(liked ? "flybook.post.unlike" : "flybook.post.like") : t("flybook.post.signInToLike")}>
           {liked ? "♥" : "♡"} {post.likes ?? 0}
         </button>
         {post.has_voice && (
           <span className="voice-group">
             <button className={`more voice${stopVoice ? " on" : ""}`} onClick={hear}
-                    title={`Its neurons as sound, ${SLOW}× slower than it happened: wing motor neurons buzz, escape neurons pop, grooming rustles, steering pans left or right. Not a recording.`}>
-              {stopVoice ? "■ stop" : "▶ hear"}
+                    title={t("flybook.post.voiceTitle", { slow: SLOW })}>
+              {t(stopVoice ? "flybook.post.stop" : "flybook.post.hear")}
             </button>
             <button className="more voice-style" onClick={() => setVoiceStyle(voiceStyle === "cartoon" ? "real" : "cartoon")}
-                    title="Switch every fly between a cartoon voice and a realistic insect sound">
-              {voiceStyle === "cartoon" ? "cartoon" : "realistic"}
+                    title={t("flybook.post.voiceStyleTitle")}>
+              {t(voiceStyle === "cartoon" ? "flybook.post.cartoon" : "flybook.post.realistic")}
             </button>
           </span>
         )}
         <button className="more talk" onClick={() => setTalking(!talking)} aria-expanded={talking}>💬 {post.comments ?? 0}</button>
-        {onMeme && <button className="more meme-btn" onClick={onMeme} title="Turn this post into an AI image meme (1 a day)">🎨 meme</button>}
-        <button className="more" onClick={() => setSharing(!sharing)}>share</button>
-        <button className="more" onClick={() => setOpen(!open)}>{open ? "hide neurons" : "neurons"}</button>
+        {onMeme && <button className="more meme-btn" onClick={onMeme} title={t("flybook.post.memeTitle")}>{t("flybook.post.meme")}</button>}
+        <button className="more" onClick={() => setSharing(!sharing)}>{t("flybook.post.share")}</button>
+        <button className="more" onClick={() => setOpen(!open)}>{t(open ? "flybook.post.hideNeurons" : "flybook.post.neurons")}</button>
       </div>
       {talking && <Comments post={post} viewerId={viewer?.userId} canWrite={canLike} refreshKey={commentTick} />}
       {sharing && (
         <div className="share">
           <button className="btn sm" onClick={() => shareOnX(`${name} on Flybook: "${d.headline}" ${d.detail} Read from a real fruit-fly brain.`, post.id)}>
-            Post on X
+            {t("flybook.post.postOnX")}
           </button>
           <button className="btn sm" onClick={() => saveCard({ id: post.id, name, color: fly?.color ?? "#888", patch: patch?.name ?? post.patch_id,
                                                              headline: d.headline, detail: d.detail, chips })}>
-            Save card image
+            {t("flybook.post.saveCard")}
           </button>
           <button className="btn sm" onClick={() => navigator.clipboard?.writeText(postUrl(post.id)).then(() => setCopied(true))}>
-            {copied ? "Link copied" : "Copy link"}
+            {t(copied ? "flybook.post.linkCopied" : "flybook.post.copyLink")}
           </button>
         </div>
       )}
       {open && (
         <div className="neurons">
-          {post.neurons.length === 0 && <span className="fine">No single descending-neuron type moved more than 2σ.</span>}
+          {post.neurons.length === 0 && <span className="fine">{t("flybook.post.noNeurons")}</span>}
           {post.neurons.map((n) => (
             <span key={n.type} className={`chip ${n.z > 0 ? "up" : "down"}`}>
               {n.type} {n.z > 0 ? "+" : ""}{n.z}σ
@@ -877,10 +878,10 @@ function PostCard({ post, flies, patch, now, fresh, onFly, liked, viewer, onLike
           ))}
           <span className="fine">
             {post.cause
-              ? `Input from ${source?.name ?? "a neighbour"} (${post.cause.channel}, peak ${post.cause.strength} of a direct stimulus).`
-              : `Stimulated: ${WORDS[post.truth]?.cells ?? post.truth}.`}{" "}
-            Wings {post.wing_hz ?? "?"} spikes/s. Tick #{post.tick_id}.
-            {fly && tuning(fly).length > 0 && ` Tuned: ${tuning(fly).join(", ")}.`}
+              ? t("flybook.post.inputFrom", { name: source?.name ?? t("flybook.post.neighbour"), channel: post.cause.channel, strength: post.cause.strength })
+              : t("flybook.post.stimulated", { cells: WORDS[post.truth]?.cells ?? post.truth })}{" "}
+            {t("flybook.post.wings", { hz: post.wing_hz ?? "?", tick: post.tick_id })}
+            {fly && tuning(fly).length > 0 && t("flybook.post.tunedList", { list: tuning(fly).join(", ") })}
           </span>
         </div>
       )}
@@ -896,12 +897,13 @@ function Shell({ children, live }: { children: React.ReactNode; live?: boolean }
           <a className="brand" href={BASE}>
             <img className="logo" src={`${BASE}logo.webp`} alt="" />
             flybook
-            {live !== undefined && <span className={`status ${live ? "live" : ""}`}>{live ? "live" : "demo"}</span>}
+            {live !== undefined && <span className={`status ${live ? "live" : ""}`}>{t(live ? "flybook.shell.live" : "flybook.shell.demo")}</span>}
           </a>
           <div className="links">
-            <a href={SCIENCE_URL}>How it works</a>
+            <a href={SCIENCE_URL}>{t("flybook.shell.howItWorks")}</a>
             <a href={SITE_URL}>fly.ai</a>
-            {live && <a className="btn red sm" href="#account">Make a fly</a>}
+            {live && <a className="btn red sm" href="#account">{t("flybook.shell.makeFly")}</a>}
+            <LanguageMenu />
           </div>
         </div>
       </nav>

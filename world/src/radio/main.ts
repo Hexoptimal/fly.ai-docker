@@ -6,6 +6,10 @@
  * per-voice pitch and the noise floor are a sonification choice, ported 1:1 from radio/audio.py.
  */
 import radio from "./radio.json";
+import { progress, setupRadio, t, tx } from "../i18n.ts";
+
+// the page's language first: everything below writes text
+await setupRadio();
 
 type Show = (typeof radio.shows)[number];
 const SAMPLE_RATE = 22050;
@@ -62,19 +66,27 @@ class Voice {
 }
 const voices = new Map<string, Voice>();
 
+/** A show's human-written name, tagline and cast names, in the page's language (the ids stay English: they key the audio). */
+const showKey = (s: Show) => `radio.shows.${s.id.replace(/-/g, "_")}`;
+const showName = (s: Show) => tx(`${showKey(s)}.name`, s.name);
+const castName = (s: Show, name: string) => {
+  const i = s.cast.findIndex((c) => c.name === name);
+  return i < 0 ? name : tx(`${showKey(s)}.cast.${i}`, name);
+};
+
 const worker = new Worker(new URL("./radio.worker.ts", import.meta.url), { type: "module" });
 const base = new URL(import.meta.env.DEV ? `${import.meta.env.BASE_URL}connectome/` : "/simulation/connectome/", location.href).href;
 
 worker.onmessage = (e: MessageEvent) => {
   const m = e.data;
-  if (m.type === "progress") statusEl.textContent = `loading the fly brain: ${m.text}`;
-  else if (m.type === "error") statusEl.textContent = `couldn't load the brain: ${m.text}`;
+  if (m.type === "progress") statusEl.textContent = t("radio.status.loading", { progress: progress("radio.status", m.text) });
+  else if (m.type === "error") statusEl.textContent = t("radio.status.error", { error: m.text });
   else if (m.type === "ready") {
     brainReady = true;
-    statusEl.textContent = tuned ? "on air" : `ready: ${m.n.toLocaleString()} neurons`;
+    statusEl.textContent = tuned ? t("radio.status.onAir") : t("radio.status.ready", { n: m.n.toLocaleString() });
   } else if (m.type === "perf") {
     lastPerf = m.ms;
-    if (tuned) statusEl.textContent = `on air · ${lastPerf.toFixed(1)} ms per brain step`;
+    if (tuned) statusEl.textContent = t("radio.status.onAirPerf", { ms: lastPerf.toFixed(1) });
   } else if (m.type === "chunk") {
     if (!tuned || m.show !== active || !audioCtx || !analyser) return;
     const show = SHOWS.find((s) => s.id === m.show)!;
@@ -114,9 +126,9 @@ function buildTuner(): void {
     b.type = "button";
     b.className = "tick";
     b.setAttribute("role", "tab");
-    b.setAttribute("aria-label", s.name);
+    b.setAttribute("aria-label", showName(s));
     b.innerHTML = `<span class="num">${i + 1}</span><span class="name"></span>`;
-    b.querySelector(".name")!.textContent = s.name;
+    b.querySelector(".name")!.textContent = showName(s);
     b.addEventListener("click", () => selectShow(s.id));
     tunerTicks.appendChild(b);
   });
@@ -124,15 +136,15 @@ function buildTuner(): void {
 
 function renderNowPlaying(): void {
   const show = SHOWS.find((s) => s.id === active)!;
-  npName.textContent = show.name;
-  npTagline.textContent = show.tagline;
+  npName.textContent = showName(show);
+  npTagline.textContent = tx(`${showKey(show)}.tagline`, show.tagline);
   npCast.innerHTML = "";
   for (const m of show.cast) {
     const chip = document.createElement("span");
     chip.className = "cast-chip";
     chip.dataset.name = m.name;
     chip.innerHTML = '<span class="cast-dot"></span>';
-    chip.append(m.name);
+    chip.append(castName(show, m.name));
     npCast.appendChild(chip);
   }
   Array.from(tunerTicks.children).forEach((b, i) => b.setAttribute("aria-current", SHOWS[i].id === active ? "true" : "false"));
@@ -144,17 +156,18 @@ function markSpeaking(name: string | null): void {
 
 function renderCaptions(): void {
   if (!captionLog.length) {
-    captionsEl.innerHTML = `<div class="empty-hint">${tuned ? "Listening. The first reading comes after a second of the show." : "Captions appear once you've tuned in."}</div>`;
+    captionsEl.innerHTML = `<div class="empty-hint">${t(tuned ? "radio.captions.listening" : "radio.captions.before")}</div>`;
     return;
   }
   captionsEl.innerHTML = "";
+  const show = SHOWS.find((s) => s.id === active)!;
   for (const c of captionLog) {
     const row = document.createElement("div");
     row.className = "caption-row";
     const who = document.createElement("b");
-    who.textContent = c.speaker;
+    who.textContent = castName(show, c.speaker);
     const said = document.createElement("span");
-    said.textContent = `reads ${c.text.toUpperCase()}`;
+    said.textContent = t("radio.captions.reads", { context: tx(`radio.context.${c.text}`, c.text).toLocaleUpperCase() });
     const conf = document.createElement("span");
     conf.className = "conf mono";
     conf.textContent = `${Math.round(c.confidence * 100)}%`;
@@ -184,24 +197,24 @@ async function turnOn(): Promise<void> {
   await audioCtx.resume();
   tuned = true;
   nextStartTime = 0;
-  tuneBtn.textContent = "Turn off";
+  tuneBtn.textContent = t("radio.unit.turnOff");
   radioUnit.classList.add("tuned");
   onAirSign.classList.add("lit");
   renderCaptions();
-  if (!brainReady) statusEl.textContent = "loading the fly brain (58 MB, once)";
+  if (!brainReady) statusEl.textContent = t("radio.status.loadingOnce");
   worker.postMessage({ type: "load", base });
   worker.postMessage({ type: "tune", show: active });
 }
 
 function turnOff(): void {
   tuned = false;
-  tuneBtn.textContent = "Tune in";
+  tuneBtn.textContent = t("radio.unit.tuneIn");
   radioUnit.classList.remove("tuned");
   onAirSign.classList.remove("lit");
   markSpeaking(null);
   worker.postMessage({ type: "tune", show: null });
   audioCtx?.suspend();
-  statusEl.textContent = brainReady ? "off" : "press Tune in";
+  statusEl.textContent = t(brainReady ? "radio.status.off" : "radio.status.press");
 }
 
 tuneBtn.addEventListener("click", () => (tuned ? turnOff() : turnOn()));
@@ -248,7 +261,7 @@ for (const dd of menus) {
 document.addEventListener("click", (e) => menus.forEach((dd) => { if (!dd.contains(e.target as Node)) closeMenu(dd); }));
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") menus.forEach(closeMenu); });
 
-statusEl.textContent = "press Tune in";
+statusEl.textContent = t("radio.status.press");
 buildTuner();
 renderNowPlaying();
 renderCaptions();

@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-ns="roadmap">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>fly.ai roadmap &mdash; what is done and what is next</title>
-<meta name="description" content="What the fly can already do, what is running now, and what comes next: learning in the mushroom body, a 3-D world, a Smol, a drone, and factions.">
-<meta property="og:title" content="fly.ai roadmap &mdash; what is done and what is next">
-<meta property="og:description" content="What the fly can already do, what is running now, and what comes next: learning in the mushroom body, a 3-D world, a Smol, a drone, and factions.">
+<title data-i18n="roadmap.meta.title">fly.ai roadmap &mdash; what is done and what is next</title>
+<meta name="description" content="What the fly can already do, what is running now, and what comes next: learning in the mushroom body, a 3-D world, a Smol, a drone, and factions." data-i18n-attr="content:roadmap.meta.description">
+<meta property="og:title" content="fly.ai roadmap &mdash; what is done and what is next" data-i18n-attr="content:roadmap.meta.title">
+<meta property="og:description" content="What the fly can already do, what is running now, and what comes next: learning in the mushroom body, a 3-D world, a Smol, a drone, and factions." data-i18n-attr="content:roadmap.meta.description">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@flydotai">
@@ -27,6 +27,7 @@
   "publisher": { "@type": "Organization", "name": "fly.ai" }
 }
 </script>
+<script src="assets/i18n/boot.js"></script>
 <link rel="icon" href="assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,51 +69,51 @@
 </nav>
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">Roadmap</p>
-    <h1>Where the fly is</h1>
-    <p class="lede">No dates we can't keep. This is what's done and what's next. Every step is an experiment in the open repository, reported whether it works or not.</p>
+    <p class="eyebrow" data-i18n="roadmap.head.eyebrow">Roadmap</p>
+    <h1 data-i18n="roadmap.head.title">Where the fly is</h1>
+    <p class="lede" data-i18n="roadmap.head.lede">No dates we can't keep. This is what's done and what's next. Every step is an experiment in the open repository, reported whether it works or not.</p>
   </div>
 </header>
 <section id="phases" class="firstsec">
   <div class="wrap">
     <ol class="phases">
-      <li class="done"><span class="st">Done</span><div><b>The whole brain runs.</b> <span class="d">166,700 neurons and 25.6M connections, simulated in real time.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>Its eyes are wired in.</b> <span class="d">Looming and chase signals reach the right command neurons, on the correct side.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>It fights online.</b> <span class="d">It plays SSH Fighter as a bot, with a live view of every neuron firing.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>GPU brain.</b> <span class="d">6.3× faster on a laptop GPU, and now many flies can run at once.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>Open source.</b> <span class="d">Code, notebook and this site are public.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>Eight flies vote.</b> <span class="d">Eight copies of the brain decide together. They chase harder (72% of moves toward the opponent, against 63% for one fly) and make fewer random moves.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>$FLYAI launched on Pons, on Robinhood Chain.</b> <span class="d">Fair launch: graduated to Uniswap V4, liquidity locked permanently by Pons, no team allocation, no tax. The contract address is on the <a href="token.html">token page</a> and on @flydotai only.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>It won a match.</b> <span class="d">The brain was thinking too slowly &mdash; eight copies voting took twice as long as a game frame, so the fly acted two frames late. Running two copies put it back in real time, and it won its first fight, two rounds to none.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>Two fly brains signal to each other.</b> <span class="d">One copy of the brain sees a threat and its wings sing. A second copy hears it through its own ears, and with the finest time steps it reacts 77.5% of the time, against 17.5% in silence. <a href="research/flybook.html">See the experiment and the feed</a>.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>Smell reaches the brain.</b> <span class="d">The smell neurons were exciting each other into a runaway loop that drowned out every odour. With that fixed, a food smell drives the fly's own odour relay neurons.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>pip install flybrain.</b> <span class="d">The brain is now a Python package: <a href="https://pypi.org/project/flybrain/0.1.0/" target="_blank" rel="noopener">flybrain 0.1.0 on PyPI</a>. One command installs it, and the first run downloads the fly&rsquo;s wiring.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>Flybook is live.</b> <span class="d">Sign in with a wallet, make, tune and breed your own flies, poke patches, like and comment, and duel in the Arena. Flies also mate on their own with other owners' flies, and a fly only posts a word when the decoder is confident. In the fly market, holders' flies get 1 fake ETH and trade simulated coins with their brains every 10 minutes, with a trading style their owner picks, a wallet per fly and a Richest board. Every post is read from the neurons that produced it, flies set each other off, and every two weeks the top 3 on the Season points board win $FLYAI. <a href="/flybook/">Open Flybook</a>.</span></div></li>
-      <li class="now"><span class="st">Now</span><div><b>Sharper senses.</b> <span class="d">Retuning how the game reaches the fly's looming neurons made its punch signal clearly better in replays. Next: learning to dodge. The brain itself stays untouched.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>Flybook agents.</b> <span class="d">Mint an agent NFT, fund its wallet with ETH on Robinhood Chain and give it a personality. The agent launches its own token on Pons, promotes it in the Flybook agent feed, makes allies and rivals with other agents, and competes to grow its money and its token.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>Learning inside the brain.</b> <span class="d">Dopamine-driven learning in the mushroom body, the way real flies learn.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>Real vs random wiring.</b> <span class="d">Does nature's wiring beat shuffled wiring? We'll publish whatever we find.</span></div></li>
-      <li class="done"><span class="st">Done</span><div><b>A world to fly in.</b> <span class="d">Out of the 2-D fighting game and into a 3-D world: dozens of flies, each its own copy of the brain, foraging, tracking odour plumes, mating, laying eggs and dying. Summon <b>Wiz</b>, a giant wizard puppeted by the full 166,700-neuron connectome running in your browser. <a href="/simulation/">Open it here</a>.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>More animals in the world.</b> <span class="d">Spiders already hunt the flies. Next: more creatures sharing the field &mdash; predators and prey that give the fly's escape and avoidance circuits something real to deal with. Anything we claim runs on a real nervous system gets the same treatment the fly got, measurements and all.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>The fly drives a Smol.</b> <span class="d">The same brain, embodied in the world as a <a href="https://opensea.io/collection/smols-752105135" target="_blank" rel="noopener">Smol</a>. A real nervous system moving a character you recognise.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>The fly flies a drone.</b> <span class="d">The same brain again, this time on a quadrotor &mdash; in simulation first, then a real drone indoors, camera streamed to the brain and stick commands sent back. The altitude it holds already comes from the optic-flow cells real insects use.</span></div></li>
-      <li class="next"><span class="st">Next</span><div><b>Factions.</b> <span class="d">One shared world everybody watches, with flies belonging to player-created factions. Colour is your faction, you can feed it, and it can be wiped out for good.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st1">Done</span><div><b data-i18n="roadmap.phases.b1">The whole brain runs.</b> <span class="d" data-i18n="roadmap.phases.d1">166,700 neurons and 25.6M connections, simulated in real time.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st2">Done</span><div><b data-i18n="roadmap.phases.b2">Its eyes are wired in.</b> <span class="d" data-i18n="roadmap.phases.d2">Looming and chase signals reach the right command neurons, on the correct side.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st3">Done</span><div><b data-i18n="roadmap.phases.b3">It fights online.</b> <span class="d" data-i18n="roadmap.phases.d3">It plays SSH Fighter as a bot, with a live view of every neuron firing.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st4">Done</span><div><b data-i18n="roadmap.phases.b4">GPU brain.</b> <span class="d" data-i18n="roadmap.phases.d4">6.3× faster on a laptop GPU, and now many flies can run at once.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st5">Done</span><div><b data-i18n="roadmap.phases.b5">Open source.</b> <span class="d" data-i18n="roadmap.phases.d5">Code, notebook and this site are public.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st6">Done</span><div><b data-i18n="roadmap.phases.b6">Eight flies vote.</b> <span class="d" data-i18n="roadmap.phases.d6">Eight copies of the brain decide together. They chase harder (72% of moves toward the opponent, against 63% for one fly) and make fewer random moves.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st7">Done</span><div><b data-i18n="roadmap.phases.b7">$FLYAI launched on Pons, on Robinhood Chain.</b> <span class="d" data-i18n-html="roadmap.phases.d7">Fair launch: graduated to Uniswap V4, liquidity locked permanently by Pons, no team allocation, no tax. The contract address is on the <a href="token.html">token page</a> and on @flydotai only.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st8">Done</span><div><b data-i18n="roadmap.phases.b8">It won a match.</b> <span class="d" data-i18n="roadmap.phases.d8">The brain was thinking too slowly &mdash; eight copies voting took twice as long as a game frame, so the fly acted two frames late. Running two copies put it back in real time, and it won its first fight, two rounds to none.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st9">Done</span><div><b data-i18n="roadmap.phases.b9">Two fly brains signal to each other.</b> <span class="d" data-i18n-html="roadmap.phases.d9">One copy of the brain sees a threat and its wings sing. A second copy hears it through its own ears, and with the finest time steps it reacts 77.5% of the time, against 17.5% in silence. <a href="research/flybook.html">See the experiment and the feed</a>.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st10">Done</span><div><b data-i18n="roadmap.phases.b10">Smell reaches the brain.</b> <span class="d" data-i18n="roadmap.phases.d10">The smell neurons were exciting each other into a runaway loop that drowned out every odour. With that fixed, a food smell drives the fly's own odour relay neurons.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st11">Done</span><div><b data-i18n="roadmap.phases.b11">pip install flybrain.</b> <span class="d" data-i18n-html="roadmap.phases.d11">The brain is now a Python package: <a href="https://pypi.org/project/flybrain/0.1.0/" target="_blank" rel="noopener">flybrain 0.1.0 on PyPI</a>. One command installs it, and the first run downloads the fly&rsquo;s wiring.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st12">Done</span><div><b data-i18n="roadmap.phases.b12">Flybook is live.</b> <span class="d" data-i18n-html="roadmap.phases.d12">Sign in with a wallet, make, tune and breed your own flies, poke patches, like and comment, and duel in the Arena. Flies also mate on their own with other owners' flies, and a fly only posts a word when the decoder is confident. In the fly market, holders' flies get 1 fake ETH and trade simulated coins with their brains every 10 minutes, with a trading style their owner picks, a wallet per fly and a Richest board. Every post is read from the neurons that produced it, flies set each other off, and every two weeks the top 3 on the Season points board win $FLYAI. <a href="/flybook/">Open Flybook</a>.</span></div></li>
+      <li class="now"><span class="st" data-i18n="roadmap.phases.st13">Now</span><div><b data-i18n="roadmap.phases.b13">Sharper senses.</b> <span class="d" data-i18n="roadmap.phases.d13">Retuning how the game reaches the fly's looming neurons made its punch signal clearly better in replays. Next: learning to dodge. The brain itself stays untouched.</span></div></li>
+      <li class="next"><span class="st" data-i18n="roadmap.phases.st14">Next</span><div><b data-i18n="roadmap.phases.b14">Flybook agents.</b> <span class="d" data-i18n="roadmap.phases.d14">Mint an agent NFT, fund its wallet with ETH on Robinhood Chain and give it a personality. The agent launches its own token on Pons, promotes it in the Flybook agent feed, makes allies and rivals with other agents, and competes to grow its money and its token.</span></div></li>
+      <li class="next"><span class="st" data-i18n="roadmap.phases.st15">Next</span><div><b data-i18n="roadmap.phases.b15">Learning inside the brain.</b> <span class="d" data-i18n="roadmap.phases.d15">Dopamine-driven learning in the mushroom body, the way real flies learn.</span></div></li>
+      <li class="next"><span class="st" data-i18n="roadmap.phases.st16">Next</span><div><b data-i18n="roadmap.phases.b16">Real vs random wiring.</b> <span class="d" data-i18n="roadmap.phases.d16">Does nature's wiring beat shuffled wiring? We'll publish whatever we find.</span></div></li>
+      <li class="done"><span class="st" data-i18n="roadmap.phases.st17">Done</span><div><b data-i18n="roadmap.phases.b17">A world to fly in.</b> <span class="d" data-i18n-html="roadmap.phases.d17">Out of the 2-D fighting game and into a 3-D world: dozens of flies, each its own copy of the brain, foraging, tracking odour plumes, mating, laying eggs and dying. Summon <b>Wiz</b>, a giant wizard puppeted by the full 166,700-neuron connectome running in your browser. <a href="/simulation/">Open it here</a>.</span></div></li>
+      <li class="next"><span class="st" data-i18n="roadmap.phases.st18">Next</span><div><b data-i18n="roadmap.phases.b18">More animals in the world.</b> <span class="d" data-i18n="roadmap.phases.d18">Spiders already hunt the flies. Next: more creatures sharing the field &mdash; predators and prey that give the fly's escape and avoidance circuits something real to deal with. Anything we claim runs on a real nervous system gets the same treatment the fly got, measurements and all.</span></div></li>
+      <li class="next"><span class="st" data-i18n="roadmap.phases.st19">Next</span><div><b data-i18n="roadmap.phases.b19">The fly drives a Smol.</b> <span class="d" data-i18n-html="roadmap.phases.d19">The same brain, embodied in the world as a <a href="https://opensea.io/collection/smols-752105135" target="_blank" rel="noopener">Smol</a>. A real nervous system moving a character you recognise.</span></div></li>
+      <li class="next"><span class="st" data-i18n="roadmap.phases.st20">Next</span><div><b data-i18n="roadmap.phases.b20">The fly flies a drone.</b> <span class="d" data-i18n="roadmap.phases.d20">The same brain again, this time on a quadrotor &mdash; in simulation first, then a real drone indoors, camera streamed to the brain and stick commands sent back. The altitude it holds already comes from the optic-flow cells real insects use.</span></div></li>
+      <li class="next"><span class="st" data-i18n="roadmap.phases.st21">Next</span><div><b data-i18n="roadmap.phases.b21">Factions.</b> <span class="d" data-i18n="roadmap.phases.d21">One shared world everybody watches, with flies belonging to player-created factions. Colour is your faction, you can feed it, and it can be wiped out for good.</span></div></li>
     </ol>
   </div>
 </section>
 <section id="more">
   <div class="wrap">
-    <p class="eyebrow">Read on</p>
-    <h2>The rest of it</h2>
+    <p class="eyebrow" data-i18n="roadmap.more.eyebrow">Read on</p>
+    <h2 data-i18n="roadmap.more.title">The rest of it</h2>
     <div class="next-pages">
-      <a class="card pad" href="research.html"><h3>Research</h3>
-        <p>Every measurement, including the ones that failed: ablation tables, plume tracking, and the escape
-          reflex under predation.</p><p class="go">Read the findings &rarr;</p></a>
-      <a class="card pad" href="index.html"><h3>Home</h3>
-        <p>The brain, the recorded matches, and what the whole project is.</p><p class="go">Back to the start &rarr;</p></a>
+      <a class="card pad" href="research.html"><h3 data-i18n="roadmap.more.h31">Research</h3>
+        <p data-i18n="roadmap.more.p1">Every measurement, including the ones that failed: ablation tables, plume tracking, and the escape
+          reflex under predation.</p><p class="go" data-i18n="roadmap.more.go1">Read the findings &rarr;</p></a>
+      <a class="card pad" href="index.html"><h3 data-i18n="roadmap.more.h32">Home</h3>
+        <p data-i18n="roadmap.more.p2">The brain, the recorded matches, and what the whole project is.</p><p class="go" data-i18n="roadmap.more.go2">Back to the start &rarr;</p></a>
       <a class="card pad" href="token.html"><h3>$FLYAI</h3>
-        <p>The launch terms, the contract address, where the creator fees go, and what the token does and
-          does not give you.</p><p class="go">Token details &rarr;</p></a>
+        <p data-i18n="roadmap.more.p3">The launch terms, the contract address, where the creator fees go, and what the token does and
+          does not give you.</p><p class="go" data-i18n="roadmap.more.go3">Token details &rarr;</p></a>
     </div>
   </div>
 </section>
@@ -129,5 +130,6 @@
 
 <script src="assets/site.js"></script>
 <script src="assets/nav.js"></script>
+<script type="module" src="assets/i18n/page.js"></script>
 </body>
 </html>

@@ -7,6 +7,7 @@ import { cash, pct } from "./FlyWallet";
 import { MemeBoard } from "./Memes";
 import { MerchBoard } from "./Merch";
 import { currentSeason } from "./seasons";
+import { Html, t, tAt } from "./i18n";
 
 type FlyRow = FlySettings & {
   fly_id: string; name: string; color: string; patch_id: string; house: boolean; active: boolean;
@@ -19,28 +20,28 @@ type PersonRow = {
 type Period = "week" | "season" | "all";
 type Mode = "people" | "rich" | "challenge" | "points" | "memes" | "merch" | "flies";
 
-type Board = { key: string; label: string; help: string; min: number; score: (r: FlyRow) => number; show: (r: FlyRow) => string };
+/** label, help and the score line: flybook.board.flyBoards.<key>.label / .help / .show ({n}) */
+type Board = { key: string; min: number; score: (r: FlyRow) => number; value: (r: FlyRow) => number };
 
 const BOARDS: Board[] = [
-  { key: "active", label: "Most active", help: "Most posts.", min: 1,
-    score: (r) => r.posts, show: (r) => `${r.posts} posts` },
-  { key: "liked", label: "Most liked", help: "Most likes from $FLYAI holders across its posts. Owners' likes on their own flies don't count.", min: 1,
-    score: (r) => r.likes, show: (r) => `${r.likes} likes` },
-  { key: "sharp", label: "Sharpest", help: "Share of reads that matched what really happened. At least 5 posts.", min: 5,
+  { key: "active", min: 1, score: (r) => r.posts, value: (r) => r.posts },
+  { key: "liked", min: 1, score: (r) => r.likes, value: (r) => r.likes },
+  { key: "sharp", min: 5,
     score: (r) => r.true_posts / Math.max(1, r.true_posts + r.misreads) + r.posts * 1e-6,
-    show: (r) => `${Math.round((100 * r.true_posts) / Math.max(1, r.true_posts + r.misreads))}% true` },
-  { key: "confused", label: "Most confused", help: "Most posts that misread what really happened.", min: 1,
-    score: (r) => r.misreads, show: (r) => `${r.misreads} misreads` },
-  { key: "vocab", label: "Widest vocabulary", help: "Most different words posted.", min: 1,
-    score: (r) => r.words, show: (r) => `${r.words} words` },
+    value: (r) => Math.round((100 * r.true_posts) / Math.max(1, r.true_posts + r.misreads)) },
+  { key: "confused", min: 1, score: (r) => r.misreads, value: (r) => r.misreads },
+  { key: "vocab", min: 1, score: (r) => r.words, value: (r) => r.words },
 ];
+const boardText = (b: Board, part: "label" | "help") => tAt("flybook.board.flyBoards", b.key, part);
 
-const CHALLENGES: Record<string, { label: string; help: string; percent: boolean }> = {
-  calm: { label: "Calmest under threat", help: "Held still through the most real threats (at least 3 this week).", percent: true },
-  alarm: { label: "Alarm caller", help: "Set off the most other flies this week (chain reactions in its patch).", percent: false },
-  sharp: { label: "Sharpest reader", help: "Best share of reads that matched what really happened (at least 10 reads).", percent: true },
-  loved: { label: "Crowd favourite", help: "Most likes from other $FLYAI holders this week.", percent: false },
+/** label and help: flybook.board.challenges.<key>.label / .help */
+const CHALLENGES: Record<string, { key: string; percent: boolean }> = {
+  calm: { key: "calm", percent: true },
+  alarm: { key: "alarm", percent: false },
+  sharp: { key: "sharp", percent: true },
+  loved: { key: "loved", percent: false },
 };
+const challengeText = (c: { key: string }, part: "label" | "help") => tAt("flybook.board.challenges", c.key, part);
 const ORDER = ["calm", "alarm", "sharp", "loved"];
 const themeOf = (start: Date) => ORDER[Math.floor(start.getTime() / 1000 / 604800) % 4];
 
@@ -79,23 +80,23 @@ export default function Leaderboard({ patches, patch, viewerId, onFly }: {
   return (
     <div className="board">
       <div className="feed-head">
-        <h2>Leaderboard{mode === "flies" && patch !== "all" && names.get(patch) ? ` · ${names.get(patch)}` : ""}</h2>
+        <h2>{t("flybook.board.title")}{mode === "flies" && patch !== "all" && names.get(patch) ? ` · ${names.get(patch)}` : ""}</h2>
       </div>
       <div className="seg board-mode" role="tablist">
-        <button className={mode === "people" ? "on" : ""} onClick={() => setMode("people")}>Most popular people</button>
-        <button className={mode === "rich" ? "on" : ""} onClick={() => setMode("rich")}>💰 Richest</button>
-        <button className={mode === "challenge" ? "on" : ""} onClick={() => setMode("challenge")}>Weekly challenge</button>
-        <button className={mode === "points" ? "on" : ""} onClick={() => setMode("points")}>Season points</button>
-        <button className={mode === "memes" ? "on" : ""} onClick={() => setMode("memes")}>Best memes</button>
-        <button className={mode === "merch" ? "on" : ""} onClick={() => setMode("merch")}>👕 Top merch</button>
-        <button className={mode === "flies" ? "on" : ""} onClick={() => setMode("flies")}>Flies</button>
+        <button className={mode === "people" ? "on" : ""} onClick={() => setMode("people")}>{t("flybook.board.modes.people")}</button>
+        <button className={mode === "rich" ? "on" : ""} onClick={() => setMode("rich")}>{t("flybook.board.modes.rich")}</button>
+        <button className={mode === "challenge" ? "on" : ""} onClick={() => setMode("challenge")}>{t("flybook.board.modes.challenge")}</button>
+        <button className={mode === "points" ? "on" : ""} onClick={() => setMode("points")}>{t("flybook.board.modes.points")}</button>
+        <button className={mode === "memes" ? "on" : ""} onClick={() => setMode("memes")}>{t("flybook.board.modes.memes")}</button>
+        <button className={mode === "merch" ? "on" : ""} onClick={() => setMode("merch")}>{t("flybook.board.modes.merch")}</button>
+        <button className={mode === "flies" ? "on" : ""} onClick={() => setMode("flies")}>{t("flybook.board.modes.flies")}</button>
       </div>
       {error && <p className="err">{error}</p>}
       {mode === "people" && <People rows={people} period={period} setPeriod={setPeriod} viewerId={viewerId} />}
       {mode === "rich" && <Richest people={people} viewerId={viewerId} onFly={onFly} />}
       {mode === "challenge" && <Challenge onFly={onFly} />}
       {mode === "points" && (
-        <Points rows={points} viewerId={viewerId} title={`Season ${season.number} · ${season.name} · ${season.daysLeft} days left`} />
+        <Points rows={points} viewerId={viewerId} title={t("flybook.board.seasonTitle", { n: season.number, name: season.name, count: season.daysLeft })} />
       )}
       {mode === "memes" && <MemeBoard onFly={onFly} />}
       {mode === "merch" && <MerchBoard onFly={onFly} />}
@@ -126,27 +127,25 @@ function Challenge({ onFly }: { onFly: (id: string) => void }) {
 
   return (
     <>
-      <p className="board-note">
-        This week: <b>{theme.label}</b>. {theme.help} A new theme starts every Monday (UTC), {daysLeft} day{daysLeft === 1 ? "" : "s"} left.
-        Winners are counted from real posts, likes and chain reactions.
-      </p>
+      <Html as="p" className="board-note" k="flybook.board.thisWeek"
+            vars={{ label: challengeText(theme, "label"), help: challengeText(theme, "help"), count: daysLeft }} />
       {last && last.length > 0 && (
         <div className="card winners">
-          <h4>Last week · {lastTheme.label}</h4>
+          <h4>{t("flybook.board.lastWeek", { label: challengeText(lastTheme, "label") })}</h4>
           <ol>
             {last.slice(0, 3).map((r, i) => (
               <li key={r.fly_id}>
                 <span className={`rank top${i + 1}`}>{i + 1}</span>
                 <span className="dot" style={{ background: r.color }} /> {r.name}
-                <span className="fine inline">{r.house ? "house fly" : r.owner_wallet} · {r.detail}</span>
+                <span className="fine inline">{r.house ? t("flybook.board.houseFly") : r.owner_wallet} · {r.detail}</span>
               </li>
             ))}
           </ol>
         </div>
       )}
       {error && <p className="err">{error}</p>}
-      {rows === null && !error && <div className="empty">Counting this week…</div>}
-      {rows !== null && rows.length === 0 && <div className="empty">Nobody qualifies yet this week.</div>}
+      {rows === null && !error && <div className="empty">{t("flybook.board.counting")}</div>}
+      {rows !== null && rows.length === 0 && <div className="empty">{t("flybook.board.nobody")}</div>}
       {rows !== null && rows.length > 0 && (
         <ol className="ranking">
           {rows.map((r, i) => (
@@ -156,7 +155,7 @@ function Challenge({ onFly }: { onFly: (id: string) => void }) {
                 <span className="dot" style={{ background: r.color }} />
                 {r.name}
               </button>
-              {r.house ? <span className="badge">house</span> : <span className="badge mono">{r.owner_wallet}</span>}
+              {r.house ? <span className="badge">{t("flybook.board.house")}</span> : <span className="badge mono">{r.owner_wallet}</span>}
               <span className="stat">{score(r, theme.percent)}</span>
               <span className="sub mono">{r.detail}</span>
             </li>
@@ -174,20 +173,17 @@ function People({ rows, period, setPeriod, viewerId }: {
   const ranked = (rows ?? []).filter((r) => score(r) > 0).sort((a, b) => score(b) - score(a) || b.likes - a.likes).slice(0, 50);
   return (
     <>
-      <p className="board-note">
-        Fly owners ranked by the likes their flies' posts get from other $FLYAI holders. Likes on your own flies don't
-        count. People show as their name or a shortened wallet.
-      </p>
+      <p className="board-note">{t("flybook.board.peopleNote")}</p>
       <div className="board-controls">
         <div className="seg">
-          <button className={period === "week" ? "on" : ""} onClick={() => setPeriod("week")}>This week</button>
-          <button className={period === "season" ? "on" : ""} onClick={() => setPeriod("season")}>This season</button>
-          <button className={period === "all" ? "on" : ""} onClick={() => setPeriod("all")}>All time</button>
+          <button className={period === "week" ? "on" : ""} onClick={() => setPeriod("week")}>{t("flybook.board.week")}</button>
+          <button className={period === "season" ? "on" : ""} onClick={() => setPeriod("season")}>{t("flybook.board.season")}</button>
+          <button className={period === "all" ? "on" : ""} onClick={() => setPeriod("all")}>{t("flybook.board.all")}</button>
         </div>
       </div>
-      {rows === null && <div className="empty">Counting likes…</div>}
+      {rows === null && <div className="empty">{t("flybook.board.countingLikes")}</div>}
       {rows !== null && ranked.length === 0 && (
-        <div className="empty">No likes yet. When holders like posts, the owners of the most-liked flies show up here.</div>
+        <div className="empty">{t("flybook.board.noLikes")}</div>
       )}
       {ranked.length > 0 && (
         <ol className="ranking">
@@ -195,13 +191,13 @@ function People({ rows, period, setPeriod, viewerId }: {
             <li key={r.owner_id} className={r.owner_id === viewerId ? "me" : ""}>
               <span className={`rank${i < 3 ? ` top${i + 1}` : ""}`}>{i + 1}</span>
               <span className="who mono">{r.wallet_short}</span>
-              {r.owner_id === viewerId && <span className="badge">you</span>}
+              {r.owner_id === viewerId && <span className="badge">{t("flybook.board.you")}</span>}
               <span className="flies-mini">
                 {r.fly_list.map((f) => <span key={f.name} className="dot" title={f.name} style={{ background: f.color }} />)}
               </span>
-              <span className="stat">{score(r)} likes</span>
+              <span className="stat">{t("flybook.board.likes", { n: score(r) })}</span>
               <span className="sub mono">
-                {r.flies} flies · {r.posts} posts · {r.likes_week} this week · {r.likes_season} this season · {r.likes} all time
+                {t("flybook.board.personLine", { flies: r.flies, posts: r.posts, week: r.likes_week, season: r.likes_season, all: r.likes })}
               </span>
             </li>
           ))}
@@ -217,23 +213,19 @@ function Points({ rows, viewerId, title }: { rows: SeasonRow[] | null; viewerId?
   const rewarded = new Set(ranked.filter((r) => r.has_wallet !== false).slice(0, 3).map((r) => r.user_id));
   return (
     <>
-      <p className="board-note">
-        {title}. At the end of each season the top 3 $FLYAI holders on this board win $FLYAI (balances are checked at
-        payout). Points come from missions: 10 for each daily mission, 50 for each weekly one. Seasons last 2 weeks and the
-        board starts fresh each season.
-      </p>
-      {rows === null && <div className="empty">Counting points…</div>}
-      {rows !== null && ranked.length === 0 && <div className="empty">No missions completed this season yet.</div>}
+      <p className="board-note">{t("flybook.board.pointsNote", { title })}</p>
+      {rows === null && <div className="empty">{t("flybook.board.countingPoints")}</div>}
+      {rows !== null && ranked.length === 0 && <div className="empty">{t("flybook.board.noMissions")}</div>}
       {ranked.length > 0 && (
         <ol className="ranking">
           {ranked.map((r, i) => (
             <li key={r.user_id} className={r.user_id === viewerId ? "me" : ""}>
               <span className={`rank${i < 3 ? ` top${i + 1}` : ""}`}>{i + 1}</span>
               <span className="who mono">{r.wallet_short}</span>
-              {r.user_id === viewerId && <span className="badge">you</span>}
-              {rewarded.has(r.user_id) && <span className="badge award">$FLYAI reward</span>}
-              <span className="stat">{r.points} pts</span>
-              <span className="sub mono">{r.missions} missions completed this season</span>
+              {r.user_id === viewerId && <span className="badge">{t("flybook.board.you")}</span>}
+              {rewarded.has(r.user_id) && <span className="badge award">{t("flybook.board.reward")}</span>}
+              <span className="stat">{t("flybook.board.pts", { n: r.points })}</span>
+              <span className="sub mono">{t("flybook.board.missionsDone", { n: r.missions })}</span>
             </li>
           ))}
         </ol>
@@ -277,21 +269,21 @@ function Richest({ people, viewerId, onFly }: { people: PersonRow[] | null; view
     byOwner.set(r.owner, o);
   }
   const owners = [...byOwner.values()].sort((a, b) => b.value - a.value).slice(0, 50);
-  const holds = (r: RichRow) => Object.entries(r.holdings ?? {}).filter(([, h]) => h.qty > 0).map(([s]) => `$${s}`).join(" ") || "only cash";
+  const holds = (r: RichRow) => Object.entries(r.holdings ?? {}).filter(([, h]) => h.qty > 0).map(([s]) => `$${s}`).join(" ") || t("flybook.board.onlyCash");
   const change = (x: number) => <span className={x >= 0 ? "up" : "down"}>{pct(x)}</span>;
 
   return (
     <>
-      <p className="board-note">Who's winning the fly market. Every fly starts with 1 ETH's worth of paper USDG and trades real token prices with its brain.</p>
+      <p className="board-note">{t("flybook.board.richNote")}</p>
       <div className="board-controls">
         <div className="seg">
-          <button className={by === "flies" ? "on" : ""} onClick={() => setBy("flies")}>Richest flies</button>
-          <button className={by === "people" ? "on" : ""} onClick={() => setBy("people")}>Richest people</button>
+          <button className={by === "flies" ? "on" : ""} onClick={() => setBy("flies")}>{t("flybook.board.richFlies")}</button>
+          <button className={by === "people" ? "on" : ""} onClick={() => setBy("people")}>{t("flybook.board.richPeople")}</button>
         </div>
       </div>
       {error && <p className="err">{error}</p>}
-      {rows === null && !error && <div className="empty">Counting paper dollars…</div>}
-      {rows !== null && rows.length === 0 && <div className="empty">No wallets yet. They open at the next tick.</div>}
+      {rows === null && !error && <div className="empty">{t("flybook.board.countingCash")}</div>}
+      {rows !== null && rows.length === 0 && <div className="empty">{t("flybook.board.noWallets")}</div>}
       {by === "flies" && flies.length > 0 && (
         <ol className="ranking">
           {flies.map((r, i) => (
@@ -300,9 +292,9 @@ function Richest({ people, viewerId, onFly }: { people: PersonRow[] | null; view
               <button className="who" onClick={() => onFly(r.fly_id)}>
                 <span className="dot" style={{ background: r.color }} />{r.name}
               </button>
-              {r.owner && r.owner === viewerId && <span className="badge">yours</span>}
+              {r.owner && r.owner === viewerId && <span className="badge">{t("flybook.board.yours")}</span>}
               <span className="stat">{cash(r.value_eth)}</span>
-              <span className="sub mono">{change(r.pnl)} · {r.trades} trades · holds {holds(r)}</span>
+              <span className="sub mono">{change(r.pnl)}{t("flybook.board.richLine", { trades: r.trades, holds: holds(r) })}</span>
             </li>
           ))}
         </ol>
@@ -312,14 +304,14 @@ function Richest({ people, viewerId, onFly }: { people: PersonRow[] | null; view
           {owners.map((o, i) => (
             <li key={o.owner} className={o.owner === viewerId ? "me" : ""}>
               <span className={`rank${i < 3 ? ` top${i + 1}` : ""}`}>{i + 1}</span>
-              <span className="who mono">{label.get(o.owner) ?? "a player"}</span>
-              {o.owner === viewerId && <span className="badge">you</span>}
+              <span className="who mono">{label.get(o.owner) ?? t("flybook.board.aPlayer")}</span>
+              {o.owner === viewerId && <span className="badge">{t("flybook.board.you")}</span>}
               <span className="flies-mini">
                 {o.flies.map((f) => <span key={f.fly_id} className="dot" title={f.name} style={{ background: f.color }} />)}
               </span>
               <span className="stat">{cash(o.value)}</span>
               <span className="sub mono">
-                {change(o.start > 0 ? o.value / o.start - 1 : 0)} · {o.flies.length} {o.flies.length === 1 ? "fly" : "flies"} trading
+                {change(o.start > 0 ? o.value / o.start - 1 : 0)}{t("flybook.board.fliesTrading", { count: o.flies.length })}
               </span>
             </li>
           ))}
@@ -339,23 +331,24 @@ function Flies({ rows, names, patch, board, boardKey, setBoardKey, who, setWho, 
     .filter((r) => r.posts >= board.min && board.score(r) > 0)
     .sort((a, b) => board.score(b) - board.score(a))
     .slice(0, 50);
+  const showKey = `flybook.board.flyBoards.${board.key}.show`;
   return (
     <>
-      <p className="board-note">{board.help} Counted from every post the brains have made.</p>
+      <p className="board-note">{t("flybook.board.boardNote", { help: boardText(board, "help") })}</p>
       <div className="board-controls">
         <div className="seg" role="tablist">
           {BOARDS.map((b) => (
-            <button key={b.key} className={b.key === boardKey ? "on" : ""} onClick={() => setBoardKey(b.key)}>{b.label}</button>
+            <button key={b.key} className={b.key === boardKey ? "on" : ""} onClick={() => setBoardKey(b.key)}>{boardText(b, "label")}</button>
           ))}
         </div>
         <div className="seg">
           {(["all", "community", "house"] as const).map((w) => (
-            <button key={w} className={w === who ? "on" : ""} onClick={() => setWho(w)}>{w}</button>
+            <button key={w} className={w === who ? "on" : ""} onClick={() => setWho(w)}>{tAt("flybook.board.who", w)}</button>
           ))}
         </div>
       </div>
-      {rows === null && <div className="empty">Counting posts…</div>}
-      {rows !== null && ranked.length === 0 && <div className="empty">No flies on this board yet. It fills up as flies post.</div>}
+      {rows === null && <div className="empty">{t("flybook.board.countingPosts")}</div>}
+      {rows !== null && ranked.length === 0 && <div className="empty">{t("flybook.board.noFlies")}</div>}
       {ranked.length > 0 && (
         <ol className="ranking">
           {ranked.map((r, i) => {
@@ -367,12 +360,12 @@ function Flies({ rows, names, patch, board, boardKey, setBoardKey, who, setWho, 
                   <span className="dot" style={{ background: r.color }} />
                   {r.name}
                 </button>
-                {r.house && <span className="badge">house</span>}
-                {tuned.length > 0 && <span className="badge tuned" title={tuned.join(", ")}>tuned</span>}
-                {!r.active && <span className="badge">dormant</span>}
+                {r.house && <span className="badge">{t("flybook.board.house")}</span>}
+                {tuned.length > 0 && <span className="badge tuned" title={tuned.join(", ")}>{t("flybook.board.tuned")}</span>}
+                {!r.active && <span className="badge">{t("flybook.board.dormant")}</span>}
                 <span className="where">{names.get(r.patch_id) ?? r.patch_id}</span>
-                <span className="stat">{board.show(r)}</span>
-                <span className="sub mono">{r.posts} posts · {r.true_posts} true · {r.words} words · {r.likes} likes</span>
+                <span className="stat">{t(showKey, { n: board.value(r) })}</span>
+                <span className="sub mono">{t("flybook.board.flyLine", { posts: r.posts, true: r.true_posts, words: r.words, likes: r.likes })}</span>
               </li>
             );
           })}

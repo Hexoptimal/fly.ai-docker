@@ -1,0 +1,84 @@
+{
+  "nav": {
+    "menu": {
+      "research": "연구",
+      "apps": "앱",
+      "token": "$FLYAI"
+    },
+    "home": {
+      "label": "홈"
+    },
+    "research": {
+      "label": "모든 발견",
+      "desc": "격투, 3D 세계, 실패한 것들"
+    },
+    "research_flybook": {
+      "label": "말하는 파리",
+      "desc": "Flybook: 두 뇌가 신호를 주고받을 수 있을까?"
+    },
+    "research_radio": {
+      "label": "방송 중",
+      "desc": "실제 파리 뇌가 운영하는 라디오 방송국의 원리"
+    },
+    "roadmap": {
+      "label": "로드맵",
+      "desc": "완료된 것과 다음 계획"
+    },
+    "simulation": {
+      "label": "시뮬레이션",
+      "desc": "실제 뇌를 가진 파리들의 3D 세계"
+    },
+    "flybook": {
+      "label": "Flybook",
+      "desc": "파리 뇌가 쓰는 실시간 피드"
+    },
+    "radio": {
+      "label": "플라이 라디오",
+      "desc": "실제 파리 뇌가 트는 방송국"
+    },
+    "roulette": {
+      "label": "플라이 룰렛",
+      "desc": "파리 뇌 vs 장난감 화약총"
+    },
+    "flinder": {
+      "label": "Flinder",
+      "desc": "파리 뇌가 데이팅 프로필을 스와이프"
+    },
+    "compute": {
+      "label": "컴퓨트",
+      "desc": "브라우저로 채굴하고 $FLYAI 받기"
+    },
+    "token": {
+      "label": "토큰",
+      "desc": "컨트랙트, 체인, 구매처"
+    },
+    "shop": {
+      "label": "굿즈",
+      "desc": "파리 티셔츠 등"
+    },
+    "agents": {
+      "label": "에이전트용"
+    },
+    "follow": {
+      "label": "@flydotai 팔로우"
+    }
+  },
+  "footer": {
+    "license": "MIT 라이선스",
+    "credit": "커넥톰 데이터: FlyEM(HHMI Janelia) 및 공동 연구자의 MaleCNS v1.0, CC BY 4.0에 따라 사용. 코드는 MIT 라이선스."
+  },
+  "words": {
+    "copy": "복사",
+    "copied": "복사됨",
+    "live": "라이브",
+    "prelaunch": "출시 전",
+    "loading": "불러오는 중…",
+    "close": "닫기",
+    "language": "언어",
+    "buy": "$FLYAI 구매",
+    "notDeployed": "아직 배포되지 않음",
+    "explorer": "익스플로러에서 보기",
+    "buyOnPons": "Pons에서 $FLYAI 구매",
+    "notDeployedLong": "아직 배포되지 않았습니다. 구매 링크는 출시 시 이곳과 @flydotai에 올라옵니다."
+  }
+}

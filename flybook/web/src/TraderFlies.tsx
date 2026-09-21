@@ -3,6 +3,7 @@ import { formatUnits, parseAbi, type Address } from "viem";
 import { useConnect, useConnection, useConnectors } from "wagmi";
 import { readContract, switchChain, waitForTransactionReceipt, writeContract } from "wagmi/actions";
 import { BUY_URL, FLYAI, robinhood, wagmiConfig } from "./wallet";
+import { Html, locale, t, tAt, tOr } from "./i18n";
 
 /**
  * Trader Flies: the genesis NFT mint. Each token is a connectome fly for the trading desk. Paid in USDG (the chain's
@@ -33,15 +34,9 @@ const token = parseAbi([
   "function approve(address, uint256) returns (bool)", "function decimals() view returns (uint8)",
   "error ERC20InsufficientBalance(address, uint256, uint256)", "error ERC20InsufficientAllowance(address, uint256, uint256)",
 ]);
-const WHY: Record<string, string> = {
-  MintClosed: "Minting isn't open right now.", NotAllowlisted: "This wallet isn't on the allowlist.",
-  SoldOut: "Not enough flies left for that many.", WalletLimit: "That's more than one wallet can mint.",
-  AlreadyRevealed: "Minting has ended.", NotHolder: "You don't hold that fly.",
-  PriceStale: "Paying in $FLYAI is paused for a moment (the price is updating). Try again soon, or pay in USDG.",
-  TooMuchFlyai: "The $FLYAI price just moved. Check the new amount and try again.",
-  ERC20InsufficientBalance: "Not enough in this wallet.", NoProvenance: "Minting hasn't started yet.",
-};
-const PHASE = ["Not open yet", "Allowlist", "Open"];
+/** a contract error's name -> flybook.traders.why.<name>, or null if we don't know it */
+const WHY = (name: string): string | null => { const s = tOr(`flybook.traders.why.${name}`, ""); return s || null; };
+const PHASE = (phase: number) => tAt("flybook.traders.phase", String(phase));
 
 type Pay = "usd" | "flyai";
 type State = {
@@ -54,15 +49,15 @@ type Mine = { id: bigint; active: boolean; image: string | null; name: string | 
 const read = <T,>(address: Address, abi: typeof fly | typeof token, functionName: string, args: unknown[] = []) =>
   readContract(wagmiConfig, { address, abi, functionName, args, chainId: robinhood.id } as never) as Promise<T>;
 const whole = (v: bigint, decimals: number, digits = 2) =>
-  Number(formatUnits(v, decimals)).toLocaleString("en-US", { maximumFractionDigits: digits });
+  Number(formatUnits(v, decimals)).toLocaleString(locale(), { maximumFractionDigits: digits });
 const ipfs = (u: string) => (u.startsWith("ipfs://") ? GATEWAY + u.slice(7) : u);
 function reason(e: unknown): string {
   const err = e as { cause?: { data?: { errorName?: string } }; shortMessage?: string; message?: string };
   const name = err?.cause?.data?.errorName;
-  if (name && WHY[name]) return WHY[name];
+  if (name && WHY(name)) return WHY(name)!;
   const m = err?.shortMessage ?? err?.message ?? String(e);
-  if (/rejected|denied/i.test(m)) return "Cancelled in the wallet.";
-  if (/exceeds the balance|insufficient funds/i.test(m)) return "Not enough ETH in this wallet to pay the network fee.";
+  if (/rejected|denied/i.test(m)) return t("flybook.traders.cancelled");
+  if (/exceeds the balance|insufficient funds/i.test(m)) return t("flybook.traders.noGas");
   return m.split("\n")[0];
 }
 
@@ -101,9 +96,9 @@ export default function TraderFlies() {
       setS({ max, minted, phase: Number(phase), price: Number(phase) === 1 ? al : pub, perWallet, revealed,
         discount: Number(disc) / 100, usd, usdDecimals, flyaiCost, mine: mineCount, usdBalance, flyaiBalance });
     };
-    load().catch((e) => setMsg({ text: `Can't read the mint right now. ${reason(e)}` }));
-    const t = setInterval(() => { if (!busy) load().catch(() => {}); }, 15_000);
-    return () => { gone = true; clearInterval(t); };
+    load().catch((e) => setMsg({ text: t("flybook.traders.cantRead", { reason: reason(e) }) }));
+    const timer = setInterval(() => { if (!busy) load().catch(() => {}); }, 15_000);
+    return () => { gone = true; clearInterval(timer); };
   }, [address, tick]);
 
   // the connected wallet's flies
@@ -131,7 +126,7 @@ export default function TraderFlies() {
       <div className="traders">
         <Head />
         <How discount={15} />
-        <p className="fine traders-soon">The mint opens soon.</p>
+        <p className="fine traders-soon">{t("flybook.traders.soon")}</p>
       </div>
     );
   }
@@ -143,20 +138,20 @@ export default function TraderFlies() {
   const balance = !s ? 0n : pay === "usd" ? s.usdBalance : s.flyaiBalance;
   const costText = !s || cost == null ? "–" : pay === "usd" ? `$${whole(cost, s.usdDecimals)}` : `${whole(cost, 18, 0)} $FLYAI`;
   const why = !s ? null
-    : s.revealed || s.minted >= s.max ? "Minting has ended."
-    : s.phase === 0 ? "Minting isn't open yet."
+    : s.revealed || s.minted >= s.max ? t("flybook.traders.ended")
+    : s.phase === 0 ? t("flybook.traders.notOpen")
     : !address ? null
-    : !listed ? "This wallet isn't on the allowlist. The open mint comes after."
-    : room < 1 ? `You've minted your ${s.perWallet}.`
-    : cost == null ? WHY.PriceStale
-    : balance < cost ? (pay === "usd" ? `You need ${costText} in USDG.` : `You need ${costText}.`)
+    : !listed ? t("flybook.traders.notListed")
+    : room < 1 ? t("flybook.traders.mintedYours", { n: String(s.perWallet) })
+    : cost == null ? WHY("PriceStale")
+    : balance < cost ? t(pay === "usd" ? "flybook.traders.needUsd" : "flybook.traders.need", { cost: costText })
     : null;
 
   const send = async (to: Address, abi: typeof fly | typeof token, functionName: string, args: unknown[], label: string) => {
     const hash = await writeContract(wagmiConfig, { address: to, abi, functionName, args, chainId: robinhood.id } as never);
-    setMsg({ text: `${label}: waiting for the block…` });
+    setMsg({ text: t("flybook.traders.waitingBlock", { label }) });
     const r = await waitForTransactionReceipt(wagmiConfig, { hash, chainId: robinhood.id });
-    if (r.status !== "success") throw new Error("The transaction failed on chain.");
+    if (r.status !== "success") throw new Error(t("flybook.traders.txFailed"));
   };
 
   const mint = async () => {
@@ -169,16 +164,16 @@ export default function TraderFlies() {
       const limit = pay === "usd" ? cost : cost + cost / 50n;   // 2% room if the FLYAI price updates first
       const allowed = await read<bigint>(payToken, token, "allowance", [address, TRADERFLY]);
       if (allowed < limit) {
-        setMsg({ text: "Step 1 of 2: approve the payment in your wallet." });
-        await send(payToken, token, "approve", [TRADERFLY, limit], "Approving");
-        setMsg({ text: "Step 2 of 2: confirm the mint in your wallet." });
-      } else setMsg({ text: "Confirm the mint in your wallet." });
+        setMsg({ text: t("flybook.traders.step1") });
+        await send(payToken, token, "approve", [TRADERFLY, limit], t("flybook.traders.approving"));
+        setMsg({ text: t("flybook.traders.step2") });
+      } else setMsg({ text: t("flybook.traders.confirm") });
       const proof = s.phase === 1 ? allowlist?.[address.toLowerCase()] : null;
       const [fn, args] = pay === "usd"
         ? (proof ? ["allowlistMint", [BigInt(n), proof]] : ["mint", [BigInt(n)]])
         : (proof ? ["allowlistMintWithFlyai", [BigInt(n), proof, limit]] : ["mintWithFlyai", [BigInt(n), limit]]);
-      await send(TRADERFLY, fly, fn as string, args as unknown[], "Minting");
-      setMsg({ text: `Minted ${n} ${n === 1 ? "fly" : "flies"}. ${s.revealed ? "" : "Your art is revealed when minting ends."}`, ok: true });
+      await send(TRADERFLY, fly, fn as string, args as unknown[], t("flybook.traders.minting"));
+      setMsg({ text: t("flybook.traders.minted", { count: n }) + (s.revealed ? "" : t("flybook.traders.revealLater")), ok: true });
       setTick((t) => t + 1);
     } catch (e) {
       setMsg({ text: reason(e) });
@@ -191,8 +186,8 @@ export default function TraderFlies() {
     setBusy(`fly-${m.id}`);
     try {
       if (chainId !== robinhood.id) await switchChain(wagmiConfig, { chainId: robinhood.id });
-      await send(TRADERFLY, fly, m.active ? "deactivate" : "activate", [m.id], m.active ? "Deactivating" : "Activating");
-      setMsg({ text: `Trader Fly #${m.id} ${m.active ? "is idle" : "is on the desk"}.`, ok: true });
+      await send(TRADERFLY, fly, m.active ? "deactivate" : "activate", [m.id], t(m.active ? "flybook.traders.deactivating" : "flybook.traders.activating"));
+      setMsg({ text: t(m.active ? "flybook.traders.idleNow" : "flybook.traders.onDeskNow", { id: String(m.id) }), ok: true });
       setTick((t) => t + 1);
     } catch (e) {
       setMsg({ text: reason(e) });
@@ -205,25 +200,25 @@ export default function TraderFlies() {
     <div className="traders">
       <Head />
       <section className="traders-mint">
-        <img src={`${import.meta.env.BASE_URL}traderfly-preview.png`} alt="A Trader Fly"
+        <img src={`${import.meta.env.BASE_URL}traderfly-preview.png`} alt={t("flybook.traders.previewAlt")}
           onError={(e) => { (e.target as HTMLImageElement).style.visibility = "hidden"; }} />
         <div>
           <div className="traders-stats">
-            <div><b className="mono">{s ? `${s.minted} / ${s.max}` : "–"}</b><span>minted</span></div>
-            <div><b className="mono">{s ? `$${whole(s.price, s.usdDecimals)}` : "–"}</b><span>{s?.phase === 1 ? "allowlist price" : "price"}</span></div>
-            <div><b>{s ? (s.revealed ? "Revealed" : PHASE[s.phase]) : "–"}</b><span>status</span></div>
+            <div><b className="mono">{s ? `${s.minted} / ${s.max}` : "–"}</b><span>{t("flybook.traders.mintedLabel")}</span></div>
+            <div><b className="mono">{s ? `$${whole(s.price, s.usdDecimals)}` : "–"}</b><span>{t(s?.phase === 1 ? "flybook.traders.alPrice" : "flybook.traders.price")}</span></div>
+            <div><b>{s ? (s.revealed ? t("flybook.traders.revealed") : PHASE(s.phase)) : "–"}</b><span>{t("flybook.traders.status")}</span></div>
           </div>
           <div className="traders-bar"><i style={{ width: s ? `${Number((s.minted * 100n) / (s.max || 1n))}%` : 0 }} /></div>
 
-          <h5>Pay with</h5>
+          <h5>{t("flybook.traders.payWith")}</h5>
           <div className="seg traders-pay">
             <button className={pay === "usd" ? "on" : ""} onClick={() => setPay("usd")} disabled={!!busy}>USDG</button>
             <button className={pay === "flyai" ? "on" : ""} onClick={() => setPay("flyai")} disabled={!!busy}>
-              $FLYAI · {s?.discount ?? 15}% off
+              {t("flybook.traders.off", { n: s?.discount ?? 15 })}
             </button>
           </div>
           {pay === "flyai" && s && s.flyaiBalance === 0n && address && (
-            <p className="fine">$FLYAI holders get {s.discount}% off. <a href={BUY_URL} target="_blank" rel="noreferrer">Buy $FLYAI →</a></p>
+            <p className="fine">{t("flybook.traders.holderOff", { n: s.discount })} <a href={BUY_URL} target="_blank" rel="noreferrer">{t("flybook.traders.buyFlyai")}</a></p>
           )}
 
           <div className="traders-row">
@@ -231,19 +226,19 @@ export default function TraderFlies() {
               <div className="traders-connect">
                 {connectors.map((c) => (
                   <button key={c.uid} className="btn red" disabled={connect.isPending} onClick={() => connect.mutate({ connector: c })}>
-                    Connect {c.name === "Injected" ? "wallet" : c.name}
+                    {t("flybook.traders.connect", { name: c.name === "Injected" ? t("flybook.traders.wallet") : c.name })}
                   </button>
                 ))}
               </div>
             ) : (
               <>
                 <div className="traders-qty">
-                  <button aria-label="Fewer" onClick={() => setQty(Math.max(1, n - 1))} disabled={!!busy}>−</button>
+                  <button aria-label={t("flybook.traders.fewer")} onClick={() => setQty(Math.max(1, n - 1))} disabled={!!busy}>−</button>
                   <output className="mono">{n}</output>
-                  <button aria-label="More" onClick={() => setQty(Math.min(Math.max(room, 1), n + 1))} disabled={!!busy}>+</button>
+                  <button aria-label={t("flybook.traders.more")} onClick={() => setQty(Math.min(Math.max(room, 1), n + 1))} disabled={!!busy}>+</button>
                 </div>
                 <button className="btn red" onClick={mint} disabled={!!busy || !!why || !s}>
-                  {busy === "mint" ? "Minting…" : `Mint ${n} · ${costText}`}
+                  {busy === "mint" ? t("flybook.traders.mintingNow") : t("flybook.traders.mint", { n, cost: costText })}
                 </button>
               </>
             )}
@@ -261,16 +256,16 @@ export default function TraderFlies() {
 
       {mine.length > 0 && (
         <section>
-          <h3 className="merch-sub">Your Trader Flies</h3>
+          <h3 className="merch-sub">{t("flybook.traders.yours")}</h3>
           <div className="traders-grid">
             {mine.map((m) => (
               <article key={String(m.id)} className="traders-card">
                 <img src={m.image ?? `${import.meta.env.BASE_URL}traderfly-preview.png`} alt="" loading="lazy" />
-                <b>{m.name ?? `Trader Fly #${m.id}`}</b>
+                <b>{m.name ?? t("flybook.traders.flyN", { id: String(m.id) })}</b>
                 {m.rarity && <span className={`traders-rarity ${m.rarity.toLowerCase()}`}>{m.rarity}</span>}
-                <span className={`mono ${m.active ? "on" : ""}`}>{m.active ? "● on the desk" : "○ idle"}</span>
+                <span className={`mono ${m.active ? "on" : ""}`}>{t(m.active ? "flybook.traders.onDesk" : "flybook.traders.idle")}</span>
                 <button className={`btn sm ${m.active ? "" : "red"}`} onClick={() => toggle(m)} disabled={!!busy}>
-                  {busy === `fly-${m.id}` ? "…" : m.active ? "Deactivate" : "Activate"}
+                  {busy === `fly-${m.id}` ? "…" : t(m.active ? "flybook.traders.deactivate" : "flybook.traders.activate")}
                 </button>
               </article>
             ))}
@@ -284,11 +279,8 @@ export default function TraderFlies() {
 function Head() {
   return (
     <div className="feed-head">
-      <h2>Trader Flies</h2>
-      <p>
-        A genesis collection of trading flies. Each one is a real fruit-fly connectome that trades on Robinhood Chain.
-        Mint one, and your fly is revealed when minting ends. Activate it to put it on the desk.
-      </p>
+      <h2>{t("flybook.traders.title")}</h2>
+      <p>{t("flybook.traders.intro")}</p>
     </div>
   );
 }
@@ -296,10 +288,10 @@ function Head() {
 function How({ discount }: { discount: number }) {
   return (
     <ol className="traders-how">
-      <li><b>Mint</b> in USDG, or in $FLYAI for {discount}% off. While minting is open every fly looks the same, so nobody can pick the rare ones.</li>
-      <li><b>Reveal.</b> When minting ends, a future block's hash rolls every fly's traits in the contract itself: rarity (Common, Uncommon, Rare or Legendary), pose, colorway, background and gear. Anyone can check them on chain.</li>
-      <li><b>Activate.</b> Active flies trade together on the desk. When a week ends in profit, active flies share it in $FLYAI, weighted by rarity and by how long they were active.</li>
-      <li className="fine">Trading can lose money, and a week without profit pays nothing. Nothing here promises a return.</li>
+      <Html as="li" k="flybook.traders.how1" vars={{ n: discount }} />
+      <Html as="li" k="flybook.traders.how2" />
+      <Html as="li" k="flybook.traders.how3" />
+      <li className="fine">{t("flybook.traders.how4")}</li>
     </ol>
   );
 }

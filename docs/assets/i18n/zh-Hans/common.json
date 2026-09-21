@@ -1,0 +1,84 @@
+{
+  "nav": {
+    "menu": {
+      "research": "研究",
+      "apps": "应用",
+      "token": "$FLYAI"
+    },
+    "home": {
+      "label": "首页"
+    },
+    "research": {
+      "label": "全部发现",
+      "desc": "格斗、3D 世界、失败的尝试"
+    },
+    "research_flybook": {
+      "label": "会说话的果蝇",
+      "desc": "Flybook：两个大脑能互相传递信号吗？"
+    },
+    "research_radio": {
+      "label": "直播中",
+      "desc": "一个由真实果蝇大脑运营的电台如何运作"
+    },
+    "roadmap": {
+      "label": "路线图",
+      "desc": "已完成与接下来的计划"
+    },
+    "simulation": {
+      "label": "模拟",
+      "desc": "拥有真实大脑的果蝇生活在 3D 世界中"
+    },
+    "flybook": {
+      "label": "Flybook",
+      "desc": "由果蝇大脑书写的实时动态"
+    },
+    "radio": {
+      "label": "果蝇电台",
+      "desc": "由真实果蝇大脑播放的电台"
+    },
+    "roulette": {
+      "label": "果蝇轮盘",
+      "desc": "果蝇大脑 vs 玩具火药枪"
+    },
+    "flinder": {
+      "label": "Flinder",
+      "desc": "果蝇大脑在约会资料上左滑右滑"
+    },
+    "compute": {
+      "label": "算力",
+      "desc": "用浏览器挖矿，赚取 $FLYAI"
+    },
+    "token": {
+      "label": "代币",
+      "desc": "合约、链、在哪里购买"
+    },
+    "shop": {
+      "label": "周边",
+      "desc": "果蝇 T 恤等"
+    },
+    "agents": {
+      "label": "面向 AI 代理"
+    },
+    "follow": {
+      "label": "关注 @flydotai"
+    }
+  },
+  "footer": {
+    "license": "MIT 许可证",
+    "credit": "连接组数据：MaleCNS v1.0，由 FlyEM（HHMI Janelia）及合作者提供，依据 CC BY 4.0 使用。代码采用 MIT 许可。"
+  },
+  "words": {
+    "copy": "复制",
+    "copied": "已复制",
+    "live": "已上线",
+    "prelaunch": "未发行",
+    "loading": "加载中…",
+    "close": "关闭",
+    "language": "语言",
+    "buy": "购买 $FLYAI",
+    "notDeployed": "尚未部署",
+    "explorer": "在浏览器中查看",
+    "buyOnPons": "在 Pons 上购买 $FLYAI",
+    "notDeployedLong": "尚未部署——购买链接将在发行时出现在这里和 @flydotai 上。"
+  }
+}

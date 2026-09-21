@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flinder</title>
-<meta name="description" content="Tinder for flies. A real 166,700-neuron fly brain, running in your browser, swipes through dating profiles: its pC1 mating-drive neurons decide left or right. It's a match when the other fly's brain swipes right too.">
+<title data-i18n="flinder.meta.title">Flinder</title>
+<meta name="description" data-i18n-attr="content:flinder.meta.description" content="Tinder for flies. A real 166,700-neuron fly brain, running in your browser, swipes through dating profiles: its pC1 mating-drive neurons decide left or right. It's a match when the other fly's brain swipes right too.">
 <meta property="og:title" content="Flinder">
 <meta property="og:description" content="Tinder for flies: a real fly brain swipes left or right.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/flinder/">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -325,10 +326,10 @@
 <main>
   <div class="head">
     <div>
-      <h1>Fl<span>inder</span></h1>
-      <p class="sub">Tinder for flies. A real fly brain swipes through dating profiles and its mating-drive neurons say left or right. If the other fly's brain swipes right too, it's a match.</p>
+      <h1 data-i18n-html="flinder.head.title">Fl<span>inder</span></h1>
+      <p class="sub" data-i18n="flinder.head.sub">Tinder for flies. A real fly brain swipes through dating profiles and its mating-drive neurons say left or right. If the other fly's brain swipes right too, it's a match.</p>
     </div>
-    <span id="status" class="mono">loading the fly brain…</span>
+    <span id="status" class="mono" data-i18n="flinder.status.loading">loading the fly brain…</span>
   </div>
 
   <div class="game">
@@ -336,23 +337,23 @@
       <div class="phone" id="phone">
         <div class="app-top">
           <span class="logo-f">flinder🔥</span>
-          <span class="me-chip"><img id="me-pic" alt=""><span>swiping: <b id="me-name">…</b></span></span>
+          <span class="me-chip"><img id="me-pic" alt=""><span><span data-i18n="flinder.phone.swiping">swiping:</span> <b id="me-name">…</b></span></span>
         </div>
         <div class="deck" id="deck"></div>
         <div class="app-bottom">
-          <span class="rb nope" id="b-nope" title="Nope">✕</span>
-          <span class="rb sm star" id="b-star" title="Super like">★</span>
-          <span class="rb like" id="b-like" title="Like">♥</span>
+          <span class="rb nope" id="b-nope" title="Nope" data-i18n-attr="title:flinder.phone.nope">✕</span>
+          <span class="rb sm star" id="b-star" title="Super like" data-i18n-attr="title:flinder.phone.superLike">★</span>
+          <span class="rb like" id="b-like" title="Like" data-i18n-attr="title:flinder.phone.like">♥</span>
         </div>
         <div id="toast"></div>
         <div id="date" hidden><div class="date-cap"><b id="date-title"></b><span id="date-line"></span></div></div>
         <div id="chat" hidden>
-          <div class="chat-top"><button id="chat-back" type="button" aria-label="Back" hidden>‹</button><img id="chat-pic" alt=""><span><b id="chat-name"></b><small id="chat-sub"></small></span></div>
+          <div class="chat-top"><button id="chat-back" type="button" aria-label="Back" data-i18n-attr="aria-label:flinder.phone.back" hidden>‹</button><img id="chat-pic" alt=""><span><b id="chat-name"></b><small id="chat-sub"></small></span></div>
           <div class="chat-body" id="chat-body"></div>
           <div class="chat-end" id="chat-end"></div>
         </div>
         <div id="match" hidden>
-          <h3>It's a Match!</h3>
+          <h3 data-i18n="flinder.phone.match">It's a Match!</h3>
           <div class="pair"><img id="m-me" alt=""><img id="m-them" alt=""></div>
           <p id="m-line"></p>
         </div>
@@ -376,55 +377,55 @@
     <div class="panel">
       <div class="card">
         <div class="controls">
-          <button class="btn primary" id="start" disabled>Start swiping</button>
-          <button class="btn" id="newfly">New fly</button>
-          <button class="btn" id="speed">Speed: normal</button>
-          <button class="btn" id="sound">Sound: on</button>
+          <button class="btn primary" id="start" disabled data-i18n="flinder.controls.start">Start swiping</button>
+          <button class="btn" id="newfly" data-i18n="flinder.controls.newFly">New fly</button>
+          <button class="btn" id="speed" data-i18n="flinder.controls.speedNormal">Speed: normal</button>
+          <button class="btn" id="sound" data-i18n="flinder.controls.soundOn">Sound: on</button>
         </div>
         <div id="tally"></div>
       </div>
       <div class="card">
-        <h2>The swiper</h2>
+        <h2 data-i18n="flinder.swiper.title">The swiper</h2>
         <div class="mine-card">
           <img id="mine-pic" alt="">
           <div><div class="nm" id="mine-name"></div><div class="chips" id="mine-chips"></div></div>
         </div>
         <p class="mine-stats mono" id="mine-stats"></p>
         <div class="share">
-          <button class="btn" id="share-card" type="button">📸 Stats card</button>
-          <button class="btn" id="share-x" type="button">𝕏 Post</button>
-          <button class="btn" id="share-link" type="button">🔗 Challenge a friend</button>
+          <button class="btn" id="share-card" type="button" data-i18n="flinder.swiper.statsCard">📸 Stats card</button>
+          <button class="btn" id="share-x" type="button" data-i18n="flinder.swiper.post">𝕏 Post</button>
+          <button class="btn" id="share-link" type="button" data-i18n="flinder.swiper.challenge">🔗 Challenge a friend</button>
         </div>
-        <p class="note">Its own profile is what the other flies' brains judge. Send the link and a friend runs this same fly. Beat its score.</p>
+        <p class="note" data-i18n="flinder.swiper.note">Its own profile is what the other flies' brains judge. Send the link and a friend runs this same fly. Beat its score.</p>
       </div>
 
       <div class="card">
-        <h2>Inside its head</h2>
-        <div class="who" id="meter-name">nobody yet</div>
-        <div class="row"><span>Into it <span class="mono" style="color:var(--dim)">pC1 neurons</span></span><span class="mono" id="heart-num">0</span>
-          <div class="bar"><i id="heart-bar"></i><span class="line" title="swipe right"></span><span class="line super" title="super like"></span></div></div>
-        <div class="row"><span>Panic <span class="mono" style="color:var(--dim)">giant fibre</span></span><span class="mono" id="panic-num">–</span>
-          <div class="bar"><i id="panic-bar" class="panic"></i><span class="line" title="spooked"></span></div></div>
-        <div class="row"><span>Grooming <span class="mono" style="color:var(--dim)">DNg12</span></span><span class="mono" id="groom-num">–</span></div>
-        <div class="row"><span>Blushing <span class="mono" style="color:var(--dim)">vpoDN</span></span><span class="mono" id="vpo-num">0</span></div>
+        <h2 data-i18n="flinder.meter.title">Inside its head</h2>
+        <div class="who" id="meter-name" data-i18n="flinder.meter.nobodyYet">nobody yet</div>
+        <div class="row"><span><span data-i18n="flinder.meter.intoIt">Into it</span> <span class="mono" style="color:var(--dim)" data-i18n="flinder.meter.pc1">pC1 neurons</span></span><span class="mono" id="heart-num">0</span>
+          <div class="bar"><i id="heart-bar"></i><span class="line" title="swipe right" data-i18n-attr="title:flinder.meter.swipeRight"></span><span class="line super" title="super like" data-i18n-attr="title:flinder.meter.superLike"></span></div></div>
+        <div class="row"><span><span data-i18n="flinder.meter.panic">Panic</span> <span class="mono" style="color:var(--dim)" data-i18n="flinder.meter.giantFibre">giant fibre</span></span><span class="mono" id="panic-num">–</span>
+          <div class="bar"><i id="panic-bar" class="panic"></i><span class="line" title="spooked" data-i18n-attr="title:flinder.meter.spooked"></span></div></div>
+        <div class="row"><span><span data-i18n="flinder.meter.grooming">Grooming</span> <span class="mono" style="color:var(--dim)">DNg12</span></span><span class="mono" id="groom-num">–</span></div>
+        <div class="row"><span><span data-i18n="flinder.meter.blushing">Blushing</span> <span class="mono" style="color:var(--dim)">vpoDN</span></span><span class="mono" id="vpo-num">0</span></div>
         <div id="verdict"></div>
-        <p class="note">Spikes from the fly's real 166,700-neuron connectome, running in your browser. It smells each profile (cVA, Or47b, vinegar), sees it (LC10a) and hears it (Johnston's organ). Past the first line it swipes right, past the second it's a super like. In a chat each message is sensed the same way: pC1 flirts back, a fly coming on too strong trips the giant fibre and it bails, and a bored brain grooms its antennae.</p>
+        <p class="note" data-i18n="flinder.meter.note">Spikes from the fly's real 166,700-neuron connectome, running in your browser. It smells each profile (cVA, Or47b, vinegar), sees it (LC10a) and hears it (Johnston's organ). Past the first line it swipes right, past the second it's a super like. In a chat each message is sensed the same way: pC1 flirts back, a fly coming on too strong trips the giant fibre and it bails, and a bored brain grooms its antennae.</p>
       </div>
 
       <div class="card">
-        <h2>Matches</h2>
-        <p class="note" style="margin:0 0 6px">Tap one to read their chat.</p>
-        <ul id="matches"><li class="empty">no matches yet</li></ul>
+        <h2 data-i18n="flinder.panels.matches">Matches</h2>
+        <p class="note" style="margin:0 0 6px" data-i18n="flinder.panels.matchesTap">Tap one to read their chat.</p>
+        <ul id="matches"><li class="empty" data-i18n="flinder.panels.noMatches">no matches yet</li></ul>
       </div>
 
       <div class="card">
-        <h2>Heartbreak board</h2>
+        <h2 data-i18n="flinder.panels.board">Heartbreak board</h2>
         <ul id="board"></ul>
-        <p class="note">The flies you've run in this browser.</p>
+        <p class="note" data-i18n="flinder.panels.boardNote">The flies you've run in this browser.</p>
       </div>
 
       <div class="card">
-        <h2>Swipes</h2>
+        <h2 data-i18n="flinder.panels.swipes">Swipes</h2>
         <ul id="log"></ul>
       </div>
     </div>

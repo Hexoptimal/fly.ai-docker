@@ -32,7 +32,7 @@ const WC_PROJECT_ID = process.env.MINE_WC_PROJECT_ID ?? "330e75825d85bf92782cfe5
 const SCRIPTS = [
   "world/src/connectome.ts", "world/src/rng.ts", "world/src/sim.ts", "world/src/brain.ts", "world/src/eyes.ts", "world/src/senses.ts", "world/src/wiring.ts", "world/src/genome.ts", "world/src/social.ts", "world/src/datalog.ts",
   "mine/src/model.ts", "mine/src/runner.ts", "mine/src/fixed.ts", "mine/src/wasmcheck.ts", "mine/src/probe.ts",
-  "mine/web/mine-core.ts", "mine/web/format.ts", "mine/web/download.ts", "mine/web/wallet.ts", "mine/web/account.ts", "mine/web/gpu.ts",
+  "mine/web/i18n.ts", "mine/web/mine-core.ts", "mine/web/format.ts", "mine/web/download.ts", "mine/web/wallet.ts", "mine/web/account.ts", "mine/web/gpu.ts",
   "mine/web/gpu.worker.ts", "mine/web/miner.worker.ts", "mine/web/openjob.ts", "mine/web/open.worker.ts", "mine/web/embed.worker.ts", "mine/web/worldjob.ts",
   "mine/web/app.ts", "mine/web/jobs.ts", "mine/web/stake.ts", "mine/web/claim.ts", "mine/web/leaderboard.ts", "mine/web/results.ts", "mine/web/connect.ts", "mine/web/bench.ts",
 ];
@@ -49,6 +49,8 @@ for (const file of SCRIPTS) {
   const code = stripTypeScriptTypes(readFileSync(join(REPO, file), "utf8"), { mode: "strip" });
   write(join(OUT, file.replace(/\.ts$/, ".js")), code.replace(RELATIVE_TS, "$1$2.js$1"));
 }
+// the site's i18n runtime, imported by mine/web/i18n.ts at its repo path; its strings load from /assets/i18n/
+write(join(OUT, "docs/assets/i18n/i18n.js"), readFileSync(join(REPO, "docs/assets/i18n/i18n.js")));
 write(join(OUT, "mine/web/config.js"),
   `// written by mine/scripts/build-web.mjs\nexport const API = ${JSON.stringify(API)};\nexport const CONNECTOME = ${JSON.stringify(CONNECTOME)};\nexport const WALLETCONNECT_PROJECT_ID = ${JSON.stringify(WC_PROJECT_ID)};\n`);
 execFileSync(process.execPath, [join(REPO, "mine/wallet/build.mjs"), join(OUT, "mine/web/wallet")], { stdio: "inherit" });
@@ -58,7 +60,7 @@ copyFileSync(join(REPO, "mine/web/compute-api.md"), join(OUT, "compute-api.md"))
 
 // every relative import must resolve, and every page's script must exist
 const missing = [];
-for (const file of [...SCRIPTS.map((f) => f.replace(/\.ts$/, ".js")), "mine/web/config.js"]) {
+for (const file of [...SCRIPTS.map((f) => f.replace(/\.ts$/, ".js")), "mine/web/config.js", "docs/assets/i18n/i18n.js"]) {
   const out = join(OUT, file);
   for (const m of readFileSync(out, "utf8").matchAll(/(["'])(\.{1,2}\/[^"'\n]*?\.js)\1/g)) {
     if (!existsSync(resolve(dirname(out), m[2]))) missing.push(`${file} -> ${m[2]}`);

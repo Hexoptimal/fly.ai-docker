@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Compute &mdash; lend your GPU to the fly brain &mdash; fly.ai</title>
-<meta name="description" content="Run the real fruit-fly connectome on your GPU or CPU from a browser tab. Checked work earns points each month, and a $FLYAI pool is split by points.">
+<title data-i18n="compute.index.metaTitle">Compute &mdash; lend your GPU to the fly brain &mdash; fly.ai</title>
+<meta name="description" content="Run the real fruit-fly connectome on your GPU or CPU from a browser tab. Checked work earns points each month, and a $FLYAI pool is split by points." data-i18n-attr="content:compute.index.metaDescription">
 <meta property="og:title" content="Compute &mdash; lend your GPU to the fly brain">
 <meta property="og:description" content="Run the real fruit-fly connectome on your GPU or CPU from a browser tab. Checked work earns points each month, and a $FLYAI pool is split by points.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/compute/">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,90 +56,90 @@
 
 <section class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">fly.ai compute</p>
-    <h1>Lend your GPU to the fly brain</h1>
-    <p class="lede">Each job runs the full fruit-fly connectome, 166,700 neurons and 25 million synapses, for 15 simulated seconds and records what the motor neurons do. Checked work earns points; each month a $FLYAI pool is split by points.</p>
+    <p class="eyebrow" data-i18n="compute.index.flyAiCompute">fly.ai compute</p>
+    <h1 data-i18n="compute.index.lendYourGpuTo">Lend your GPU to the fly brain</h1>
+    <p class="lede" data-i18n="compute.index.eachJobRunsThe">Each job runs the full fruit-fly connectome, 166,700 neurons and 25 million synapses, for 15 simulated seconds and records what the motor neurons do. Checked work earns points; each month a $FLYAI pool is split by points.</p>
     <div class="tabs">
-      <a class="on" href="/compute/">Mine</a>
-      <a href="/compute/jobs">Buy compute</a>
-      <a href="/compute/stake">Stake</a>
-      <a href="/compute/claim">Claims</a>
-      <a href="/compute/leaderboard">Leaderboard</a>
-      <a href="/compute/results">Results</a>
+      <a class="on" href="/compute/" data-i18n="compute.common.tab.mine">Mine</a>
+      <a href="/compute/jobs" data-i18n="compute.common.tab.jobs">Buy compute</a>
+      <a href="/compute/stake" data-i18n="compute.common.tab.stake">Stake</a>
+      <a href="/compute/claim" data-i18n="compute.common.tab.claims">Claims</a>
+      <a href="/compute/leaderboard" data-i18n="compute.common.tab.leaderboard">Leaderboard</a>
+      <a href="/compute/results" data-i18n="compute.common.tab.results">Results</a>
     </div>
   </div>
 </section>
 
 <section class="firstsec">
   <div class="wrap stack">
-    <p id="fleet" class="srcline">connecting…</p>
+    <p id="fleet" class="srcline" data-i18n="compute.index.connecting">connecting…</p>
 
     <div class="grid2">
       <div class="card pad">
-        <span class="num">MINE</span>
-        <h3>Contribute</h3>
+        <span class="num" data-i18n="compute.index.mine2">MINE</span>
+        <h3 data-i18n="compute.index.contribute">Contribute</h3>
         <div class="controls">
-          <label class="grow">Name <input id="label" maxlength="64" placeholder="optional" autocomplete="off" spellcheck="false"></label>
-          <label>Engine <select id="engine"><option value="cpu">CPU</option></select></label>
-          <label id="batch-field" hidden>Batch <select id="batch"><option>8</option><option>16</option><option selected>32</option></select></label>
-          <label id="threads-field">Threads <select id="threads"></select></label>
-          <label class="chip" title="Our own world simulations and brain probes, plus buyers' WebAssembly and GPU programs. Each runs in a sandboxed worker with a time limit; on the GPU they get a lane of their own, so the batch never waits. They pay the same per second as the brain jobs they displace, plus 1%, and a buyer's paid program pays your wallet on top. This is separate from your stake tier."><input id="programs" type="checkbox" checked> Also run programs (+1% on those jobs)</label>
-          <button id="toggle" class="btn red" type="button">Start mining</button>
+          <label class="grow"><span data-i18n="compute.index.name">Name</span> <input id="label" maxlength="64" placeholder="optional" autocomplete="off" spellcheck="false" data-i18n-attr="placeholder:compute.index.optional_placeholder"></label>
+          <label><span data-i18n="compute.index.engine">Engine</span> <select id="engine"><option value="cpu">CPU</option></select></label>
+          <label id="batch-field" hidden><span data-i18n="compute.index.batch">Batch</span> <select id="batch"><option>8</option><option>16</option><option selected>32</option></select></label>
+          <label id="threads-field"><span data-i18n="compute.index.threads">Threads</span> <select id="threads"></select></label>
+          <label class="chip" title="Our own world simulations and brain probes, plus buyers' WebAssembly and GPU programs. Each runs in a sandboxed worker with a time limit; on the GPU they get a lane of their own, so the batch never waits. They pay the same per second as the brain jobs they displace, plus 1%, and a buyer's paid program pays your wallet on top. This is separate from your stake tier." data-i18n-attr="title:compute.index.ourOwnWorldSimulations_title"><input id="programs" type="checkbox" checked> <span data-i18n="compute.index.alsoRunPrograms1">Also run programs (+1% on those jobs)</span></label>
+          <button id="toggle" class="btn red" type="button" data-i18n="compute.index.startMining">Start mining</button>
         </div>
-        <div class="row"><span class="k">Status</span><span class="v" id="status">idle</span></div>
-        <div class="row"><span class="k">Job</span><span class="v" id="job">—</span></div>
-        <div class="row"><span class="k">Session</span><span class="v" id="session">0 jobs</span></div>
-        <div class="row"><span class="k">Miner</span><span class="v" id="miner-id" title="Each browser and the extension is its own miner. Only miners linked to your wallet are paid and count your stake tier.">—</span></div>
-        <div class="row"><span class="k">Wallet</span><span class="v rowbtn"><span id="wallet">not linked: credit can't be paid</span><button id="connect-wallet" class="btn sm" type="button">Connect</button></span></div>
+        <div class="row"><span class="k" data-i18n="compute.index.status">Status</span><span class="v" id="status" data-i18n="compute.index.idle">idle</span></div>
+        <div class="row"><span class="k" data-i18n="compute.index.job">Job</span><span class="v" id="job">—</span></div>
+        <div class="row"><span class="k" data-i18n="compute.index.session">Session</span><span class="v" id="session" data-i18n="compute.index.0Jobs">0 jobs</span></div>
+        <div class="row"><span class="k" data-i18n="compute.index.miner">Miner</span><span class="v" id="miner-id" title="Each browser and the extension is its own miner. Only miners linked to your wallet are paid and count your stake tier." data-i18n-attr="title:compute.index.eachBrowserAndThe_title">—</span></div>
+        <div class="row"><span class="k" data-i18n="compute.index.wallet">Wallet</span><span class="v rowbtn"><span id="wallet" data-i18n="compute.index.notLinkedCreditCan">not linked: credit can't be paid</span><button id="connect-wallet" class="btn sm" type="button" data-i18n="compute.index.connect">Connect</button></span></div>
         <div id="slots" class="lanes"></div>
       </div>
 
       <div class="card pad">
-        <span class="num">THIS MACHINE</span>
-        <h3>What it can run</h3>
-        <div class="row"><span class="k">GPU</span><span class="v" id="gpu">checking…</span></div>
-        <div class="row"><span class="k">CPU</span><span class="v" id="cpu">—</span></div>
-        <div class="row"><span class="k">Mines on</span><span class="v" id="runs-on">—</span></div>
-        <p id="phone-hint" class="hint" hidden>On a phone, mining runs only while this tab is on screen, so the screen stays on while you mine. Plug in, use Wi-Fi for the 57 MB download, and expect it to slow down when the phone gets warm.</p>
-        <p id="gpu-hint" class="hint" hidden>Laptop with two GPUs? Chrome uses the weaker built-in one unless you set it to <b>High performance</b>: Windows Settings → System → Display → Graphics → Google Chrome, then restart Chrome.</p>
+        <span class="num" data-i18n="compute.index.thisMachine">THIS MACHINE</span>
+        <h3 data-i18n="compute.index.whatItCanRun">What it can run</h3>
+        <div class="row"><span class="k" data-i18n="compute.index.gpu">GPU</span><span class="v" id="gpu" data-i18n="compute.index.checking">checking…</span></div>
+        <div class="row"><span class="k" data-i18n="compute.index.cpu">CPU</span><span class="v" id="cpu">—</span></div>
+        <div class="row"><span class="k" data-i18n="compute.index.minesOn">Mines on</span><span class="v" id="runs-on">—</span></div>
+        <p id="phone-hint" class="hint" hidden data-i18n="compute.index.onAPhoneMining">On a phone, mining runs only while this tab is on screen, so the screen stays on while you mine. Plug in, use Wi-Fi for the 57 MB download, and expect it to slow down when the phone gets warm.</p>
+        <p id="gpu-hint" class="hint" hidden data-i18n-html="compute.index.laptopWithTwoGpus">Laptop with two GPUs? Chrome uses the weaker built-in one unless you set it to <b>High performance</b>: Windows Settings → System → Display → Graphics → Google Chrome, then restart Chrome.</p>
       </div>
     </div>
 
     <div class="band">
-      <div><b id="today-jobs">0</b><span>jobs today</span></div>
-      <div><b id="today-checked">0</b><span>checked</span></div>
-      <div><b id="today-units">0.0</b><span>credited units</span></div>
-      <div><b id="today-share">0.0%</b><span>share of today</span></div>
+      <div><b id="today-jobs">0</b><span data-i18n="compute.index.jobsToday">jobs today</span></div>
+      <div><b id="today-checked">0</b><span data-i18n="compute.index.checked">checked</span></div>
+      <div><b id="today-units">0.0</b><span data-i18n="compute.index.creditedUnits">credited units</span></div>
+      <div><b id="today-share">0.0%</b><span data-i18n="compute.index.shareOfToday">share of today</span></div>
     </div>
 
     <div class="card pad">
-      <span class="num">THIS MONTH</span>
-      <div class="row"><span class="k">Standing today</span><span class="v" id="today-standing">no jobs yet today</span></div>
-      <div class="row"><span class="k">This month</span><span class="v" id="month">—</span></div>
-      <div class="row"><span class="k">Your share</span><span class="v" id="share-estimate">—</span></div>
-      <div class="row"><span class="k">Stake</span><span class="v" id="stake">—</span></div>
-      <p class="caption">Staking boosts your points, not your speed: jobs/min stays the same, but each day's points are multiplied by your tier, so you get a bigger share of the monthly pool. New stake counts from the next day (00:00 UTC), because a day uses the lowest stake you held during it.</p>
+      <span class="num" data-i18n="compute.index.thisMonth">THIS MONTH</span>
+      <div class="row"><span class="k" data-i18n="compute.index.standingToday">Standing today</span><span class="v" id="today-standing" data-i18n="compute.index.noJobsYetToday">no jobs yet today</span></div>
+      <div class="row"><span class="k" data-i18n="compute.index.thisMonth2">This month</span><span class="v" id="month">—</span></div>
+      <div class="row"><span class="k" data-i18n="compute.index.yourShare">Your share</span><span class="v" id="share-estimate">—</span></div>
+      <div class="row"><span class="k" data-i18n="compute.index.stake2">Stake</span><span class="v" id="stake">—</span></div>
+      <p class="caption" data-i18n="compute.index.stakingBoostsYourPoints">Staking boosts your points, not your speed: jobs/min stays the same, but each day's points are multiplied by your tier, so you get a bigger share of the monthly pool. New stake counts from the next day (00:00 UTC), because a day uses the lowest stake you held during it.</p>
       <div class="cta" style="margin-top:18px">
-        <a class="btn sm" href="/compute/leaderboard">Leaderboard</a>
-        <a class="btn sm" href="/compute/claim">Claims</a>
-        <a class="btn sm" href="/compute/stake">Stake</a>
+        <a class="btn sm" href="/compute/leaderboard" data-i18n="compute.index.leaderboard2">Leaderboard</a>
+        <a class="btn sm" href="/compute/claim" data-i18n="compute.index.claims2">Claims</a>
+        <a class="btn sm" href="/compute/stake" data-i18n="compute.index.stake3">Stake</a>
       </div>
     </div>
 
     <div class="card pad" id="mining-card" hidden>
-      <span class="num">PROJECT MINING</span>
-      <h3>What the fleet has mined</h3>
+      <span class="num" data-i18n="compute.index.projectMining">PROJECT MINING</span>
+      <h3 data-i18n="compute.index.whatTheFleetHas">What the fleet has mined</h3>
       <div id="mining-rows"></div>
-      <p class="caption">With "Also run programs" on, some jobs mine real coins for the project through public pools. The amounts are the pools' own numbers for our payout addresses: <span id="mining-links"></span>.</p>
+      <p class="caption" data-i18n-html="compute.index.withAlsoRunPrograms">With "Also run programs" on, some jobs mine real coins for the project through public pools. The amounts are the pools' own numbers for our payout addresses: <span id="mining-links"></span>.</p>
     </div>
 
     <div class="grid3">
-      <div class="card pad"><span class="num">THE WORK</span><h3>A real brain, not a benchmark</h3>
-        <p>Jobs drive one eye or touch channel and count what the fly's motor neurons do. Together they map which senses move the fly, at which settings.</p></div>
-      <div class="card pad"><span class="num">CHECKED</span><h3>Every answer can be checked</h3>
-        <p>The brain runs in exact integer maths, so any GPU or CPU gives the same spikes. Some jobs are re-run on the server, and a wrong answer zeroes your day.</p></div>
-      <div class="card pad"><span class="num">PAID MONTHLY</span><h3>Points, then a pool</h3>
-        <p>Link a wallet to keep your points. After each month the pool is split by points and you claim your share on Robinhood Chain.</p></div>
+      <div class="card pad"><span class="num" data-i18n="compute.index.theWork">THE WORK</span><h3 data-i18n="compute.index.aRealBrainNot">A real brain, not a benchmark</h3>
+        <p data-i18n="compute.index.jobsDriveOneEye">Jobs drive one eye or touch channel and count what the fly's motor neurons do. Together they map which senses move the fly, at which settings.</p></div>
+      <div class="card pad"><span class="num" data-i18n="compute.index.checked2">CHECKED</span><h3 data-i18n="compute.index.everyAnswerCanBe">Every answer can be checked</h3>
+        <p data-i18n="compute.index.theBrainRunsIn">The brain runs in exact integer maths, so any GPU or CPU gives the same spikes. Some jobs are re-run on the server, and a wrong answer zeroes your day.</p></div>
+      <div class="card pad"><span class="num" data-i18n="compute.index.paidMonthly">PAID MONTHLY</span><h3 data-i18n="compute.index.pointsThenAPool">Points, then a pool</h3>
+        <p data-i18n="compute.index.linkAWalletTo">Link a wallet to keep your points. After each month the pool is split by points and you claim your share on Robinhood Chain.</p></div>
     </div>
   </div>
 </section>

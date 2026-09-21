@@ -6,6 +6,7 @@ export default defineConfig({
   // `npx vite` for local work: Fly Roulette's bets and the site's shared files come from a local mining server
   // (cd mine && npm start, port 8787), as they come from the same site in production
   server: {
+    fs: { allow: [".."] },            // the site's translations live in docs/assets/i18n/
     proxy: {
       "/api": "http://localhost:8787",
       "/compute": "http://localhost:8787",

@@ -1,0 +1,65 @@
+{
+  "head": {
+    "p1": "En vivo · Fly Radio",
+    "h11": "Una emisora de radio dirigida por un cerebro de mosca de verdad",
+    "p2": "Cuatro programas, cinco moscas, el conectoma MaleCNS real de 166,700 neuronas, funcionando en vivo en tu navegador con los mismos archivos del cerebro que la Simulación. Cada zumbido que oyes es la actividad de las neuronas motoras de las alas de ese cerebro, reproducida en el instante en que se mide: nada está pregrabado, nada se repite en bucle."
+  },
+  "s1": {
+    "span1": "neuronas reales, en vivo",
+    "span2": "moscas emitiendo a la vez",
+    "span3": "programas en el dial",
+    "span4": "clips pregrabados o en bucle",
+    "a1": "Sintoniza: abre Fly Radio",
+    "a2": "Lee el código"
+  },
+  "lineup": {
+    "p1": "La programación",
+    "h21": "Cada programa reutiliza un estímulo real ya medido",
+    "p2": "No se inventó ninguna asignación nueva de poblaciones de neuronas para la radio: cada programa apunta un contexto de estímulo real y fijo (los mismos que usa <code>flytalk.py</code>) a una copia en vivo del cerebro, mientras estés escuchando.",
+    "span1": "CH 1 · RUIDO BLANCO",
+    "h31": "Nadie",
+    "p3": "<code>baseline</code>, sin estímulo. Siseo de verdad, sin tono &mdash; la actividad en reposo de un cerebro de mosca sin estimular, con la portadora apagada por completo para que suene a estática y no a un zumbido suave.",
+    "span2": "CH 2 · BUZZKILL",
+    "h32": "El Sospechoso",
+    "p4": "<code>threat</code> (LC4 + LPLC2, looming). True crime a escala de mosca: un circuito real de detección de aproximación, en vivo, reaccionando a algo que se le echa encima.",
+    "span3": "CH 3 · PODRIDO Y SABROSO",
+    "h33": "El Crítico",
+    "p5": "<code>food</code> (ORN_DM1 + ORN_DM2). Una mosca, un plato, cero calma &mdash; neuronas receptoras de olor reales haciendo la reseña.",
+    "span4": "CH 4 · LA LLAMADA DEL AMOR",
+    "h34": "Buzzy Buzz y el Dr. Buzziam Buzz",
+    "p6": "Un programa de entrevistas, <code>baseline</code> / <code>mate</code> (LC10a): el micro alterna entre un presentador y un experto, 2.5 s y 4 s cada vez, en bucle. Las dos moscas siguen funcionando todo el tiempo."
+  },
+  "how": {
+    "p1": "Cómo funciona",
+    "h21": "Neuronas reales dentro, un tono inventado encima, sin rodeos",
+    "p2": "Nadie programó este cerebro y nadie escribió el guion del programa. Solo la sonificación —cómo el volumen se convierte en un tono— es una elección inventada, con la misma honestidad que las otras demos del proyecto.",
+    "span1": "01 · ENTRA EL ESTÍMULO",
+    "h31": "Una entrada fija por mosca",
+    "p3": "Cada miembro del reparto del programa que sintonizas es su propia copia del cerebro, funcionando en tu dispositivo. Cada una recibe el estímulo real de su programa inyectado en las neuronas reales que lo transportan, en cada paso de 20 ms: nada programado, cronometrado ni puntuado.",
+    "span2": "02 · SALE EL SONIDO",
+    "h32": "Volumen real, una portadora inventada",
+    "p4": "En cada paso, la página mide con qué fuerza disparan las neuronas motoras reales de las alas de esa mosca por encima del reposo. Ese único número real modula en amplitud un tono sintético de ~190 Hz para que se oiga: el único ingrediente inventado.",
+    "span3": "03 · SALE EL TEXTO",
+    "h33": "Una decodificación real y en vivo",
+    "p5": "Un pequeño clasificador con validación cruzada, calibrado con los contextos reales, recibe una ventana móvil de la envolvente real medida de un miembro del reparto —sin etiqueta— y adivina a qué contexto se parece. A menudo se equivoca, a propósito: es una decodificación real, no un eco."
+  },
+  "more": {
+    "p1": "Sigue leyendo",
+    "h21": "El resto",
+    "h31": "Sintoniza",
+    "p2": "Abre la emisora en vivo: elige un canal, pulsa Sintonizar y lee el panel de traducción mientras la lectura de la emisora decodifica el zumbido de cada mosca al micro.",
+    "p3": "Abrir Fly Radio →",
+    "h32": "Moscas que hablan",
+    "p4": "Un experimento relacionado: dos copias del conectoma, una emitiendo señales con el canto de sus alas y la otra escuchando.",
+    "p5": "Lee el experimento →",
+    "h33": "La explicación completa",
+    "p6": "El README técnico completo: el bucle de simulación, la síntesis de audio, la calibración de los subtítulos y cómo ejecutarlo tú mismo.",
+    "p7": "Leer en GitHub →"
+  },
+  "meta": {
+    "title": "Fly Radio — una emisora de radio dirigida por un cerebro real de mosca",
+    "description": "Cuatro programas en vivo, cinco moscas, el conectoma real de 166,700 neuronas funcionando en tu navegador. Cada zumbido que oyes es actividad real de las neuronas motoras de las alas, reproducida en el instante en que se mide: nada pregrabado, nada en bucle.",
+    "ogTitle": "Fly Radio — una emisora de radio dirigida por un cerebro real de mosca",
+    "ogDescription": "Cuatro programas en vivo, cinco moscas, el conectoma real de 166,700 neuronas funcionando en tu navegador. Cada zumbido que oyes es actividad real de las neuronas motoras de las alas, reproducida en el instante en que se mide."
+  }
+}

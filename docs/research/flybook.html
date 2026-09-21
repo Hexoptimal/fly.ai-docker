@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-ns="researchFlybook">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flybook &mdash; can two fly brains talk?</title>
-<meta name="description" content="Two copies of the real fruit-fly connectome. One sees a threat and sings with its wings; the other hears it and flinches. Three runs, pre-registered tests, a scrambled-wiring control, and the feed the flies wrote.">
-<meta property="og:title" content="Flybook &mdash; can two fly brains talk?">
-<meta property="og:description" content="Two copies of the real fruit-fly connectome. One sees a threat, the other hears it and flinches 77% of the time. What got through, what didn't, and the feed they wrote.">
+<title data-i18n="researchFlybook.meta.title">Flybook &mdash; can two fly brains talk?</title>
+<meta name="description" content="Two copies of the real fruit-fly connectome. One sees a threat and sings with its wings; the other hears it and flinches. Three runs, pre-registered tests, a scrambled-wiring control, and the feed the flies wrote." data-i18n-attr="content:researchFlybook.meta.description">
+<meta property="og:title" content="Flybook &mdash; can two fly brains talk?" data-i18n-attr="content:researchFlybook.meta.ogTitle">
+<meta property="og:description" content="Two copies of the real fruit-fly connectome. One sees a threat, the other hears it and flinches 77% of the time. What got through, what didn't, and the feed they wrote." data-i18n-attr="content:researchFlybook.meta.ogDescription">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@flydotai">
@@ -27,6 +27,7 @@
   "publisher": { "@type": "Organization", "name": "fly.ai" }
 }
 </script>
+<script src="../assets/i18n/boot.js"></script>
 <link rel="icon" href="../assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -191,145 +192,145 @@
 
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">Research &middot; talking flies</p>
-    <p class="fb-word">Fly<i>book</i></p>
-    <h1 class="fb-thesis">Two copies of a real fly brain. <span class="a">One sees a threat and sings.</span> <span class="b">The other hears it and flinches.</span></h1>
-    <p class="lede">Both flies are the full MaleCNS connectome, 166,700 neurons, frozen. Nothing in between is scripted. Fly A's song is its own wing motor neurons firing, and fly B hears it through its own ear neurons. We fixed the tests before running, ran the experiment three times, and report every result, including the one that failed.</p>
-    <p class="lede">This is the experiment behind <a href="/flybook/">Flybook</a>, which is now live: flies that sense, act, set each other off, duel, mate with other owners' flies and trade in a simulated market, with every post read from their neurons.</p>
-    <div class="loop" aria-label="Signal path from fly A to fly B">
-      <div class="sA"><b>Fly A senses</b><span>LC4 + LPLC2 looming<br>LC10a mate &middot; ORN food</span></div>
-      <div class="sA"><b>A's wings sing</b><span>58 wing motor neurons<br>spikes above rest</span></div>
-      <div class="wire"><b>Song</b><span>loudness every step<br>one-step delay</span></div>
-      <div class="sB"><b>B's ear</b><span>138 Johnston's organ<br>neurons, JO-A / JO-B</span></div>
-      <div class="sB"><b>B's brain</b><span>1,314 descending<br>neurons read out</span></div>
+    <p class="eyebrow" data-i18n="researchFlybook.head.p1">Research &middot; talking flies</p>
+    <p class="fb-word" data-i18n-html="researchFlybook.head.p2">Fly<i>book</i></p>
+    <h1 class="fb-thesis" data-i18n-html="researchFlybook.head.h11">Two copies of a real fly brain. <span class="a">One sees a threat and sings.</span> <span class="b">The other hears it and flinches.</span></h1>
+    <p class="lede" data-i18n="researchFlybook.head.p3">Both flies are the full MaleCNS connectome, 166,700 neurons, frozen. Nothing in between is scripted. Fly A's song is its own wing motor neurons firing, and fly B hears it through its own ear neurons. We fixed the tests before running, ran the experiment three times, and report every result, including the one that failed.</p>
+    <p class="lede" data-i18n-html="researchFlybook.head.p4">This is the experiment behind <a href="/flybook/">Flybook</a>, which is now live: flies that sense, act, set each other off, duel, mate with other owners' flies and trade in a simulated market, with every post read from their neurons.</p>
+    <div class="loop" aria-label="Signal path from fly A to fly B" data-i18n-attr="aria-label:researchFlybook.aria.Signal_path_from_fly_A_to_fl">
+      <div class="sA"><b data-i18n="researchFlybook.head.b1">Fly A senses</b><span data-i18n-html="researchFlybook.head.span1">LC4 + LPLC2 looming<br>LC10a mate &middot; ORN food</span></div>
+      <div class="sA"><b data-i18n="researchFlybook.head.b2">A's wings sing</b><span data-i18n-html="researchFlybook.head.span2">58 wing motor neurons<br>spikes above rest</span></div>
+      <div class="wire"><b data-i18n="researchFlybook.head.b3">Song</b><span data-i18n-html="researchFlybook.head.span3">loudness every step<br>one-step delay</span></div>
+      <div class="sB"><b data-i18n="researchFlybook.head.b4">B's ear</b><span data-i18n-html="researchFlybook.head.span4">138 Johnston's organ<br>neurons, JO-A / JO-B</span></div>
+      <div class="sB"><b data-i18n="researchFlybook.head.b5">B's brain</b><span data-i18n-html="researchFlybook.head.span5">1,314 descending<br>neurons read out</span></div>
     </div>
   </div>
 </header>
 
 <section class="firstsec" id="results">
   <div class="wrap">
-    <p class="fb-label">Where it landed</p>
-    <h2>An alarm call that works</h2>
-    <p class="lede">In the most detailed brain (run 3), a threatened fly's song makes the listener react three times out of four, and its escape neurons fire three times harder than in silence.</p>
+    <p class="fb-label" data-i18n="researchFlybook.results.p1">Where it landed</p>
+    <h2 data-i18n="researchFlybook.results.h21">An alarm call that works</h2>
+    <p class="lede" data-i18n="researchFlybook.results.p2">In the most detailed brain (run 3), a threatened fly's song makes the listener react three times out of four, and its escape neurons fire three times harder than in silence.</p>
     <div class="headline">
-      <div><b>77.5%<small>vs 17.5%</small></b><span>listeners that react after a threat song, against silence (p &lt; 0.001)</span></div>
-      <div><b>120 / 120</b><span>threat songs recognised from the wings alone, run 3</span></div>
-      <div><b>0.83<small>bits</small></b><span>about what happened to the singer, carried by its song (of 2 possible)</span></div>
+      <div><b>77.5%<small>vs 17.5%</small></b><span data-i18n="researchFlybook.results.span1">listeners that react after a threat song, against silence (p &lt; 0.001)</span></div>
+      <div><b>120 / 120</b><span data-i18n="researchFlybook.results.span2">threat songs recognised from the wings alone, run 3</span></div>
+      <div><b>0.83<small>bits</small></b><span data-i18n="researchFlybook.results.span3">about what happened to the singer, carried by its song (of 2 possible)</span></div>
     </div>
 
-    <p class="fb-label">Three runs</p>
+    <p class="fb-label" data-i18n="researchFlybook.results.p3">Three runs</p>
     <div class="runs">
-      <div><b>Run 1 &middot; original model, 20&nbsp;ms</b><p>The brain as FLYBRAIN uses it. Smell neurons excite each other into a runaway loop and fire flat out, so an odour can add nothing.</p></div>
-      <div><b>Run 2 &middot; smell fixed, 20&nbsp;ms</b><p>Synapses onto sensory neurons are removed, which is how whole-brain spiking models of the fly treat them. Food now reaches its own relay neurons.</p></div>
-      <div class="r3"><b>Run 3 &middot; smell fixed, 2&nbsp;ms</b><p>Ten times finer steps, with a 4&nbsp;ms refractory period. We chose that period before running, as the one that matched the calibrated brain's resting rate without runaway neurons.</p></div>
+      <div><b data-i18n="researchFlybook.results.b1">Run 1 &middot; original model, 20&nbsp;ms</b><p data-i18n="researchFlybook.results.p4">The brain as FLYBRAIN uses it. Smell neurons excite each other into a runaway loop and fire flat out, so an odour can add nothing.</p></div>
+      <div><b data-i18n="researchFlybook.results.b2">Run 2 &middot; smell fixed, 20&nbsp;ms</b><p data-i18n="researchFlybook.results.p5">Synapses onto sensory neurons are removed, which is how whole-brain spiking models of the fly treat them. Food now reaches its own relay neurons.</p></div>
+      <div class="r3"><b data-i18n="researchFlybook.results.b3">Run 3 &middot; smell fixed, 2&nbsp;ms</b><p data-i18n="researchFlybook.results.p6">Ten times finer steps, with a 4&nbsp;ms refractory period. We chose that period before running, as the one that matched the calibrated brain's resting rate without runaway neurons.</p></div>
     </div>
     <div class="scroller">
       <table class="data cmp">
-        <thead><tr><th>Measure</th><th>Run 1</th><th>Run 2</th><th class="r3">Run 3</th></tr></thead>
+        <thead><tr><th data-i18n="researchFlybook.results.th1">Measure</th><th data-i18n="researchFlybook.results.th2">Run 1</th><th data-i18n="researchFlybook.results.th3">Run 2</th><th class="r3" data-i18n="researchFlybook.results.th4">Run 3</th></tr></thead>
         <tbody>
-          <tr class="group"><td colspan="4">The song</td></tr>
-          <tr><td>Song tells what happened to the singer</td><td><b>41.1%</b> &middot; 0.30 bits &middot; p 0.02</td><td><b>46.7%</b> &middot; 0.63 bits &middot; p 0.02</td><td class="r3"><b>55.0%</b> &middot; 0.83 bits &middot; p 0.02</td></tr>
-          <tr><td>Threat songs recognised</td><td><b>163 / 180</b></td><td><b>180 / 180</b></td><td class="r3"><b>120 / 120</b></td></tr>
-          <tr><td>Same test, scrambled wiring</td><td><b>23.5%</b> &middot; 0.01 bits &middot; p 0.18</td><td><b>22.6%</b> &middot; 0.01 bits &middot; p 0.45</td><td class="r3"><b>47.1%</b> &middot; 0.87 bits &middot; p 0.02</td></tr>
-          <tr><td>Loudness alone <span class="star">*</span></td><td>0.29 bits</td><td>0.43 bits</td><td class="r3">0.64 bits</td></tr>
-          <tr><td>Spectrum shape alone, loudness removed <span class="star">*</span></td><td>0.05 bits</td><td>0.14 bits</td><td class="r3">0.54 bits</td></tr>
-          <tr><td>Food odour reaches its relay neurons</td><td><span class="no">no</span> &middot; pinned at 50 Hz</td><td><span class="yes">yes</span> &middot; 28 vs 16 Hz</td><td class="r3"><span class="yes">yes</span> &middot; 125 vs 4 Hz</td></tr>
-          <tr class="group"><td colspan="4">The listener</td></tr>
-          <tr><td>Listener's brain, real song</td><td><b>40.8%</b> &middot; 0.27 bits &middot; p 0.02</td><td><b>45.8%</b> &middot; 0.41 bits &middot; p 0.02</td><td class="r3"><b>55.6%</b> &middot; 0.73 bits &middot; p 0.02</td></tr>
-          <tr><td>Listener's brain, time-shuffled song</td><td><b>43.3%</b> &middot; 0.31 bits &middot; p 0.02</td><td><b>40.4%</b> &middot; 0.49 bits &middot; p 0.02</td><td class="r3"><b>52.5%</b> &middot; 0.75 bits &middot; p 0.02</td></tr>
-          <tr><td>Listener's brain, silence</td><td><b>26.7%</b> &middot; 0.02 bits &middot; p 0.41</td><td><b>27.5%</b> &middot; 0.03 bits &middot; p 0.25</td><td class="r3"><b>21.9%</b> &middot; 0.03 bits &middot; p 0.55</td></tr>
-          <tr><td>Listener reacts after a threat song, vs silence <span class="star">*</span></td><td><b>23.1%</b> vs 16.7% &middot; p 0.18</td><td><b>21.2%</b> vs 13.8% &middot; p 0.13</td><td class="r3"><b>77.5%</b> vs 17.5% &middot; p &lt; 0.001</td></tr>
-          <tr><td>Listener escape firing after a threat song, vs silence <span class="star">*</span></td><td><b>0.12</b> vs 0.09 Hz &middot; p 0.34</td><td><b>1.12</b> vs 0.70 Hz &middot; p &lt; 0.001</td><td class="r3"><b>3.95</b> vs 1.35 Hz &middot; p &lt; 0.001</td></tr>
+          <tr class="group"><td colspan="4" data-i18n="researchFlybook.results.td1">The song</td></tr>
+          <tr><td data-i18n="researchFlybook.results.td2">Song tells what happened to the singer</td><td><b>41.1%</b> &middot; 0.30 bits &middot; p 0.02</td><td><b>46.7%</b> &middot; 0.63 bits &middot; p 0.02</td><td class="r3"><b>55.0%</b> &middot; 0.83 bits &middot; p 0.02</td></tr>
+          <tr><td data-i18n="researchFlybook.results.td3">Threat songs recognised</td><td><b>163 / 180</b></td><td><b>180 / 180</b></td><td class="r3"><b>120 / 120</b></td></tr>
+          <tr><td data-i18n="researchFlybook.results.td4">Same test, scrambled wiring</td><td><b>23.5%</b> &middot; 0.01 bits &middot; p 0.18</td><td><b>22.6%</b> &middot; 0.01 bits &middot; p 0.45</td><td class="r3"><b>47.1%</b> &middot; 0.87 bits &middot; p 0.02</td></tr>
+          <tr><td data-i18n-html="researchFlybook.results.td5">Loudness alone <span class="star">*</span></td><td>0.29 bits</td><td>0.43 bits</td><td class="r3">0.64 bits</td></tr>
+          <tr><td data-i18n-html="researchFlybook.results.td6">Spectrum shape alone, loudness removed <span class="star">*</span></td><td>0.05 bits</td><td>0.14 bits</td><td class="r3">0.54 bits</td></tr>
+          <tr><td data-i18n="researchFlybook.results.td7">Food odour reaches its relay neurons</td><td data-i18n-html="researchFlybook.results.td8"><span class="no">no</span> &middot; pinned at 50 Hz</td><td data-i18n-html="researchFlybook.results.td9"><span class="yes">yes</span> &middot; 28 vs 16 Hz</td><td class="r3" data-i18n-html="researchFlybook.results.td10"><span class="yes">yes</span> &middot; 125 vs 4 Hz</td></tr>
+          <tr class="group"><td colspan="4" data-i18n="researchFlybook.results.td11">The listener</td></tr>
+          <tr><td data-i18n="researchFlybook.results.td12">Listener's brain, real song</td><td><b>40.8%</b> &middot; 0.27 bits &middot; p 0.02</td><td><b>45.8%</b> &middot; 0.41 bits &middot; p 0.02</td><td class="r3"><b>55.6%</b> &middot; 0.73 bits &middot; p 0.02</td></tr>
+          <tr><td data-i18n="researchFlybook.results.td13">Listener's brain, time-shuffled song</td><td><b>43.3%</b> &middot; 0.31 bits &middot; p 0.02</td><td><b>40.4%</b> &middot; 0.49 bits &middot; p 0.02</td><td class="r3"><b>52.5%</b> &middot; 0.75 bits &middot; p 0.02</td></tr>
+          <tr><td data-i18n="researchFlybook.results.td14">Listener's brain, silence</td><td><b>26.7%</b> &middot; 0.02 bits &middot; p 0.41</td><td><b>27.5%</b> &middot; 0.03 bits &middot; p 0.25</td><td class="r3"><b>21.9%</b> &middot; 0.03 bits &middot; p 0.55</td></tr>
+          <tr><td data-i18n-html="researchFlybook.results.td15">Listener reacts after a threat song, vs silence <span class="star">*</span></td><td><b>23.1%</b> vs 16.7% &middot; p 0.18</td><td><b>21.2%</b> vs 13.8% &middot; p 0.13</td><td class="r3"><b>77.5%</b> vs 17.5% &middot; p &lt; 0.001</td></tr>
+          <tr><td data-i18n-html="researchFlybook.results.td16">Listener escape firing after a threat song, vs silence <span class="star">*</span></td><td><b>0.12</b> vs 0.09 Hz &middot; p 0.34</td><td><b>1.12</b> vs 0.70 Hz &middot; p &lt; 0.001</td><td class="r3"><b>3.95</b> vs 1.35 Hz &middot; p &lt; 0.001</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="fb-note">Chance is 25% (four situations). p-values come from 50 label shuffles per decoding test, so 0.02 is the lowest possible; the reaction tests use 5,000 shuffles. Rows marked <span class="star">*</span> are follow-up controls we added after seeing run 2, so they were not fixed before running. Runs 1 and 2 have 720 songs each, run 3 has 480.</p>
+    <p class="fb-note" data-i18n-html="researchFlybook.results.p7">Chance is 25% (four situations). p-values come from 50 label shuffles per decoding test, so 0.02 is the lowest possible; the reaction tests use 5,000 shuffles. Rows marked <span class="star">*</span> are follow-up controls we added after seeing run 2, so they were not fixed before running. Runs 1 and 2 have 720 songs each, run 3 has 480.</p>
 
-    <p class="fb-label" style="margin-top:44px">The checks we set before running</p>
+    <p class="fb-label" style="margin-top:44px" data-i18n="researchFlybook.results.p8">The checks we set before running</p>
     <div class="ledger">
-      <div class="check"><span class="state pass">Pass &times;3</span>
-        <div><h3>The song carries what happened to the singer</h3><p>This held in every run, and it got clearer each time: 0.30, then 0.63, then 0.83 bits. Threat was always the loudest and clearest. In run 3 a mate in view became partly readable too.</p></div></div>
-      <div class="check"><span class="state fail">Fails in run 3</span>
-        <div><h3>The real wiring matters</h3><p>At 20&nbsp;ms, a brain with the same neurons and scrambled connections sang nothing useful (0.01 bits), even when its wings were louder than the real brain's. At 2&nbsp;ms it carries as many bits as the real brain (0.87 vs 0.83), so the test as we set it fails. The brains still differ in <em>which</em> situations they keep apart, a difference we noticed afterwards and report only as a description: the real brain keeps mate and threat almost completely separate, while the scrambled brain lumps them together, and it lumps food in with nothing.</p></div></div>
-      <div class="check"><span class="state pass">Pass &times;3</span>
-        <div><h3>The listener's brain registers it</h3><p>We can read what fly A went through from fly B's descending neurons, even though B only heard it. In silence the same readout stays at chance, which rules out the labels leaking into the analysis.</p></div></div>
-      <div class="check"><span class="state weak">Mostly no</span>
-        <div><h3>The message has rhythm, not just loudness</h3><p>The listener doesn't care about timing: in every run, the song with its time steps shuffled works as well as the real one. The song itself does have some shape beyond loudness, but in run 3 the threat song's strongest rhythm is 125&nbsp;Hz, exactly one spike every 4 steps. That points to the model's timing grid, not fly song.</p></div></div>
-      <div class="check"><span class="state pass">Run 3</span>
-        <div><h3>The listener does something about it <span class="star">*</span></h3><p>This was weak at 20&nbsp;ms. In run 2 the listener's escape neurons responded (p &lt; 0.001), but rarely enough to count as a reaction. At 2&nbsp;ms, 77.5% of listeners react to a threat song, against 17.5% in silence. A mate song (26%) and a food song (6%) don't reliably trigger anything.</p></div></div>
+      <div class="check"><span class="state pass" data-i18n="researchFlybook.results.span4">Pass &times;3</span>
+        <div><h3 data-i18n="researchFlybook.results.h31">The song carries what happened to the singer</h3><p data-i18n="researchFlybook.results.p9">This held in every run, and it got clearer each time: 0.30, then 0.63, then 0.83 bits. Threat was always the loudest and clearest. In run 3 a mate in view became partly readable too.</p></div></div>
+      <div class="check"><span class="state fail" data-i18n="researchFlybook.results.span5">Fails in run 3</span>
+        <div><h3 data-i18n="researchFlybook.results.h32">The real wiring matters</h3><p data-i18n-html="researchFlybook.results.p10">At 20&nbsp;ms, a brain with the same neurons and scrambled connections sang nothing useful (0.01 bits), even when its wings were louder than the real brain's. At 2&nbsp;ms it carries as many bits as the real brain (0.87 vs 0.83), so the test as we set it fails. The brains still differ in <em>which</em> situations they keep apart, a difference we noticed afterwards and report only as a description: the real brain keeps mate and threat almost completely separate, while the scrambled brain lumps them together, and it lumps food in with nothing.</p></div></div>
+      <div class="check"><span class="state pass" data-i18n="researchFlybook.results.span6">Pass &times;3</span>
+        <div><h3 data-i18n="researchFlybook.results.h33">The listener's brain registers it</h3><p data-i18n="researchFlybook.results.p11">We can read what fly A went through from fly B's descending neurons, even though B only heard it. In silence the same readout stays at chance, which rules out the labels leaking into the analysis.</p></div></div>
+      <div class="check"><span class="state weak" data-i18n="researchFlybook.results.span7">Mostly no</span>
+        <div><h3 data-i18n="researchFlybook.results.h34">The message has rhythm, not just loudness</h3><p data-i18n="researchFlybook.results.p12">The listener doesn't care about timing: in every run, the song with its time steps shuffled works as well as the real one. The song itself does have some shape beyond loudness, but in run 3 the threat song's strongest rhythm is 125&nbsp;Hz, exactly one spike every 4 steps. That points to the model's timing grid, not fly song.</p></div></div>
+      <div class="check"><span class="state pass" data-i18n="researchFlybook.results.span8">Run 3</span>
+        <div><h3 data-i18n-html="researchFlybook.results.h35">The listener does something about it <span class="star">*</span></h3><p data-i18n="researchFlybook.results.p13">This was weak at 20&nbsp;ms. In run 2 the listener's escape neurons responded (p &lt; 0.001), but rarely enough to count as a reaction. At 2&nbsp;ms, 77.5% of listeners react to a threat song, against 17.5% in silence. A mate song (26%) and a food song (6%) don't reliably trigger anything.</p></div></div>
     </div>
   </div>
 </section>
 
 <section id="wiring">
   <div class="wrap">
-    <p class="fb-label">Real vs scrambled wiring</p>
-    <h2>What the song says, cell by cell</h2>
-    <p class="lede">Rows are what really happened to fly A. Columns are what a decoder read from its wings. A clean diagonal would mean four distinct words.</p>
-    <div class="seg" role="group" aria-label="Choose a run">
-      <button id="run-1" type="button" data-run="1" aria-pressed="false">Run 1 &middot; original</button>
-      <button id="run-2" type="button" data-run="2" aria-pressed="false">Run 2 &middot; smell fixed</button>
-      <button id="run-3" type="button" data-run="3" aria-pressed="true">Run 3 &middot; 2&nbsp;ms</button>
+    <p class="fb-label" data-i18n="researchFlybook.wiring.p1">Real vs scrambled wiring</p>
+    <h2 data-i18n="researchFlybook.wiring.h21">What the song says, cell by cell</h2>
+    <p class="lede" data-i18n="researchFlybook.wiring.p2">Rows are what really happened to fly A. Columns are what a decoder read from its wings. A clean diagonal would mean four distinct words.</p>
+    <div class="seg" role="group" aria-label="Choose a run" data-i18n-attr="aria-label:researchFlybook.aria.Choose_a_run">
+      <button id="run-1" type="button" data-run="1" aria-pressed="false" data-i18n="researchFlybook.wiring.button1">Run 1 &middot; original</button>
+      <button id="run-2" type="button" data-run="2" aria-pressed="false" data-i18n="researchFlybook.wiring.button2">Run 2 &middot; smell fixed</button>
+      <button id="run-3" type="button" data-run="3" aria-pressed="true" data-i18n="researchFlybook.wiring.button3">Run 3 &middot; 2&nbsp;ms</button>
     </div>
     <div class="grids">
-      <div class="card grid-card"><div class="grid-head"><h3>Real connectome</h3><span class="fig" id="bits-real"></span></div><div class="cm" id="cm-real"></div></div>
-      <div class="card grid-card"><div class="grid-head"><h3>Scrambled connectome</h3><span class="fig" id="bits-fake"></span></div><div class="cm" id="cm-fake"></div></div>
+      <div class="card grid-card"><div class="grid-head"><h3 data-i18n="researchFlybook.wiring.h31">Real connectome</h3><span class="fig" id="bits-real"></span></div><div class="cm" id="cm-real"></div></div>
+      <div class="card grid-card"><div class="grid-head"><h3 data-i18n="researchFlybook.wiring.h32">Scrambled connectome</h3><span class="fig" id="bits-fake"></span></div><div class="cm" id="cm-fake"></div></div>
     </div>
-    <div class="axis"><span id="cm-n">rows: true situation</span><span>columns: decoded &middot; green = correct</span></div>
+    <div class="axis"><span id="cm-n" data-i18n="researchFlybook.wiring.span1">rows: true situation</span><span data-i18n="researchFlybook.wiring.span2">columns: decoded &middot; green = correct</span></div>
     <p class="cm-caption" id="cm-caption"></p>
   </div>
 </section>
 
 <section id="feed-section">
   <div class="wrap">
-    <p class="fb-label">The feed</p>
-    <h2>What they posted</h2>
-    <p class="lede" id="feedlede">Twelve flies are paired at random each round. A fly posts only when the translator hears a word in its wing song, and its partner's reaction is the comment.</p>
+    <p class="fb-label" data-i18n="researchFlybook.feed_section.p1">The feed</p>
+    <h2 data-i18n="researchFlybook.feed_section.h21">What they posted</h2>
+    <p class="lede" id="feedlede" data-i18n="researchFlybook.feed_section.p2">Twelve flies are paired at random each round. A fly posts only when the translator hears a word in its wing song, and its partner's reaction is the comment.</p>
     <div class="feedwrap">
       <aside class="rail">
-        <div class="filters" role="group" aria-label="Filter posts">
-          <button id="f-all" type="button" data-f="all" aria-pressed="true">All posts <span></span></button>
-          <button id="f-threat" type="button" data-f="threat" aria-pressed="false">Alarm calls <span></span></button>
-          <button id="f-mate" type="button" data-f="mate" aria-pressed="false">Mate calls <span></span></button>
-          <button id="f-false" type="button" data-f="false" aria-pressed="false">Mistranslated <span></span></button>
-          <button id="f-react" type="button" data-f="react" aria-pressed="false">Listener reacted <span></span></button>
+        <div class="filters" role="group" aria-label="Filter posts" data-i18n-attr="aria-label:researchFlybook.aria.Filter_posts">
+          <button id="f-all" type="button" data-f="all" aria-pressed="true" data-i18n-html="researchFlybook.feed_section.button1">All posts <span></span></button>
+          <button id="f-threat" type="button" data-f="threat" aria-pressed="false" data-i18n-html="researchFlybook.feed_section.button2">Alarm calls <span></span></button>
+          <button id="f-mate" type="button" data-f="mate" aria-pressed="false" data-i18n-html="researchFlybook.feed_section.button3">Mate calls <span></span></button>
+          <button id="f-false" type="button" data-f="false" aria-pressed="false" data-i18n-html="researchFlybook.feed_section.button4">Mistranslated <span></span></button>
+          <button id="f-react" type="button" data-f="react" aria-pressed="false" data-i18n-html="researchFlybook.feed_section.button5">Listener reacted <span></span></button>
         </div>
         <div class="glossary">
-          <p><b>Confidence</b> is how often the translator was right when it used this word on songs it hadn't seen.</p>
-          <p><b>Song trace</b> is wing motor spikes per 20&nbsp;ms, with every post on the same scale. The dashed line is the resting level.</p>
-          <p><b>Reactions</b> are read from the listener's own neurons. The same rule fires in silence 17.5% of the time.</p>
+          <p data-i18n-html="researchFlybook.feed_section.p3"><b>Confidence</b> is how often the translator was right when it used this word on songs it hadn't seen.</p>
+          <p data-i18n-html="researchFlybook.feed_section.p4"><b>Song trace</b> is wing motor spikes per 20&nbsp;ms, with every post on the same scale. The dashed line is the resting level.</p>
+          <p data-i18n-html="researchFlybook.feed_section.p5"><b>Reactions</b> are read from the listener's own neurons. The same rule fires in silence 17.5% of the time.</p>
           <p id="feed-config"></p>
         </div>
       </aside>
-      <div class="feed" id="feed"><p class="empty">Loading the feed&hellip;</p></div>
+      <div class="feed" id="feed"><p class="empty" data-i18n="researchFlybook.feed_section.p6">Loading the feed&hellip;</p></div>
     </div>
   </div>
 </section>
 
 <section id="limits">
   <div class="wrap">
-    <p class="fb-label">Not there yet</p>
-    <h2>What the flies still can't say</h2>
+    <p class="fb-label" data-i18n="researchFlybook.limits.p1">Not there yet</p>
+    <h2 data-i18n="researchFlybook.limits.h21">What the flies still can't say</h2>
     <div class="limits">
-      <div><b>"Food over here"</b><p>The smell fix worked: in run 3 a food odour drives its relay neurons at 125&nbsp;Hz, against 4&nbsp;Hz without it. But the signal never reaches the wings, so food songs look like no song at all. The smell gets into the brain and stops there.</p></div>
-      <div><b>"I like you"</b><p>A mate in view is now partly readable from the song: when the translator says "mate", it's right 69% of the time. Listeners, though, don't react to it reliably: 26%, against 17.5% in silence (p = 0.12).</p></div>
-      <div><b>What makes the real wiring special</b><p>At 2&nbsp;ms, a scrambled brain's song carries as many bits as the real one. What's left to test is whether the real brain's specific split (threat kept apart from mate) is what listeners need.</p></div>
-      <div><b>Conversation</b><p>Hearing doesn't make a fly sing back: driving the ear produced 1 spike in the song-command neurons. For now it's one fly broadcasting and the other listening, and rhythm and a real reply would take a model of the wings themselves.</p></div>
+      <div><b data-i18n="researchFlybook.limits.b1">"Food over here"</b><p data-i18n="researchFlybook.limits.p2">The smell fix worked: in run 3 a food odour drives its relay neurons at 125&nbsp;Hz, against 4&nbsp;Hz without it. But the signal never reaches the wings, so food songs look like no song at all. The smell gets into the brain and stops there.</p></div>
+      <div><b data-i18n="researchFlybook.limits.b2">"I like you"</b><p data-i18n="researchFlybook.limits.p3">A mate in view is now partly readable from the song: when the translator says "mate", it's right 69% of the time. Listeners, though, don't react to it reliably: 26%, against 17.5% in silence (p = 0.12).</p></div>
+      <div><b data-i18n="researchFlybook.limits.b3">What makes the real wiring special</b><p data-i18n="researchFlybook.limits.p4">At 2&nbsp;ms, a scrambled brain's song carries as many bits as the real one. What's left to test is whether the real brain's specific split (threat kept apart from mate) is what listeners need.</p></div>
+      <div><b data-i18n="researchFlybook.limits.b4">Conversation</b><p data-i18n="researchFlybook.limits.p5">Hearing doesn't make a fly sing back: driving the ear produced 1 spike in the song-command neurons. For now it's one fly broadcasting and the other listening, and rhythm and a real reply would take a model of the wings themselves.</p></div>
     </div>
   </div>
 </section>
 
 <section id="more">
   <div class="wrap">
-    <p class="eyebrow">Read on</p>
-    <h2>The rest of it</h2>
+    <p class="eyebrow" data-i18n="researchFlybook.more.p1">Read on</p>
+    <h2 data-i18n="researchFlybook.more.h21">The rest of it</h2>
     <div class="next-pages">
-      <a class="card pad" href="../research.html"><h3>All findings</h3>
-        <p>The fighting brain, the 3-D world, the ablation tables, and what failed.</p><p class="go">Read the findings &rarr;</p></a>
-      <a class="card pad" href="../roadmap.html"><h3>Roadmap</h3>
-        <p>What's done, what's running, and what comes next.</p><p class="go">See the roadmap &rarr;</p></a>
-      <a class="card pad" href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener"><h3>Run it yourself</h3>
-        <p><span class="mono">flytalk.py</span> runs the experiment and <span class="mono">flybook.py</span> writes this feed. Everything is open source.</p><p class="go">GitHub &rarr;</p></a>
+      <a class="card pad" href="../research.html"><h3 data-i18n="researchFlybook.more.h31">All findings</h3>
+        <p data-i18n="researchFlybook.more.p2">The fighting brain, the 3-D world, the ablation tables, and what failed.</p><p class="go" data-i18n="researchFlybook.more.p3">Read the findings &rarr;</p></a>
+      <a class="card pad" href="../roadmap.html"><h3 data-i18n="researchFlybook.more.h32">Roadmap</h3>
+        <p data-i18n="researchFlybook.more.p4">What's done, what's running, and what comes next.</p><p class="go" data-i18n="researchFlybook.more.p5">See the roadmap &rarr;</p></a>
+      <a class="card pad" href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener"><h3 data-i18n="researchFlybook.more.h33">Run it yourself</h3>
+        <p data-i18n-html="researchFlybook.more.p6"><span class="mono">flytalk.py</span> runs the experiment and <span class="mono">flybook.py</span> writes this feed. Everything is open source.</p><p class="go" data-i18n="researchFlybook.more.p7">GitHub &rarr;</p></a>
     </div>
   </div>
 </section>
@@ -341,29 +342,29 @@
       <a href="https://github.com/alextitonis/fly.ai" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/alextitonis/fly.ai/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
     </div>
-    <p>Connectome data: MaleCNS v1.0 by FlyEM (HHMI Janelia) and collaborators, used under CC BY 4.0. Code MIT licensed. Every fly in the feed is the same male brain with its own noise; the lab-strain names are just names.</p>
+    <p data-i18n="researchFlybook.footer">Connectome data: MaleCNS v1.0 by FlyEM (HHMI Janelia) and collaborators, used under CC BY 4.0. Code MIT licensed. Every fly in the feed is the same male brain with its own noise; the lab-strain names are just names.</p>
   </div>
 </footer>
 
 <script src="../assets/site.js"></script>
-<script>
-(function () {
+<script type="module">
+// The confusion grids and the feed are drawn once the page's strings are in (i18n/page.js fires i18n:ready).
+// The flies' own words (what a post says, how the listener reacted) are the flies' posts and stay as written.
+import { t } from "../assets/i18n/i18n.js";
+if (!window.flyI18n) await new Promise((ok) => { addEventListener("i18n:ready", ok, { once: true }); setTimeout(ok, 3000); });
+{
   const RUNS = {"1": {"real": {"confusion": [[33, 51, 42, 54], [27, 56, 39, 58], [4, 10, 163, 3], [42, 60, 34, 44]], "bits": 0.2995055165976583, "p": 0.0196078431372549}, "rewired": {"confusion": [[43, 46, 26, 65], [51, 38, 26, 65], [42, 50, 32, 56], [48, 49, 27, 56]], "bits": 0.0053891055333856195, "p": 0.17647058823529413}}, "2": {"real": {"confusion": [[62, 53, 9, 56], [63, 51, 11, 55], [0, 0, 180, 0], [79, 44, 14, 43]], "bits": 0.6303037034002645, "p": 0.0196078431372549}, "rewired": {"confusion": [[37, 77, 17, 49], [34, 58, 29, 59], [25, 77, 26, 52], [33, 80, 25, 42]], "bits": 0.01337904998449228, "p": 0.45098039215686275}}, "3": {"real": {"confusion": [[68, 7, 0, 45], [51, 33, 1, 35], [0, 0, 120, 0], [68, 8, 1, 43]], "bits": 0.8276937015082168, "p": 0.0196078431372549}, "rewired": {"confusion": [[72, 0, 0, 48], [1, 61, 57, 1], [0, 52, 67, 1], [84, 3, 7, 26]], "bits": 0.8666326261436347, "p": 0.0196078431372549}}};
   const CTX = ["nothing", "mate", "threat", "food"];
-  const CAPTIONS = {
-    1: "Original model: one bright cell, threat. The scrambled brain has none.",
-    2: "Smell fixed: threat becomes perfect. Food still blurs with nothing, and the scrambled brain still has nothing.",
-    3: "2 ms: the real brain keeps threat and mate apart. The scrambled brain carries as many bits, but lumps mate with threat and food with nothing.",
-  };
+  const ctx = (c) => t(`researchFlybook.js.ctx.${c}`);
 
   function grid(id, m) {
-    let html = "<span></span>" + CTX.map((c) => `<span class="h">${c}</span>`).join("");
+    let html = "<span></span>" + CTX.map((c) => `<span class="h">${ctx(c)}</span>`).join("");
     m.forEach((row, i) => {
       const n = row.reduce((a, b) => a + b, 0);
-      html += `<span class="r">${CTX[i]}</span>`;
+      html += `<span class="r">${ctx(CTX[i])}</span>`;
       row.forEach((v, j) => {
         const rgb = i === j ? "61,220,132" : "108,196,216";
-        html += `<span class="c" style="background: rgba(${rgb},${(0.05 + (v / n) * 0.85).toFixed(3)})" title="${v} of ${n}">${v}</span>`;
+        html += `<span class="c" style="background: rgba(${rgb},${(0.05 + (v / n) * 0.85).toFixed(3)})" title="${t("researchFlybook.js.cellTitle", { v, n })}">${v}</span>`;
       });
     });
     document.getElementById(id).innerHTML = html;
@@ -374,14 +375,14 @@
     grid("cm-fake", r.rewired.confusion);
     document.getElementById("bits-real").innerHTML = `<b>${r.real.bits.toFixed(2)}</b> bits &middot; p ${r.real.p.toFixed(2)}`;
     document.getElementById("bits-fake").innerHTML = `<b>${r.rewired.bits.toFixed(2)}</b> bits &middot; p ${r.rewired.p.toFixed(2)}`;
-    document.getElementById("cm-n").textContent = `rows: true situation · ${r.real.confusion[0].reduce((a, b) => a + b, 0)} songs each`;
-    document.getElementById("cm-caption").textContent = CAPTIONS[k];
+    document.getElementById("cm-n").textContent = t("researchFlybook.js.rowsN", { n: r.real.confusion[0].reduce((a, b) => a + b, 0) });
+    document.getElementById("cm-caption").textContent = t(`researchFlybook.js.caption${k}`);
     document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.run === String(k))));
   }
   document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => showRun(b.dataset.run)));
   showRun(3);
 
-  const TRUTH = { baseline: "nothing happened to it", mate: "a mate was in view", threat: "something was looming at it", food: "it smelled food" };
+  const truth = (k) => t(`researchFlybook.js.truth.${k}`);
   const SAYS = { threat: "Something big is coming at me.", mate: "There's someone here I like.", food: "Food over here." };
   const HUE = [8, 196, 42, 150, 330, 24, 270, 176, 60, 220, 300, 110];
   const NOTHING = "heard it, did nothing";
@@ -389,7 +390,7 @@
   fetch("../assets/flybook.json")
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(start)
-    .catch(() => { document.getElementById("feed").innerHTML = '<p class="empty">The feed did not load. Reload the page to try again.</p>'; });
+    .catch(() => { document.getElementById("feed").innerHTML = `<p class="empty">${t("researchFlybook.js.loadFailed")}</p>`; });
 
   function start(FEED) {
     const flies = FEED.flies;
@@ -407,7 +408,7 @@
       const y = (v) => H - pad - (Math.min(v, PEAK) / PEAK) * (H - 2 * pad);
       const pts = env.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
       const top = env.indexOf(Math.max(...env));
-      return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Wing song trace, peak ${env[top]} spikes per 20 ms">
+      return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${t("researchFlybook.js.sparkLabel", { peak: env[top] })}">
         <line x1="0" x2="${W}" y1="${y(REST)}" y2="${y(REST)}" stroke="#5f6b7a" stroke-dasharray="3 4" stroke-width="1" vector-effect="non-scaling-stroke"/>
         <polygon points="${pad},${H - pad} ${pts} ${W - pad},${H - pad}" fill="rgba(224,52,44,.16)"/>
         <polyline points="${pts}" fill="none" stroke="#ff5b4f" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
@@ -419,18 +420,18 @@
       document.getElementById("feed").innerHTML = posts.length ? posts.map((p) => {
         const c = p.comments[0];
         const did = c.reaction !== NOTHING;
-        const food = p.neurons.food_pn !== undefined ? `<span><b>food relay</b> ${p.neurons.food_pn}</span>` : "";
+        const food = p.neurons.food_pn !== undefined ? `<span><b>${t("researchFlybook.js.facts.foodRelay")}</b> ${p.neurons.food_pn}</span>` : "";
         return `<article class="post">
-          <div class="who">${facet(p.fly)}<div><div class="name">${flies[p.fly].name}</div><div class="meta">t = ${p.t.toFixed(1)} s &middot; round ${p.round + 1}</div></div>
-            <div class="conf">confidence<br><b>${Math.round(p.confidence * 100)}%</b></div></div>
-          <p class="says">${SAYS[p.word] ?? p.word}<small>translated from its wing song &middot; word: ${p.word}</small></p>
+          <div class="who">${facet(p.fly)}<div><div class="name">${flies[p.fly].name}</div><div class="meta">${t("researchFlybook.js.postMeta", { t: p.t.toFixed(1), round: p.round + 1 })}</div></div>
+            <div class="conf">${t("researchFlybook.js.confidence")}<br><b>${Math.round(p.confidence * 100)}%</b></div></div>
+          <p class="says">${SAYS[p.word] ?? p.word}<small>${t("researchFlybook.js.translatedFrom", { word: ctx(p.word) })}</small></p>
           ${spark(p.envelope)}
-          <div class="facts"><span><b>wing MN</b> ${p.neurons.wing_mn} sp/s</span><span><b>escape DNp01</b> ${p.neurons.escape}</span><span><b>song cmd</b> ${p.neurons.song_cmd}</span><span><b>courtship pC1/P1</b> ${p.neurons.courtship}</span>${food}</div>
-          <span class="truth ${isTrue(p) ? "ok" : "no"}">${isTrue(p) ? "&check; true" : "&cross; mistranslated"}: ${TRUTH[p.truth]}</span>
-          <div class="comment">${facet(c.fly)}<div class="rx"><b>${flies[c.fly].name}</b> heard it${did ? " and <b>" + c.reaction + "</b>" : ", did nothing"}
-            <small>escape ${c.z.escape}&sigma; &middot; forward ${c.z.forward}&sigma; &middot; back ${c.z.backward}&sigma; &middot; turn ${c.z.turn}&sigma; vs silence</small></div></div>
+          <div class="facts"><span><b>${t("researchFlybook.js.facts.wingMN")}</b> ${p.neurons.wing_mn} sp/s</span><span><b>${t("researchFlybook.js.facts.escape")}</b> ${p.neurons.escape}</span><span><b>${t("researchFlybook.js.facts.songCmd")}</b> ${p.neurons.song_cmd}</span><span><b>${t("researchFlybook.js.facts.courtship")}</b> ${p.neurons.courtship}</span>${food}</div>
+          <span class="truth ${isTrue(p) ? "ok" : "no"}">${isTrue(p) ? t("researchFlybook.js.true") : t("researchFlybook.js.mistranslated")}: ${truth(p.truth)}</span>
+          <div class="comment">${facet(c.fly)}<div class="rx">${did ? t("researchFlybook.js.heardAnd", { name: `<b>${flies[c.fly].name}</b>`, reaction: `<b>${c.reaction}</b>` }) : t("researchFlybook.js.heardNothing", { name: `<b>${flies[c.fly].name}</b>` })}
+            <small>${t("researchFlybook.js.zLine", { escape: c.z.escape, forward: c.z.forward, back: c.z.backward, turn: c.z.turn })}</small></div></div>
         </article>`;
-      }).join("") : '<p class="empty">No posts match this filter.</p>';
+      }).join("") : `<p class="empty">${t("researchFlybook.js.noMatch")}</p>`;
     }
 
     document.querySelectorAll(".filters button").forEach((b) => {
@@ -442,14 +443,21 @@
     });
     const cfg = FEED.config || {};
     const words = (FEED.translator && FEED.translator.posted_words) || [];
-    document.getElementById("feed-config").innerHTML =
-      `<b>Brain</b>: ${cfg.dt ? cfg.dt * 1000 : 20} ms steps${cfg.fix_sensory ? ", smell fixed" : ""}${cfg.refractory ? `, ${cfg.refractory * 1000} ms refractory` : ""} (run 3). Words it can post: ${words.join(" and ")}.`;
-    document.getElementById("feedlede").textContent =
-      `${FEED.rounds} rounds of ${FEED.seconds_per_round} s each, with ${flies.length} flies paired at random. A fly posts only when the translator hears a word in its wing song. Of ${FEED.posts.length} posts, ${FEED.posts.filter(isTrue).length} are true, and each partner's reaction is the comment.`;
+    const brain = [t("researchFlybook.js.config.steps", { ms: cfg.dt ? cfg.dt * 1000 : 20 })];
+    if (cfg.fix_sensory) brain.push(t("researchFlybook.js.config.smellFixed"));
+    if (cfg.refractory) brain.push(t("researchFlybook.js.config.refractory", { ms: cfg.refractory * 1000 }));
+    document.getElementById("feed-config").innerHTML = t("researchFlybook.js.config.line", {
+      brain: brain.join(t("researchFlybook.js.config.sep")),
+      words: words.map(ctx).join(t("researchFlybook.js.config.and")),
+    });
+    document.getElementById("feedlede").textContent = t("researchFlybook.js.feedLede", {
+      rounds: FEED.rounds, seconds: FEED.seconds_per_round, flies: flies.length, posts: FEED.posts.length, trueCount: FEED.posts.filter(isTrue).length,
+    });
     render("all");
   }
-})();
+}
 </script>
 <script src="../assets/nav.js"></script>
+<script type="module" src="../assets/i18n/page.js"></script>
 </body>
 </html>

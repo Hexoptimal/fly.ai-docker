@@ -2,9 +2,10 @@
  * The miner page: shows this machine and runs web/mine-core.ts's Miner on the GPU or CPU threads.
  * The miner token lives in localStorage; losing it just means registering again.
  */
+import { locale, t } from "./i18n.ts";
 import { API, CONNECTOME } from "./config.ts";
 import { compact } from "./format.ts";
-import { api, ApiError, Miner, probeGpu } from "./mine-core.ts";
+import { api, ApiError, Miner, probeGpu, setMinerText } from "./mine-core.ts";
 import { isPhone, mountAccount, onAccount, requireWallet, sessionHeaders, sessionLost, signedIn } from "./account.ts";
 import { shortAddress } from "./wallet.ts";
 
@@ -25,6 +26,8 @@ const store = {
 const cores = Math.max(1, navigator.hardwareConcurrency || 2);
 const memoryGb: number | undefined = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
 
+setMinerText(t);
+
 // ---- mining ------------------------------------------------------------------------------------------
 let lanes: { bar: HTMLElement; text: HTMLElement }[] = [];
 
@@ -39,7 +42,7 @@ const miner = new Miner({
     const rows = names.map((name) => {
       const row = document.createElement("div");
       row.className = "lane";
-      row.innerHTML = `<span class="name"></span><div class="bar"><div></div></div><span class="text">starting</span>`;
+      row.innerHTML = `<span class="name"></span><div class="bar"><div></div></div><span class="text">${t("compute.index.laneStarting")}</span>`;
       (row.querySelector(".name") as HTMLElement).textContent = name;
       return row;
     });
@@ -54,7 +57,7 @@ const miner = new Miner({
   },
   job: (text) => { $("job").textContent = text; },
   session: (s) => {
-    $("session").textContent = `${s.jobs} jobs · ${s.units.toFixed(1)} units · ${s.unitsPerMinute.toFixed(1)} units/min`;
+    $("session").textContent = t("compute.index.sessionLine", { count: s.jobs, units: s.units.toFixed(1), rate: s.unitsPerMinute.toFixed(1) });
   },
 });
 
@@ -63,13 +66,13 @@ async function toggle(): Promise<void> {
   if (miner.running) {
     miner.stop();
     void keepAwake(false);
-    button.textContent = "Start mining";
+    button.textContent = t("compute.index.startMining");
     return;
   }
   const engine = $<HTMLSelectElement>("engine").value as "gpu" | "cpu";
   store.set(LABEL_KEY, $<HTMLInputElement>("label").value.trim());
   store.set(ENGINE_KEY, engine);
-  button.textContent = "Stop";
+  button.textContent = t("compute.index.stop");
   refresh();
   void keepAwake(true);
   await miner.start({
@@ -77,7 +80,7 @@ async function toggle(): Promise<void> {
     programs: $<HTMLInputElement>("programs").checked,
   });
   if (!miner.running) {
-    button.textContent = "Start mining";
+    button.textContent = t("compute.index.startMining");
     void keepAwake(false);
   }
 }
@@ -104,16 +107,16 @@ document.addEventListener("visibilitychange", () => {
 
 // ---- numbers -----------------------------------------------------------------------------------------
 const STANDING: Record<string, string> = {
-  ok: "credited",
-  unchecked: "waiting for first checks",
-  zeroed: "a wrong answer zeroed today",
-  "no jobs yet": "no jobs yet today",
+  ok: t("compute.index.standing.ok"),
+  unchecked: t("compute.index.standing.unchecked"),
+  zeroed: t("compute.index.standing.zeroed"),
+  "no jobs yet": t("compute.index.standing.none"),
 };
 
 async function refresh(): Promise<void> {
   try {
     const s = await api(API, "/api/stats", null);
-    $("fleet").textContent = `${s.miners_online} online · ${s.jobs_today} jobs today · ${s.tasks_done} of ${s.tasks} screen jobs done`;
+    $("fleet").textContent = t("compute.index.fleet", { online: s.miners_online, jobs: s.jobs_today, done: s.tasks_done, tasks: s.tasks });
   } catch { /* server away; keep the old numbers */ }
   const token = store.get(TOKEN_KEY);
   if (!token) return;
@@ -123,30 +126,30 @@ async function refresh(): Promise<void> {
     const held = me.stake?.holding ?? (me.stake?.tier ? { tier: me.stake.tier, multiplier: me.stake.multiplier } : null);
     tierNote = held ? `${held.tier} ${held.multiplier}×` : me.stake ? "1×" : "";
     // two browsers can both be called "qq": the id tells them apart, and only linked ones are paid
-    $("miner-id").textContent = `${me.label || "unnamed"} · ${String(me.miner).slice(0, 8)}`;
+    $("miner-id").textContent = `${me.label || t("compute.index.unnamed")} · ${String(me.miner).slice(0, 8)}`;
     showWallet(me.wallet);
     // signed in on this site and the miner has no wallet yet: it takes the signed-in one, no questions
     if (!me.wallet && signedIn()) void linkMiner();
     $("stake").textContent = me.stake
       ? stakeLine(me.stake)
-      : me.wallet ? "staking isn't live yet: 1× points" : "link a wallet first";
-    const days = `ends in ${me.month_days_left} day${me.month_days_left === 1 ? "" : "s"}`;
+      : me.wallet ? t("compute.index.stakingNotLive") : t("compute.index.linkWalletFirst");
+    const days = t("compute.index.endsIn", { count: me.month_days_left });
     $("month").textContent = me.wallet
       ? [
-        `${me.month_points.toFixed(1)} points · ${(me.month_share * 100).toFixed(2)}%`,
-        me.month_rank ? `#${me.month_rank} of ${me.month_wallets}` : null,
+        t("compute.index.monthPoints", { points: me.month_points.toFixed(1), share: (me.month_share * 100).toFixed(2) }),
+        me.month_rank ? t("compute.index.rankOf", { rank: me.month_rank, wallets: me.month_wallets }) : null,
         days,
       ].filter(Boolean).join(" · ")
-      : `${me.month_points.toFixed(1)} points · ${days} · link a wallet to keep them`;
+      : t("compute.index.monthUnlinked", { points: me.month_points.toFixed(1), days });
     // what those points are worth at today's pool: an estimate that moves as everyone mines
     const pool = me.month_announced_pool;
     $("share-estimate").textContent = pool === null
-      ? "the month's pool isn't announced yet"
+      ? t("compute.index.poolNotAnnounced")
       : [
-        `≈ ${compact(Math.round(me.month_estimate))} $FLYAI`,
-        `${(me.month_estimate_share * 100).toFixed(2)}% of a ${compact(Number(pool))} pool`,
-        Number(me.month_program_pay) > 0 ? `incl. ${compact(Math.round(Number(me.month_program_pay)))} already earned from buyers` : null,
-        me.wallet ? null : "if you link a wallet",
+        t("compute.index.estimate", { amount: compact(Math.round(me.month_estimate)) }),
+        t("compute.index.estimateShare", { share: (me.month_estimate_share * 100).toFixed(2), pool: compact(Number(pool)) }),
+        Number(me.month_program_pay) > 0 ? t("compute.index.inclBuyers", { amount: compact(Math.round(Number(me.month_program_pay))) }) : null,
+        me.wallet ? null : t("compute.index.ifYouLink"),
       ].filter(Boolean).join(" · ");
     $("today-jobs").textContent = String(me.jobs);
     $("today-checked").textContent = String(me.checked);
@@ -170,11 +173,11 @@ function stakeLine(s: {
   holding?: { tier: string; multiplier: number } | null;
 }): string {
   const amount = Number(s.staked);
-  if (!amount) return "not staking · 1× points";
-  const held = s.holding ? `${s.holding.tier} ${s.holding.multiplier}×` : s.tier ?? "no tier";
+  if (!amount) return t("compute.index.notStaking");
+  const held = s.holding ? `${s.holding.tier} ${s.holding.multiplier}×` : s.tier ?? t("compute.index.noTier");
   return s.tomorrow
-    ? `${compact(amount)} FLYAI · ${held} from 00:00 UTC · today counts ${s.multiplier}×`
-    : `${compact(amount)} FLYAI · ${held} · ${s.multiplier}× points`;
+    ? t("compute.index.stakeTomorrow", { amount: compact(amount), held, multiplier: s.multiplier })
+    : t("compute.index.stakeNow", { amount: compact(amount), held, multiplier: s.multiplier });
 }
 
 // ---- wallet ------------------------------------------------------------------------------------------
@@ -190,11 +193,11 @@ function showWallet(wallet: string | null): void {
   const me = signedIn();
   $("wallet").textContent = wallet
     ? `${shortAddress(wallet)} ✓${tierNote ? ` · ${tierNote}` : ""}`
-    : "not linked: counts 1× and can't be paid";
+    : t("compute.index.walletUnlinked");
   $("wallet").title = wallet ?? "";
   // the button offers what would change: sign in, or move this miner to the signed-in wallet
   $("connect-wallet").hidden = !!wallet && wallet === me;
-  $("connect-wallet").textContent = !me ? "Sign in" : wallet ? `Use ${shortAddress(me)}` : "Link";
+  $("connect-wallet").textContent = !me ? t("compute.index.signIn") : wallet ? t("compute.index.useWallet", { wallet: shortAddress(me) }) : t("compute.index.link");
 }
 
 /** Link this browser's miner to the signed-in wallet (signing in first if needed). */
@@ -208,7 +211,7 @@ async function linkMiner(): Promise<void> {
       token = (await api(API, "/api/register", null, { label: $<HTMLInputElement>("label").value.trim() })).token as string;
       store.set(TOKEN_KEY, token);
     }
-    $("wallet").textContent = "linking…";
+    $("wallet").textContent = t("compute.index.linking");
     const { wallet } = await api(API, "/api/session/link", token, {}, sessionHeaders());
     showWallet(wallet);
     refresh();
@@ -228,8 +231,8 @@ function showEngine(): void {
   // Chrome on Windows ignores WebGPU's powerPreference and runs on the GPU its graphics process started on
   $("gpu-hint").hidden = !(gpu && /Windows/.test(navigator.userAgent));
   $("runs-on").textContent = gpu
-    ? "the GPU, a batch of jobs at once (~4 MB of GPU memory per job, plus 125 MB for the wiring)"
-    : "CPU threads, one connectome copy each (~350 MB memory per thread)";
+    ? t("compute.index.runsOnGpu")
+    : t("compute.index.runsOnCpu");
 }
 
 const threads = $<HTMLSelectElement>("threads");
@@ -241,9 +244,9 @@ $<HTMLInputElement>("label").value = store.get(LABEL_KEY) ?? "";
 $("phone-hint").hidden = !phone;
 // a phone GPU runs a batch far slower than a desktop one; a smaller batch reports back sooner
 if (phone) $<HTMLSelectElement>("batch").value = "8";
-$("cpu").textContent = `${cores} threads${memoryGb ? ` · ${memoryGb}+ GB memory` : ""}`;
+$("cpu").textContent = t("compute.index.cpuThreads", { count: cores }) + (memoryGb ? t("compute.index.cpuMemory", { gb: memoryGb }) : "");
 probeGpu().then((probe) => {
-  $("gpu").textContent = probe.usable ? `${probe.name} (WebGPU)` : `can't mine on the GPU: ${probe.reason}`;
+  $("gpu").textContent = probe.usable ? `${probe.name} (WebGPU)` : t("compute.index.gpuCant", { reason: probe.reason ?? "" });
   const engine = $<HTMLSelectElement>("engine");
   if (probe.usable) engine.add(new Option("GPU", "gpu"), 0);
   engine.value = probe.usable && store.get(ENGINE_KEY) !== "cpu" ? "gpu" : "cpu";
@@ -288,12 +291,12 @@ async function refreshMining(): Promise<void> {
     v.className = "v";
     const digits = c.coin === "BTC" ? 8 : 2;
     v.textContent = [
-      c.earned === null ? "pool stats unavailable" : `${c.earned.toFixed(digits)} ${c.coin}`,
+      c.earned === null ? t("compute.index.poolUnavailable") : `${c.earned.toFixed(digits)} ${c.coin}`,
       c.usd === null || c.usd === undefined ? null : `≈ $${c.usd.toFixed(2)}`,
-      `${Number(c.jobs_settled).toLocaleString("en-US")} jobs`,
-      c.live ? null : "paused",
+      t("compute.index.coinJobs", { count: Number(c.jobs_settled).toLocaleString(locale()) }),
+      c.live ? null : t("compute.index.paused"),
     ].filter(Boolean).join(" · ");
-    if (c.pending) v.title = `${c.pending.toFixed(digits)} ${c.coin} pending, ${Number(c.paid ?? 0).toFixed(digits)} paid out`;
+    if (c.pending) v.title = t("compute.index.pendingPaid", { pending: c.pending.toFixed(digits), coin: c.coin, paid: Number(c.paid ?? 0).toFixed(digits) });
     row.append(k, v);
     return row;
   }));

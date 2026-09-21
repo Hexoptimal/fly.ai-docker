@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-i18n-ns="rouletteTerms">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fly Roulette terms &mdash; fly.ai</title>
-<meta name="description" content="The rules for betting $FLYAI on Fly Roulette: odds, the house edge, limits, provable fairness, balances and withdrawals.">
-<meta property="og:title" content="Fly Roulette terms &mdash; fly.ai">
-<meta property="og:description" content="The rules for betting $FLYAI on Fly Roulette: odds, the house edge, limits, provable fairness, balances and withdrawals.">
+<title data-i18n="rouletteTerms.meta.title">Fly Roulette terms &mdash; fly.ai</title>
+<meta name="description" content="The rules for betting $FLYAI on Fly Roulette: odds, the house edge, limits, provable fairness, balances and withdrawals." data-i18n-attr="content:rouletteTerms.meta.description">
+<meta property="og:title" content="Fly Roulette terms &mdash; fly.ai" data-i18n-attr="content:rouletteTerms.meta.title">
+<meta property="og:description" content="The rules for betting $FLYAI on Fly Roulette: odds, the house edge, limits, provable fairness, balances and withdrawals." data-i18n-attr="content:rouletteTerms.meta.description">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@flydotai">
@@ -27,6 +27,7 @@
   "publisher": { "@type": "Organization", "name": "fly.ai" }
 }
 </script>
+<script src="assets/i18n/boot.js"></script>
 <link rel="icon" href="assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,60 +70,61 @@
 
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">Fly Roulette</p>
-    <h1>Betting terms</h1>
-    <p class="lede">For betting $FLYAI on <a href="/roulette/">Fly Roulette</a>. By placing a bet you accept these terms. Last updated 19 September 2026.</p>
+    <p class="eyebrow" data-i18n="rouletteTerms.head.eyebrow">Fly Roulette</p>
+    <h1 data-i18n="rouletteTerms.head.title">Betting terms</h1>
+    <p class="lede" data-i18n-html="rouletteTerms.head.lede">For betting $FLYAI on <a href="/roulette/">Fly Roulette</a>. By placing a bet you accept these terms. Last updated 19 September 2026.</p>
+    <p class="srcline" data-i18n="rouletteTerms.notice" data-i18n-show-translated hidden>This translation is provided for convenience; the English version is the binding one.</p>
   </div>
 </header>
 
 <section class="firstsec">
   <div class="wrap" style="display: grid; gap: 16px;">
     <div class="card pad">
-      <h3>Who can play</h3>
+      <h3 data-i18n="rouletteTerms.main.h31">Who can play</h3>
       <ul class="plainlist">
-        <li><b>18 or older.</b> You confirm your age before your first bet.</li>
-        <li><b>Where it's allowed.</b> Online betting is restricted or illegal in many countries and states. Only play if it's legal where you are; that's your responsibility.</li>
-        <li><b>Your own wallet.</b> You sign in with a wallet you control. One person, one account.</li>
+        <li data-i18n-html="rouletteTerms.main.li1"><b>18 or older.</b> You confirm your age before your first bet.</li>
+        <li data-i18n-html="rouletteTerms.main.li2"><b>Where it's allowed.</b> Online betting is restricted or illegal in many countries and states. Only play if it's legal where you are; that's your responsibility.</li>
+        <li data-i18n-html="rouletteTerms.main.li3"><b>Your own wallet.</b> You sign in with a wallet you control. One person, one account.</li>
       </ul>
     </div>
 
     <div class="card pad">
-      <h3>The game and the odds</h3>
+      <h3 data-i18n="rouletteTerms.main.h32">The game and the odds</h3>
       <ul class="plainlist">
-        <li>You pick one seat at a table of 2 to 10 flies and stake $FLYAI on it. Each fly's real connectome decides whether it squeezes a toy gun's trigger or flies off; one of six chambers holds the cap. The last fly at the table wins.</li>
-        <li><b>Every seat is equally likely to win.</b> The flies' brains get independent random seeds and the first shooter is a random seat, so with n flies your seat wins 1 time in n.</li>
-        <li><b>A win pays your stake &times; n &times; 0.95</b>: 2 flies pay 1.9&times;, 5 flies 4.75&times;, 10 flies 9.5&times;. The 5% is the house edge. A loss costs your stake.</li>
-        <li>The live limits (smallest and biggest bet, the most you can bet in a day, the biggest single win) are shown next to the bet button.</li>
+        <li data-i18n="rouletteTerms.main.li4">You pick one seat at a table of 2 to 10 flies and stake $FLYAI on it. Each fly's real connectome decides whether it squeezes a toy gun's trigger or flies off; one of six chambers holds the cap. The last fly at the table wins.</li>
+        <li data-i18n-html="rouletteTerms.main.li5"><b>Every seat is equally likely to win.</b> The flies' brains get independent random seeds and the first shooter is a random seat, so with n flies your seat wins 1 time in n.</li>
+        <li data-i18n-html="rouletteTerms.main.li6"><b>A win pays your stake &times; n &times; 0.95</b>: 2 flies pay 1.9&times;, 5 flies 4.75&times;, 10 flies 9.5&times;. The 5% is the house edge. A loss costs your stake.</li>
+        <li data-i18n="rouletteTerms.main.li7">The live limits (smallest and biggest bet, the most you can bet in a day, the biggest single win) are shown next to the bet button.</li>
       </ul>
     </div>
 
     <div class="card pad">
-      <h3>Provably fair</h3>
-      <p>Before you bet, the server shows the hash of a secret seed (the commit). Your browser adds its own seed. Everything random in the game comes from the two together. When the game is over the server reveals its seed: its hash must match the commit, and replaying the game from both seeds must give the same turns. The <b>Verify this game</b> button does both checks on your own fly brains, in your browser (Chrome gives bit-identical results; other browsers may round the brain's maths differently).</p>
+      <h3 data-i18n="rouletteTerms.main.h33">Provably fair</h3>
+      <p data-i18n-html="rouletteTerms.main.p1">Before you bet, the server shows the hash of a secret seed (the commit). Your browser adds its own seed. Everything random in the game comes from the two together. When the game is over the server reveals its seed: its hash must match the commit, and replaying the game from both seeds must give the same turns. The <b>Verify this game</b> button does both checks on your own fly brains, in your browser (Chrome gives bit-identical results; other browsers may round the brain's maths differently).</p>
     </div>
 
     <div class="card pad">
-      <h3>Your balance</h3>
+      <h3 data-i18n="rouletteTerms.main.h34">Your balance</h3>
       <ul class="plainlist">
-        <li><b>Deposits</b> are $FLYAI transfers from your signed-in wallet to the fly.ai deposit address on Robinhood Chain. They're credited once the transfer is mined.</li>
-        <li><b>Winnings</b> go to your balance. Your balance is held by fly.ai on your behalf and is the same balance compute orders use.</li>
-        <li><b>Withdrawals</b> are requested on the page and sent to your wallet by hand, usually within a day.</li>
-        <li>If the server can't finish a game, the game is void and your stake goes back to your balance.</li>
+        <li data-i18n-html="rouletteTerms.main.li8"><b>Deposits</b> are $FLYAI transfers from your signed-in wallet to the fly.ai deposit address on Robinhood Chain. They're credited once the transfer is mined.</li>
+        <li data-i18n-html="rouletteTerms.main.li9"><b>Winnings</b> go to your balance. Your balance is held by fly.ai on your behalf and is the same balance compute orders use.</li>
+        <li data-i18n-html="rouletteTerms.main.li10"><b>Withdrawals</b> are requested on the page and sent to your wallet by hand, usually within a day.</li>
+        <li data-i18n="rouletteTerms.main.li11">If the server can't finish a game, the game is void and your stake goes back to your balance.</li>
       </ul>
     </div>
 
     <div class="card pad">
-      <h3>Limits, pauses and changes</h3>
+      <h3 data-i18n="rouletteTerms.main.h35">Limits, pauses and changes</h3>
       <ul class="plainlist">
-        <li>Betting can pause by itself for a while if the house has lost a lot in a day, and it can be switched off. Balances and withdrawals keep working.</li>
-        <li>We may change these terms, the limits or the edge for future bets. A bet placed is settled under the terms it was placed under.</li>
-        <li>We can refuse or void bets that abuse bugs, and close accounts used for fraud.</li>
+        <li data-i18n="rouletteTerms.main.li12">Betting can pause by itself for a while if the house has lost a lot in a day, and it can be switched off. Balances and withdrawals keep working.</li>
+        <li data-i18n="rouletteTerms.main.li13">We may change these terms, the limits or the edge for future bets. A bet placed is settled under the terms it was placed under.</li>
+        <li data-i18n="rouletteTerms.main.li14">We can refuse or void bets that abuse bugs, and close accounts used for fraud.</li>
       </ul>
     </div>
 
     <div class="card pad">
-      <h3>Play responsibly</h3>
-      <p>Only bet what you can afford to lose. $FLYAI's price moves, so a balance can be worth more or less later. There's no guarantee of any return. If betting stops being fun, stop.</p>
+      <h3 data-i18n="rouletteTerms.main.h36">Play responsibly</h3>
+      <p data-i18n="rouletteTerms.main.p2">Only bet what you can afford to lose. $FLYAI's price moves, so a balance can be worth more or less later. There's no guarantee of any return. If betting stops being fun, stop.</p>
     </div>
   </div>
 </section>
@@ -140,5 +142,6 @@
 
 <script src="assets/site.js"></script>
 <script src="assets/nav.js"></script>
+<script type="module" src="assets/i18n/page.js"></script>
 </body>
 </html>

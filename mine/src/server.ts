@@ -2964,6 +2964,10 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     if ((m = /^\/compute\/mine\/src\/(model|runner|fixed|wasmcheck|probe)\.js$/.exec(p))) return serveFile(res, join(ROOT, "src", `${m[1]}.ts`));
     if ((m = /^\/compute\/world\/src\/(connectome|rng|sim|brain|eyes|senses|wiring|genome|social|datalog)\.js$/.exec(p))) return serveFile(res, join(WORLD_SRC, `${m[1]}.ts`));
     if ((m = /^\/assets\/(site\.css|site\.js|nav\.js|logo\.webp)$/.exec(p))) return serveFile(res, join(DOCS_ASSETS, m[1]), 3600);
+    // the site's languages (docs/assets/i18n/): the runtime and its strings, and the runtime again where the
+    // compute pages import it from (mine/web/i18n.ts, at its repo path as build-web lays it out)
+    if ((m = /^\/assets\/i18n\/((?:[\w-]+\/)?[\w-]+\.(?:js|json))$/.exec(p))) return serveFile(res, join(DOCS_ASSETS, "i18n", m[1]));
+    if (p === "/compute/docs/assets/i18n/i18n.js") return serveFile(res, join(DOCS_ASSETS, "i18n", "i18n.js"));
     if (p === "/api/stake-config") return send(res, 200, stakeConfig());
     if (p === "/api/session") return send(res, 200, sessionOf(req));
     if (p === "/api/month") {

@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "title": "Fly Roulette terms — fly.ai",
+    "description": "The rules for betting $FLYAI on Fly Roulette: odds, the house edge, limits, provable fairness, balances and withdrawals."
+  },
+  "head": {
+    "eyebrow": "Fly Roulette",
+    "title": "Betting terms",
+    "lede": "For betting $FLYAI on <a href=\"/roulette/\">Fly Roulette</a>. By placing a bet you accept these terms. Last updated 19 September 2026."
+  },
+  "main": {
+    "h31": "Who can play",
+    "li1": "<b>18 or older.</b> You confirm your age before your first bet.",
+    "li2": "<b>Where it's allowed.</b> Online betting is restricted or illegal in many countries and states. Only play if it's legal where you are; that's your responsibility.",
+    "li3": "<b>Your own wallet.</b> You sign in with a wallet you control. One person, one account.",
+    "h32": "The game and the odds",
+    "li4": "You pick one seat at a table of 2 to 10 flies and stake $FLYAI on it. Each fly's real connectome decides whether it squeezes a toy gun's trigger or flies off; one of six chambers holds the cap. The last fly at the table wins.",
+    "li5": "<b>Every seat is equally likely to win.</b> The flies' brains get independent random seeds and the first shooter is a random seat, so with n flies your seat wins 1 time in n.",
+    "li6": "<b>A win pays your stake &times; n &times; 0.95</b>: 2 flies pay 1.9&times;, 5 flies 4.75&times;, 10 flies 9.5&times;. The 5% is the house edge. A loss costs your stake.",
+    "li7": "The live limits (smallest and biggest bet, the most you can bet in a day, the biggest single win) are shown next to the bet button.",
+    "h33": "Provably fair",
+    "p1": "Before you bet, the server shows the hash of a secret seed (the commit). Your browser adds its own seed. Everything random in the game comes from the two together. When the game is over the server reveals its seed: its hash must match the commit, and replaying the game from both seeds must give the same turns. The <b>Verify this game</b> button does both checks on your own fly brains, in your browser (Chrome gives bit-identical results; other browsers may round the brain's maths differently).",
+    "h34": "Your balance",
+    "li8": "<b>Deposits</b> are $FLYAI transfers from your signed-in wallet to the fly.ai deposit address on Robinhood Chain. They're credited once the transfer is mined.",
+    "li9": "<b>Winnings</b> go to your balance. Your balance is held by fly.ai on your behalf and is the same balance compute orders use.",
+    "li10": "<b>Withdrawals</b> are requested on the page and sent to your wallet by hand, usually within a day.",
+    "li11": "If the server can't finish a game, the game is void and your stake goes back to your balance.",
+    "h35": "Limits, pauses and changes",
+    "li12": "Betting can pause by itself for a while if the house has lost a lot in a day, and it can be switched off. Balances and withdrawals keep working.",
+    "li13": "We may change these terms, the limits or the edge for future bets. A bet placed is settled under the terms it was placed under.",
+    "li14": "We can refuse or void bets that abuse bugs, and close accounts used for fraud.",
+    "h36": "Play responsibly",
+    "p2": "Only bet what you can afford to lose. $FLYAI's price moves, so a balance can be worth more or less later. There's no guarantee of any return. If betting stops being fun, stop."
+  },
+  "notice": "This translation is provided for convenience; the English version is the binding one."
+}

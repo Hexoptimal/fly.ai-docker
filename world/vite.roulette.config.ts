@@ -5,6 +5,8 @@ import { defineConfig } from "vite";
 export default defineConfig({
   base: "/roulette/",
   publicDir: false,
+  // the site's strings live in docs/assets/i18n/, outside this folder
+  server: { fs: { allow: [".."] } },
   build: {
     target: "es2022",
     outDir: "dist-roulette",

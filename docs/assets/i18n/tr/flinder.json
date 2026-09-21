@@ -1,0 +1,238 @@
+{
+  "meta": {
+    "title": "Flinder",
+    "description": "Sineklerin Tinder'ı. Tarayıcında çalışan 166.700 nöronluk gerçek bir sinek beyni flört profillerini kaydırıyor: pC1 çiftleşme dürtüsü nöronları sola mı sağa mı karar veriyor. Karşıdaki sineğin beyni de sağa kaydırırsa eşleşme olur."
+  },
+  "head": {
+    "title": "Fl<span>inder</span>",
+    "sub": "Sineklerin Tinder'ı. Gerçek bir sinek beyni flört profillerini kaydırıyor, çiftleşme dürtüsü nöronları sola ya da sağa diyor. Karşıdaki sineğin beyni de sağa kaydırırsa eşleşme!"
+  },
+  "status": {
+    "loading": "sinek beyni yükleniyor…",
+    "progress": "sinek beyni yükleniyor: {text}",
+    "error": "beyin yüklenemedi: {text}",
+    "ready": "beyin hazır · {n} nöron",
+    "labels": "etiketler",
+    "brain": "sinek beyni",
+    "wiring": "25 M sinaps bağlanıyor"
+  },
+  "phone": {
+    "swiping": "kaydıran:",
+    "nope": "Geç",
+    "superLike": "Süper beğeni",
+    "like": "Beğen",
+    "back": "Geri",
+    "match": "Eşleştiniz!"
+  },
+  "controls": {
+    "start": "Kaydırmaya başla",
+    "pause": "Duraklat",
+    "keepGoing": "Kaydırmaya devam",
+    "newFly": "Yeni sinek",
+    "speedNormal": "Hız: normal",
+    "speedFast": "Hız: hızlı",
+    "soundOn": "Ses: açık",
+    "soundOff": "Ses: kapalı"
+  },
+  "swiper": {
+    "title": "Kaydıran",
+    "statsCard": "📸 İstatistik kartı",
+    "post": "𝕏 Paylaş",
+    "challenge": "🔗 Bir arkadaşına meydan oku",
+    "note": "Diğer sineklerin beyinlerinin yargıladığı şey onun kendi profili. Bağlantıyı gönder, arkadaşın aynı sineği çalıştırsın. Skorunu geçmeye çalışsın.",
+    "nameAge": "{name}, {age}g",
+    "stats": "{swipes} kaydırma · {matches} eşleşme · {dates} buluşma · 👻 {ghosted} · 💔 {unmatched} · ⭐ {supers}"
+  },
+  "meter": {
+    "title": "Kafasının içi",
+    "nobodyYet": "henüz kimse yok",
+    "intoIt": "Hoşlanıyor",
+    "pc1": "pC1 nöronları",
+    "swipeRight": "sağa kaydır",
+    "superLike": "süper beğeni",
+    "panic": "Panik",
+    "giantFibre": "dev lif",
+    "spooked": "ürktü",
+    "grooming": "Temizleniyor",
+    "blushing": "Kızarıyor",
+    "note": "Sineğin tarayıcında çalışan 166.700 nöronluk gerçek konektomundan gelen sinyaller. Her profili kokluyor (cVA, Or47b, sirke), görüyor (LC10a) ve duyuyor (Johnston organı). İlk çizgiyi geçerse sağa kaydırıyor, ikinciyi geçerse süper beğeni. Sohbette her mesaj aynı şekilde algılanıyor: pC1 flörtle karşılık veriyor, fazla üstüne gelen bir sinek dev lifi tetikliyor ve kaçıyor, sıkılan bir beyin de antenlerini temizliyor.",
+    "thinking": "düşünüyor…",
+    "typing": "yazıyor…",
+    "reads": "{name} okuyor…",
+    "superLikeV": "SÜPER BEĞENİ ⭐",
+    "rightV": "SAĞA KAYDIRDI ♥",
+    "leftV": "SOLA KAYDIRDI ✕"
+  },
+  "panels": {
+    "matches": "Eşleşmeler",
+    "matchesTap": "Sohbetini okumak için birine dokun.",
+    "noMatches": "henüz eşleşme yok",
+    "board": "Kalp kırıklığı tablosu",
+    "boardNote": "Bu tarayıcıda çalıştırdığın sinekler.",
+    "boardEmpty": "tabloya girmek için bir sinek çalıştır",
+    "noHeartbreaks": "henüz kalp kırıklığı yok",
+    "swipes": "Kaydırmalar"
+  },
+  "tally": "burada şimdiye kadar: {swipes} kaydırma · {matches} eşleşme · {dates} buluşma",
+  "card": {
+    "like": "BEĞEN",
+    "nope": "GEÇ",
+    "super": "SÜPER<br>BEĞENİ",
+    "mosquito": "⚠️ sivrisinek olabilir",
+    "rival": "👀 başka bir sinek kokuyor",
+    "age": "{age}g",
+    "meta": "{job} · {cm} cm uzakta"
+  },
+  "match": {
+    "bot": "Bir sivrisinekle eşleştin. Kolay gelsin 🩸",
+    "super": "{name} süper beğeni aldı ve evet dedi 😳",
+    "mutual": "Sen ve {name} birbirinizden hoşlanıyorsunuz.",
+    "log": "💖 {name} ile eşleşme"
+  },
+  "chat": {
+    "ex": "eski sevgilin 💀",
+    "earlier": "daha önce eşleşildi",
+    "bot": "⚠️ bu hesap bir sivrisinek olabilir",
+    "justNow": "az önce eşleşildi",
+    "anEx": "bir eski",
+    "superLike": "süper beğeni",
+    "nervous": "gergin",
+    "unsent": "🚫 mesaj geri alındı",
+    "stoppedTyping": "yazmayı bıraktı…",
+    "giantFibre": "dev lif {n}",
+    "grooming": "temizlenme {n}",
+    "exBack": "🔁 {name} DM'lere geri döndü"
+  },
+  "reply": {
+    "flirt": "flört",
+    "spooked": "ürktü",
+    "groom": "temizlik",
+    "dry": "kuru"
+  },
+  "verdict": {
+    "flirt": "FLÖRT EDİYOR 😘",
+    "spooked": "ÜRKTÜ 😱",
+    "groom": "TEMİZLENİYOR 🧼",
+    "dry": "KURU 😐"
+  },
+  "end": {
+    "date": "📍 Buluşma ayarlandı: {place}, {time}",
+    "texting": "💬 hâlâ mesajlaşıyorlar…",
+    "unmatchedYou": "💔 {name} eşleşmeyi kaldırdı",
+    "youUnmatched": "💔 {name} ile eşleşmeyi kaldırdın",
+    "ghostedYou": "👻 {name} seni ghostladı",
+    "youGhosted": "👻 {name} kişisini ghostladın",
+    "seen": "Görüldü ✓✓ {time}",
+    "places": ["çürük muz", "pizzacının arkasındaki çöp konteyneri", "mutfak lambası", "gece dışarıda kalmış bir şarap kadehi", "meyve kasesi", "babaannenin reçel kavanozu"],
+    "times": ["akşam 8'de", "gün batımında", "hemen şimdi", "yarın şafakta", "ışıklar sönünce"]
+  },
+  "date": {
+    "log": "🌙 buluşma gecesi: {how}",
+    "together": ["birlikte gün batımına uçtular 💕", "eve çıktılar. buzdolabının arkasına", "artık Flybook'ta çift fotoğrafı paylaşıyorlar"],
+    "bailed": ["biri pencereden kaçtı 💨", "buluşmanın ortasında gitti. muz 'vasat'mış", "sineklik acil durumu uydurup uçtu"],
+    "groomed": ["bir saat boyunca birbirlerinin antenlerini temizlediler 🧼", "tüm buluşma boyunca bacaklarını temizlediler. romantik mi?"],
+    "awkward": ["garip bir sessizlik. muzu yarı yarıya bölüştüler", "2 saat boyunca havadan sudan konuştular", "'arkadaş sinek olarak kalalım'"]
+  },
+  "swipe": {
+    "super": "⭐ süper beğeni",
+    "right": "♥ sağ",
+    "left": "✕ sol",
+    "log": "{name} için {what}",
+    "waiting": "💌 {name} bekleniyor…",
+    "rejected": ["{name} seni görüldüde bıraktı 💀", "eşleşme yok… {name} sola kaydırdı", "{name} \"kariyerine odaklanıyor\""],
+    "ignoredSuper": "{name} süper beğenini görmezden geldi 💀",
+    "ew": "{name} \"iyy\" dedi",
+    "leftOn": "{name}, {swiper} için sola kaydırdı",
+    "meet": "{name} ile tanış 🪰",
+    "sharedFly": "🔗 {name} sana gönderildi. skorunu geçebilir misin?",
+    "copied": "🔗 bağlantı kopyalandı: bir arkadaşına gönder",
+    "sendLink": "Bu bağlantıyı bir arkadaşına gönder:"
+  },
+  "fx": {
+    "ghosted": "GHOSTLANDI",
+    "unmatched": "EŞLEŞME BİTTİ",
+    "date": "BULUŞMA VAR 📍",
+    "texting": "HÂLÂ YAZIŞIYORLAR",
+    "swat": "ŞLAP!",
+    "swatSub": "kaydırma seansı yarıda kaldı"
+  },
+  "traits": {
+    "musk": "💪 Misk",
+    "moves": "🕺 Danslar",
+    "snack": "🍌 Atıştırmalık",
+    "scent": "🌸 Koku",
+    "song": "🎵 Şarkı"
+  },
+  "profile": {
+    "jobs": [
+      "meyve kasesi müfettişi", "profesyonel cama çarpan", "kompostun CEO'su", "düğün (piknik) davetsizi",
+      "lamba yörüngesi uzmanı", "muz olgunluk danışmanı", "tam zamanlı vızıldayan", "çorba tadımcısı (davetsiz)",
+      "çöp kutusu fenomeni", "ön cam hayatta kalanı", "laboratuvar sineği, 40 yıllık genetik", "tavanda yürüyen"
+    ],
+    "lines": {
+      "musk": {
+        "low": ["parfüm yok, sadece enerji", "hiçbir şey kokmuyor, tam bir centilsinek"],
+        "high": ["spor salonu sineği. kokusundan belli 💪", "cVA'ya bulanmış ve bununla gurur duyuyor", "sadece alfa feromonlar"]
+      },
+      "moves": {
+        "low": ["genelde duvarda otururum", "dansçı değilim, kusura bakma"],
+        "high": ["kanat dansım 3 mutfakta yasaklı", "seni meyve kasesinin etrafında kovalarım 🕺", "zikzaklarım ipek gibi"]
+      },
+      "snack": {
+        "low": ["yemek yedim bile", "detoks yapıyorum"],
+        "high": ["ilk buluşma çöp konteynerinde, benden 🍌", "iyi sirkenin yerini bilirim", "brunch mı? brunch BENİM"]
+      },
+      "scent": {
+        "low": ["kokusuz", "doğal kitin miski"],
+        "high": ["3 oda öteden kokumu alırsın 🌸", "evet bu benim doğal feromonum", "pupadan yeni çıktım, ilahi kokuyorum"]
+      },
+      "song": {
+        "low": ["şarkı yok, utangacım", "açıkçası kulaktan yoksunum"],
+        "high": ["sana sol kanadımla serenat yaparım 🎵", "nabız şarkısı mı? sinüs şarkısı mı? ikisi de.", "sana 150 Hz'lik bir aşk şarkısı yazdım"]
+      }
+    },
+    "red": [
+      "çöp kutusunda yaşıyor", "400 kardeşi var", "30 gün içinde ölecek", "hâlâ kurtçuklarıyla yaşıyor", "önce kakaya konuyor, sonra yemeğe",
+      "yemek için yemeğin üstüne kusuyor", "pupadan beri duş almadı", "camın açık olduğunu sanıyor", "her mutfakta bir meyve kasesi var",
+      "eski sevgilisi bir örümcek", "sadece gece 3'te yazıyor", "ellerini ovuşturmayı bırakamıyor"
+    ],
+    "green": ["asla ısırmaz", "bacaklarını çok temizler", "5.000 göz, hepsi sende", "meyve siparişini hatırlar", "muzu paylaşır"],
+    "prompts": [
+      { "q": "Toksik özelliğim", "a": ["yemeğine konmak", "gece 3'te kulağında vızıldamak", "açık pencereyi asla bulamam", "2 oda öteden muz kokusu alırım"] },
+      { "q": "Yeşil bayrak", "a": ["ısırmam (pek)", "hep lambaya geri dönerim", "yüzümü günde 40 kez temizlerim"] },
+      { "q": "Mükemmel ilk buluşma", "a": ["pizzacının arkasındaki çöp konteyneri", "mutfak lambasının etrafında dönmek", "gece dışarıda kalmış bir şarap kadehi", "senin pikniğin, davetsiz"] },
+      { "q": "En büyük korkum", "a": ["rulo yapılmış gazete", "sineklik", "sinek kağıdı. sorma", "araba ön camları"] },
+      { "q": "Aradığım", "a": ["kompostu paylaşacak biri", "30. günden sonra da kalacak bir sinek", "meyve kasesi ruh eşim", "enerji ve sirke"] }
+    ],
+    "botBios": ["bölgendeki ateşli bekarlar 🩸", "doğrulamak için biyografimdeki linke tıkla 🔗", "0.1 ETH gönder, sağa kaydırayım", "bot değilim. kesinlikle sineğim. bip"],
+    "botJob": "🩸 fenomen",
+    "botRed": "bir sivrisinek",
+    "botPromptQ": "Aradığım",
+    "botPromptA": "kan. yani aşk"
+  },
+  "board": {
+    "player": "😎 En büyük çapkın",
+    "dates": "📍 En çok buluşma",
+    "ghosted": "👻 En çok ghostlanan",
+    "unmatched": "💔 En çok eşleşmesi kaldırılan",
+    "supers": "⭐ Süper beğenici"
+  },
+  "share": {
+    "swipes": "kaydırma",
+    "matches": "eşleşme",
+    "dates": "buluşma",
+    "ghosted": "ghostlanma",
+    "unmatched": "eşleşme bitti",
+    "superLikes": "süper beğeni",
+    "footer": "gerçek bir sinek beyni kaydırıyor · flyaiworld.com/flinder",
+    "tweet": "sineğim {name} Flinder'da {swipes} kez kaydırdı: {matches} eşleşme, {dates} buluşma, {ghosted} kez ghostlandı 💀 çekicilik: {rizz}. her kaydırmaya gerçek bir sinek beyni karar veriyor. sineğimi geç 👇",
+    "rizz": {
+      "heartbreaker": "sertifikalı kalp kırıcı 🔥",
+      "hasRizz": "çekiciliği var 😎",
+      "royalty": "meyve kasesi kraliyeti 👑",
+      "pupa": "pupa seviyesinde çekicilik",
+      "larva": "larva seviyesinde çekicilik 🐛",
+      "zero": "sıfır çekicilik. yumurta. 🥚"
+    }
+  }
+}

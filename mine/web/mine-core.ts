@@ -96,9 +96,24 @@ export async function probeGpu(): Promise<GpuProbe> {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+type Vars = Record<string, string | number>;
+const fill = (text: string, vars?: Vars) => text.replace(/\{(\w+)\}/g, (m, k: string) => (vars?.[k] != null ? String(vars[k]) : m));
+let translate: ((key: string, vars?: Vars) => string) | null = null;
+/**
+ * The miner's messages in the page's language: a page passes the site's t (keys compute.miner.*). The extension
+ * passes nothing and gets the English written here.
+ */
+export function setMinerText(t: (key: string, vars?: Vars) => string): void {
+  translate = t;
+}
+const say = (key: string, english: string, vars?: Vars) => (translate ? translate(`compute.miner.${key}`, vars) : fill(english, vars));
+const sayText = say;
+
 export const describeJob = (p: TaskParams) => p.channel === "none"
-  ? `control: no drive · gain ${p.gain} · tonic ${p.tonic}`
-  : `${p.channel} ${p.side === "L" ? "left" : "right"} at ${p.amount} · gain ${p.gain} · tonic ${p.tonic}`;
+  ? say("control", "control: no drive · gain {gain} · tonic {tonic}", { gain: p.gain, tonic: p.tonic })
+  : say("drive", "{channel} {side} at {amount} · gain {gain} · tonic {tonic}", {
+    channel: p.channel, side: p.side === "L" ? say("left", "left") : say("right", "right"), amount: p.amount, gain: p.gain, tonic: p.tonic,
+  });
 
 interface ProgramParams {
   kind: "wasm" | "wgsl"; program: string; program_url: string; input: string | null; input_url: string | null; index: number;
@@ -114,11 +129,15 @@ interface EmbedParams {
 interface EmbedClaim { job: string; kind: "embed"; params: EmbedParams; units?: number }
 
 const describeClaim = (j: Claimed | ProgramClaim | ProbeClaim | EmbedClaim) => j.kind === "embed"
-  ? `embedding ${(j.params as EmbedParams).output_bytes / 4 / (j.params as EmbedParams).dim} texts with ${(j.params as EmbedParams).model}, job #${(j.params as EmbedParams).index}`
+  ? say("embedding", "embedding {count} texts with {model}, job #{index}", {
+    count: (j.params as EmbedParams).output_bytes / 4 / (j.params as EmbedParams).dim, model: (j.params as EmbedParams).model, index: (j.params as EmbedParams).index,
+  })
   : (j.kind === "wasm" || j.kind === "wgsl"
-  ? `a buyer's ${j.kind === "wasm" ? "WASM program" : "GPU shader"}, job #${(j.params as ProgramParams).index}`
-  : j.kind === "world" ? `a world simulation, seed ${(j.params as unknown as { seed: number }).seed}`
-  : j.kind === "probe" ? `a brain probe: ${(j.params as { condition: string }).condition}`
+  ? (j.kind === "wasm"
+    ? say("wasmJob", "a buyer's WASM program, job #{index}", { index: (j.params as ProgramParams).index })
+    : say("shaderJob", "a buyer's GPU shader, job #{index}", { index: (j.params as ProgramParams).index }))
+  : j.kind === "world" ? say("worldJob", "a world simulation, seed {seed}", { seed: (j.params as unknown as { seed: number }).seed })
+  : j.kind === "probe" ? say("probeJob", "a brain probe: {condition}", { condition: (j.params as { condition: string }).condition })
   : describeJob(j.params as TaskParams));
 
 /**
@@ -166,7 +185,7 @@ class Embedder {
     if (this.model !== `${p.repo}@${p.revision}`) {
       this.stop();
       this.worker = new Worker(new URL("./embed.worker.ts", import.meta.url), { type: "module" });
-      say(`loading ${p.model} (${p.mb} MB, once)`);
+      say(sayText("loadingModel", "loading {model} ({mb} MB, once)", { model: p.model, mb: p.mb }));
       // the first load downloads the model: give it minutes, not the job's seconds
       const ready = await this.call({ type: "load", repo: p.repo, revision: p.revision, pooling: p.pooling }, 10 * 60_000);
       if (!ready) return null;
@@ -261,14 +280,14 @@ export class Miner {
     const h = this.hooks;
     this.starting = true;
     try {
-      h.status("registering");
+      h.status(say("registering", "registering"));
       await this.ensureMiner();
-      h.status("fetching the engine constants");
+      h.status(say("fetchingConstants", "fetching the engine constants"));
       const { fixed } = await fetchModelInfo(h.server);
       if (gen !== this.generation) return;
       if (s.engine === "gpu") {
-        h.lanes(s.programs !== false ? ["GPU", "programs (CPU)"] : ["GPU"]);
-        h.status("loading the connectome onto the GPU (57 MB download, once)");
+        h.lanes(s.programs !== false ? ["GPU", say("programsLane", "programs (CPU)")] : ["GPU"]);
+        h.status(say("loadingGpu", "loading the connectome onto the GPU (57 MB download, once)"));
         this.lanes = [await this.spawn("gpu", 0, fixed, s.batch, gen)];
         if (s.programs !== false) {
           // shaders share the GPU with the batch; CPU programs run beside it instead of after it
@@ -277,8 +296,8 @@ export class Miner {
         }
       } else {
         const n = Math.max(1, s.threads);
-        h.lanes(Array.from({ length: n }, (_, i) => `thread ${i + 1}`));
-        h.status(`loading the connectome into ${n} thread${n > 1 ? "s" : ""} (57 MB download, once)`);
+        h.lanes(Array.from({ length: n }, (_, i) => say("threadLane", "thread {n}", { n: i + 1 })));
+        h.status(say("loadingCpu", n > 1 ? "loading the connectome into {count} threads (57 MB download, once)" : "loading the connectome into {count} thread (57 MB download, once)", { count: n }));
         // the first thread fills the browser cache; the rest then read from it instead of racing the download
         const first = await this.spawn("cpu", 0, fixed, 1, gen);
         this.lanes = [first];
@@ -291,17 +310,17 @@ export class Miner {
       if (s.buyerPrograms === false) for (const lane of this.lanes) lane.kinds = lane.kinds.filter((k) => k !== "wasm" && k !== "wgsl");
       if (gen !== this.generation) return;
       this.starting = false;
-      h.status("mining");
+      h.status(say("mining", "mining"));
       this.session = { jobs: 0, units: 0, since: performance.now() };
       await Promise.all(this.lanes.map((lane) => this.loop(lane, gen)));
     } catch (err) {
-      if (gen === this.generation) this.stop(`stopped: ${err instanceof Error ? err.message : String(err)}`);
+      if (gen === this.generation) this.stop(say("stoppedBecause", "stopped: {error}", { error: err instanceof Error ? err.message : String(err) }));
     } finally {
       if (gen === this.generation) this.starting = false;
     }
   }
 
-  stop(status = "stopped"): void {
+  stop(status = say("stopped", "stopped")): void {
     this.generation++;
     void this.release([...this.held]);
     this.starting = false;
@@ -361,7 +380,7 @@ export class Miner {
         const m = e.data;
         if (m.type === "progress") h.lane(index, m.text);
         else if (m.type === "ready") {
-          h.lane(index, kind === "gpu" ? `ready · ${m.adapter}` : "ready", 0);
+          h.lane(index, kind === "gpu" ? say("readyOn", "ready · {adapter}", { adapter: m.adapter }) : say("ready", "ready"), 0);
           resolve(lane);
         } else if (m.type === "error") reject(new Error(m.text));
       };
@@ -399,7 +418,7 @@ export class Miner {
         const claim = await api(h.server, "/api/claim", h.getToken(), { count: lane.size, kinds: lane.kinds, open_max: lane.openMax });
         if (gen !== this.generation) return; // stopped while claiming; the jobs expire on the server
         if (!claim) {
-          h.lane(lane.index, "no jobs right now");
+          h.lane(lane.index, say("noJobs", "no jobs right now"));
           await sleep(30_000);
           continue;
         }
@@ -410,7 +429,7 @@ export class Miner {
         const programs = all.filter((j): j is ProgramClaim => j.kind === "wasm" || j.kind === "wgsl" || j.kind === "world");
         const probes = all.filter((j): j is ProbeClaim => j.kind === "probe");
         const embeds = all.filter((j): j is EmbedClaim => j.kind === "embed");
-        h.job(all.length === 1 ? describeClaim(all[0]) : `${all.length} jobs at once, e.g. ${describeClaim(all[0])}`);
+        h.job(all.length === 1 ? describeClaim(all[0]) : say("manyJobs", "{count} jobs at once, e.g. {job}", { count: all.length, job: describeClaim(all[0]) }));
         if (jobs.length) {
           const results = await lane.run(jobs);
           if (gen !== this.generation) return;
@@ -422,7 +441,7 @@ export class Miner {
         }
         for (const job of probes) {
           if (!lane.probe) continue; // (only CPU lanes ask for probes)
-          h.lane(lane.index, `running ${describeClaim(job)}`);
+          h.lane(lane.index, say("running", "running {job}", { job: describeClaim(job) }));
           const answer = await lane.probe(job.params);
           if (gen !== this.generation) return;
           await this.submit(job, answer);
@@ -430,7 +449,7 @@ export class Miner {
           this.session.units += job.units ?? 0;
         }
         for (const job of embeds) {
-          h.lane(lane.index, `running ${describeClaim(job)}`);
+          h.lane(lane.index, say("running", "running {job}", { job: describeClaim(job) }));
           const answer = await this.embedder.run(h.server, job.params, (text) => h.lane(lane.index, text));
           if (gen !== this.generation) return;
           if (!answer) {
@@ -442,7 +461,7 @@ export class Miner {
           this.session.units += job.units ?? 0;
         }
         for (const job of programs) {
-          h.lane(lane.index, `running ${describeClaim(job)}`);
+          h.lane(lane.index, say("running", "running {job}", { job: describeClaim(job) }));
           const answer = await runProgram(h.server, job);
           if (gen !== this.generation) return;
           if (!answer) {

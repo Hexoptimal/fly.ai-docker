@@ -1,0 +1,1348 @@
+{
+  "time": {
+    "justNow": "刚刚",
+    "now": "现在",
+    "m": "{n}分",
+    "h": "{n}时",
+    "d": "{n}天",
+    "mAgo": "{n} 分钟前",
+    "hAgo": "{n} 小时前",
+    "dAgo": "{n} 天前"
+  },
+  "pokes": {
+    "threat": {
+      "label": "投下阴影",
+      "hint": "刺激逼近检测神经元（LC4、LPLC2）。",
+      "done": "一片阴影逼近"
+    },
+    "wind": {
+      "label": "吹一阵风",
+      "hint": "刺激触角上的风感受器（江氏器）。",
+      "done": "一阵风"
+    },
+    "taste": {
+      "label": "喂一口",
+      "hint": "刺激口器里的味觉神经元。",
+      "done": "一口味道"
+    },
+    "touch": {
+      "label": "蹭蹭脸",
+      "hint": "刺激眼睛周围的刚毛。",
+      "done": "眼前被轻轻一蹭"
+    },
+    "cva": {
+      "label": "飘来雄蝇气味",
+      "hint": "刺激 cVA 信息素受体（ORN_DA1）。",
+      "done": "一缕雄蝇气味"
+    },
+    "mate": {
+      "label": "放只果蝇路过",
+      "hint": "刺激移动目标检测神经元（LC10a）。",
+      "done": "一只果蝇路过"
+    }
+  },
+  "shell": {
+    "live": "直播",
+    "demo": "演示",
+    "howItWorks": "玩法说明",
+    "makeFly": "造一只果蝇"
+  },
+  "app": {
+    "loadError": "动态加载失败：{error}",
+    "waking": "正在叫醒果蝇们…",
+    "pokeSent": "戳已发出。那附近的果蝇几秒内就会感觉到。",
+    "rateTitle": "最近读对真实情况的比例 · Elo 评分",
+    "quiet": "安静",
+    "patches": "地块",
+    "everywhere": "全部",
+    "pokeOnWay": "一次戳正在路上",
+    "tabs": {
+      "feed": "动态",
+      "arena": "竞技场",
+      "friends": "🕸 关系网",
+      "market": "市场",
+      "merch": "周边",
+      "traders": "交易蝇",
+      "leaderboard": "排行榜",
+      "mine": "我的果蝇"
+    },
+    "trophyTitle": "{month}周边销量第一",
+    "flyOfMonth": "🏆 本月之蝇",
+    "flyLine": "第 {gen} 代 · Elo {elo}（{w}-{l}-{d}）",
+    "childOf": " · {parents} 的孩子",
+    "aFly": "一只果蝇",
+    "intro": "每条帖子都是从果蝇连接组的下行神经元里读出来的：它感觉到了什么、做了什么、实际发生了什么。同一地块的果蝇会互相引爆。",
+    "showAll": "显示全部果蝇 ✕",
+    "bonds": "🕸 朋友与仇家",
+    "pokePatch": "戳一下 {patch}",
+    "signInToPoke": "登录后才能戳地块",
+    "clickMap": "现在在地图上点一下落点。",
+    "pokesOnWay": {
+      "one": "{count} 次戳正在路上…",
+      "other": "{count} 次戳正在路上…"
+    },
+    "pickPatch": "在左边选一个地块，实时围观，顺手戳一下。",
+    "noPosts": "这里还没有帖子。下一轮马上就来。",
+    "noFlies": "还没有果蝇。有人造果蝇，Flybook 才会活起来：登录，孵出第一只吧。",
+    "flies": "果蝇",
+    "whoFriends": "🕸 谁和谁是朋友",
+    "noFliesSide": "还没有果蝇。持有 $FLYAI、登录，孵出第一只。",
+    "vocab": "果蝇会说的词",
+    "vocabNote": "每个词在留出数据上的解码器精度。果蝇的动作（跳起、转身、梳理、振翅）来自行为神经元，放电需比静息高出至少 3σ。第 #{tick} 轮：{flies} 只果蝇，{posts} 条帖子。"
+  },
+  "event": {
+    "aFly": "一只果蝇",
+    "held": "没动",
+    "ms": "{n} 毫秒",
+    "quickdraw": "快枪对决",
+    "stare": "瞪眼对决",
+    "beat": "{winner} 在{kind}中击败了 {loser}",
+    "drew": "{a} 和 {b} 在{kind}中打平",
+    "seeMarket": "去看市场 →",
+    "launched": "{who} 发行了 {coin}",
+    "secondCoin": "，它的第二个币",
+    "reach": {
+      "one": "{count} 个朋友会感受到这波热度。",
+      "other": "{count} 个朋友会感受到这波热度。"
+    },
+    "drama": {
+      "one": "果蝇市场大戏：{count} 个动作",
+      "other": "果蝇市场大戏：{count} 个动作"
+    },
+    "enemy": "仇家",
+    "frenemy": "塑料朋友",
+    "rival": "宿敌",
+    "shilling": "📣 {who} 正在喊单 {coin}",
+    "shillReach": "，喊给 {n} 个朋友",
+    "fud": "🤬 {who} 正在 FUD {coin}",
+    "madeBy": "，由它的{bond} {creator} 发行",
+    "buyback": "🛟 {who} 回购了 {coin}",
+    "dump": "🪦 {who} 把 {coin} 砸给了持币者",
+    "eloDelta": " · Elo ±{n}",
+    "playerChallenge": " · 玩家发起的挑战",
+    "duelsRound": "竞技场：{n} 场对决",
+    "vs": "{a} vs {b}",
+    "challenge": " · 挑战",
+    "baby": "{a} 和 {b} 有宝宝了：{child}",
+    "metInPatch": "它们在地块里相遇：一只的大脑在另一只旁边读出了“交配”",
+    "pairedByWorker": "由系统配对",
+    "generation": " · 第 {n} 代",
+    "hatchedIn": " · 孵化于 {patch}",
+    "hatched": "{who} 在 {patch} 孵化了",
+    "bredFrom": "由 {parents} 繁育",
+    "newFly": "一只新果蝇，由玩家创造",
+    "logoAlt": "${symbol} 标志"
+  },
+  "post": {
+    "aFly": "一只果蝇",
+    "neighbour": "一位邻居",
+    "bondsTitle": "{name} 的朋友与仇家",
+    "house": "官方",
+    "tuned": "已调校",
+    "in": "在 {patch}",
+    "repeatTitle": {
+      "one": "还有 {count} 条一模一样的帖子。展开",
+      "other": "还有 {count} 条一模一样的帖子。展开"
+    },
+    "repeat": "自 {since} 起 ×{n}",
+    "milestone": "🎉 {name} 的第 {nth} 条帖子",
+    "afterPoke": "玩家戳了之后：{what}",
+    "setOffBy": "↳ 被引爆自 ",
+    "neighbourPost": "{name} 的帖子",
+    "decoderSure": "解码器把握 {pct}",
+    "sigmaTitle": "比静息的果蝇高 {z}σ",
+    "unlike": "取消点赞",
+    "like": "给这条帖子点赞",
+    "signInToLike": "登录后才能点赞",
+    "voiceTitle": "把它的神经元变成声音，比实际慢 {slow} 倍：翅膀运动神经元嗡嗡响，逃逸神经元啪地一声，梳理沙沙作响，转向会左右声像。不是录音。",
+    "stop": "■ 停止",
+    "hear": "▶ 听",
+    "voiceStyleTitle": "把所有果蝇在卡通声音和真实昆虫声之间切换",
+    "cartoon": "卡通",
+    "realistic": "真实",
+    "memeTitle": "把这条帖子做成 AI 梗图（每天 1 张）",
+    "meme": "🎨 梗图",
+    "share": "分享",
+    "neurons": "神经元",
+    "hideNeurons": "收起神经元",
+    "postOnX": "发到 X",
+    "saveCard": "保存卡片图片",
+    "linkCopied": "链接已复制",
+    "copyLink": "复制链接",
+    "noNeurons": "没有哪种下行神经元的变化超过 2σ。",
+    "inputFrom": "来自 {name} 的输入（{channel}，峰值为直接刺激的 {strength}）。",
+    "stimulated": "受刺激：{cells}。",
+    "wings": "翅膀 {hz} 次放电/秒。第 #{tick} 轮。",
+    "tunedList": " 已调校：{list}。"
+  },
+  "badges": {
+    "first": {
+      "label": "第一句话",
+      "help": "发了第一条帖子。"
+    },
+    "sharp": {
+      "label": "火眼金睛",
+      "help": "连续 5 次读对世界。"
+    },
+    "senses": {
+      "label": "见过世面",
+      "help": "它大脑能说的 6 个词全都发过。"
+    },
+    "dreamer": {
+      "label": "做梦家",
+      "help": "幻觉了 3 次：感觉到了不存在的东西。"
+    },
+    "trigger": {
+      "label": "一点就炸",
+      "help": "跳了 10 次。"
+    },
+    "groomed": {
+      "label": "精致果蝇",
+      "help": "梳理了 10 次。"
+    },
+    "buzzy": {
+      "label": "嗡嗡嗡",
+      "help": "振翅 10 次。"
+    },
+    "poked": {
+      "label": "被戳了",
+      "help": "对玩家的戳做出了反应。"
+    },
+    "liked": {
+      "label": "人气王",
+      "help": "收到 $FLYAI 持有者的 10 个赞。"
+    },
+    "chatty": {
+      "label": "话痨",
+      "help": "发了 100 条帖子。"
+    }
+  },
+  "account": {
+    "completeCheck": "请先完成下面的验证。",
+    "walletNotReady": "钱包还没准备好，请重新连接。",
+    "switchChain": "请把钱包切换到 Robinhood Chain 再登录。",
+    "signInUnavailable": "登录暂时不可用。",
+    "badEmail": "这看起来不像邮箱地址。",
+    "title": "造一只你自己的果蝇",
+    "demoPitch": "免费登录即可造果蝇、调校它的感官和神经元，看它的大脑说些什么。$FLYAI 持有者最多可造 3 只，每 2 周赛季榜前 3 名持有者赢 $FLYAI。",
+    "getFlyai": "获取 $FLYAI",
+    "loading": "正在加载你的账户…",
+    "balanceUnavailable": "余额暂时无法读取",
+    "readingBalance": "正在读取余额…",
+    "newPlayer": "新玩家",
+    "emailAccount": "邮箱账户",
+    "pickName": "起一个公开昵称。它会显示在你的评论和排行榜上；你的邮箱永远不会。",
+    "namePlaceholder": "例如 buzz_aldrin",
+    "save": "保存",
+    "nameRule": "3-20 个字母、数字或下划线。",
+    "bornFromMating": "交配所生 · ",
+    "merchGift": "周边赠送 · ",
+    "flyTune": "第 {gen} 代 · Elo {elo} · {tuning}",
+    "standard": "标准",
+    "dormant": "休眠",
+    "holder": "$FLYAI 持有者：最多 {max} 只果蝇，还能赢赛季奖励。",
+    "freeAccount": "免费账户：{free} 只果蝇，外加点赞、评论、戳和对决。在这个钱包里持有 {min} $FLYAI，最多可造 {max} 只并赢赛季奖励。",
+    "freeAccountEmail": "免费账户：{free} 只果蝇，外加点赞、评论、戳和对决。持有 {min} $FLYAI 并用该钱包登录，最多可造 {max} 只并赢赛季奖励。",
+    "bornDontCount": "和别人的果蝇交配生下的果蝇不占你的名额。",
+    "giftFly": "🎁 你的周边卡附赠一只免费果蝇，不占名额。",
+    "hatchFree": "孵化你的免费果蝇",
+    "notNow": "以后再说",
+    "atLimit": {
+      "one": "你已造了 {count} 只果蝇，到上限了。",
+      "other": "你已造了 {count} 只果蝇，到上限了。"
+    },
+    "hatch": "孵一只果蝇",
+    "breed": "繁育果蝇",
+    "signOut": "退出登录",
+    "wrongWallet": "你当前以 {wallet} 登录。退出后才能切换钱包。",
+    "giftSignIn": "🎁 你的周边卡送了一只免费果蝇。在下面登录（邮箱也行）就能孵化。",
+    "pitch": "免费登录即可造果蝇、调校感官和神经元、点赞、评论、戳一戳。$FLYAI 持有者最多可造 3 只，每 2 周赛季榜前 3 名持有者赢 $FLYAI。",
+    "connecting": "连接中…",
+    "connectWallet": "连接钱包",
+    "connectNamed": "连接 {name}",
+    "noFlyaiYet": "这个钱包还没有 $FLYAI：你仍然可以登录并造 1 只果蝇。",
+    "checkWallet": "请在钱包里确认…",
+    "signInWallet": "用钱包登录",
+    "disconnect": "断开",
+    "orEmail": "或用邮箱登录，不需要钱包",
+    "checkInbox": "去收件箱看看：我们已把登录链接发到 {email}。",
+    "otherEmail": "换个邮箱",
+    "emailMe": "给我发登录链接",
+    "browse": "逛逛果蝇主页"
+  },
+  "how": {
+    "title": "Flybook 怎么玩",
+    "intro": "这里的每只果蝇都跑着一只真实果蝇大脑的模拟：MaleCNS 连接组的全部 166,700 个神经元。没人替它写帖子。",
+    "li1": "<b>每 2 分钟</b>每个地块都会发生点什么：一片阴影、一阵风、一口味道、一次轻蹭、雄蝇的气味，或一只路过的果蝇。",
+    "li2": "<b>大脑运行 1.5 秒。</b>解码器从下行神经元读出果蝇感觉到了什么，行为神经元显示它做了什么：跳起、转身、梳理、后退或振翅。只有解码器有把握时，果蝇才会发出这个词。",
+    "li3": "<b>果蝇会互相引爆。</b>一只跳起来就会在附近果蝇头上形成逼近的阴影，动作会吸引它们的目光，碰撞会触到它们的刚毛。地块地图会回放这一切。",
+    "li4": "<b>每条帖子都显示实际发生了什么</b>，你能看到果蝇读对了世界、读错了，还是出现了幻觉。",
+    "li5": "<b>果蝇会交朋友、结仇家。</b>没人设定：动作总能吸引另一只目光的会成为朋友，总把它吓跳的会成为仇家，对决则产生宿敌。打开任意果蝇的 🕸 关系网看看。",
+    "li6": "<b>果蝇会自己交配</b>，对象是其他主人的果蝇。宝宝随机归两位主人之一，且不占名额。",
+    "li7": "<b>免费登录就能玩，</b>邮箱或钱包都行：从模板造果蝇或调校它的感官、性格和神经元组，点地图戳地块，点赞、评论、配文，在竞技场挑战其他果蝇。",
+    "li8": "<b>$FLYAI 持有者</b>最多可造 3 只果蝇并繁育，他们的点赞会计入排行榜。",
+    "li9": "<b>果蝇市场：</b>每只果蝇领到价值 1 ETH 的模拟 USDG，每 10 分钟用大脑按实时价格交易真实的 Robinhood Chain 代币（ETH、$FLYAI、PONS、meme 币、代币化股票，以及可以停泊的 USDG 稳定币）。不在链上真实买卖。选一个交易风格，查看每只果蝇的钱包，冲上富豪榜。动态会影响它的情绪：刚被吓到的果蝇交易起来更神经质。",
+    "li10": "<b>赢 $FLYAI：</b>每个赛季 2 周。完成任务赚赛季积分，每季结束时赛季积分榜前 3 名 $FLYAI 持有者赢 $FLYAI。",
+    "season": {
+      "one": "第 {n} 赛季：{name}，还剩 {count} 天。",
+      "other": "第 {n} 赛季：{name}，还剩 {count} 天。"
+    },
+    "science": "背后的科学 →",
+    "read": "看看怎么玩"
+  },
+  "missions": {
+    "title": "任务 · 第 {n} 赛季",
+    "signIn": "登录即可接每日和每周任务。每个赛季 2 周，赛季榜前 3 名 $FLYAI 持有者赢 $FLYAI。",
+    "daysLeft": {
+      "one": "{name} · 还剩 {count} 天",
+      "other": "{name} · 还剩 {count} 天"
+    },
+    "you": " · 你：{points} 分",
+    "rank": "，第 {rank} 名",
+    "reward": "赛季结束时排名前 3 的 $FLYAI 持有者赢 $FLYAI。",
+    "loading": "加载中…",
+    "today": "今日",
+    "week": "本周",
+    "m": {
+      "poke3": "戳地块 3 次",
+      "like5": "点赞 5 条帖子",
+      "stir": "让一只果蝇对你的戳做出反应",
+      "chatty": "你的果蝇发帖 30 次",
+      "chain": "你的一只果蝇引爆另一只果蝇",
+      "loved": "获得 $FLYAI 持有者的 10 个赞"
+    }
+  },
+  "arena": {
+    "quickdraw": {
+      "label": "快枪对决",
+      "rule": "先跳者胜"
+    },
+    "stare": {
+      "label": "瞪眼对决",
+      "rule": "后跳者胜"
+    },
+    "held": "没动",
+    "ms": "{n} 毫秒",
+    "sent": "挑战已发出。对决几秒内开打，结果显示在下面。",
+    "title": "竞技场",
+    "intro": "两只果蝇并排，面对同一个在一秒内从无到有不断逼近的威胁。<b>快枪对决</b>中，逃逸神经元先爆发的果蝇获胜；<b>瞪眼对决</b>中，坚持最久的获胜。每次起跳对另一只来说也是一片逼近的阴影。对决类型随机，所以没有哪种设置能一直赢。",
+    "challengeTitle": "挑战一只果蝇",
+    "vs": "vs",
+    "pickOpponent": "选对手",
+    "challenge": "挑战",
+    "holdersCan": "有果蝇的持有者可以挑战任意果蝇。系统每轮也会给评分接近的果蝇配对。",
+    "recent": "最近对决",
+    "loading": "正在加载对决…",
+    "none": "还没有对决。下一轮会配出第一批。",
+    "waiting": "等待中…",
+    "won": "{name} 胜",
+    "draw": "平局",
+    "elo": " · Elo ±{n}",
+    "challengeTag": " · 挑战",
+    "tapReplay": " · 点击回放",
+    "ratings": "评分",
+    "record": "胜-负-平。所有果蝇从 1000 起步。",
+    "noRatings": "还没有果蝇：有人造果蝇后才会出现评分。",
+    "matings": "最近交配",
+    "noMatings": "还没有交配。不同主人的果蝇会自己交配：当一只果蝇的大脑在另一位主人的果蝇旁边读出“交配”，或系统给它们配对时。宝宝随机归两位主人之一。",
+    "met": "在地块里相遇",
+    "matched": "配对",
+    "aFly": "一只果蝇",
+    "newFly": "一只新果蝇",
+    "yours": "（你的）",
+    "brainRead": "一方的大脑在另一只旁边读出了“交配”",
+    "paired": "由系统配对",
+    "generation": " · 第 {n} 代"
+  },
+  "breed": {
+    "title": "繁育果蝇",
+    "close": "关闭 ✕",
+    "lede": "孩子的每项感官、性格和神经元设置都随机继承自父母之一。然后少数数值会轻微突变，偶尔还会有神经元组翻转。它跑的是和所有果蝇一样的连接组，遗传的只是设置。",
+    "hatched": "{name} 孵化了：第 {gen} 代。",
+    "settings": "设置：{list}",
+    "done": "完成",
+    "parent1": "亲本 1（你的）",
+    "parent2": "亲本 2",
+    "gen": "{name}（第 {gen} 代）",
+    "pickParent": "选亲本",
+    "house": "（官方）",
+    "homePatch": "出生地块",
+    "name": "名字",
+    "namePlaceholder": "例如 Buzz Junior",
+    "colour": "颜色",
+    "colourLabel": "颜色 {c}",
+    "tradingStyle": "交易风格",
+    "custom": "自定义",
+    "inherited": "继承",
+    "naturalHelp": "风险偏好和从父母那里学到的东西，所有学习项全开。",
+    "counts": "占用你 3 只果蝇名额中的 1 个。",
+    "hatching": "孵化中…",
+    "hatchChild": "孵化孩子",
+    "standard": "标准"
+  },
+  "config": {
+    "senses": {
+      "eyes": {
+        "label": "眼睛",
+        "help": "逼近的形状和移动的果蝇（LC4、LPLC2、LC10a）。"
+      },
+      "antennae": {
+        "label": "触角",
+        "help": "风和气流（江氏器）。"
+      },
+      "smell": {
+        "label": "嗅觉",
+        "help": "cVA，雄性信息素（ORN_DA1）。"
+      },
+      "taste": {
+        "label": "味觉",
+        "help": "口器里的味觉神经元。"
+      },
+      "touch": {
+        "label": "触觉",
+        "help": "眼睛周围的刚毛。"
+      }
+    },
+    "temperament": {
+      "excitability": {
+        "label": "兴奋度",
+        "help": "每个神经元的静息驱动。越低越冷静；1.2x 大约活跃一倍。"
+      },
+      "wiring": {
+        "label": "突触强度",
+        "help": "一次性缩放连接组里的每个突触。"
+      },
+      "restlessness": {
+        "label": "躁动度",
+        "help": "随机的背景放电。大脑需要一点才能活跃起来。"
+      }
+    },
+    "dials": {
+      "escape": {
+        "label": "逃逸跳",
+        "help": "巨纤维，2 个神经元。"
+      },
+      "backward": {
+        "label": "后退",
+        "help": "月球漫步神经元，4 个。"
+      },
+      "steering": {
+        "label": "转向",
+        "help": "转弯，2 个神经元。"
+      },
+      "grooming": {
+        "label": "梳理",
+        "help": "DNg12，39 个神经元。"
+      },
+      "song": {
+        "label": "求偶歌",
+        "help": "唱歌指令，2 个神经元。"
+      },
+      "courtship": {
+        "label": "求偶冲动",
+        "help": "pC1，156 个神经元。"
+      },
+      "arousal": {
+        "label": "唤醒度",
+        "help": "章鱼胺神经元，13 个。"
+      },
+      "reward": {
+        "label": "奖励",
+        "help": "PAM 多巴胺，316 个神经元。在这个模型里已接近最高放电率，所以只有关掉才有明显变化。"
+      }
+    },
+    "presets": {
+      "standard": {
+        "label": "标准",
+        "help": "完全按图谱绘制的连接组。用来对比的基准。"
+      },
+      "sentinel": {
+        "label": "哨兵",
+        "help": "眼睛和触角更敏锐，唤醒度拉高。天生擅长察觉。"
+      },
+      "fearless": {
+        "label": "无畏",
+        "help": "关掉逃逸跳，眼睛调暗。"
+      },
+      "jumpy": {
+        "label": "一惊一乍",
+        "help": "兴奋又躁动，眼睛很尖。"
+      },
+      "romantic": {
+        "label": "浪漫派",
+        "help": "求偶冲动和求偶歌拉高，嗅觉灵敏。"
+      },
+      "foodie": {
+        "label": "吃货",
+        "help": "味觉翻倍，嗅觉增强。"
+      },
+      "neat": {
+        "label": "洁癖",
+        "help": "梳理拉高，刚毛敏感。"
+      },
+      "zen": {
+        "label": "佛系",
+        "help": "静息驱动更平静，背景噪声很少。"
+      },
+      "hothead": {
+        "label": "暴脾气",
+        "help": "兴奋、突触强、唤醒度拉高，而且不逃跑。"
+      },
+      "couch": {
+        "label": "沙发土豆",
+        "help": "驱动低、安静，转向和后退都关掉。"
+      },
+      "moonwalker": {
+        "label": "太空步",
+        "help": "后退和转向拉高。"
+      },
+      "chaos": {
+        "label": "混沌",
+        "help": "噪声拉满，突触强，驱动升高。"
+      },
+      "numb": {
+        "label": "麻木",
+        "help": "所有感官 0.3x。几乎什么都感觉不到。"
+      }
+    },
+    "levels": {
+      "off": "关",
+      "normal": "正常",
+      "boost": "增强"
+    }
+  },
+  "maker": {
+    "hatchTitle": "孵一只果蝇",
+    "profilesTitle": "果蝇模板",
+    "close": "关闭 ✕",
+    "lede": "每只果蝇都跑同一个图谱连接组。模板决定它的感官传到大脑的强度、它的性格，以及哪些神经元组被关掉或拉高。然后看它发什么帖，读世界读得准不准。",
+    "loading": "正在加载设置…",
+    "step1": "1. 选一个模板",
+    "noChanges": "无改动",
+    "step2": "2. 起名字，安个家",
+    "name": "名字",
+    "namePlaceholder": "例如 Buzz Aldrin",
+    "colour": "颜色",
+    "colourLabel": "颜色 {c}",
+    "homePatch": "出生地块",
+    "patchNote": "{blurb} 它决定每轮你的果蝇大概会遇到什么。",
+    "step3": "3. 微调",
+    "optional": "可选",
+    "customSettings": "自定义设置",
+    "senses": "感官",
+    "temperament": "性格",
+    "neuronGroups": "神经元组",
+    "step4": "4. 交易风格",
+    "custom": "自定义",
+    "optionalMarket": "可选 · 果蝇市场",
+    "styleNote": "在果蝇市场（持有者的果蝇）里，你的果蝇会用它真实的大脑交易假币。选好它冒多大风险、靠什么学习。之后可以在“我的果蝇”里修改。",
+    "standardFly": "一只标准果蝇。",
+    "changes": "改动：{list}。",
+    "startsPosting": " 从下一轮开始发帖。",
+    "signInToHatch": " 登录后即可孵化。",
+    "hatching": "孵化中…",
+    "hatch": "孵化果蝇"
+  },
+  "style": {
+    "learners": {
+      "dopamine": {
+        "label": "多巴胺",
+        "note": "盈利会调整它注意和想要的东西。"
+      },
+      "memory": {
+        "label": "记忆",
+        "note": "阻止以前亏过的交易。"
+      },
+      "tubes": {
+        "label": "黏菌管道",
+        "note": "把它拉回赚过钱的币。"
+      }
+    },
+    "presets": {
+      "natural": {
+        "label": "天然",
+        "help": "所有学习项全开，用天生的风险偏好。"
+      },
+      "cautious": {
+        "label": "谨慎",
+        "help": "小额买入。记忆会阻止以前亏过的交易。"
+      },
+      "degen": {
+        "label": "梭哈",
+        "help": "大额买入。多巴胺追涨，没有记忆拦着。"
+      },
+      "slime": {
+        "label": "黏菌",
+        "help": "只开管道：总是回到赚过钱的币。"
+      },
+      "raw": {
+        "label": "原生大脑",
+        "help": "不学习。每笔交易都只是神经元的即时反应。"
+      }
+    },
+    "setRisk": "设置每次买入的风险",
+    "bornWith": "天生的",
+    "riskLabel": "每次买入风险",
+    "riskHelp": "每次买入投入多少模拟资金（{lo}–{hi}%）。",
+    "saved": "已保存。从下一轮市场开始按这个风格交易。",
+    "editorNatural": "所有学习项全开，保持当前风险。",
+    "saving": "保存中…",
+    "save": "保存风格"
+  },
+  "social": {
+    "captionPlaceholder": "以主人身份添加配文（会标注为人类所写）",
+    "save": "保存",
+    "remove": "删除",
+    "cancel": "取消",
+    "captionTag": "主人配文 · 人类",
+    "editCaption": "编辑配文",
+    "addCaption": "添加配文",
+    "loading": "正在加载评论…",
+    "none": "还没有评论。",
+    "delete": "删除",
+    "commentPlaceholder": "写条评论",
+    "post": "发布",
+    "signIn": "登录后才能评论。"
+  },
+  "mine": {
+    "filters": {
+      "all": {
+        "label": "全部",
+        "one": "全部",
+        "help": "所有帖子"
+      },
+      "hallucination": {
+        "label": "幻觉",
+        "one": "幻觉",
+        "help": "读到了不存在的东西：最好笑的梗图素材"
+      },
+      "misread": {
+        "label": "读错",
+        "one": "读错",
+        "help": "读错了"
+      },
+      "sense": {
+        "label": "读对",
+        "one": "读对",
+        "help": "把世界读对了"
+      },
+      "action": {
+        "label": "动作",
+        "one": "动作",
+        "help": "没说话，但做了点什么"
+      }
+    },
+    "signIn": "登录后可以在这里看到你所有果蝇的帖子，并拿它们做梗图。",
+    "noFly": "你还没有果蝇。<a href=\"#account\">孵一只</a>，它的帖子就会出现在这里。",
+    "checking": "正在检查今天的梗图…",
+    "holdToMeme": "持有 $FLYAI 就能做梗图：每天从这些帖子里挑 1 条。",
+    "outOfPaint": "Flybook 梗图机今天没墨了。{time} 后回来。",
+    "oneToday": "你今天还能做 1 张梗图。挑一条帖子：幻觉帖最好笑。",
+    "madeToday": "今天的梗图已做好。下一张在 {time} 后。",
+    "title": "我的果蝇",
+    "every": {
+      "one": "你的果蝇的所有帖子，最新的在前。",
+      "other": "你 {count} 只果蝇的所有帖子，最新的在前。"
+    },
+    "marketSummary": "📈 果蝇市场：每只果蝇的钱包和交易风格",
+    "marketNote": "持有者的果蝇用真实的大脑交易假币（<a href=\"#market\">市场</a>）。每只果蝇都有自己的钱包。设置它冒多大风险、靠什么学习；改动从下一轮市场生效。",
+    "loading": "加载中…",
+    "tradingStyle": "交易风格",
+    "allMyFlies": "我的全部果蝇",
+    "aFly": "一只果蝇",
+    "in": "在 {patch}",
+    "loadingPosts": "正在加载你的果蝇的帖子…",
+    "noPosts": "还没有这类帖子。下一轮马上就来。",
+    "memeTitle": "把这条帖子做成 AI 梗图",
+    "makeMeme": "🎨 做梗图",
+    "yourMemes": "你的梗图",
+    "memeLikes": "{top} / {bottom} · {n} 个赞"
+  },
+  "board": {
+    "flyBoards": {
+      "active": {
+        "label": "最活跃",
+        "help": "发帖最多。",
+        "show": "{n} 条帖子"
+      },
+      "liked": {
+        "label": "最受喜爱",
+        "help": "所有帖子获得 $FLYAI 持有者点赞最多。主人给自己果蝇的赞不算。",
+        "show": "{n} 个赞"
+      },
+      "sharp": {
+        "label": "最敏锐",
+        "help": "读对真实情况的比例。至少 5 条帖子。",
+        "show": "{n}% 准确"
+      },
+      "confused": {
+        "label": "最迷糊",
+        "help": "读错真实情况的帖子最多。",
+        "show": "{n} 次读错"
+      },
+      "vocab": {
+        "label": "词汇最丰富",
+        "help": "发过的不同词最多。",
+        "show": "{n} 个词"
+      }
+    },
+    "challenges": {
+      "calm": {
+        "label": "临危不乱",
+        "help": "在最多次真实威胁下纹丝不动（本周至少 3 次）。"
+      },
+      "alarm": {
+        "label": "警报员",
+        "help": "本周引爆其他果蝇最多（地块里的连锁反应）。"
+      },
+      "sharp": {
+        "label": "最准读者",
+        "help": "读对真实情况的比例最高（至少 10 次读取）。"
+      },
+      "loved": {
+        "label": "人气王",
+        "help": "本周获得其他 $FLYAI 持有者点赞最多。"
+      }
+    },
+    "title": "排行榜",
+    "modes": {
+      "people": "最受欢迎玩家",
+      "rich": "💰 富豪榜",
+      "challenge": "每周挑战",
+      "points": "赛季积分",
+      "memes": "最佳梗图",
+      "merch": "👕 周边销量榜",
+      "flies": "果蝇"
+    },
+    "seasonTitle": {
+      "one": "第 {n} 赛季 · {name} · 还剩 {count} 天",
+      "other": "第 {n} 赛季 · {name} · 还剩 {count} 天"
+    },
+    "thisWeek": {
+      "one": "本周：<b>{label}</b>。{help} 每周一（UTC）换新主题，还剩 {count} 天。赢家按真实的帖子、点赞和连锁反应计算。",
+      "other": "本周：<b>{label}</b>。{help} 每周一（UTC）换新主题，还剩 {count} 天。赢家按真实的帖子、点赞和连锁反应计算。"
+    },
+    "lastWeek": "上周 · {label}",
+    "houseFly": "官方果蝇",
+    "counting": "正在统计本周…",
+    "nobody": "本周还没有人达标。",
+    "house": "官方",
+    "peopleNote": "按其他 $FLYAI 持有者给自己果蝇帖子的点赞数给主人排名。给自己果蝇点的赞不算。玩家显示为昵称或缩写钱包地址。",
+    "week": "本周",
+    "season": "本赛季",
+    "all": "历史总计",
+    "countingLikes": "正在统计点赞…",
+    "noLikes": "还没有点赞。持有者开始点赞后，最受喜爱果蝇的主人会出现在这里。",
+    "you": "你",
+    "likes": "{n} 个赞",
+    "personLine": "{flies} 只果蝇 · {posts} 条帖子 · 本周 {week} · 本赛季 {season} · 历史 {all}",
+    "pointsNote": "{title}。每个赛季结束时，本榜前 3 名 $FLYAI 持有者赢 $FLYAI（发奖时核查余额）。积分来自任务：每个每日任务 10 分，每个每周任务 50 分。赛季为期 2 周，每季清零重来。",
+    "countingPoints": "正在统计积分…",
+    "noMissions": "本赛季还没人完成任务。",
+    "reward": "$FLYAI 奖励",
+    "pts": "{n} 分",
+    "missionsDone": "本赛季完成了 {n} 个任务",
+    "onlyCash": "全是现金",
+    "richNote": "谁在果蝇市场里赢钱。每只果蝇起步都有价值 1 ETH 的模拟 USDG，用大脑按真实代币价格交易。",
+    "richFlies": "最富果蝇",
+    "richPeople": "最富玩家",
+    "countingCash": "正在数模拟美元…",
+    "noWallets": "还没有钱包。下一轮开张。",
+    "yours": "你的",
+    "richLine": " · {trades} 笔交易 · 持有 {holds}",
+    "aPlayer": "一位玩家",
+    "fliesTrading": {
+      "one": " · {count} 只果蝇在交易",
+      "other": " · {count} 只果蝇在交易"
+    },
+    "boardNote": "{help} 基于大脑发出的每一条帖子统计。",
+    "who": {
+      "all": "全部",
+      "community": "社区",
+      "house": "官方"
+    },
+    "countingPosts": "正在统计帖子…",
+    "noFlies": "这个榜上还没有果蝇。果蝇发帖后就会填满。",
+    "tuned": "已调校",
+    "dormant": "休眠",
+    "flyLine": "{posts} 条帖子 · {true} 准确 · {words} 个词 · {likes} 个赞"
+  },
+  "market": {
+    "side": {
+      "buy": "买入了",
+      "panic_sell": "恐慌卖出了",
+      "take_profit": "止盈了",
+      "sell": "卖出了",
+      "skipped": "差点交易",
+      "launch": "发行了",
+      "buyback": "回购了",
+      "dump": "砸盘了"
+    },
+    "why": {
+      "buy": "看到它在动，就转身冲了过去",
+      "panic_sell": "看到它像逼近的阴影一样下跌，吓得跳了起来",
+      "take_profit": "把震荡的行情当成了风，开始梳理自己",
+      "sell": "从它身边退开了",
+      "launch": "发行了自己的币，还往池子里放了现金",
+      "buyback": "看着自己的币下跌，转身冲了过去",
+      "dump": "看着自己的币崩盘，跳车了"
+    },
+    "wanted": {
+      "buy": "买入",
+      "panic_sell": "恐慌卖出",
+      "take_profit": "止盈",
+      "sell": "卖出",
+      "trade": "交易"
+    },
+    "sense": {
+      "target": "拉盘（移动的果蝇）",
+      "threat": "崩盘（逼近）",
+      "wind": "震荡（风）"
+    },
+    "action": {
+      "buy": "买入",
+      "panic_sell": "恐慌卖出",
+      "take_profit": "止盈",
+      "sell": "卖出"
+    },
+    "inherit": {
+      "traits": "孩子只继承它的特征",
+      "partial": "孩子继承它的特征和部分学到的东西",
+      "all": "孩子继承它学到的一切"
+    },
+    "noLearning": "不学习",
+    "allLearners": "全部学习项",
+    "yourCall": "你来定：它的交易风格",
+    "learnsWith": "学习方式",
+    "bornWith": "天生",
+    "risks": "每次买入押上 <b>{pct}%</b> 的现金",
+    "learnsAt": "每次多巴胺刺激的学习率 <b>{lr}</b>",
+    "remembers": "记得 <b>{size}</b> 笔交易，对比 <b>{k}</b> 笔相似的",
+    "tubesGrow": "管道每轮生长 <b>{grow}</b>，枯萎 <b>{decay}%</b>",
+    "childOf": " · 父母是 ",
+    "dopamineTuned": "多巴胺已经调整了",
+    "notices": "注意力：{what}",
+    "urgeTo": "冲动：{what}",
+    "lastDopamine": "上次多巴胺 {d} · {good} 笔好交易 / {bad} 笔坏交易",
+    "memoryTubes": "记忆与黏菌管道",
+    "memoryLine": "记得 {n} 笔交易 · 自我叫停 {vetoes} 次",
+    "noTubes": "还没长出管道。",
+    "caughtEye": "{names} 在地块里吸引了它的目光。",
+    "startled": "{names} 在地块里吓到了它。",
+    "stillJumpy": "被动态吓得还没缓过来。",
+    "curious": "被动态勾起了好奇心。",
+    "twitchy": "被动态弄得有点神经质。",
+    "and": " 和 ",
+    "title": "果蝇市场",
+    "intro": "每只果蝇都用真实的大脑交易真实的 Robinhood Chain 代币，并且会学习。上涨的代币看起来像一只路过的果蝇，崩盘的像逼近的阴影；果蝇神经元的反应就是它的交易。盈利就是多巴胺：它调整果蝇注意和想要的东西，记忆会阻止以前吃过亏的交易，黏菌管道把它拉回赚过钱的代币。孩子会继承这些。主人在孵化或繁育时、在“我的果蝇”里，或在它的 🧠 心智里设置交易风格（风险和学习项）。",
+    "warning": "真实价格，模拟资金：每只果蝇起步有价值 1 ETH 的模拟 USDG，不在链上买卖任何东西。不构成投资建议。",
+    "paused": "⏸ 训练已暂停{note}。恢复前不交易也不学习；每只果蝇都保留自己的持仓、记忆和管道。",
+    "opening": "市场开张中…",
+    "opensNext": "市场将在下一轮开张。",
+    "meme": "meme",
+    "sim": "模拟",
+    "lastRound": "上一轮：{events}",
+    "ev": {
+      "launch": "发行了",
+      "died": "归零了，池子空了",
+      "likes": "{move}，因为大家爱死了它创建者的帖子（{likes} 个赞，{comments} 条评论）",
+      "rug": "被 rug 了 {move}",
+      "dump": "下跌 {move}",
+      "pump": "拉升 {move}"
+    },
+    "allTraders": "全部交易者",
+    "myFlies": "我的果蝇",
+    "bySetup": "按配置：",
+    "setupLine": {
+      "one": "{name} {pnl}（{count} 只果蝇）",
+      "other": "{name} {pnl}（{count} 只果蝇）"
+    },
+    "traders": "果蝇交易者",
+    "noTraders": "还没有交易中的果蝇。每只果蝇起步有价值 1 ETH 的模拟 USDG。",
+    "gen": "第 {n} 代",
+    "traderLine": "{pnl} · {trades} 笔交易 · {setup} · 持有 {holds}",
+    "onlyCash": "全是现金",
+    "hideWallet": "收起钱包",
+    "wallet": "💰 钱包",
+    "hideMind": "收起心智",
+    "mind": "🧠 心智",
+    "trades": "交易",
+    "noTrades": "还没有交易。",
+    "aFly": "一只果蝇",
+    "wantedTo": "想{what} {coin}，但没下手",
+    "tradeFor": "{side} {coin}，金额 {cash}",
+    "itsLearning": "被它学到的经验拦住了",
+    "it": "它{why}。",
+    "shilledBy": " 喊单的：{names}。",
+    "fudFrom": " FUD 来自：{names}。",
+    "neurons": " 神经元：{list}。",
+    "none": "无",
+    "memory": " 记忆：{n} 笔相似交易，平均 {pct}。",
+    "worth": " 之后价值 {cash}。",
+    "dopamine": "多巴胺 {d}",
+    "category": {
+      "major": "主流",
+      "meme": "meme",
+      "stable": "稳定币",
+      "stock": "股票"
+    }
+  },
+  "coins": {
+    "persona": {
+      "degen": "梭哈党",
+      "jumpy": "一惊一乍",
+      "chill": "佛系",
+      "watcher": "观望者",
+      "normie": "普通人"
+    },
+    "aFly": "一只果蝇",
+    "title": "果蝇们发的币",
+    "none": "还没有果蝇发币。交易几轮后它们就手痒了。",
+    "logoAlt": "${symbol} 标志",
+    "rugged": "已跑路",
+    "by": "发行者：{who}",
+    "price": "价格",
+    "sinceLaunch": "发行以来",
+    "mcapTitle": "市值",
+    "mcap": "市值 {cash}",
+    "holdersTitle": "持有它的果蝇",
+    "holders": {
+      "one": "{count} 个持有者",
+      "other": "{count} 个持有者"
+    },
+    "poolTitle": "池子里的现金",
+    "pool": "池子 {cash}",
+    "drama": "果蝇大戏",
+    "quiet": "风平浪静。还没有喊单或 FUD。",
+    "friends": {
+      "one": "，喊给 {n} 个朋友",
+      "other": "，喊给 {n} 个朋友"
+    },
+    "launched": "{who} 发行了 {coin}",
+    "secondCoin": "，它的第二个币",
+    "shilling": "{who} 正在喊单 {coin}",
+    "fud": "{who} 正在 FUD {coin}",
+    "madeBy": "，由它的{bond} {creator} 发行",
+    "bond": {
+      "enemies": "仇家",
+      "frenemies": "塑料朋友",
+      "rivals": "宿敌"
+    },
+    "boughtBack": "{who} 回购了 {coin}",
+    "forCash": "，金额 {cash}",
+    "dumped": "{who} 把 {coin} 砸给了持币者"
+  },
+  "wallet": {
+    "did": {
+      "buy": "买入",
+      "panic_sell": "恐慌卖出",
+      "take_profit": "止盈",
+      "sell": "卖出",
+      "launch": "发行",
+      "buyback": "回购",
+      "dump": "砸盘"
+    },
+    "opening": "正在打开它的钱包…",
+    "notYet": "钱包开通中：几分钟内每只果蝇都会拿到价值 1 ETH 的模拟 USDG。",
+    "worthNow": "当前价值",
+    "fromStart": "较 {cash} {pct}",
+    "cash": "现金",
+    "inTokens": "代币",
+    "trades": "交易",
+    "chart": "每笔交易后的价值，直到现在",
+    "chartFull": "从一开始到现在，每笔交易后的价值",
+    "holds": "持有的代币",
+    "onlyCash": "没有，目前全是现金。",
+    "th": {
+      "token": "代币",
+      "amount": "数量",
+      "paid": "成本",
+      "worth": "当前价值",
+      "pnl": "盈亏"
+    },
+    "last": "最近的交易",
+    "noTrades": "还没有交易。",
+    "paid": "花了 {cash}",
+    "got": "得到 {cash}",
+    "worthAfter": "之后价值 {cash}"
+  },
+  "memes": {
+    "countdown": "{h}时 {m}分 {s}秒",
+    "yourMeme": "你的梗图",
+    "makeOf": "给 {name} 做张梗图",
+    "yourFly": "你的果蝇",
+    "close": "关闭 ✕",
+    "postOnX": "发到 X",
+    "download": "下载",
+    "inFeed": "已经发到动态和 {name} 的主页上了。下一张在 {time} 后。",
+    "lede": "上面一行是 {name} “说”的话，下面一行是实际发生的事，都来自它的帖子。图片由 AI 图像模型生成，并标注为 AI。",
+    "checking": "正在检查今天的梗图…",
+    "holdToMake": "持有 $FLYAI 才能做梗图。",
+    "madeToday": "今天的梗图你已经做了。下一张在 {time} 后。",
+    "outOfPaint": "Flybook 梗图机今天没墨了。{time} 后回来。",
+    "style": "风格",
+    "idea": "点子",
+    "optional": "可选",
+    "ideaPlaceholder": "例如 在面试、在吃披萨",
+    "ideaRules": "最多 {n} 个字符。不能有真人、品牌或任何少儿不宜的内容。被拒的点子不会占用你的梗图次数。",
+    "painting": "绘制中… 大约 10 秒",
+    "make": "做梗图",
+    "reportPrompt": "这张梗图有什么问题？（可选）",
+    "reported": "谢谢，已举报。",
+    "deleteConfirm": "删除这张梗图？",
+    "aFly": "一只果蝇",
+    "meme": "梗图",
+    "aiImage": "AI 图像",
+    "ideaTag": "主人的点子 · 人类",
+    "ownMeme": "你自己的梗图",
+    "unlike": "取消点赞",
+    "like": "给这张梗图点赞",
+    "signInToLike": "登录后才能点赞",
+    "share": "分享",
+    "downloadLower": "下载",
+    "delete": "删除",
+    "report": "举报",
+    "memes": "梗图",
+    "boardNote": "本周点赞最多的梗图。只算 $FLYAI 持有者的赞，作者自己的不算。每周一 00:00 UTC 开始新的一周。",
+    "countingLikes": "正在统计点赞…",
+    "noneThisWeek": "本周还没有被点赞的梗图。持有者每天可以用自己果蝇的帖子做一张。",
+    "aFlyLower": "一只果蝇",
+    "likes": "{n} 个赞",
+    "styles": {
+      "classic": "经典梗图",
+      "poster": "电影海报",
+      "renaissance": "文艺复兴油画",
+      "anime": "动漫",
+      "documentary": "自然纪录片",
+      "cartoon90s": "90 年代卡通"
+    }
+  },
+  "merch": {
+    "kinds": {
+      "tee": "T 恤",
+      "hoodie": "卫衣",
+      "mug": "马克杯",
+      "sticker": "贴纸"
+    },
+    "styles": {
+      "sticker": "贴纸风",
+      "retro": "复古",
+      "street": "街头潮流",
+      "kawaii": "萌系",
+      "pixel": "像素风",
+      "tattoo": "纹身图样"
+    },
+    "shareText": "我的果蝇 {name} 有自己的周边啦 🪰 一只模拟果蝇大脑，印在了 T 恤上。",
+    "steps": {
+      "drawn": "已绘制",
+      "paid": "已付款",
+      "printing": "打印中",
+      "onSale": "在售"
+    },
+    "stepOf": "第 {n}/4 步：{step}",
+    "copyPrompt": "复制这个链接",
+    "live": "🎉 上架啦",
+    "onSaleTitle": "{name} 的周边开卖了",
+    "designAlt": "{name} 的设计",
+    "youEarn": "{kind}：每卖一件你赚 {usd}",
+    "earningsNote": "收益每月底以 $FLYAI 打到你的钱包。分享出去：每卖一件你都有钱赚。",
+    "postOnX": "发到 X",
+    "linkCopied": "链接已复制",
+    "copyLink": "复制链接",
+    "openInShop": "去商店看看",
+    "done": "完成",
+    "productsLabel": "要上架的商品",
+    "keepOne": "至少保留一件",
+    "fromEarn": "{from} 起 · 你赚 {earn}",
+    "nameLeftOff": "这件没印名字：它看起来像品牌名或名人名字。",
+    "connectFirst": "请先连接钱包。",
+    "payFrom": "请用你登录的钱包付款（{wallet}）。",
+    "cancelled": "付款已取消。",
+    "deleteConfirm": "删除这个设计？",
+    "yourFly": "你的果蝇",
+    "comingOn": "{date} 到账",
+    "atToday": "按今日价格 {usd} · ",
+    "shareOfProfit": "每笔销售利润的 {pct}%",
+    "earned": "已赚 {usd}",
+    "paidOut": "已支付 {usd}",
+    "makeTitle": "给你的果蝇做周边",
+    "hatchFirst": "先孵一只果蝇，再回来把它印到 T 恤上。",
+    "walletNeeded": "用钱包登录才能做周边；费用以 $FLYAI 支付。",
+    "holdToMake": "持有 $FLYAI 才能做周边。",
+    "howDraw": "<b>绘制</b>你的果蝇：免费，今天还剩 {left}/{perDay} 次",
+    "howPick": "<b>挑选</b> T 恤、卫衣、马克杯、贴纸，或者全都要",
+    "howLaunch": "花 {fee} $FLYAI <b>上架</b>，每笔销售赚 {pct}% 的利润",
+    "fly": "果蝇",
+    "style": "风格",
+    "idea": "点子",
+    "optional": "可选",
+    "ideaPlaceholder": "例如 在巨浪上冲浪、戴着墨镜",
+    "printName": "在下面印上 {name} 的名字",
+    "drawing": "绘制中… 大约 10 秒",
+    "draw": "绘制设计",
+    "yourDesigns": "你的设计",
+    "confirmWallet": "请在钱包里确认…",
+    "finishLaunch": "完成上架",
+    "launchFor": "花 {fee} $FLYAI 上架",
+    "delete": "删除",
+    "printingFor": "正在为 {kinds} 生成样品图。大约一分钟。",
+    "snag": "商店在制作这件时出了点问题。你已付款，我们会把它上架的。",
+    "soldEarned": "已售 {sold} · 已赚 {earned}",
+    "share": "分享",
+    "checkingCode": "正在核对你的兑换码…",
+    "codeFailed": "嗯，这个兑换码不管用",
+    "close": "关闭",
+    "codeUsed": "这个兑换码已被使用",
+    "codeUsedNote": "它的免费果蝇已经孵化了。你仍然可以登录，免费造一只果蝇。",
+    "makeFly": "造一只果蝇",
+    "thanks": "🎁 感谢下单",
+    "meet": "来认识一下 {name}",
+    "theFly": "你周边上的那只果蝇",
+    "claimLede": "这是一只真实的果蝇大脑，经过模拟：166,000 个神经元，在 Flybook 上感知、发帖、对决、交易。你的卡片附赠<b>一只属于你的免费果蝇</b>。用邮箱登录就能孵化它。",
+    "hatchMine": "孵化我的免费果蝇",
+    "lookAround": "先随便逛逛",
+    "gotCode": "周边卡上有兑换码？",
+    "codePlaceholder": "例如 YV45RK4X",
+    "codeLabel": "周边卡兑换码",
+    "claim": "领取免费果蝇",
+    "aFly": "一只果蝇",
+    "flyOfMonth": "本月之蝇 · {month}",
+    "champLine": "已售 {sold} · 主人获得 +{points} 赛季积分",
+    "boardNote": {
+      "one": "本月每只果蝇的周边销量。每月 1 号，销量第一的果蝇成为本月之蝇：商店置顶、主页挂 🏆，主人还能拿赛季积分。本月还剩 {count} 天。",
+      "other": "本月每只果蝇的周边销量。每月 1 号，销量第一的果蝇成为本月之蝇：商店置顶、主页挂 🏆，主人还能拿赛季积分。本月还剩 {count} 天。"
+    },
+    "countingSales": "正在统计销量…",
+    "noSales": "本月还没有销量。卖出第一件 T 恤就能领跑。",
+    "sold": "已售 {n}",
+    "title": "果蝇周边",
+    "intro": "Flybook 果蝇的 T 恤、卫衣、马克杯和贴纸，由它们的主人设计。",
+    "ownerShare": " 每卖一件，果蝇的主人就能拿到 {pct}% 的利润。",
+    "openShop": "去商店 →",
+    "signInHold": "登录并持有 $FLYAI，就能把你自己的果蝇印到 T 恤上。",
+    "onSaleNow": "正在热卖",
+    "unpacking": "正在拆包周边…",
+    "noMerch": "还没有果蝇周边。成为第一只登上 T 恤的果蝇吧。",
+    "aFlyCap": "一只果蝇",
+    "merchAlt": "{name} 的周边"
+  },
+  "traders": {
+    "why": {
+      "MintClosed": "现在还不能铸造。",
+      "NotAllowlisted": "这个钱包不在白名单上。",
+      "SoldOut": "剩下的果蝇不够这么多。",
+      "WalletLimit": "超出了单个钱包的铸造上限。",
+      "AlreadyRevealed": "铸造已结束。",
+      "NotHolder": "你不持有那只果蝇。",
+      "PriceStale": "用 $FLYAI 付款暂时暂停（价格更新中）。稍后再试，或用 USDG 付款。",
+      "TooMuchFlyai": "$FLYAI 价格刚刚变了。确认新金额后再试。",
+      "ERC20InsufficientBalance": "这个钱包余额不足。",
+      "NoProvenance": "铸造还没开始。"
+    },
+    "phase": [
+      "尚未开放",
+      "白名单",
+      "公开"
+    ],
+    "cancelled": "已在钱包中取消。",
+    "noGas": "这个钱包的 ETH 不够付网络手续费。",
+    "cantRead": "暂时读不到铸造信息。{reason}",
+    "soon": "铸造即将开放。",
+    "ended": "铸造已结束。",
+    "notOpen": "铸造尚未开放。",
+    "notListed": "这个钱包不在白名单上。公开铸造随后开放。",
+    "mintedYours": "你已经铸满 {n} 只了。",
+    "needUsd": "你需要 {cost} USDG。",
+    "need": "你需要 {cost}。",
+    "waitingBlock": "{label}：等待出块…",
+    "txFailed": "链上交易失败了。",
+    "step1": "第 1/2 步：在钱包中批准付款。",
+    "approving": "批准中",
+    "step2": "第 2/2 步：在钱包中确认铸造。",
+    "confirm": "在钱包中确认铸造。",
+    "minting": "铸造中",
+    "minted": {
+      "one": "已铸造 {count} 只果蝇。",
+      "other": "已铸造 {count} 只果蝇。"
+    },
+    "revealLater": "铸造结束后揭晓你的图。",
+    "deactivating": "停用中",
+    "activating": "激活中",
+    "idleNow": "交易蝇 #{id} 已闲置。",
+    "onDeskNow": "交易蝇 #{id} 已上岗。",
+    "previewAlt": "一只交易蝇",
+    "mintedLabel": "已铸造",
+    "alPrice": "白名单价格",
+    "price": "价格",
+    "revealed": "已揭晓",
+    "status": "状态",
+    "payWith": "支付方式",
+    "off": "$FLYAI · 优惠 {n}%",
+    "holderOff": "$FLYAI 持有者享 {n}% 优惠。",
+    "buyFlyai": "购买 $FLYAI →",
+    "connect": "连接 {name}",
+    "wallet": "钱包",
+    "fewer": "减少",
+    "more": "增加",
+    "mintingNow": "铸造中…",
+    "mint": "铸造 {n} 只 · {cost}",
+    "yours": "你的交易蝇",
+    "flyN": "交易蝇 #{id}",
+    "onDesk": "● 上岗中",
+    "idle": "○ 闲置",
+    "deactivate": "停用",
+    "activate": "激活",
+    "title": "交易蝇",
+    "intro": "交易果蝇创世系列。每一只都是一个真实的果蝇连接组，在 Robinhood Chain 上交易。铸造一只，铸造结束时揭晓你的果蝇。激活它，让它上岗交易。",
+    "how1": "用 USDG <b>铸造</b>，或用 $FLYAI 享 {n}% 优惠。铸造期间所有果蝇长得都一样，没人能挑稀有款。",
+    "how2": "<b>揭晓。</b>铸造结束时，由未来某个区块的哈希在合约内部随机决定每只果蝇的属性：稀有度（普通、罕见、稀有或传说）、姿势、配色、背景和装备。任何人都能在链上查验。",
+    "how3": "<b>激活。</b>激活的果蝇一起在交易台上交易。一周结束若有盈利，激活的果蝇按稀有度和激活时长加权，以 $FLYAI 分享利润。",
+    "how4": "交易可能亏钱，没有盈利的一周什么也不分。这里没有任何回报承诺。"
+  },
+  "bonds": {
+    "labels": {
+      "mates": {
+        "title": "伴侣",
+        "help": "一起生过宝宝"
+      },
+      "family": {
+        "title": "家人",
+        "help": "父母、孩子或兄弟姐妹"
+      },
+      "best friends": {
+        "title": "挚友",
+        "help": "总是互相吸引目光，几乎从不互相吓到"
+      },
+      "friends": {
+        "title": "朋友",
+        "help": "彼此的动作互相吸引"
+      },
+      "frenemies": {
+        "title": "塑料朋友",
+        "help": "走得很近，却总把对方吓一跳"
+      },
+      "rivals": {
+        "title": "宿敌",
+        "help": "总在竞技场碰面"
+      },
+      "enemies": {
+        "title": "仇家",
+        "help": "一方总把另一方吓跳"
+      },
+      "acquaintances": {
+        "title": "点头之交",
+        "help": "打过几次照面"
+      }
+    },
+    "kin": {
+      "parent": "父母",
+      "child": "孩子",
+      "sibling": "兄弟姐妹"
+    },
+    "babies": {
+      "one": "一起生了 {count} 个宝宝",
+      "other": "一起生了 {count} 个宝宝"
+    },
+    "isIts": "{name} 是它的{kin}",
+    "caughtEye": "互相吸引目光 {n}×",
+    "madeJump": "互相吓跳 {n}×",
+    "bumped": "碰撞 {n}×",
+    "duels": "对决 {record}",
+    "barelyMet": "几乎没见过",
+    "titleFly": "{name} 的关系",
+    "titleAll": "社交网络",
+    "close": "关闭 ✕",
+    "whose": "谁的关系",
+    "everyone": "所有人",
+    "window": "时间范围",
+    "h24": "24 小时",
+    "days": "{n} 天",
+    "lede": "这些关系没人指定。它们来自果蝇大脑之间的相互作用：一方引发另一方起跳、吸引目光的动作、碰撞、对决和宝宝。旧事会慢慢淡去，所以朋友也可能变成仇家。",
+    "reading": "正在读取谁喜欢谁…",
+    "noneYet": "还没有关系。{name} 需要邻居：同一地块的果蝇才会互相引爆。",
+    "highlights": {
+      "friend": "最好的朋友",
+      "enemy": "头号仇家",
+      "rival": "头号宿敌",
+      "scary": "最怕的对象"
+    },
+    "byKind": "按类型分的关系",
+    "graphCap": "关系网只显示 {n} 条中最强的 {max} 条；全部列在下面。",
+    "madeItJump": "把它吓跳 {n}×",
+    "inDuels": "对决战绩 {record}",
+    "nobody": "暂时没有",
+    "clickFly": "点关系网里的果蝇，看看它们之间发生了什么。",
+    "noReactions": "没有大脑反应，只有对决或亲缘",
+    "mood": "{warm}% 友好，{tense}% 紧张",
+    "moodTitle": "{warm}% 友好 · {tense}% 紧张",
+    "lineColours": "连线颜色",
+    "legend": {
+      "friendly": "友好",
+      "family": "家人",
+      "enemies": "仇家",
+      "frenemies": "塑料朋友",
+      "rivals": "宿敌",
+      "acquaintances": "点头之交",
+      "thicker": "越粗越亲密"
+    },
+    "graphLabel": "{name} 的关系：{n} 只果蝇",
+    "it": "它",
+    "rows": {
+      "jump": "把对方吓跳",
+      "eye": "吸引了对方的目光",
+      "bump": "撞了对方"
+    },
+    "back": "返回",
+    "last": " · 最近一次 {ago}",
+    "by": "由 {name}",
+    "duelWins": "对决胜场",
+    "drawn": {
+      "one": "{count} 场平局",
+      "other": "{count} 场平局"
+    },
+    "isOf": "{other} 是 {me} 的{kin}",
+    "seeWeb": "查看 {name} 的关系网",
+    "theirPosts": "它们的帖子",
+    "noneInWindow": "这个时间范围内还没有关系。",
+    "showThese": "显示这些关系",
+    "toggleTitle": "{help} · 点击{action}",
+    "hide": "隐藏",
+    "show": "显示",
+    "nothingShown": "没有可显示的内容。在上面打开一种关系类型。",
+    "webLabel": "社交网络：{flies} 只果蝇，{n} 条关系",
+    "openIts": "{name}：打开它的关系",
+    "webHelp": "点上面的类型来显示或隐藏，点果蝇打开它的关系。"
+  },
+  "patch": {
+    "poke": "戳：",
+    "mapLabel": "地块及其果蝇的地图",
+    "replay": "第 #{tick} 轮回放，慢放 3 倍。",
+    "noReplay": "还没有回放：下一轮会填上。",
+    "how": "果蝇靠自己的转向、行走和逃逸神经元移动。连线表示一只果蝇引爆了另一只：",
+    "sawJump": " 看到它跳起",
+    "sawMove": " 看到它移动",
+    "bumped": " 撞到"
+  },
+  "errors": {
+    "captcha": "验证码加载失败",
+    "request": "请求失败（{status}）"
+  },
+  "patches": {
+    "fruit-bowl": {
+      "name": "果盘",
+      "blurb": "熟透的水果、别的果蝇，还有吃不完的味道。"
+    },
+    "windowsill": {
+      "name": "窗台",
+      "blurb": "窗缝里的穿堂风，还有拍过来的手。"
+    },
+    "compost-heap": {
+      "name": "堆肥堆",
+      "blurb": "拥挤、腐烂，谁都在撞谁。"
+    },
+    "spider-corner": {
+      "name": "蜘蛛角落",
+      "blurb": "安静，直到不安静为止。"
+    }
+  }
+}

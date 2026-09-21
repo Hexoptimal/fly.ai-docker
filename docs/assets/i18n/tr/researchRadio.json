@@ -1,0 +1,65 @@
+{
+  "head": {
+    "p1": "Şimdi yayında · Sinek Radyo",
+    "h11": "Gerçek bir sinek beyninin yönettiği radyo istasyonu",
+    "p2": "Dört program, beş sinek, gerçek 166.700 nöronluk MaleCNS konektomu — tarayıcında canlı çalışıyor, Simülasyon'la aynı beyin dosyalarıyla. Duyduğun her vızıltı o beynin kendi kanat motor nöronu aktivitesi, ölçüldüğü anda çalınıyor: hiçbir şey önceden hazırlanmadı, hiçbir şey döngüde değil."
+  },
+  "s1": {
+    "span1": "gerçek nöron, canlı",
+    "span2": "aynı anda yayın yapan sinek",
+    "span3": "frekanstaki program",
+    "span4": "önceden hazırlanmış ya da döngüye alınmış klip",
+    "a1": "Frekansı yakala — Sinek Radyo'yu aç",
+    "a2": "Kodu oku"
+  },
+  "lineup": {
+    "p1": "Yayın akışı",
+    "h21": "Her program gerçek, önceden ölçülmüş bir uyaranı kullanıyor",
+    "p2": "Radyo için yeni nöron popülasyonu eşlemeleri uydurulmadı: her program sabit, gerçek bir uyaran bağlamını (<code>flytalk.py</code>'nin kullandıklarının aynısı) sen dinlediğin sürece beynin canlı bir kopyasına yöneltiyor.",
+    "span1": "KANAL 1 · BEYAZ GÜRÜLTÜ",
+    "h31": "Kimse",
+    "p3": "<code>baseline</code>, uyaran yok. Gerçek hışırtı, ton yok &mdash; sürülmeyen bir sinek beyninin dinlenme aktivitesi; taşıyıcı tamamen kapalı, böylece sessiz bir vızıltı değil parazit gibi duyuluyor.",
+    "span2": "KANAL 2 · BUZZKILL",
+    "h32": "Şüpheli",
+    "p4": "<code>threat</code> (LC4 + LPLC2, yaklaşma). Sinek boyutunda gerçek suç: gerçek bir yaklaşma algılama devresi, canlı, üstüne gelen bir şeye tepki veriyor.",
+    "span3": "KANAL 3 · ÇÜRÜK VE LEZZETLİ",
+    "h33": "Eleştirmen",
+    "p5": "<code>food</code> (ORN_DM1 + ORN_DM2). Bir sinek, bir tabak, sıfır sakinlik &mdash; değerlendirmeyi gerçek koku reseptörü nöronları yapıyor.",
+    "span4": "KANAL 4 · ÇİFTLEŞME ÇAĞRISI",
+    "h34": "Buzzy Buzz & Dr. Buzziam Buzz",
+    "p6": "Bir talk show, <code>baseline</code> / <code>mate</code> (LC10a): mikrofon bir sunucu ile bir uzman arasında gidip geliyor, sırasıyla 2,5 s ve 4 s, döngü halinde. İki sinek de baştan sona çalışmaya devam ediyor."
+  },
+  "how": {
+    "p1": "Nasıl çalışıyor",
+    "h21": "Girişte gerçek nöronlar, üstünde uydurma bir ton, açıkça",
+    "p2": "Bu beyni kimse programlamadı ve programı kimse script'lemedi. Yalnızca seslendirme — ses şiddetinin nasıl bir tona dönüştüğü — uydurma bir tercih; bu projenin diğer demolarıyla aynı dürüstlükte.",
+    "span1": "01 · UYARAN GİRİŞİ",
+    "h31": "Sinek başına tek sabit girdi",
+    "p3": "Açtığın programın her oyuncusu beynin kendine ait bir kopyası ve senin cihazında çalışıyor. Her birine programın gerçek uyaranı, onu taşıyan gerçek nöronlara, her 20 ms'lik adımda enjekte ediliyor — hiçbir şey script'lenmiyor, zamanlanmıyor ya da puanlanmıyor.",
+    "span2": "02 · SES ÇIKIŞI",
+    "h32": "Gerçek şiddet, uydurma bir taşıyıcı",
+    "p4": "Sayfa her adımda o sineğin gerçek kanat motor nöronlarının dinlenme seviyesinin ne kadar üstünde ateşlendiğini ölçüyor. Bu tek gerçek sayı, duyulabilsin diye yaklaşık 190 Hz'lik sentetik bir tonun genliğini modüle ediyor — tek uydurma bileşen bu.",
+    "span3": "03 · METİN ÇIKIŞI",
+    "h33": "Gerçek bir canlı kod çözme",
+    "p5": "Gerçek bağlamlarda kalibre edilmiş küçük, çapraz doğrulanmış bir sınıflandırıcıya bir oyuncunun gerçek ölçülmüş zarfından kayan bir pencere veriliyor — etiket yok — ve hangi bağlama benzediğini tahmin ediyor. Çoğu zaman yanılıyor, bilerek: bu gerçek bir kod çözme, yankı değil."
+  },
+  "more": {
+    "p1": "Devamını oku",
+    "h21": "Gerisi",
+    "h31": "Frekansı yakala",
+    "p2": "Canlı istasyonu aç: bir kanal seç, Dinle'ye bas ve istasyonun okuma katmanı mikrofondaki her sineğin vızıltısını çözerken çeviri panelini oku.",
+    "p3": "Sinek Radyo'yu aç →",
+    "h32": "Konuşan sinekler",
+    "p4": "İlgili bir deney: konektomun iki kopyası, biri kanat şarkısıyla sinyal veriyor, diğeri dinliyor.",
+    "p5": "Deneyi oku →",
+    "h33": "Tam yazı",
+    "p6": "Eksiksiz teknik README: simülasyon döngüsü, ses sentezi, altyazı kalibrasyonu ve kendin nasıl çalıştıracağın.",
+    "p7": "GitHub'da oku →"
+  },
+  "meta": {
+    "title": "Sinek Radyo — gerçek bir sinek beyninin yönettiği radyo istasyonu",
+    "description": "Dört canlı program, beş sinek, tarayıcında çalışan gerçek 166.700 nöronluk konektom. Duyduğun her vızıltı gerçek kanat motor nöronu aktivitesi, ölçüldüğü anda çalınıyor — önceden hazırlanmış bir şey yok, döngü yok.",
+    "ogTitle": "Sinek Radyo — gerçek bir sinek beyninin yönettiği radyo istasyonu",
+    "ogDescription": "Dört canlı program, beş sinek, tarayıcında çalışan gerçek 166.700 nöronluk konektom. Duyduğun her vızıltı gerçek kanat motor nöronu aktivitesi, ölçüldüğü anda çalınıyor."
+  }
+}

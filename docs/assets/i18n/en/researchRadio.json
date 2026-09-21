@@ -1,0 +1,65 @@
+{
+  "head": {
+    "p1": "Live now · Fly Radio",
+    "h11": "A radio station run by an actual fly brain",
+    "p2": "Four shows, five flies, the real 166,700-neuron MaleCNS connectome — running live in your browser, the same brain files as the Simulation. Every buzz you hear is that brain's own wing-motor-neuron activity, played the instant it's measured: nothing is pre-rendered, nothing loops."
+  },
+  "s1": {
+    "span1": "real neurons, live",
+    "span2": "flies broadcasting at once",
+    "span3": "shows on the dial",
+    "span4": "clips pre-rendered or looped",
+    "a1": "Tune in — open Fly Radio",
+    "a2": "Read the code"
+  },
+  "lineup": {
+    "p1": "The lineup",
+    "h21": "Every show reuses a real, already-measured stimulus",
+    "p2": "No new neuron-population mappings were invented for radio: each show just points a fixed real stimulus context (the same ones <code>flytalk.py</code> uses) at a live copy of the brain, for as long as you listen.",
+    "span1": "CH 1 · WHITE NOISE",
+    "h31": "Nobody",
+    "p3": "<code>baseline</code>, no stimulus. Actual hiss, no tone &mdash; the resting activity of an undriven fly brain, with the carrier turned off entirely so it reads as static rather than a quiet buzz.",
+    "span2": "CH 2 · BUZZKILL",
+    "h32": "The Suspect",
+    "p4": "<code>threat</code> (LC4 + LPLC2, looming). True crime, fly-sized: a real looming-detection circuit, live, reacting to something closing in.",
+    "span3": "CH 3 · ROTTEN AND TASTY",
+    "h33": "The Critic",
+    "p5": "<code>food</code> (ORN_DM1 + ORN_DM2). One fly, one plate, zero chill &mdash; real odour-receptor neurons doing the reviewing.",
+    "span4": "CH 4 · THE MATING CALL",
+    "h34": "Buzzy Buzz & Dr. Buzziam Buzz",
+    "p6": "A talk show, <code>baseline</code> / <code>mate</code> (LC10a): the mic alternates between a presenter and an expert, 2.5 s and 4 s at a time, on a loop. Both flies keep running the whole time."
+  },
+  "how": {
+    "p1": "How it works",
+    "h21": "Real neurons in, a made-up tone on top, plainly",
+    "p2": "Nobody programmed this brain and nobody scripted the show. Only the sonification — how loudness becomes a tone — is a made-up choice, same honesty as this project's other demos.",
+    "span1": "01 · STIMULUS IN",
+    "h31": "One fixed input per fly",
+    "p3": "Each cast member of the show you tune to is its own copy of the brain, running on your device. Each gets its show's real stimulus injected into the real neurons that carry it, on every 20 ms step — nothing scripted, timed, or scored.",
+    "span2": "02 · SOUND OUT",
+    "h32": "Real loudness, a made-up carrier",
+    "p4": "Every step, the page measures how hard that fly's real wing-motor neurons fire above rest. That one real number amplitude-modulates a synthetic ~190 Hz tone so it's audible — the only invented ingredient.",
+    "span3": "03 · TEXT OUT",
+    "h33": "A genuine live decode",
+    "p5": "A small cross-validated classifier, calibrated on the real contexts, is handed a rolling window of a cast member's real measured envelope — no label attached — and guesses which context it resembles. Often wrong, on purpose: it's a real decode, not an echo."
+  },
+  "more": {
+    "p1": "Read on",
+    "h21": "The rest of it",
+    "h31": "Tune in",
+    "p2": "Open the live station: pick a channel, press Tune in, and read the translation panel as the station's readout decodes each on-mic fly's buzz.",
+    "p3": "Open Fly Radio →",
+    "h32": "Talking flies",
+    "p4": "A related experiment: two copies of the connectome, one signalling through wing song, the other listening.",
+    "p5": "Read the experiment →",
+    "h33": "Full write-up",
+    "p6": "The complete technical README: the simulation loop, the audio synthesis, the caption calibration, and how to run it yourself.",
+    "p7": "Read on GitHub →"
+  },
+  "meta": {
+    "title": "Fly Radio — a radio station run by a real fly brain",
+    "description": "Four live shows, five flies, the real 166,700-neuron connectome running in your browser. Every buzz you hear is real wing-motor-neuron activity, played the instant it's measured — nothing pre-rendered, nothing looped.",
+    "ogTitle": "Fly Radio — a radio station run by a real fly brain",
+    "ogDescription": "Four live shows, five flies, the real 166,700-neuron connectome running in your browser. Every buzz you hear is real wing-motor-neuron activity, played the instant it's measured."
+  }
+}

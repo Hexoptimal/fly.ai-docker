@@ -717,3 +717,8 @@ p.gift-box { margin: 0 0 12px; }
   .traders-mint { grid-template-columns: 1fr; }
   .traders-mint > img { max-width: 200px; }
 }
+
+/* language menu in the header (the site-wide choice, docs/assets/i18n) */
+.langpick { font: 13px/1.2 Inter, system-ui, sans-serif; color: var(--muted); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 6px; padding: 4px 6px; cursor: pointer; max-width: 120px; }
+.langpick:hover { color: var(--text); }

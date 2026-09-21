@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Connect wallet &mdash; fly.ai compute</title>
-<meta name="description" content="Link a wallet to your fly.ai compute miner.">
+<title data-i18n="compute.connect.metaTitle">Connect wallet &mdash; fly.ai compute</title>
+<meta name="description" content="Link a wallet to your fly.ai compute miner." data-i18n-attr="content:compute.connect.metaDescription">
 <meta property="og:title" content="Connect wallet &mdash; fly.ai compute">
 <meta property="og:description" content="Link a wallet to your fly.ai compute miner.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/compute/connect">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,9 +56,9 @@
 
 <section class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">fly.ai compute</p>
-    <h1>Connect your wallet</h1>
-    <p class="lede">Credit from your miner is paid to the wallet you link. You'll sign a short message: it's free and sends no transaction.</p>
+    <p class="eyebrow" data-i18n="compute.connect.flyAiCompute">fly.ai compute</p>
+    <h1 data-i18n="compute.connect.connectYourWallet">Connect your wallet</h1>
+    <p class="lede" data-i18n="compute.connect.creditFromYourMiner">Credit from your miner is paid to the wallet you link. You'll sign a short message: it's free and sends no transaction.</p>
     
   </div>
 </section>
@@ -65,11 +66,11 @@
 <section class="firstsec">
   <div class="wrap">
     <div class="card pad" style="max-width:640px">
-      <span class="num">SIGN IN</span>
+      <span class="num" data-i18n="compute.connect.signIn">SIGN IN</span>
       <p id="intro"></p>
-      <div class="row"><span class="k">Miner</span><span class="v" id="which">—</span></div>
-      <div class="row"><span class="k">Status</span><span class="v" id="status">ready</span></div>
-      <div class="cta" style="margin-top:18px"><button id="connect" class="btn red" type="button">Connect wallet</button></div>
+      <div class="row"><span class="k" data-i18n="compute.connect.miner">Miner</span><span class="v" id="which">—</span></div>
+      <div class="row"><span class="k" data-i18n="compute.connect.status">Status</span><span class="v" id="status" data-i18n="compute.connect.ready">ready</span></div>
+      <div class="cta" style="margin-top:18px"><button id="connect" class="btn red" type="button" data-i18n="compute.connect.connectWallet">Connect wallet</button></div>
     </div>
   </div>
 </section>

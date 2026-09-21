@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "title": "Fly Radio",
+    "description": "A radio station played by a real 166,700-neuron fruit-fly connectome, running live in your browser. Four shows, five flies, nothing pre-rendered or looped."
+  },
+  "head": {
+    "eyebrow": "Live now &middot; Fly Radio",
+    "title": "Fly <span class=\"accent\">Radio</span>",
+    "lede": "Four shows, five flies, the real 166,700-neuron connectome, running live in your browser. Every buzz you hear is that brain's own wing-motor-neuron activity, played the instant it's measured &mdash; nothing pre-rendered, nothing looped.",
+    "statusLabel": "station status:"
+  },
+  "unit": {
+    "label": "Radio",
+    "onAir": "ON AIR",
+    "scene": "A fly sitting at a desk, talking into a microphone",
+    "channels": "Select channel",
+    "tuneIn": "Tune in",
+    "turnOff": "Turn off"
+  },
+  "captions": {
+    "label": "Live translation",
+    "title": "Translation &mdash; live decoded reading",
+    "before": "Captions appear once you've tuned in.",
+    "listening": "Listening. The first reading comes after a second of the show.",
+    "reads": "reads {context}"
+  },
+  "context": {
+    "baseline": "baseline",
+    "mate": "mate",
+    "threat": "threat",
+    "food": "food"
+  },
+  "note": "Every buzz above is real: the amplitude comes straight from the actual 166,700-neuron MaleCNS connectome, downloaded once (58&nbsp;MB, the same files as the Simulation) and stepped live on your device &mdash; specifically each cast member's own wing-motor-neuron spikes above rest (the \"song\" <code>flytalk.py</code> measures). Nothing is pre-rendered or looped. The ~190&nbsp;Hz sine tone that envelope rides on, and the show names/branding, are a sonification layered on top &mdash; made up, plainly, same as this project's other demos. Captions are a genuine live decode (a cross-validated readout calibrated on the real contexts), not an echo of whichever context is driving a fly, so they can legitimately read low-confidence or as the \"wrong\" context.",
+  "status": {
+    "press": "press Tune in",
+    "loading": "loading the fly brain: {progress}",
+    "error": "couldn't load the brain: {error}",
+    "ready": "ready: {n} neurons",
+    "onAir": "on air",
+    "onAirPerf": "on air · {ms} ms per brain step",
+    "loadingOnce": "loading the fly brain (58 MB, once)",
+    "off": "off",
+    "labels": "labels {mb} MB",
+    "connectome": "connectome {mb} MB",
+    "wiring": "wiring 25 M synapses"
+  },
+  "shows": {
+    "static": {
+      "name": "White Noise",
+      "tagline": "Nothing on the line. Just the resting hiss of an undriven fly brain.",
+      "cast": {
+        "0": "Nobody"
+      }
+    },
+    "buzzkill": {
+      "name": "Buzzkill",
+      "tagline": "True crime, fly-sized. Tonight: something is looming.",
+      "cast": {
+        "0": "The Suspect"
+      }
+    },
+    "rotten_and_tasty": {
+      "name": "Rotten and Tasty",
+      "tagline": "One fly, one plate, zero chill.",
+      "cast": {
+        "0": "The Critic"
+      }
+    },
+    "mating_call": {
+      "name": "The Mating Call",
+      "tagline": "Buzzy Buzz asks. Dr. Buzziam Buzz answers.",
+      "cast": {
+        "0": "Buzzy Buzz",
+        "1": "Dr. Buzziam Buzz"
+      }
+    }
+  }
+}

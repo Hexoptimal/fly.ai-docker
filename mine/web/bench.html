@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bench &mdash; fly.ai compute</title>
-<meta name="description" content="Check that your GPU gives exactly the CPU's answers, and measure jobs per hour.">
+<title data-i18n="compute.bench.metaTitle">Bench &mdash; fly.ai compute</title>
+<meta name="description" content="Check that your GPU gives exactly the CPU's answers, and measure jobs per hour." data-i18n-attr="content:compute.bench.metaDescription">
 <meta property="og:title" content="Bench &mdash; fly.ai compute">
 <meta property="og:description" content="Check that your GPU gives exactly the CPU's answers, and measure jobs per hour.">
 <meta property="og:image" content="https://flyaiworld.com/assets/dashboard.png">
@@ -12,6 +12,7 @@
 <meta name="twitter:site" content="@flydotai">
 <meta name="theme-color" content="#07090c">
 <link rel="canonical" href="https://flyaiworld.com/compute/bench">
+<script src="/assets/i18n/boot.js"></script>
 <link rel="icon" href="/assets/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,9 +56,9 @@
 
 <section class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">fly.ai compute · bench</p>
-    <h1>GPU bench</h1>
-    <p class="lede">Checks that this GPU gives exactly the CPU's answers, then measures jobs per hour on each. Nothing is sent to the server.</p>
+    <p class="eyebrow" data-i18n="compute.bench.flyAiComputeBench">fly.ai compute · bench</p>
+    <h1 data-i18n="compute.bench.gpuBench">GPU bench</h1>
+    <p class="lede" data-i18n="compute.bench.checksThatThisGpu">Checks that this GPU gives exactly the CPU's answers, then measures jobs per hour on each. Nothing is sent to the server.</p>
     
   </div>
 </section>
@@ -65,8 +66,8 @@
 <section class="firstsec">
   <div class="wrap">
     <div class="card pad">
-      <div class="cta"><button id="go" class="btn red" type="button">Run bench</button></div>
-      <div class="row" style="margin-top:14px"><span class="k">Status</span><span class="v" id="status">idle</span></div>
+      <div class="cta"><button id="go" class="btn red" type="button" data-i18n="compute.bench.runBench">Run bench</button></div>
+      <div class="row" style="margin-top:14px"><span class="k" data-i18n="compute.bench.status">Status</span><span class="v" id="status" data-i18n="compute.bench.idle">idle</span></div>
       <pre id="log" class="codeblock"></pre>
     </div>
   </div>

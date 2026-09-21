@@ -1,0 +1,238 @@
+{
+  "meta": {
+    "title": "Flinder",
+    "description": "Tinder para moscas. Un cerebro real de mosca de 166,700 neuronas, funcionando en tu navegador, desliza perfiles de citas: sus neuronas pC1 del impulso de apareamiento deciden izquierda o derecha. Hay match cuando el cerebro de la otra mosca también desliza a la derecha."
+  },
+  "head": {
+    "title": "Fl<span>inder</span>",
+    "sub": "Tinder para moscas. Un cerebro real de mosca desliza perfiles de citas y sus neuronas del impulso de apareamiento dicen izquierda o derecha. Si el cerebro de la otra mosca también desliza a la derecha, hay match."
+  },
+  "status": {
+    "loading": "cargando el cerebro de mosca…",
+    "progress": "cargando el cerebro de mosca: {text}",
+    "error": "no se pudo cargar el cerebro: {text}",
+    "ready": "cerebro listo · {n} neuronas",
+    "labels": "etiquetas",
+    "brain": "cerebro de mosca",
+    "wiring": "cableando 25 M sinapsis"
+  },
+  "phone": {
+    "swiping": "deslizando:",
+    "nope": "Paso",
+    "superLike": "Super like",
+    "like": "Like",
+    "back": "Volver",
+    "match": "¡Es un Match!"
+  },
+  "controls": {
+    "start": "Empezar a deslizar",
+    "pause": "Pausa",
+    "keepGoing": "Seguir deslizando",
+    "newFly": "Nueva mosca",
+    "speedNormal": "Velocidad: normal",
+    "speedFast": "Velocidad: rápida",
+    "soundOn": "Sonido: sí",
+    "soundOff": "Sonido: no"
+  },
+  "swiper": {
+    "title": "La que desliza",
+    "statsCard": "📸 Tarjeta de stats",
+    "post": "𝕏 Publicar",
+    "challenge": "🔗 Reta a un amigo",
+    "note": "Su propio perfil es lo que juzgan los cerebros de las otras moscas. Manda el enlace y un amigo juega con esta misma mosca. Supera su puntuación.",
+    "nameAge": "{name}, {age}d",
+    "stats": "{swipes} deslizadas · {matches} matches · {dates} citas · 👻 {ghosted} · 💔 {unmatched} · ⭐ {supers}"
+  },
+  "meter": {
+    "title": "Dentro de su cabeza",
+    "nobodyYet": "nadie todavía",
+    "intoIt": "Le gusta",
+    "pc1": "neuronas pC1",
+    "swipeRight": "a la derecha",
+    "superLike": "super like",
+    "panic": "Pánico",
+    "giantFibre": "fibra gigante",
+    "spooked": "asustada",
+    "grooming": "Acicalándose",
+    "blushing": "Sonrojada",
+    "note": "Espigas del conectoma real de la mosca, 166,700 neuronas funcionando en tu navegador. Huele cada perfil (cVA, Or47b, vinagre), lo ve (LC10a) y lo oye (órgano de Johnston). Pasada la primera línea desliza a la derecha; pasada la segunda, es un super like. En un chat cada mensaje se percibe igual: pC1 le coquetea de vuelta, una mosca demasiado intensa dispara la fibra gigante y se larga, y un cerebro aburrido se limpia las antenas.",
+    "thinking": "pensando…",
+    "typing": "escribiendo…",
+    "reads": "{name} lee…",
+    "superLikeV": "SUPER LIKE ⭐",
+    "rightV": "A LA DERECHA ♥",
+    "leftV": "A LA IZQUIERDA ✕"
+  },
+  "panels": {
+    "matches": "Matches",
+    "matchesTap": "Toca uno para leer su chat.",
+    "noMatches": "aún no hay matches",
+    "board": "Tabla de corazones rotos",
+    "boardNote": "Las moscas que has jugado en este navegador.",
+    "boardEmpty": "juega una mosca para entrar en la tabla",
+    "noHeartbreaks": "aún no hay corazones rotos",
+    "swipes": "Deslizadas"
+  },
+  "tally": "desde siempre aquí: {swipes} deslizadas · {matches} matches · {dates} citas",
+  "card": {
+    "like": "LIKE",
+    "nope": "PASO",
+    "super": "SUPER<br>LIKE",
+    "mosquito": "⚠️ posible mosquito",
+    "rival": "👀 huele a otra mosca",
+    "age": "{age}d",
+    "meta": "{job} · a {cm} cm"
+  },
+  "match": {
+    "bot": "Hiciste match con un mosquito. Suerte 🩸",
+    "super": "{name} recibió un super like y dijo que sí 😳",
+    "mutual": "{name} y tú se gustan.",
+    "log": "💖 match con {name}"
+  },
+  "chat": {
+    "ex": "tu ex 💀",
+    "earlier": "match de antes",
+    "bot": "⚠️ esta cuenta podría ser un mosquito",
+    "justNow": "match ahora mismo",
+    "anEx": "un ex",
+    "superLike": "super like",
+    "nervous": "nerviosa",
+    "unsent": "🚫 mensaje eliminado",
+    "stoppedTyping": "dejó de escribir…",
+    "giantFibre": "fibra gigante {n}",
+    "grooming": "acicalado {n}",
+    "exBack": "🔁 {name} volvió a tus DMs"
+  },
+  "reply": {
+    "flirt": "coqueteo",
+    "spooked": "susto",
+    "groom": "acicalado",
+    "dry": "seca"
+  },
+  "verdict": {
+    "flirt": "COQUETEA 😘",
+    "spooked": "SE ASUSTA 😱",
+    "groom": "SE ACICALA 🧼",
+    "dry": "SECA 😐"
+  },
+  "end": {
+    "date": "📍 Cita acordada: {place}, {time}",
+    "texting": "💬 siguen escribiéndose…",
+    "unmatchedYou": "💔 {name} te deshizo el match",
+    "youUnmatched": "💔 le deshiciste el match a {name}",
+    "ghostedYou": "👻 {name} te hizo ghosting",
+    "youGhosted": "👻 le hiciste ghosting a {name}",
+    "seen": "Visto ✓✓ {time} AM",
+    "places": ["el plátano podrido", "el contenedor detrás de la pizzería", "la lámpara de la cocina", "una copa de vino olvidada toda la noche", "el frutero", "el tarro de mermelada de la abuela"],
+    "times": ["a las 8pm", "al atardecer", "ahora mismo", "mañana al amanecer", "cuando apaguen las luces"]
+  },
+  "date": {
+    "log": "🌙 noche de cita: {how}",
+    "together": ["se fueron volando juntas hacia el atardecer 💕", "se mudaron juntas. detrás de la nevera", "ya suben fotos de pareja a Flybook"],
+    "bailed": ["una de las dos se escapó por la ventana 💨", "se fue a mitad de la cita. dijo que el plátano estaba 'meh'", "fingió una emergencia de matamoscas y salió volando"],
+    "groomed": ["se limpiaron las antenas la una a la otra durante una hora 🧼", "pasaron toda la cita limpiándose las patas. ¿romántico?"],
+    "awkward": ["silencio incómodo. pagaron el plátano a medias", "hablaron del clima durante 2 horas", "'mejor sigamos siendo moscas'"]
+  },
+  "swipe": {
+    "super": "⭐ super like",
+    "right": "♥ derecha",
+    "left": "✕ izquierda",
+    "log": "{what} a {name}",
+    "waiting": "💌 esperando a {name}…",
+    "rejected": ["{name} te dejó en visto 💀", "no hay match… {name} deslizó a la izquierda", "{name} está \"enfocándose en su carrera\""],
+    "ignoredSuper": "{name} ignoró tu super like 💀",
+    "ew": "{name} dijo \"puaj\"",
+    "leftOn": "{name} deslizó a la izquierda a {swiper}",
+    "meet": "te presento a {name} 🪰",
+    "sharedFly": "🔗 te mandaron a {name}. ¿puedes superar su puntuación?",
+    "copied": "🔗 enlace copiado: mándaselo a un amigo",
+    "sendLink": "Manda este enlace a un amigo:"
+  },
+  "fx": {
+    "ghosted": "GHOSTING",
+    "unmatched": "SIN MATCH",
+    "date": "¡HAY CITA! 📍",
+    "texting": "SIGUEN ESCRIBIÉNDOSE",
+    "swat": "¡ZAS!",
+    "swatSub": "sesión de deslizar interrumpida"
+  },
+  "traits": {
+    "musk": "💪 Almizcle",
+    "moves": "🕺 Pasos",
+    "snack": "🍌 Snacks",
+    "scent": "🌸 Aroma",
+    "song": "🎵 Canto"
+  },
+  "profile": {
+    "jobs": [
+      "inspectora de fruteros", "chocadora profesional de ventanas", "CEO de la composta", "colada en bodas (pícnics)",
+      "especialista en orbitar lámparas", "asesora de madurez de plátanos", "zumbido a tiempo completo", "catadora de sopa (sin invitación)",
+      "influencer de basureros", "sobreviviente de parabrisas", "mosca de laboratorio, 40 años de genética", "caminante de techos"
+    ],
+    "lines": {
+      "musk": {
+        "low": ["sin colonia, solo vibras", "no huelo a nada, como una mosca decente"],
+        "high": ["mosca de gym. se nota por el olor 💪", "empapada en cVA y orgullosa", "solo feromonas alfa"]
+      },
+      "moves": {
+        "low": ["casi siempre estoy en la pared", "no bailo, lo siento"],
+        "high": ["mi baile de alas está prohibido en 3 cocinas", "te perseguiré alrededor del frutero 🕺", "zigzags suavecitos"]
+      },
+      "snack": {
+        "low": ["ya comí", "estoy a dieta de jugos"],
+        "high": ["primera cita en el contenedor, invito yo 🍌", "sé dónde está el buen vinagre", "¿brunch? YO soy el brunch"]
+      },
+      "scent": {
+        "low": ["sin perfume", "almizcle natural de quitina"],
+        "high": ["huéleme desde 3 habitaciones 🌸", "sí, es mi feromona natural", "recién salida de la pupa, oliendo divina"]
+      },
+      "song": {
+        "low": ["no canto, soy tímida", "desafinada, la verdad"],
+        "high": ["te daré una serenata con mi ala izquierda 🎵", "¿canto de pulsos? ¿canto sinusoidal? los dos.", "te escribí una canción de amor a 150 Hz"]
+      }
+    },
+    "red": [
+      "vive en un basurero", "tiene 400 hermanos", "morirá en 30 días", "todavía vive con sus larvas", "se posa primero en la caca, luego en la comida",
+      "vomita sobre la comida para comérsela", "no se ha bañado desde la pupa", "cree que la ventana está abierta", "tiene un frutero en cada cocina",
+      "su ex es una araña", "solo escribe a las 3 am", "no para de frotarse las manos"
+    ],
+    "green": ["nunca pica", "se limpia mucho las patas", "5,000 ojos, todos en ti", "recuerda tu fruta favorita", "comparte el plátano"],
+    "prompts": [
+      { "q": "Mi rasgo tóxico", "a": ["posarme en tu comida", "zumbarte en el oído a las 3 am", "nunca encuentro la ventana abierta", "huelo un plátano a 2 habitaciones"] },
+      { "q": "Green flag", "a": ["no pico (mucho)", "siempre vuelvo a la lámpara", "me lavo la cara 40 veces al día"] },
+      { "q": "Primera cita perfecta", "a": ["el contenedor detrás de la pizzería", "dar vueltas a la lámpara de la cocina", "una copa de vino olvidada toda la noche", "tu pícnic, sin invitación"] },
+      { "q": "Mayor miedo", "a": ["el periódico enrollado", "el matamoscas", "el papel atrapamoscas. no preguntes", "los parabrisas"] },
+      { "q": "Busco", "a": ["alguien con quien compartir composta", "una mosca que se quede más allá del día 30", "mi alma gemela del frutero", "vibras y vinagre"] }
+    ],
+    "botBios": ["solteros calientes en tu zona 🩸", "haz clic en el enlace de mi bio para verificar 🔗", "manda 0.1 ETH y te deslizo a la derecha", "no soy un bot. definitivamente una mosca. bip"],
+    "botJob": "🩸 influencer",
+    "botRed": "es un mosquito",
+    "botPromptQ": "Busco",
+    "botPromptA": "sangre. digo, amor"
+  },
+  "board": {
+    "player": "😎 La más ligona",
+    "dates": "📍 Más citas",
+    "ghosted": "👻 Más ghosting",
+    "unmatched": "💔 Más matches deshechos",
+    "supers": "⭐ Reina del super like"
+  },
+  "share": {
+    "swipes": "deslizadas",
+    "matches": "matches",
+    "dates": "citas",
+    "ghosted": "ghosting",
+    "unmatched": "sin match",
+    "superLikes": "super likes",
+    "footer": "un cerebro real de mosca deslizando · flyaiworld.com/flinder",
+    "tweet": "mi mosca {name} deslizó {swipes} veces en Flinder: {matches} matches, {dates} citas, ghosting {ghosted}x 💀 rizz: {rizz}. un cerebro real de mosca decide cada deslizada. supera a mi mosca 👇",
+    "rizz": {
+      "heartbreaker": "rompecorazones certificada 🔥",
+      "hasRizz": "tiene rizz 😎",
+      "royalty": "realeza del frutero 👑",
+      "pupa": "rizz nivel pupa",
+      "larva": "rizz nivel larva 🐛",
+      "zero": "cero rizz. huevo. 🥚"
+    }
+  }
+}

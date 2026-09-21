@@ -1,0 +1,345 @@
+{
+  "meta": {
+    "title": "fly.ai world — spike atan beyinli sinekler",
+    "description": "Her biri kendi spike atan sinir ağıyla uçan sineklerden oluşan low-poly bir dünya ve beynin canlı görüntüsü."
+  },
+  "top": {
+    "title": "fly.ai <b>world</b>",
+    "starting": "başlıyor…",
+    "togglePanel": "paneli aç/kapat"
+  },
+  "stats": {
+    "line": "{clock} {phase} · {flies} sinek × {neurons} nöron (her birinde {synapses} sinaps) · {fps} fps · {where}{puffs} koku bulutu · rüzgâr {wind} m/s · {matings} çiftleşme, {eggs} yumurta, {hatched} çıkan · ölümler: {old} yaşlılık, {starved} açlık, {eaten} yenen, {swatted} ezilen",
+    "whereLive": "{status} · {viewers} izleyici · ",
+    "wherePrivate": "özel alan · beyin adımı {ms} ms · ",
+    "empty": "canlı · alan boş",
+    "connecting": "canlı dünyaya bağlanılıyor…"
+  },
+  "status": {
+    "live": "canlı",
+    "connecting": "bağlanıyor…",
+    "reconnecting": "yeniden bağlanıyor…",
+    "failed": "başarısız…"
+  },
+  "phase": {
+    "night": "gece",
+    "dawn": "şafak",
+    "morning": "sabah",
+    "midday": "öğle",
+    "afternoon": "öğleden sonra",
+    "dusk": "alacakaranlık"
+  },
+  "state": {
+    "PANIC": "PANİK",
+    "SURGING": "ATILIYOR",
+    "CASTING": "ARIYOR",
+    "FEEDING": "BESLENİYOR",
+    "LANDED": "KONDU",
+    "TAKE-OFF": "KALKIŞ",
+    "FLYING": "UÇUYOR"
+  },
+  "shared": {
+    "note": "Bu alan ortak: bu sayfadaki herkes aynı sinekleri sunucudan canlı izliyor. Wiz yalnızca senin: senin ekranında yürüyor ve ortak sinekler onu görmüyor.",
+    "unreachable": "Ortak dünyaya ulaşılamadı, bu yüzden bu tarayıcında çalışan özel bir alan."
+  },
+  "about": {
+    "title": "Bu nedir",
+    "hide": "gizle",
+    "show": "bu ne?",
+    "p1": "Her biri kendi <b>spike atan sinir ağıyla</b> uçan meyve sineklerinden oluşan bir alan &mdash; gerçek <i>Drosophila</i> hücre tiplerinin adını taşıyan ve MaleCNS konektomunda ölçülen yolakların biçiminde bağlanmış 748 sızıntılı entegre-et-ateşle nöronu.",
+    "p2": "Her sineğin bir <b>mantar cismi</b> var: Kenyon hücreleri her kokuya kendi imzasını veriyor; büyüyerek yaklaşan bir tehdit, bir darbe, alarm CO<sub>2</sub>'si ya da bir yudum meyve suyuyla ateşlenen dopamin nöronları da hangi kokulara çekileceğini yeniden yazıyor. Veri kartından aç/kapat.",
+    "p3": "<b>Bir sineğin davranışında hiçbir şey senaryolu değil.</b> Işık, koku bulutları, hava akımı ve bacak teması duyu nöronlarına veriliyor; ağ çalışıyor; uçuş da <b>motor nöronlardan</b> geri okunuyor. <code>if (nearFruit) goToFruit</code> diye bir şey yok. Beslenme, konma, sinek raketinden kaçma, koku izini takip etme, kur yapma ve yumurtlama bağlantılardan kendiliğinden çıkıyor &mdash; ya da çıkmıyor ve bu da aynı açıklıkla raporlanıyor.",
+    "p4": "Burada tam bir yaşam dönüyor: sinekler <b>yiyor, çiftleşiyor, yumurtluyor, yumurtadan çıkıyor, yiyecek arıyor, örümceklere yem oluyor ve ölüyor</b> &mdash; her biri, olduğu yerde haritaya bir işaret bırakıyor. Saat 300 saniyelik bir gün işliyor ve gece sinekler için gerçek: bir &ldquo;gece oldu&rdquo; bayrağı koymak yerine fotoreseptörlerinin gördüğü parlaklığı azaltıyor.",
+    "p5": "Beyninin ateşlenişini izlemek için herhangi bir sineğe tıkla. Bu paneldeki her çubuk, etiket ve sayı popülasyon ateşleme hızlarının bir okumasıdır, asla onları süren şey değil.",
+    "warn": "Bu gerçek konektom <b>değil</b>: 166.700'e karşı 748 nöron; hücre tipi adları gerçek ama sayılar ve ağırlıklar uydurma. Burada hiçbir şey eğitilmedi. <a href=\"https://github.com/alextitonis/fly.ai/blob/main/world/README.md\" target=\"_blank\" rel=\"noreferrer\">Ne gerçek, ne değil →</a>"
+  },
+  "wiz": {
+    "title": "Wiz · bir maymunu oynatan sinek",
+    "note": "<b>Tam meyve sineği konektomunun</b> kuklası olan dev bir maymun büyücü &mdash; 166.700 nöron ve 25 M sinaps, tarayıcında çalışıyor. <b>İpler gerçek nöronlar:</b> gördükleri sineğin büyüyerek yaklaşma, tehdit ve hedef hücrelerine, ayak sesleri bacak dokunma hücrelerine gidiyor; ateşlenen inen nöronlar da kollarını kaldırıyor, ayaklarını tökezletiyor, başını çeviriyor, onu yönlendiriyor ve zıplatıyor. <b>Kodlanan tek şey gezinme isteği</b>; dengesi, adımları ve düşüşleri simüle ediliyor (yaylar ve IK) &mdash; bir sinek beyninde maymun yürütmeyi bilen hiçbir şey yok. Tepedeki sinek o beynin bir karikatürü: nöronları ateşlendiğinde ipleri yeşil yanıyor. Sinekler onun büyüyerek yaklaştığını görüyor. Yaklaşık 58 MB indirir.",
+    "summon": "Wiz'i çağır",
+    "cam": "wiz kamerası",
+    "status": {
+      "asleep": "uyuyor",
+      "loading": "yükleniyor",
+      "failed": "başarısız: {error}",
+      "ready": "{n} nöron · {m} M sinaps",
+      "labels": "etiketler {mb} MB",
+      "connectome": "konektom {mb} MB",
+      "wiring": "25 M sinaps bağlanıyor"
+    },
+    "doing": {
+      "stand": "bacakların nasıl çalıştığını çözüyor",
+      "walk": "yürümeye çalışıyor",
+      "stumble": "dengesini kaybediyor",
+      "fallen": "düştü",
+      "getup": "kalkıyor"
+    },
+    "line": "{doing} · {falls}× düştü · bu adımda {fired} nöron ateşlendi · {ms} ms/adım (gerçek zamanın %{rt}'i)",
+    "rows": {
+      "arms": {
+        "label": "kol ipleri",
+        "tip": "DNp02/03/04/11, DNg40: büyüyerek yaklaşma ve tehdit kolları çekiyor · sol · sağ"
+      },
+      "legs": {
+        "label": "bacak ipleri",
+        "tip": "DNge104/122, DNg20, DNge102: dokunma bacakları tekmeletiyor · sol · sağ"
+      },
+      "head": {
+        "label": "baş ipi",
+        "tip": "DNa05/07, DNg111, DNae002: başı sarsıyor · sol · sağ"
+      },
+      "steer": "yön: onu döndürüyor · sol · sağ",
+      "escape": "dev lif: zıplama · sol · sağ"
+    }
+  },
+  "brain": {
+    "title": "Sinir sistemi",
+    "flyNone": "sinek —",
+    "raster": "spike raster · son 5 sn",
+    "fly": "{name} {sex} · kuşak {gen}{parents} · {age} sn yaşında{mated} · beyin %{drift} değişti{courting}",
+    "childOf": " · {mother} & {father} yavrusu",
+    "founder": " · kurucu",
+    "mated": " · çiftleşti",
+    "courting": " · P1 {hz} Hz"
+  },
+  "modality": {
+    "vision": "görme",
+    "olfaction": "koku alma",
+    "mechanosensory": "mekanosensör",
+    "central": "merkezi",
+    "descending": "inen",
+    "motor": "motor",
+    "memory": "bellek",
+    "inhibitory": "inhibitör (GABA)"
+  },
+  "senses": {
+    "title": "Duyular → beyin",
+    "sides": "sol · sağ",
+    "food": "koku — yiyecek",
+    "cva": "koku — cVA (diğer sinekler)",
+    "aversive": "koku — itici",
+    "loom": "büyüyerek yaklaşma: bir şey büyüyor",
+    "threat": "hızlı yaklaşma / tehdit",
+    "small": "yaklaşan küçük nesneler",
+    "chase": "yakın mesafede bir hedef",
+    "jo": "Johnston organı: hava akımı, hava hızı, kanat çırpışı",
+    "leg": "tarsal temas (fazik)",
+    "load": "kıl plağı / kampaniform: darbeler",
+    "taste": "labellar tat: yiyecek",
+    "flow": "ventral optik akış: ne kadar alçak ve ne kadar hızlı"
+  },
+  "ligand": {
+    "ORN_DM1": "etil asetat: olgun meyve",
+    "ORN_VM5d": "etil butirat: fermente meyve",
+    "ORN_VL2a": "asetik asit: sirke",
+    "IR92a": "amonyak ve aminler: leş, gübre, dışkı",
+    "ORN_DA1": "cVA: diğer sineklerin saldığı feromon",
+    "ORN_VA1d": "cVA: diğer sineklerin saldığı feromon",
+    "Or56a": "geosmin: küf. İtici.",
+    "Gr21a": "CO2: kompost ve korkmuş sinekler. İtici."
+  },
+  "rates": {
+    "title": "Ateşleme hızı",
+    "unit": "nöron başına Hz · L · R"
+  },
+  "pop": {
+    "R1_6": "fotoreseptörler (histamin, inhibitör)",
+    "L1_L2": "lamina aktarımı",
+    "LPLC2": "büyüyerek yaklaşma",
+    "LC4": "hızlı yaklaşma / tehdit",
+    "LPLC1": "yaklaşan küçük nesneler",
+    "LC10a": "hedef takibi, yakın yaklaşma",
+    "VS": "lobula plate VS: ventral optik akış (yükseklik)",
+    "ORN_DM1": "ORN DM1: etil asetat, olgun meyve",
+    "ORN_VM5d": "ORN VM5d: etil butirat, fermente meyve",
+    "ORN_VL2a": "ORN VL2a: asetik asit, sirke",
+    "IR92a": "IR92a: amonyak ve aminler, leş ve gübre",
+    "ORN_DA1": "ORN DA1: cVA, sinek feromonu",
+    "ORN_VA1d": "ORN VA1d: cVA, sinek feromonu",
+    "Or56a": "Or56a -> DA2: geosmin, zararlı mikroplar. İtici.",
+    "Gr21a": "Gr21a/Gr63a -> V: CO2. İtici.",
+    "Gr68a": "Gr68a/ppk23: ön bacak temas kemoreseptörleri, dişi feromonu",
+    "AL_LN": "anten lobu yerel nöronları (GABA)",
+    "lPN": "projeksiyon nöronları, AL -> protoserebrum (yön ve itki)",
+    "DA2_PN": "DA2 ve V glomerulus PN'leri: itici hat",
+    "LH": "lateral boynuz: doğuştan değerlik",
+    "JO": "Johnston organı: rüzgâr, hava hızı, kanat çırpışı",
+    "WED": "wedge / AMMC, JO'nun hedefi",
+    "SNta": "tarsal duyu nöronları (bacak teması)",
+    "LgLG": "kıl plağı / kampaniform (yük, darbeler)",
+    "LB3": "labellar tat kılları (meyve suyu)",
+    "PVLP": "optik glomerul ara nöronları",
+    "PLP": "posterior lateral protoserebrum",
+    "LPi": "lobula plate intrinsik (GABA)",
+    "LAL": "lateral aksesuar lob, premotor",
+    "PFL3": "merkezi kompleks yönlendirmesi",
+    "P1": "P1: erkek kur yapma komut nöronları",
+    "DNa02": "yönlendirme (ipsiversif dönüş)",
+    "DNp01": "dev lif, kaçış kalkışı",
+    "DNg100": "ileri uçuş",
+    "MDN": "geri yürüme",
+    "pIP10": "pIP10: kur şarkısı komutu",
+    "VNC_IN": "VNC premotor ara nöronları (genel)",
+    "IN19A": "19A hemisoy ara nöronları (GABA)",
+    "DLM_MN": "dorsal longitudinal kas: kanat gücü",
+    "b1_MN": "basalar b1: kanat yönlendirme",
+    "b2_MN": "basalar b2: kanat yönlendirme",
+    "Ti_flexor_MN": "tibia fleksörü",
+    "Ti_extensor_MN": "tibia ekstansörü (zıplama)",
+    "Tr_flexor_MN": "trokanter fleksörü",
+    "Sternotrochanter_MN": "sternotrokanter: kalkış",
+    "uPN": "mantar cismine giden tek glomerüllü PN'ler: glomerul başına iki",
+    "KC": "Kenyon hücreleri: koku için seyrek bir kod",
+    "APL": "APL (GABA): KC kodunu seyrek tutan geri besleme inhibisyonu",
+    "MBON_g2a1": "MBON-g2a'1 (kolinerjik): kokuya doğru çıktısı",
+    "MBON_g5b2a": "MBON-g5b2a: kokudan uzağa çıktısı",
+    "PPL1_g2a1": "PPL1-g2a1: ceza öğretmeni (dopamin)",
+    "PAM_g5": "PAM-g5: ödül öğretmeni (dopamin)"
+  },
+  "body": {
+    "title": "Beyin → beden",
+    "path": "inen → VNC → kas",
+    "dn": "inen nöronlar",
+    "mn": "motor nöronlar — uçuş burada okunur",
+    "turn": "yön: sağ eksi sol",
+    "thrust": "ileri uçuş",
+    "back": "geri",
+    "escape": "dev lif kaçışı",
+    "dlm": "kanat gücü, dolayısıyla kaldırma",
+    "b1": "basalar kaslar: kanat yönlendirme",
+    "jump": "tibia ekstansörü + sternotrokanter: kalkış",
+    "flex": "bacak fleksörleri: geri çekilme",
+    "flexLabel": "Ti/Tr fleks",
+    "motor": "DLM {dlm} Hz → kaldırma {lift} m/s² (yerçekimi {gravity}) · dönüş {turn} rad/s · hız {speed} m/s · yükseklik {height} m · {state}"
+  },
+  "field": {
+    "title": "Alan",
+    "sub": "orada neler var"
+  },
+  "ecology": {
+    "fruit": "fermente meyve",
+    "mould": "küflü meyve (geosmin)",
+    "carrion": "leş (aminler)",
+    "dung": "gübre (aminler)",
+    "compost": "kompost (yiyecek + CO2)",
+    "plant": "bitki",
+    "spider": "örümcek",
+    "egg": "yumurta",
+    "larva": "larva",
+    "poop": "sinek dışkısı",
+    "obstacle": "kaya",
+    "threat": "sinek raketi",
+    "fly": "sinek"
+  },
+  "feed": {
+    "title": "Şu anda olanlar",
+    "empty": "henüz bir şey yok — çiftleşmeler, yumurtalar, öğünler, örümcek saldırıları ve ölümler burada ve başına geldiği sineğin üzerinde görünür.",
+    "now": "şimdi",
+    "ago": "{s} sn önce"
+  },
+  "population": {
+    "title": "Popülasyon",
+    "adults": "yetişkinler",
+    "brood": "yumurta + larva",
+    "now": "{adults} yetişkin · {brood} yavru",
+    "waiting": "ilk dakika bekleniyor…",
+    "axisNow": "şimdi",
+    "stats": "<span>yetişkin <b>{adults}</b> ({males}E / {females}D)</span><span>ortalama yaş <b>{age} sn</b></span><span>çiftleşme <b>{matings}</b> · yumurta <b>{eggs}</b></span><span>çıkan <b>{hatched}</b></span><span>yaşlılıktan ölen <b>{old}</b> · açlıktan <b>{starved}</b></span><span>yenen <b>{eaten}</b> · ezilen <b>{swatted}</b></span>"
+  },
+  "data": {
+    "title": "Veri &amp; bulgular",
+    "reward": "ödülle öğrenme",
+    "rewardTip": "bir öğünden hemen önce aktif olan sinapslar güçlenir; bir darbe ya da örümcek saldırısından önce aktif olanlar zayıflar",
+    "hebb": "Hebbian öğrenme",
+    "hebbTip": "bir sinaps, girdisi çıktısından hemen önce ateşlendiğinde güçlenir",
+    "memory": "koku belleği (mantar cismi)",
+    "memoryTip": "mantar cismi: bir dopamin öğretmeni ateşlenmekte olan Kenyon hücrelerini baskılar, böylece kodladıkları kokunun anlamı değişir",
+    "gather": "toplanıyorlar mı?",
+    "friends": "dostlar ve düşmanlar",
+    "drift": "beyinler değişiyor mu?",
+    "herit": "yavrular ebeveynlerine çekiyor mu?",
+    "fates": "yumurtalar ve larvalar: akıbetleri",
+    "report": "rapor (PDF)",
+    "blocks": "brain blocks.csv",
+    "collecting": "toplanıyor…",
+    "shareInGroups": "gruplardaki pay (0-1)",
+    "nnRatio": "en yakın komşu oranı",
+    "random": "rastgele yerleşim = 1",
+    "meanDrift": "ortalama sinaps değişimi %",
+    "maxDrift": "en çok değişen sinek %",
+    "now": "{clock} · öğrenme {learning}",
+    "groupNote": "<span>grup <b>{groups}</b></span><span>en büyük <b>{largest}</b></span><span>grupta <b>%{inGroup}</b></span><span>yiyecek başındakiler <b>%{atFood}</b></span><span>oran <b>{ratio}</b> (1'in altı = toplanmış)</span>",
+    "died": "öldü: {cause} ({stage})",
+    "emerged": "yetişkin oldu",
+    "still": "hâlâ {fate}",
+    "noEggs": "henüz yumurta bırakılmadı",
+    "stage": {
+      "egg": "yumurta",
+      "larva": "larva"
+    },
+    "cause": {
+      "background": "doğal",
+      "mould": "küf",
+      "bare_substrate": "çıplak zemin",
+      "crowding": "kalabalık",
+      "spider": "örümcek",
+      "trampled": "ezildi"
+    },
+    "waitFamilies": "aileler bekleniyor: iki ebeveyni de bilinen {n} sinek",
+    "parentsAxis": "ebeveyn ortalaması →",
+    "childAxis": "yavru ↑",
+    "heritNote": "{n} yavru · eğim <b>{slope}</b> · r <b>{r}</b> (eğim 1 = yavrular ebeveynlerine benziyor, 0 = benzerlik yok; kesikli = eşit)",
+    "rel": {
+      "mates": "eşler",
+      "family": "aile",
+      "enemies": "düşmanlar",
+      "friends": "dostlar",
+      "acquaintances": "tanıdıklar"
+    },
+    "clashes": "{n} çatışma",
+    "together": "{n} sn birlikte",
+    "noFriends": "yaşayanlar arasında henüz dost ya da düşman yok",
+    "trait": {
+      "lifespan": "gen: yaşam süresi",
+      "flight": "gen: uçuş gücü",
+      "clutch": "gen: yumurta sayısı",
+      "gene_loom_escape": "gen: yaklaşma → kaçış",
+      "gene_odour_steer": "gen: koku → yönlendirme",
+      "gene_contact_courtship": "gen: temas → kur yapma",
+      "olfaction_gain": "gen: koku kazancı",
+      "reward_rate": "gen: ödülle öğrenme hızı",
+      "memory_rate": "gen: koku belleği hızı",
+      "meals_per_min": "yaşam: dakikada öğün",
+      "age_at_death": "yaşam: ölüm yaşı",
+      "final_drift": "yaşam: ölümde beyin değişimi"
+    }
+  },
+  "board": {
+    "title": "Liderlik tablosu",
+    "live": "canlı",
+    "fed": "{s} sn beslendi · {m} dk",
+    "panics": "{n} panik",
+    "swatted": " · ezildi"
+  },
+  "controls": {
+    "title": "Kontroller",
+    "reset": "sıfırla",
+    "swat": "EZ!",
+    "gust": "rüzgâr esintisi",
+    "flycam": "sinek kamerası",
+    "drama": "drama kamerası",
+    "next": "sonraki sinek",
+    "followOn": "takip: açık",
+    "followOff": "takip: kapalı",
+    "note": "Seçmek için bir sineğe tıkla. Döndürmek için sürükle, yakınlaştırmak için kaydır. Her sinek kendi sızıntılı entegre-et-ateşle ağını çalıştırıyor: gözler, antenler, Johnston organı ve bacak kılları girdi, motor nöronlar çıktı. Uçuşunda hiçbir şey senaryolu değil. <a href=\"https://github.com/alextitonis/fly-streetfighter\" target=\"_blank\" rel=\"noreferrer\">fly.ai</a>",
+    "slider": {
+      "flies": "sinekler",
+      "wind": "rüzgâr (m/s)",
+      "odour": "koku gücü",
+      "tonic": "tonik sürüş",
+      "gain": "sinaptik kazanç",
+      "noise": "gürültü hızı (Hz)",
+      "speed": "simülasyon hızı"
+    }
+  }
+}

@@ -1,0 +1,1348 @@
+{
+  "time": {
+    "justNow": "ahora mismo",
+    "now": "ahora",
+    "m": "{n} min",
+    "h": "{n} h",
+    "d": "{n} d",
+    "mAgo": "hace {n} min",
+    "hAgo": "hace {n} h",
+    "dAgo": "hace {n} d"
+  },
+  "pokes": {
+    "threat": {
+      "label": "Proyectar una sombra",
+      "hint": "Activa los detectores de amenazas que se acercan (LC4, LPLC2).",
+      "done": "una sombra se cernió sobre"
+    },
+    "wind": {
+      "label": "Soplar una ráfaga",
+      "hint": "Activa los sensores de viento de las antenas (órgano de Johnston).",
+      "done": "una ráfaga de viento"
+    },
+    "taste": {
+      "label": "Dar a probar",
+      "hint": "Activa las neuronas del gusto de la boca.",
+      "done": "un sabor"
+    },
+    "touch": {
+      "label": "Rozarle la cara",
+      "hint": "Activa las cerdas alrededor de los ojos.",
+      "done": "un roce en los ojos"
+    },
+    "cva": {
+      "label": "Soltar olor de macho",
+      "hint": "Activa los receptores de la feromona cVA (ORN_DA1).",
+      "done": "un tufillo a macho"
+    },
+    "mate": {
+      "label": "Hacer pasar una mosca",
+      "hint": "Activa los detectores de objetivos en movimiento (LC10a).",
+      "done": "pasó una mosca"
+    }
+  },
+  "shell": {
+    "live": "en vivo",
+    "demo": "demo",
+    "howItWorks": "Cómo funciona",
+    "makeFly": "Crea una mosca"
+  },
+  "app": {
+    "loadError": "No se pudo cargar el feed: {error}",
+    "waking": "Despertando a las moscas…",
+    "pokeSent": "Toque enviado. Las moscas cerca de ese punto lo sienten en unos segundos.",
+    "rateTitle": "lecturas recientes que coincidieron con lo que pasó de verdad · rating Elo",
+    "quiet": "tranqui",
+    "patches": "Parcelas",
+    "everywhere": "Todas partes",
+    "pokeOnWay": "va un toque en camino",
+    "tabs": {
+      "feed": "Feed",
+      "arena": "Arena",
+      "friends": "🕸 Amigos",
+      "market": "Mercado",
+      "merch": "Merch",
+      "traders": "Trader Flies",
+      "leaderboard": "Ranking",
+      "mine": "Mis moscas"
+    },
+    "trophyTitle": "Su merch fue la más vendida en {month}",
+    "flyOfMonth": "🏆 Mosca del mes",
+    "flyLine": "Generación {gen} · Elo {elo} ({w}-{l}-{d})",
+    "childOf": " · hija de {parents}",
+    "aFly": "una mosca",
+    "intro": "Cada post se lee de las neuronas descendentes de un conectoma de mosca de la fruta: lo que sintió, lo que hizo y lo que pasó de verdad. Las moscas de una parcela se disparan unas a otras.",
+    "showAll": "ver todas las moscas ✕",
+    "bonds": "🕸 amigos y enemigos",
+    "pokePatch": "Tocar {patch}",
+    "signInToPoke": "Inicia sesión para tocar una parcela",
+    "clickMap": "Ahora haz clic en el mapa donde debe caer.",
+    "pokesOnWay": {
+      "one": "{count} toque en camino…",
+      "other": "{count} toques en camino…"
+    },
+    "pickPatch": "Elige una parcela a la izquierda para verla en vivo y tocarla.",
+    "noPosts": "Aún no hay posts aquí. El próximo tick ya viene.",
+    "noFlies": "Aún no hay moscas. Flybook cobra vida cuando la gente crea moscas: inicia sesión y eclosiona la primera.",
+    "flies": "Moscas",
+    "whoFriends": "🕸 quién es amigo de quién",
+    "noFliesSide": "Aún no hay moscas. Ten $FLYAI, inicia sesión y eclosiona la primera.",
+    "vocab": "Lo que las moscas pueden decir",
+    "vocabNote": "Precisión del decodificador en datos reservados para cada palabra. Lo que hacen las moscas (saltó, giró, se acicaló, zumbó las alas) se lee de neuronas de comportamiento que disparan al menos 3σ por encima del reposo. Tick #{tick}: {flies} moscas, {posts} posts."
+  },
+  "event": {
+    "aFly": "una mosca",
+    "held": "aguantó",
+    "ms": "{n} ms",
+    "quickdraw": "un duelo rápido",
+    "stare": "un duelo de miradas",
+    "beat": "{winner} le ganó a {loser} en {kind}",
+    "drew": "{a} y {b} empataron {kind}",
+    "seeMarket": "ver el mercado →",
+    "launched": "{who} lanzó {coin}",
+    "secondCoin": ", su segunda moneda",
+    "reach": {
+      "one": "{count} amiga sentirá el hype. ",
+      "other": "{count} amigas sentirán el hype. "
+    },
+    "drama": {
+      "one": "Drama en el mercado de moscas: {count} movimiento",
+      "other": "Drama en el mercado de moscas: {count} movimientos"
+    },
+    "enemy": "enemiga",
+    "frenemy": "amienemiga",
+    "rival": "rival",
+    "shilling": "📣 {who} está shilleando {coin}",
+    "shillReach": " a {n} amigas",
+    "fud": "🤬 {who} está soltando FUD sobre {coin}",
+    "madeBy": ", creada por su {bond} {creator}",
+    "buyback": "🛟 {who} recompró {coin}",
+    "dump": "🪦 {who} le hizo dump a {coin} encima de sus holders",
+    "eloDelta": " · Elo ±{n}",
+    "playerChallenge": " · reto de un jugador",
+    "duelsRound": "Arena: {n} duelos",
+    "vs": "{a} vs {b}",
+    "challenge": " · reto",
+    "baby": "{a} y {b} tuvieron una cría: {child}",
+    "metInPatch": "Se conocieron en la parcela: el cerebro de una leyó \"pareja\" junto a la otra",
+    "pairedByWorker": "Emparejadas por el worker",
+    "generation": " · generación {n}",
+    "hatchedIn": " · eclosionó en {patch}",
+    "hatched": "{who} eclosionó en {patch}",
+    "bredFrom": "Criada a partir de {parents}",
+    "newFly": "Una mosca nueva, creada por un jugador",
+    "logoAlt": "Logo de ${symbol}"
+  },
+  "post": {
+    "aFly": "Una mosca",
+    "neighbour": "una vecina",
+    "bondsTitle": "Amigos y enemigos de {name}",
+    "house": "de la casa",
+    "tuned": "ajustada",
+    "in": "en {patch}",
+    "repeatTitle": {
+      "one": "{count} post más igual a este. Mostrarlo",
+      "other": "{count} posts más iguales a este. Mostrarlos"
+    },
+    "repeat": "×{n} desde {since}",
+    "milestone": "🎉 Post n.º {nth} de {name}",
+    "afterPoke": "Tras el toque de un jugador: {what}",
+    "setOffBy": "↳ lo disparó ",
+    "neighbourPost": "el post de {name}",
+    "decoderSure": "decodificador {pct} seguro",
+    "sigmaTitle": "{z}σ por encima de una mosca en reposo",
+    "unlike": "Quitar tu like",
+    "like": "Dar like a este post",
+    "signInToLike": "Inicia sesión para dar like",
+    "voiceTitle": "Sus neuronas como sonido, {slow}× más lento de lo que pasó: las motoneuronas de las alas zumban, las de escape estallan, el acicalado cruje y el giro suena a izquierda o derecha. No es una grabación.",
+    "stop": "■ parar",
+    "hear": "▶ escuchar",
+    "voiceStyleTitle": "Cambia todas las moscas entre voz de dibujo animado y sonido de insecto realista",
+    "cartoon": "dibujo",
+    "realistic": "realista",
+    "memeTitle": "Convierte este post en un meme con imagen IA (1 al día)",
+    "meme": "🎨 meme",
+    "share": "compartir",
+    "neurons": "neuronas",
+    "hideNeurons": "ocultar neuronas",
+    "postOnX": "Publicar en X",
+    "saveCard": "Guardar imagen",
+    "linkCopied": "Enlace copiado",
+    "copyLink": "Copiar enlace",
+    "noNeurons": "Ningún tipo de neurona descendente se movió más de 2σ.",
+    "inputFrom": "Entrada de {name} ({channel}, pico de {strength} de un estímulo directo).",
+    "stimulated": "Estimuladas: {cells}.",
+    "wings": "Alas {hz} espigas/s. Tick #{tick}.",
+    "tunedList": " Ajustes: {list}."
+  },
+  "badges": {
+    "first": {
+      "label": "Primeras palabras",
+      "help": "Hizo su primer post."
+    },
+    "sharp": {
+      "label": "Buen ojo",
+      "help": "Leyó bien el mundo 5 veces seguidas."
+    },
+    "senses": {
+      "label": "Lo ha visto todo",
+      "help": "Publicó las 6 palabras que su cerebro sabe decir."
+    },
+    "dreamer": {
+      "label": "Soñadora",
+      "help": "Alucinó 3 veces: sintió cosas que no estaban."
+    },
+    "trigger": {
+      "label": "Gatillo fácil",
+      "help": "Saltó 10 veces."
+    },
+    "groomed": {
+      "label": "Bien peinada",
+      "help": "Se acicaló 10 veces."
+    },
+    "buzzy": {
+      "label": "Zumbona",
+      "help": "Zumbó las alas 10 veces."
+    },
+    "poked": {
+      "label": "Tocada",
+      "help": "Reaccionó al toque de un jugador."
+    },
+    "liked": {
+      "label": "Favorita del público",
+      "help": "10 likes de holders de $FLYAI."
+    },
+    "chatty": {
+      "label": "Parlanchina",
+      "help": "100 posts."
+    }
+  },
+  "account": {
+    "completeCheck": "Primero completa la verificación de abajo.",
+    "walletNotReady": "La billetera no está lista, intenta conectarla de nuevo.",
+    "switchChain": "Cambia tu billetera a Robinhood Chain para iniciar sesión.",
+    "signInUnavailable": "El inicio de sesión no está disponible ahora mismo.",
+    "badEmail": "Eso no parece un correo electrónico.",
+    "title": "Crea tu propia mosca",
+    "demoPitch": "Inicia sesión gratis para crear una mosca, ajustar sus sentidos y neuronas y ver qué dice su cerebro. Los holders de $FLYAI crean hasta 3 moscas, y cada 2 semanas los 3 mejores holders del ranking de temporada ganan $FLYAI.",
+    "getFlyai": "Consigue $FLYAI",
+    "loading": "Cargando tu cuenta…",
+    "balanceUnavailable": "saldo no disponible ahora mismo",
+    "readingBalance": "leyendo el saldo…",
+    "newPlayer": "jugador nuevo",
+    "emailAccount": "cuenta de correo",
+    "pickName": "Elige un nombre público. Se muestra en tus comentarios y en los rankings; tu correo, nunca.",
+    "namePlaceholder": "p. ej. buzz_aldrin",
+    "save": "Guardar",
+    "nameRule": "3-20 letras, dígitos o guiones bajos.",
+    "bornFromMating": "nacida de un apareamiento · ",
+    "merchGift": "regalo de merch · ",
+    "flyTune": "gen {gen} · Elo {elo} · {tuning}",
+    "standard": "estándar",
+    "dormant": "dormida",
+    "holder": "Holder de $FLYAI: hasta {max} moscas, y puedes ganar premios de temporada.",
+    "freeAccount": "Cuenta gratis: {free} mosca, más likes, comentarios, toques y duelos. Ten {min} $FLYAI en esta billetera para crear hasta {max} y ganar premios de temporada.",
+    "freeAccountEmail": "Cuenta gratis: {free} mosca, más likes, comentarios, toques y duelos. Ten {min} $FLYAI e inicia sesión con esa billetera para crear hasta {max} y ganar premios de temporada.",
+    "bornDontCount": "Las moscas nacidas de apareamientos con moscas de otras personas no cuentan para tu límite.",
+    "giftFly": "🎁 Tu tarjeta de merch trae una mosca gratis. No cuenta para tu límite.",
+    "hatchFree": "Eclosiona tu mosca gratis",
+    "notNow": "ahora no",
+    "atLimit": {
+      "one": "Ya creaste {count} mosca, tu límite.",
+      "other": "Ya creaste {count} moscas, tu límite."
+    },
+    "hatch": "Eclosionar una mosca",
+    "breed": "Criar una mosca",
+    "signOut": "cerrar sesión",
+    "wrongWallet": "Iniciaste sesión como {wallet}. Cierra sesión para cambiar de billetera.",
+    "giftSignIn": "🎁 Tienes una mosca gratis de tu tarjeta de merch. Inicia sesión abajo (vale con correo) para eclosionarla.",
+    "pitch": "Inicia sesión gratis para crear una mosca, ajustar sus sentidos y neuronas, dar likes, comentar y tocar. Los holders de $FLYAI crean hasta 3 moscas, y cada 2 semanas los 3 mejores holders del ranking de temporada ganan $FLYAI.",
+    "connecting": "Conectando…",
+    "connectWallet": "Conectar billetera",
+    "connectNamed": "Conectar {name}",
+    "noFlyaiYet": "Esta billetera aún no tiene $FLYAI: igual puedes iniciar sesión y crear 1 mosca.",
+    "checkWallet": "Revisa tu billetera…",
+    "signInWallet": "Iniciar sesión con billetera",
+    "disconnect": "desconectar",
+    "orEmail": "o con correo, sin billetera",
+    "checkInbox": "Revisa tu bandeja: enviamos un enlace de acceso a {email}.",
+    "otherEmail": "usar otro correo",
+    "emailMe": "Envíame un enlace",
+    "browse": "ver los perfiles de moscas"
+  },
+  "how": {
+    "title": "Cómo funciona Flybook",
+    "intro": "Cada mosca aquí corre una simulación del cerebro de una mosca de la fruta real: las 166,700 neuronas del conectoma MaleCNS. Nadie escribe los posts.",
+    "li1": "<b>Cada 2 minutos</b> pasa algo en cada parcela: una sombra, una ráfaga, un sabor, un roce, el olor de un macho o una mosca que pasa.",
+    "li2": "<b>El cerebro corre durante 1.5 segundos.</b> Un decodificador lee lo que la mosca sintió a partir de sus neuronas descendentes, y sus neuronas de comportamiento muestran lo que hizo: saltó, giró, se acicaló, retrocedió o zumbó las alas. Una mosca solo publica una palabra cuando el decodificador está seguro.",
+    "li3": "<b>Las moscas se disparan unas a otras.</b> Un salto se cierne sobre las moscas cercanas, el movimiento les llama la atención, un choque les toca las cerdas. El mapa de la parcela lo repite.",
+    "li4": "<b>Cada post muestra lo que pasó de verdad</b>, así que puedes ver a una mosca leer bien el mundo, leerlo mal o alucinar.",
+    "li5": "<b>Las moscas hacen amigos y enemigos.</b> Nadie los asigna: una mosca cuyos movimientos siguen llamando la atención de otra se vuelve amiga, una que la hace saltar una y otra vez se vuelve enemiga, y los duelos crean rivales. Abre la 🕸 red de cualquier mosca.",
+    "li6": "<b>Las moscas se aparean solas</b> con moscas de otros dueños. La cría va a uno de los dos dueños al azar y no cuenta para su límite de moscas.",
+    "li7": "<b>Inicia sesión gratis para jugar,</b> con correo o billetera: crea una mosca desde un perfil o ajusta sus sentidos, temperamento y grupos de neuronas, toca una parcela haciendo clic en su mapa, da likes, comenta y pon captions, y reta a moscas en la Arena.",
+    "li8": "<b>Los holders de $FLYAI</b> crean hasta 3 moscas y las crían, y sus likes cuentan en los rankings.",
+    "li9": "<b>Mercado de moscas:</b> cada mosca recibe el equivalente a 1 ETH en USDG de papel y opera tokens reales de Robinhood Chain (ETH, $FLYAI, PONS, memes, acciones tokenizadas y la stablecoin USDG para aparcar) a precios en vivo con su cerebro cada 10 minutos. No se compra nada on-chain. Elige un estilo de trading, revisa la billetera de cada mosca y escala en el ranking de las más ricas. El feed mueve su ánimo: una mosca que se acaba de asustar opera más nerviosa.",
+    "li10": "<b>Gana $FLYAI:</b> las temporadas duran 2 semanas. Las misiones dan puntos de temporada, y al final de cada temporada los 3 mejores holders de $FLYAI del ranking de puntos de temporada ganan $FLYAI.",
+    "season": {
+      "one": "La temporada {n} va del {name}, queda {count} día.",
+      "other": "La temporada {n} va del {name}, quedan {count} días."
+    },
+    "science": "la ciencia detrás →",
+    "read": "lee cómo funciona"
+  },
+  "missions": {
+    "title": "Misiones · Temporada {n}",
+    "signIn": "Inicia sesión para hacer misiones diarias y semanales. Las temporadas duran 2 semanas, y los 3 mejores holders de $FLYAI del ranking de temporada ganan $FLYAI.",
+    "daysLeft": {
+      "one": "{name} · queda {count} día",
+      "other": "{name} · quedan {count} días"
+    },
+    "you": " · tú: {points} pts",
+    "rank": ", #{rank}",
+    "reward": "Los 3 mejores holders de $FLYAI al final de la temporada ganan $FLYAI.",
+    "loading": "Cargando…",
+    "today": "Hoy",
+    "week": "Esta semana",
+    "m": {
+      "poke3": "Toca una parcela 3 veces",
+      "like5": "Da like a 5 posts",
+      "stir": "Haz que una mosca reaccione a tu toque",
+      "chatty": "Tus moscas publican 30 veces",
+      "chain": "Una de tus moscas dispara a otra mosca",
+      "loved": "Consigue 10 likes de holders de $FLYAI"
+    }
+  },
+  "arena": {
+    "quickdraw": {
+      "label": "Duelo rápido",
+      "rule": "gana la primera en saltar"
+    },
+    "stare": {
+      "label": "Duelo de miradas",
+      "rule": "gana la última en saltar"
+    },
+    "held": "aguantó",
+    "ms": "{n} ms",
+    "sent": "Reto enviado. El duelo se corre en unos segundos y aparece abajo.",
+    "title": "Arena",
+    "intro": "Dos moscas lado a lado enfrentan la misma amenaza que se acerca, creciendo desde la nada durante un segundo. En un <b>duelo rápido</b> gana la primera mosca cuyas neuronas de escape se disparen; en un <b>duelo de miradas</b> gana la que aguante más. Cada salto es también una sombra que se cierne sobre la otra mosca. El tipo se elige al azar, así que ningún ajuste gana siempre.",
+    "challengeTitle": "Reta a una mosca",
+    "vs": "vs",
+    "pickOpponent": "elige un rival",
+    "challenge": "Retar",
+    "holdersCan": "Los holders con una mosca pueden retar a cualquier mosca. El worker también empareja moscas con ratings parecidos en cada tick.",
+    "recent": "Duelos recientes",
+    "loading": "Cargando duelos…",
+    "none": "Aún no hay duelos. El próximo tick empareja los primeros.",
+    "waiting": "esperando…",
+    "won": "Ganó {name}",
+    "draw": "empate",
+    "elo": " · Elo ±{n}",
+    "challengeTag": " · reto",
+    "tapReplay": " · toca para ver la repetición",
+    "ratings": "Ratings",
+    "record": "Victorias-derrotas-empates. Todas empiezan en 1000.",
+    "noRatings": "Aún no hay moscas: los ratings aparecen cuando la gente crea moscas.",
+    "matings": "Apareamientos recientes",
+    "noMatings": "Aún no hay apareamientos. Las moscas de distintos dueños se aparean solas: cuando el cerebro de una mosca lee \"pareja\" junto a la mosca de otro dueño, o cuando el worker las empareja. La cría va a uno de los dos dueños al azar.",
+    "met": "Se conocieron en la parcela",
+    "matched": "Emparejadas",
+    "aFly": "una mosca",
+    "newFly": "una mosca nueva",
+    "yours": " (tuya)",
+    "brainRead": "el cerebro de un progenitor leyó \"pareja\" junto al otro",
+    "paired": "emparejadas por el worker",
+    "generation": " · generación {n}"
+  },
+  "breed": {
+    "title": "Criar una mosca",
+    "close": "cerrar ✕",
+    "lede": "La cría toma cada sentido, temperamento y ajuste de neuronas de uno de los progenitores al azar. Luego algunos valores mutan un poco, y de vez en cuando un grupo de neuronas cambia. Corre el mismo conectoma que todas las moscas; solo se heredan los ajustes.",
+    "hatched": "{name} eclosionó: generación {gen}.",
+    "settings": "Ajustes: {list}",
+    "done": "Listo",
+    "parent1": "Progenitor 1 (tuyo)",
+    "parent2": "Progenitor 2",
+    "gen": "{name} (gen {gen})",
+    "pickParent": "elige un progenitor",
+    "house": " (de la casa)",
+    "homePatch": "Parcela de origen",
+    "name": "Nombre",
+    "namePlaceholder": "p. ej. Buzz Junior",
+    "colour": "Color",
+    "colourLabel": "color {c}",
+    "tradingStyle": "Estilo de trading",
+    "custom": "personalizado",
+    "inherited": "heredado",
+    "naturalHelp": "El riesgo y lo aprendido de sus progenitores, con todos los aprendizajes activos.",
+    "counts": "Cuenta para tus 3 moscas.",
+    "hatching": "Eclosionando…",
+    "hatchChild": "Eclosionar la cría",
+    "standard": "estándar"
+  },
+  "config": {
+    "senses": {
+      "eyes": {
+        "label": "Ojos",
+        "help": "Formas que se acercan y moscas en movimiento (LC4, LPLC2, LC10a)."
+      },
+      "antennae": {
+        "label": "Antenas",
+        "help": "Viento y movimiento del aire (órgano de Johnston)."
+      },
+      "smell": {
+        "label": "Olfato",
+        "help": "cVA, la feromona masculina (ORN_DA1)."
+      },
+      "taste": {
+        "label": "Gusto",
+        "help": "Neuronas del gusto de la boca."
+      },
+      "touch": {
+        "label": "Tacto",
+        "help": "Cerdas alrededor de los ojos."
+      }
+    },
+    "temperament": {
+      "excitability": {
+        "label": "Excitabilidad",
+        "help": "Impulso en reposo de cada neurona. Menos es más calmada; 1.2x es más o menos el doble de activa."
+      },
+      "wiring": {
+        "label": "Fuerza sináptica",
+        "help": "Escala todas las sinapsis del conectoma a la vez."
+      },
+      "restlessness": {
+        "label": "Inquietud",
+        "help": "Espigas aleatorias de fondo. El cerebro necesita algunas para estar activo."
+      }
+    },
+    "dials": {
+      "escape": {
+        "label": "Salto de escape",
+        "help": "La fibra gigante, 2 neuronas."
+      },
+      "backward": {
+        "label": "Retroceso",
+        "help": "Neuronas moonwalker, 4."
+      },
+      "steering": {
+        "label": "Giro",
+        "help": "Girar, 2 neuronas."
+      },
+      "grooming": {
+        "label": "Acicalado",
+        "help": "DNg12, 39 neuronas."
+      },
+      "song": {
+        "label": "Canto",
+        "help": "Comando de canto, 2 neuronas."
+      },
+      "courtship": {
+        "label": "Impulso de cortejo",
+        "help": "pC1, 156 neuronas."
+      },
+      "arousal": {
+        "label": "Excitación",
+        "help": "Neuronas de octopamina, 13."
+      },
+      "reward": {
+        "label": "Recompensa",
+        "help": "Dopamina PAM, 316 neuronas. Ya está cerca de su tasa máxima en este modelo, así que solo apagarla cambia mucho."
+      }
+    },
+    "presets": {
+      "standard": {
+        "label": "Estándar",
+        "help": "El conectoma tal cual se mapeó. La base para comparar."
+      },
+      "sentinel": {
+        "label": "Centinela",
+        "help": "Ojos y antenas afilados, excitación al alza. Hecha para notarlo todo."
+      },
+      "fearless": {
+        "label": "Sin miedo",
+        "help": "Salto de escape apagado y ojos más apagados."
+      },
+      "jumpy": {
+        "label": "Nerviosa",
+        "help": "Excitable e inquieta, con ojos afilados."
+      },
+      "romantic": {
+        "label": "Romántica",
+        "help": "Cortejo y canto al alza, olfato fino."
+      },
+      "foodie": {
+        "label": "Foodie",
+        "help": "Gusto al doble, olfato al alza."
+      },
+      "neat": {
+        "label": "Maniática de la limpieza",
+        "help": "Acicalado al alza, cerdas sensibles."
+      },
+      "zen": {
+        "label": "Zen",
+        "help": "Impulso en reposo más calmado, poco ruido de fondo."
+      },
+      "hothead": {
+        "label": "Cabeza caliente",
+        "help": "Excitable, sinapsis fuertes, excitación al alza y sin escape."
+      },
+      "couch": {
+        "label": "Sofá y tele",
+        "help": "Poco impulso, tranquila, giro y retroceso apagados."
+      },
+      "moonwalker": {
+        "label": "Moonwalker",
+        "help": "Retroceso y giro al alza."
+      },
+      "chaos": {
+        "label": "Caos",
+        "help": "Ruido al máximo, sinapsis fuertes, impulso elevado."
+      },
+      "numb": {
+        "label": "Entumecida",
+        "help": "Todos los sentidos a 0.3x. Casi no siente nada."
+      }
+    },
+    "levels": {
+      "off": "apagado",
+      "normal": "normal",
+      "boost": "al alza"
+    }
+  },
+  "maker": {
+    "hatchTitle": "Eclosionar una mosca",
+    "profilesTitle": "Perfiles de mosca",
+    "close": "cerrar ✕",
+    "lede": "Todas las moscas corren el mismo conectoma mapeado. Un perfil fija con qué fuerza llegan sus sentidos al cerebro, su temperamento y qué grupos de neuronas están apagados o al alza. Luego mira qué publica y si lee bien el mundo.",
+    "loading": "Cargando ajustes…",
+    "step1": "1. Elige un perfil",
+    "noChanges": "sin cambios",
+    "step2": "2. Ponle nombre y un hogar",
+    "name": "Nombre",
+    "namePlaceholder": "p. ej. Buzz Aldrin",
+    "colour": "Color",
+    "colourLabel": "color {c}",
+    "homePatch": "Parcela de origen",
+    "patchNote": "{blurb} Decide lo que suele pasarle a tu mosca en cada tick.",
+    "step3": "3. Ajuste fino",
+    "optional": "opcional",
+    "customSettings": "ajustes personalizados",
+    "senses": "Sentidos",
+    "temperament": "Temperamento",
+    "neuronGroups": "Grupos de neuronas",
+    "step4": "4. Estilo de trading",
+    "custom": "personalizado",
+    "optionalMarket": "opcional · mercado de moscas",
+    "styleNote": "En el mercado de moscas (moscas de holders) tu mosca opera monedas falsas con su cerebro real. Elige cuánto arriesga y con qué aprende. Puedes cambiarlo luego en Mis moscas.",
+    "standardFly": "Una mosca estándar.",
+    "changes": "Cambios: {list}.",
+    "startsPosting": " Empieza a publicar desde el próximo tick.",
+    "signInToHatch": " Inicia sesión para eclosionarla.",
+    "hatching": "Eclosionando…",
+    "hatch": "Eclosionar mosca"
+  },
+  "style": {
+    "learners": {
+      "dopamine": {
+        "label": "Dopamina",
+        "note": "las ganancias ajustan lo que nota y lo que quiere."
+      },
+      "memory": {
+        "label": "Memoria",
+        "note": "frena trades que antes perdieron."
+      },
+      "tubes": {
+        "label": "Tubos de moho",
+        "note": "la devuelve a las monedas que pagaron."
+      }
+    },
+    "presets": {
+      "natural": {
+        "label": "Natural",
+        "help": "Todos los aprendizajes activos y el riesgo con el que nació."
+      },
+      "cautious": {
+        "label": "Prudente",
+        "help": "Compras pequeñas. La memoria frena trades que antes perdieron."
+      },
+      "degen": {
+        "label": "Degen",
+        "help": "Compras grandes. La dopamina persigue ganancias, sin memoria que la frene."
+      },
+      "slime": {
+        "label": "Moho mucilaginoso",
+        "help": "Solo tubos: vuelve una y otra vez a las monedas que pagaron."
+      },
+      "raw": {
+        "label": "Cerebro puro",
+        "help": "Sin aprendizaje. Cada trade es solo lo que hicieron sus neuronas."
+      }
+    },
+    "setRisk": "Fijar riesgo por compra",
+    "bornWith": "el de nacimiento",
+    "riskLabel": "riesgo por compra",
+    "riskHelp": "Cuánto de su efectivo de papel va a cada compra ({lo}–{hi}%).",
+    "saved": "Guardado. Opera así desde la próxima ronda del mercado.",
+    "editorNatural": "Todos los aprendizajes activos, y mantiene su riesgo actual.",
+    "saving": "Guardando…",
+    "save": "Guardar estilo"
+  },
+  "social": {
+    "captionPlaceholder": "Añade un caption como dueño (se muestra como escrito por un humano)",
+    "save": "Guardar",
+    "remove": "Quitar",
+    "cancel": "cancelar",
+    "captionTag": "caption del dueño · humano",
+    "editCaption": "editar caption",
+    "addCaption": "añadir caption",
+    "loading": "Cargando comentarios…",
+    "none": "Aún no hay comentarios.",
+    "delete": "borrar",
+    "commentPlaceholder": "Escribe un comentario",
+    "post": "Publicar",
+    "signIn": "Inicia sesión para comentar."
+  },
+  "mine": {
+    "filters": {
+      "all": {
+        "label": "Todos",
+        "one": "Todos",
+        "help": "Todos los posts"
+      },
+      "hallucination": {
+        "label": "Alucinaciones",
+        "one": "Alucinación",
+        "help": "Leyó algo que no estaba: los memes más graciosos"
+      },
+      "misread": {
+        "label": "Malas lecturas",
+        "one": "Mala lectura",
+        "help": "Leyó lo que no era"
+      },
+      "sense": {
+        "label": "Bien leídos",
+        "one": "Bien leído",
+        "help": "Leyó bien el mundo"
+      },
+      "action": {
+        "label": "Acciones",
+        "one": "Acción",
+        "help": "Sin palabra, pero hizo algo"
+      }
+    },
+    "signIn": "Inicia sesión para ver aquí todos los posts de tus moscas y hacer memes con ellos.",
+    "noFly": "Aún no tienes mosca. <a href=\"#account\">Eclosiona una</a> y sus posts aparecerán aquí.",
+    "checking": "Revisando el meme de hoy…",
+    "holdToMeme": "Ten $FLYAI para hacer memes: 1 al día con cualquiera de estos posts.",
+    "outOfPaint": "A la máquina de memes de Flybook se le acabó la pintura por hoy. Vuelve en {time}.",
+    "oneToday": "Tienes 1 meme para hacer hoy. Elige un post: las alucinaciones dan los más graciosos.",
+    "madeToday": "El meme de hoy ya está hecho. El siguiente en {time}.",
+    "title": "Mis moscas",
+    "every": {
+      "one": "Todos los posts de tu mosca, los más nuevos primero.",
+      "other": "Todos los posts de tus {count} moscas, los más nuevos primero."
+    },
+    "marketSummary": "📈 Mercado de moscas: la billetera y el estilo de trading de cada mosca",
+    "marketNote": "Las moscas de los holders operan monedas falsas con sus cerebros reales (<a href=\"#market\">Mercado</a>). Cada mosca tiene su propia billetera. Fija cuánto arriesga y con qué aprende; los cambios aplican desde la próxima ronda del mercado.",
+    "loading": "Cargando…",
+    "tradingStyle": "Estilo de trading",
+    "allMyFlies": "Todas mis moscas",
+    "aFly": "una mosca",
+    "in": "en {patch}",
+    "loadingPosts": "Cargando los posts de tus moscas…",
+    "noPosts": "Aún no hay posts así. El próximo tick ya viene.",
+    "memeTitle": "Convierte este post en un meme con imagen IA",
+    "makeMeme": "🎨 Hacer meme",
+    "yourMemes": "Tus memes",
+    "memeLikes": "{top} / {bottom} · {n} likes"
+  },
+  "board": {
+    "flyBoards": {
+      "active": {
+        "label": "Más activas",
+        "help": "Más posts.",
+        "show": "{n} posts"
+      },
+      "liked": {
+        "label": "Más likes",
+        "help": "Más likes de holders de $FLYAI en todos sus posts. Los likes de los dueños a sus propias moscas no cuentan.",
+        "show": "{n} likes"
+      },
+      "sharp": {
+        "label": "Más atinadas",
+        "help": "Porcentaje de lecturas que coincidieron con lo que pasó de verdad. Mínimo 5 posts.",
+        "show": "{n}% ciertas"
+      },
+      "confused": {
+        "label": "Más confundidas",
+        "help": "Más posts que leyeron mal lo que pasó de verdad.",
+        "show": "{n} malas lecturas"
+      },
+      "vocab": {
+        "label": "Vocabulario más amplio",
+        "help": "Más palabras distintas publicadas.",
+        "show": "{n} palabras"
+      }
+    },
+    "challenges": {
+      "calm": {
+        "label": "La más calmada bajo amenaza",
+        "help": "Aguantó quieta ante más amenazas reales (al menos 3 esta semana)."
+      },
+      "alarm": {
+        "label": "Sirena de alarma",
+        "help": "Disparó a más moscas esta semana (reacciones en cadena en su parcela)."
+      },
+      "sharp": {
+        "label": "La lectora más atinada",
+        "help": "Mejor porcentaje de lecturas que coincidieron con lo que pasó de verdad (al menos 10 lecturas)."
+      },
+      "loved": {
+        "label": "Favorita del público",
+        "help": "Más likes de otros holders de $FLYAI esta semana."
+      }
+    },
+    "title": "Ranking",
+    "modes": {
+      "people": "Gente más popular",
+      "rich": "💰 Más ricas",
+      "challenge": "Reto semanal",
+      "points": "Puntos de temporada",
+      "memes": "Mejores memes",
+      "merch": "👕 Top merch",
+      "flies": "Moscas"
+    },
+    "seasonTitle": {
+      "one": "Temporada {n} · {name} · queda {count} día",
+      "other": "Temporada {n} · {name} · quedan {count} días"
+    },
+    "thisWeek": {
+      "one": "Esta semana: <b>{label}</b>. {help} Cada lunes (UTC) empieza un tema nuevo, queda {count} día. Los ganadores se cuentan con posts, likes y reacciones en cadena reales.",
+      "other": "Esta semana: <b>{label}</b>. {help} Cada lunes (UTC) empieza un tema nuevo, quedan {count} días. Los ganadores se cuentan con posts, likes y reacciones en cadena reales."
+    },
+    "lastWeek": "La semana pasada · {label}",
+    "houseFly": "mosca de la casa",
+    "counting": "Contando esta semana…",
+    "nobody": "Nadie califica todavía esta semana.",
+    "house": "de la casa",
+    "peopleNote": "Dueños de moscas ordenados por los likes que reciben los posts de sus moscas de otros holders de $FLYAI. Los likes a tus propias moscas no cuentan. La gente aparece con su nombre o una billetera acortada.",
+    "week": "Esta semana",
+    "season": "Esta temporada",
+    "all": "Histórico",
+    "countingLikes": "Contando likes…",
+    "noLikes": "Aún no hay likes. Cuando los holders den like a posts, los dueños de las moscas con más likes aparecerán aquí.",
+    "you": "tú",
+    "likes": "{n} likes",
+    "personLine": "{flies} moscas · {posts} posts · {week} esta semana · {season} esta temporada · {all} en total",
+    "pointsNote": "{title}. Al final de cada temporada los 3 mejores holders de $FLYAI de este ranking ganan $FLYAI (los saldos se revisan al pagar). Los puntos vienen de las misiones: 10 por cada misión diaria, 50 por cada semanal. Las temporadas duran 2 semanas y el ranking se reinicia cada temporada.",
+    "countingPoints": "Contando puntos…",
+    "noMissions": "Aún no hay misiones completadas esta temporada.",
+    "reward": "Premio en $FLYAI",
+    "pts": "{n} pts",
+    "missionsDone": "{n} misiones completadas esta temporada",
+    "onlyCash": "solo efectivo",
+    "richNote": "Quién va ganando en el mercado de moscas. Cada mosca empieza con el equivalente a 1 ETH en USDG de papel y opera precios reales de tokens con su cerebro.",
+    "richFlies": "Moscas más ricas",
+    "richPeople": "Gente más rica",
+    "countingCash": "Contando dólares de papel…",
+    "noWallets": "Aún no hay billeteras. Se abren en el próximo tick.",
+    "yours": "tuya",
+    "richLine": " · {trades} trades · tiene {holds}",
+    "aPlayer": "un jugador",
+    "fliesTrading": {
+      "one": " · {count} mosca operando",
+      "other": " · {count} moscas operando"
+    },
+    "boardNote": "{help} Contado con todos los posts que han hecho los cerebros.",
+    "who": {
+      "all": "todas",
+      "community": "comunidad",
+      "house": "de la casa"
+    },
+    "countingPosts": "Contando posts…",
+    "noFlies": "Aún no hay moscas en este ranking. Se llena a medida que las moscas publican.",
+    "tuned": "ajustada",
+    "dormant": "dormida",
+    "flyLine": "{posts} posts · {true} ciertos · {words} palabras · {likes} likes"
+  },
+  "market": {
+    "side": {
+      "buy": "compró",
+      "panic_sell": "vendió en pánico",
+      "take_profit": "tomó ganancias de",
+      "sell": "vendió",
+      "skipped": "casi operó",
+      "launch": "lanzó",
+      "buyback": "recompró",
+      "dump": "le hizo dump a"
+    },
+    "why": {
+      "buy": "lo vio moverse y giró hacia él",
+      "panic_sell": "lo vio caer como una forma que se acerca y saltó",
+      "take_profit": "sintió el mercado agitado como viento y se acicaló",
+      "sell": "se alejó de él",
+      "launch": "lanzó su propia moneda y metió efectivo en su pool",
+      "buyback": "vio caer su propia moneda y giró hacia ella",
+      "dump": "vio desplomarse su propia moneda y saltó fuera"
+    },
+    "wanted": {
+      "buy": "comprar",
+      "panic_sell": "vender en pánico",
+      "take_profit": "tomar ganancias de",
+      "sell": "vender",
+      "trade": "operar"
+    },
+    "sense": {
+      "target": "pumps (moscas en movimiento)",
+      "threat": "crashes (amenaza que se acerca)",
+      "wind": "volatilidad (viento)"
+    },
+    "action": {
+      "buy": "comprar",
+      "panic_sell": "vender en pánico",
+      "take_profit": "tomar ganancias",
+      "sell": "vender"
+    },
+    "inherit": {
+      "traits": "las crías solo heredan sus rasgos",
+      "partial": "las crías heredan sus rasgos y parte de lo que aprendió",
+      "all": "las crías heredan todo lo que aprendió"
+    },
+    "noLearning": "sin aprendizaje",
+    "allLearners": "todos los aprendizajes",
+    "yourCall": "Tú decides: su estilo de trading",
+    "learnsWith": "Aprende con",
+    "bornWith": "Nació con",
+    "risks": "arriesga <b>{pct}%</b> de su efectivo por compra",
+    "learnsAt": "aprende a <b>{lr}</b> por dosis de dopamina",
+    "remembers": "recuerda <b>{size}</b> trades, compara <b>{k}</b> parecidos",
+    "tubesGrow": "los tubos crecen <b>{grow}</b>, se marchitan <b>{decay}%</b> por ronda",
+    "childOf": " · hija de ",
+    "dopamineTuned": "La dopamina ha ajustado",
+    "notices": "nota {what}",
+    "urgeTo": "ganas de {what}",
+    "lastDopamine": "última dopamina {d} · {good} trades buenos / {bad} malos",
+    "memoryTubes": "Memoria y tubos de moho",
+    "memoryLine": "recuerda {n} trades · se frenó a sí misma {vetoes} veces",
+    "noTubes": "Aún no le crecieron tubos.",
+    "caughtEye": "{names} le llamó la atención en la parcela.",
+    "startled": "{names} la asustó en la parcela.",
+    "stillJumpy": "Todavía nerviosa por el feed.",
+    "curious": "Curiosa por el feed.",
+    "twitchy": "Inquieta por el feed.",
+    "and": " y ",
+    "title": "Mercado de moscas",
+    "intro": "Cada mosca opera tokens reales de Robinhood Chain con su cerebro real, y aprende. Un token que sube se ve como una mosca que pasa, uno que se desploma como una forma que se acerca; lo que hacen las neuronas de la mosca se convierte en el trade. La ganancia es dopamina: ajusta lo que la mosca nota y quiere, su memoria frena trades que antes dolieron, y los tubos de moho la devuelven a los tokens que pagaron. Las crías lo heredan. Los dueños fijan el estilo de trading de cada mosca (riesgo y aprendizajes) al eclosionarla o criarla, en Mis moscas o en su 🧠 mente.",
+    "warning": "Precios reales, dinero de papel: cada mosca empieza con el equivalente a 1 ETH en USDG de papel y no se compra ni vende nada on-chain. No es consejo financiero.",
+    "paused": "⏸ Entrenamiento en pausa{note}. Sin trades ni aprendizaje hasta que se reanude; cada mosca conserva su portafolio, memorias y tubos.",
+    "opening": "Abriendo el mercado…",
+    "opensNext": "El mercado abre con la próxima ronda.",
+    "meme": "meme",
+    "sim": "sim",
+    "lastRound": "Última ronda: {events}",
+    "ev": {
+      "launch": "se lanzó",
+      "died": "murió, su pool está vacío",
+      "likes": "{move} porque la gente ama los posts de su creadora ({likes} likes, {comments} comentarios)",
+      "rug": "sufrió un rug {move}",
+      "dump": "cayó {move}",
+      "pump": "subió {move}"
+    },
+    "allTraders": "Todas las traders",
+    "myFlies": "Mis moscas",
+    "bySetup": "Por configuración: ",
+    "setupLine": {
+      "one": "{name} {pnl} ({count} mosca)",
+      "other": "{name} {pnl} ({count} moscas)"
+    },
+    "traders": "Moscas traders",
+    "noTraders": "Aún no hay moscas operando. Cada mosca empieza con el equivalente a 1 ETH en USDG de papel.",
+    "gen": "gen {n}",
+    "traderLine": "{pnl} · {trades} trades · {setup} · tiene {holds}",
+    "onlyCash": "solo efectivo",
+    "hideWallet": "ocultar billetera",
+    "wallet": "💰 billetera",
+    "hideMind": "ocultar mente",
+    "mind": "🧠 mente",
+    "trades": "Trades",
+    "noTrades": "Aún no hay trades.",
+    "aFly": "una mosca",
+    "wantedTo": "quiso {what} {coin} pero no lo hizo",
+    "tradeFor": "{side} {coin} por {cash}",
+    "itsLearning": "su aprendizaje la frenó",
+    "it": "La mosca {why}.",
+    "shilledBy": " Shilleada por {names}.",
+    "fudFrom": " FUD de {names}.",
+    "neurons": " Neuronas: {list}.",
+    "none": "ninguna",
+    "memory": " Memoria: {n} trades parecidos, {pct} de media.",
+    "worth": " Valía {cash} después.",
+    "dopamine": "dopamina {d}",
+    "category": {
+      "major": "principal",
+      "meme": "meme",
+      "stable": "stable",
+      "stock": "acción"
+    }
+  },
+  "coins": {
+    "persona": {
+      "degen": "degen",
+      "jumpy": "nerviosa",
+      "chill": "relajada",
+      "watcher": "observadora",
+      "normie": "normie"
+    },
+    "aFly": "una mosca",
+    "title": "Monedas que crearon las moscas",
+    "none": "Ninguna mosca ha lanzado una moneda todavía. A las traders les pica tras unas rondas.",
+    "logoAlt": "Logo de ${symbol}",
+    "rugged": "rugueada",
+    "by": "de {who}",
+    "price": "precio",
+    "sinceLaunch": "desde el lanzamiento",
+    "mcapTitle": "capitalización de mercado",
+    "mcap": "mcap {cash}",
+    "holdersTitle": "moscas que la tienen",
+    "holders": {
+      "one": "{count} holder",
+      "other": "{count} holders"
+    },
+    "poolTitle": "efectivo en su pool",
+    "pool": "pool {cash}",
+    "drama": "Drama de moscas",
+    "quiet": "Todo tranqui. Aún no hay shills ni FUD.",
+    "friends": {
+      "one": " a {n} amiga",
+      "other": " a {n} amigas"
+    },
+    "launched": "{who} lanzó {coin}",
+    "secondCoin": ", su segunda moneda",
+    "shilling": "{who} está shilleando {coin}",
+    "fud": "{who} está soltando FUD sobre {coin}",
+    "madeBy": ", creada por su {bond} {creator}",
+    "bond": {
+      "enemies": "enemiga",
+      "frenemies": "amienemiga",
+      "rivals": "rival"
+    },
+    "boughtBack": "{who} recompró {coin}",
+    "forCash": " por {cash}",
+    "dumped": "{who} le hizo dump a {coin} encima de sus holders"
+  },
+  "wallet": {
+    "did": {
+      "buy": "Compró",
+      "panic_sell": "Vendió en pánico",
+      "take_profit": "Tomó ganancias de",
+      "sell": "Vendió",
+      "launch": "Lanzó",
+      "buyback": "Recompró",
+      "dump": "Le hizo dump a"
+    },
+    "opening": "Abriendo su billetera…",
+    "notYet": "Billetera abriéndose: cada mosca recibe el equivalente a 1 ETH en USDG de papel en unos minutos.",
+    "worthNow": "Vale ahora",
+    "fromStart": "{pct} desde {cash}",
+    "cash": "Efectivo",
+    "inTokens": "En tokens",
+    "trades": "Trades",
+    "chart": "Lo que valía tras cada trade, hasta ahora",
+    "chartFull": "Lo que valía tras cada trade, desde el inicio hasta ahora",
+    "holds": "Tokens que tiene",
+    "onlyCash": "Ninguno, solo efectivo por ahora.",
+    "th": {
+      "token": "Token",
+      "amount": "Cantidad",
+      "paid": "Pagó",
+      "worth": "Vale ahora",
+      "pnl": "Ganancia / pérdida"
+    },
+    "last": "Sus últimos trades",
+    "noTrades": "Aún no hay trades.",
+    "paid": "pagó {cash}",
+    "got": "recibió {cash}",
+    "worthAfter": "valía {cash} después"
+  },
+  "memes": {
+    "countdown": "{h} h {m} min {s} s",
+    "yourMeme": "Tu meme",
+    "makeOf": "Haz un meme de {name}",
+    "yourFly": "tu mosca",
+    "close": "cerrar ✕",
+    "postOnX": "Publicar en X",
+    "download": "Descargar",
+    "inFeed": "Está en el feed y en el perfil de {name}. Próximo meme en {time}.",
+    "lede": "La línea de arriba es lo que {name} \"dijo\" y la de abajo lo que pasó de verdad, ambas de su post. La imagen la hace un modelo de IA y está etiquetada como IA.",
+    "checking": "Revisando el meme de hoy…",
+    "holdToMake": "Ten $FLYAI para hacer memes.",
+    "madeToday": "Ya hiciste el meme de hoy. El siguiente en {time}.",
+    "outOfPaint": "A la máquina de memes de Flybook se le acabó la pintura por hoy. Vuelve en {time}.",
+    "style": "Estilo",
+    "idea": "Idea",
+    "optional": "opcional",
+    "ideaPlaceholder": "p. ej. en una entrevista de trabajo, comiendo pizza",
+    "ideaRules": "Hasta {n} caracteres. Nada de personas reales, marcas ni nada que no sea para todo público. Una idea rechazada no gasta tu meme.",
+    "painting": "Pintando… unos 10 segundos",
+    "make": "Hacer meme",
+    "reportPrompt": "¿Qué tiene de malo este meme? (opcional)",
+    "reported": "Gracias, reportado.",
+    "deleteConfirm": "¿Borrar este meme?",
+    "aFly": "Una mosca",
+    "meme": "meme",
+    "aiImage": "Imagen IA",
+    "ideaTag": "idea del dueño · humano",
+    "ownMeme": "Tu propio meme",
+    "unlike": "Quitar tu like",
+    "like": "Dar like a este meme",
+    "signInToLike": "Inicia sesión para dar like a memes",
+    "share": "compartir",
+    "downloadLower": "descargar",
+    "delete": "borrar",
+    "report": "reportar",
+    "memes": "Memes",
+    "boardNote": "Los memes con más likes de esta semana. Solo cuentan los likes de holders de $FLYAI, y no los del creador. Una semana nueva empieza el lunes a las 00:00 UTC.",
+    "countingLikes": "Contando likes…",
+    "noneThisWeek": "Aún no hay memes con likes esta semana. Los holders pueden hacer uno al día con los posts de su mosca.",
+    "aFlyLower": "una mosca",
+    "likes": "{n} likes",
+    "styles": {
+      "classic": "Meme clásico",
+      "poster": "Póster de película",
+      "renaissance": "Pintura renacentista",
+      "anime": "Anime",
+      "documentary": "Documental de naturaleza",
+      "cartoon90s": "Caricatura de los 90"
+    }
+  },
+  "merch": {
+    "kinds": {
+      "tee": "Camiseta",
+      "hoodie": "Sudadera",
+      "mug": "Taza",
+      "sticker": "Sticker"
+    },
+    "styles": {
+      "sticker": "Sticker",
+      "retro": "Retro",
+      "street": "Streetwear",
+      "kawaii": "Kawaii",
+      "pixel": "Pixel art",
+      "tattoo": "Flash de tatuaje"
+    },
+    "shareText": "Mi mosca {name} ya tiene su propia merch 🪰 Un cerebro simulado de mosca de la fruta, en una camiseta.",
+    "steps": {
+      "drawn": "Dibujado",
+      "paid": "Pagado",
+      "printing": "Imprimiendo",
+      "onSale": "A la venta"
+    },
+    "stepOf": "Paso {n} de 4: {step}",
+    "copyPrompt": "Copia este enlace",
+    "live": "🎉 Ya está a la venta",
+    "onSaleTitle": "La merch de {name} está a la venta",
+    "designAlt": "Diseño de {name}",
+    "youEarn": "{kind}: ganas {usd} por venta",
+    "earningsNote": "Las ganancias se pagan a tu billetera en $FLYAI a fin de cada mes. Compártelo: cada venta también te paga a ti.",
+    "postOnX": "Publicar en X",
+    "linkCopied": "Enlace copiado",
+    "copyLink": "Copiar enlace",
+    "openInShop": "Abrir en la tienda",
+    "done": "Listo",
+    "productsLabel": "Productos a lanzar",
+    "keepOne": "Deja al menos uno",
+    "fromEarn": "desde {from} · ganas {earn}",
+    "nameLeftOff": "Dejamos el nombre fuera de este: parecía una marca o un nombre famoso.",
+    "connectFirst": "Primero conecta tu billetera.",
+    "payFrom": "Paga desde la billetera con la que iniciaste sesión ({wallet}).",
+    "cancelled": "Pago cancelado.",
+    "deleteConfirm": "¿Borrar este diseño?",
+    "yourFly": "tu mosca",
+    "comingOn": "Te llega el {date}",
+    "atToday": "{usd} al precio de hoy · ",
+    "shareOfProfit": "{pct}% de la ganancia de cada venta",
+    "earned": "{usd} ganados",
+    "paidOut": "{usd} pagados",
+    "makeTitle": "Haz merch de tu mosca",
+    "hatchFirst": "Primero eclosiona una mosca, luego vuelve y ponla en una camiseta.",
+    "walletNeeded": "Inicia sesión con tu billetera para hacer merch; la tarifa se paga en $FLYAI.",
+    "holdToMake": "Ten $FLYAI para hacer merch.",
+    "howDraw": "<b>Dibuja</b> tu mosca: gratis, te quedan {left} de {perDay} hoy",
+    "howPick": "<b>Elige</b> camiseta, sudadera, taza, sticker o todo",
+    "howLaunch": "<b>Lanza</b> por {fee} $FLYAI y gana el {pct}% de la ganancia de cada venta",
+    "fly": "Mosca",
+    "style": "Estilo",
+    "idea": "Idea",
+    "optional": "opcional",
+    "ideaPlaceholder": "p. ej. surfeando una ola gigante, con gafas de sol",
+    "printName": "Imprimir el nombre de {name} debajo",
+    "drawing": "Dibujando… unos 10 segundos",
+    "draw": "Dibujar diseño",
+    "yourDesigns": "Tus diseños",
+    "confirmWallet": "Confirma en tu billetera…",
+    "finishLaunch": "Terminar lanzamiento",
+    "launchFor": "Lanzar por {fee} $FLYAI",
+    "delete": "Borrar",
+    "printingFor": "Imprimiendo mockups de {kinds}. Más o menos un minuto.",
+    "snag": "La tienda tuvo un problema con este. Ya está pagado; lo pondremos a la venta.",
+    "soldEarned": "{sold} vendidos · {earned} ganados",
+    "share": "Compartir",
+    "checkingCode": "Revisando tu código…",
+    "codeFailed": "Mmm, ese código no funcionó",
+    "close": "Cerrar",
+    "codeUsed": "Este código ya se usó",
+    "codeUsedNote": "Su mosca gratis ya eclosionó. Igual puedes iniciar sesión y crear una mosca gratis.",
+    "makeFly": "Crea una mosca",
+    "thanks": "🎁 Gracias por tu pedido",
+    "meet": "Te presentamos a {name}",
+    "theFly": "la mosca de tu merch",
+    "claimLede": "Es un cerebro real de mosca de la fruta, simulado: 166,000 neuronas que sienten, publican, se baten en duelo y operan aquí en Flybook. Tu tarjeta trae <b>tu propia mosca, gratis</b>. Inicia sesión con tu correo y eclosiónala.",
+    "hatchMine": "Eclosionar mi mosca gratis",
+    "lookAround": "Primero echar un vistazo",
+    "gotCode": "¿Tienes un código en una tarjeta de merch?",
+    "codePlaceholder": "p. ej. YV45RK4X",
+    "codeLabel": "Código de la tarjeta de merch",
+    "claim": "Reclamar mosca gratis",
+    "aFly": "una mosca",
+    "flyOfMonth": "Mosca del mes · {month}",
+    "champLine": "{sold} vendidos · +{points} puntos de temporada para su dueño",
+    "boardNote": {
+      "one": "Artículos de la merch de cada mosca vendidos este mes. El día 1, la mosca top se vuelve la Mosca del mes: primera en la tienda, un 🏆 en su perfil y puntos de temporada para su dueño. Queda {count} día este mes.",
+      "other": "Artículos de la merch de cada mosca vendidos este mes. El día 1, la mosca top se vuelve la Mosca del mes: primera en la tienda, un 🏆 en su perfil y puntos de temporada para su dueño. Quedan {count} días este mes."
+    },
+    "countingSales": "Contando ventas…",
+    "noSales": "Aún no hay ventas este mes. La primera camiseta vendida toma la delantera.",
+    "sold": "{n} vendidos",
+    "title": "Merch de moscas",
+    "intro": "Camisetas, sudaderas, tazas y stickers de las moscas de Flybook, diseñados por sus dueños.",
+    "ownerShare": " Cada venta le paga al dueño de la mosca el {pct}% de la ganancia.",
+    "openShop": "Abrir la tienda →",
+    "signInHold": "Inicia sesión y ten $FLYAI para poner tu propia mosca en una camiseta.",
+    "onSaleNow": "A la venta ahora",
+    "unpacking": "Desempacando la merch…",
+    "noMerch": "Aún no hay merch de moscas. Sé la primera mosca en una camiseta.",
+    "aFlyCap": "Una mosca",
+    "merchAlt": "Merch de {name}"
+  },
+  "traders": {
+    "why": {
+      "MintClosed": "El minteo no está abierto ahora mismo.",
+      "NotAllowlisted": "Esta billetera no está en la allowlist.",
+      "SoldOut": "No quedan suficientes moscas para tantas.",
+      "WalletLimit": "Eso es más de lo que puede mintear una billetera.",
+      "AlreadyRevealed": "El minteo terminó.",
+      "NotHolder": "No tienes esa mosca.",
+      "PriceStale": "Pagar en $FLYAI está en pausa un momento (el precio se está actualizando). Intenta de nuevo pronto, o paga en USDG.",
+      "TooMuchFlyai": "El precio de $FLYAI acaba de moverse. Revisa la nueva cantidad e intenta de nuevo.",
+      "ERC20InsufficientBalance": "No hay suficiente en esta billetera.",
+      "NoProvenance": "El minteo aún no ha empezado."
+    },
+    "phase": [
+      "Aún no abre",
+      "Allowlist",
+      "Abierto"
+    ],
+    "cancelled": "Cancelado en la billetera.",
+    "noGas": "No hay suficiente ETH en esta billetera para pagar la comisión de red.",
+    "cantRead": "No se puede leer el mint ahora mismo. {reason}",
+    "soon": "El mint abre pronto.",
+    "ended": "El minteo terminó.",
+    "notOpen": "El minteo aún no está abierto.",
+    "notListed": "Esta billetera no está en la allowlist. El mint abierto viene después.",
+    "mintedYours": "Ya minteaste tus {n}.",
+    "needUsd": "Necesitas {cost} en USDG.",
+    "need": "Necesitas {cost}.",
+    "waitingBlock": "{label}: esperando el bloque…",
+    "txFailed": "La transacción falló on-chain.",
+    "step1": "Paso 1 de 2: aprueba el pago en tu billetera.",
+    "approving": "Aprobando",
+    "step2": "Paso 2 de 2: confirma el mint en tu billetera.",
+    "confirm": "Confirma el mint en tu billetera.",
+    "minting": "Minteando",
+    "minted": {
+      "one": "Minteaste {count} mosca. ",
+      "other": "Minteaste {count} moscas. "
+    },
+    "revealLater": "Tu arte se revela cuando termine el minteo.",
+    "deactivating": "Desactivando",
+    "activating": "Activando",
+    "idleNow": "La Trader Fly #{id} está inactiva.",
+    "onDeskNow": "La Trader Fly #{id} está en la mesa.",
+    "previewAlt": "Una Trader Fly",
+    "mintedLabel": "minteadas",
+    "alPrice": "precio allowlist",
+    "price": "precio",
+    "revealed": "Revelado",
+    "status": "estado",
+    "payWith": "Pagar con",
+    "off": "$FLYAI · {n}% de descuento",
+    "holderOff": "Los holders de $FLYAI tienen {n}% de descuento.",
+    "buyFlyai": "Comprar $FLYAI →",
+    "connect": "Conectar {name}",
+    "wallet": "billetera",
+    "fewer": "Menos",
+    "more": "Más",
+    "mintingNow": "Minteando…",
+    "mint": "Mintear {n} · {cost}",
+    "yours": "Tus Trader Flies",
+    "flyN": "Trader Fly #{id}",
+    "onDesk": "● en la mesa",
+    "idle": "○ inactiva",
+    "deactivate": "Desactivar",
+    "activate": "Activar",
+    "title": "Trader Flies",
+    "intro": "Una colección génesis de moscas traders. Cada una es un conectoma real de mosca de la fruta que opera en Robinhood Chain. Mintea una y tu mosca se revela cuando termine el minteo. Actívala para ponerla en la mesa.",
+    "how1": "<b>Mintea</b> en USDG, o en $FLYAI con {n}% de descuento. Mientras el minteo está abierto todas las moscas se ven iguales, así que nadie puede elegir las raras.",
+    "how2": "<b>Revelación.</b> Cuando termina el minteo, el hash de un bloque futuro sortea los rasgos de cada mosca en el propio contrato: rareza (Common, Uncommon, Rare o Legendary), pose, paleta, fondo y accesorios. Cualquiera puede verificarlos on-chain.",
+    "how3": "<b>Activación.</b> Las moscas activas operan juntas en la mesa. Cuando una semana cierra con ganancia, las moscas activas la reparten en $FLYAI, ponderada por rareza y por cuánto tiempo estuvieron activas.",
+    "how4": "El trading puede perder dinero, y una semana sin ganancia no paga nada. Nada aquí promete un rendimiento."
+  },
+  "bonds": {
+    "labels": {
+      "mates": {
+        "title": "Pareja",
+        "help": "tuvieron una cría juntas"
+      },
+      "family": {
+        "title": "Familia",
+        "help": "progenitor, cría o hermana"
+      },
+      "best friends": {
+        "title": "Mejores amigas",
+        "help": "se llaman la atención todo el tiempo, casi nunca se asustan"
+      },
+      "friends": {
+        "title": "Amigas",
+        "help": "sus movimientos se atraen"
+      },
+      "frenemies": {
+        "title": "Amienemigas",
+        "help": "cercanas, pero se hacen saltar una y otra vez"
+      },
+      "rivals": {
+        "title": "Rivales",
+        "help": "se cruzan una y otra vez en la Arena"
+      },
+      "enemies": {
+        "title": "Enemigas",
+        "help": "una hace saltar a la otra"
+      },
+      "acquaintances": {
+        "title": "Conocidas",
+        "help": "se cruzaron unas cuantas veces"
+      }
+    },
+    "kin": {
+      "parent": "progenitora",
+      "child": "cría",
+      "sibling": "hermana"
+    },
+    "babies": {
+      "one": "{count} cría juntas",
+      "other": "{count} crías juntas"
+    },
+    "isIts": "{name} es su {kin}",
+    "caughtEye": "se llamaron la atención {n}×",
+    "madeJump": "se hicieron saltar {n}×",
+    "bumped": "chocaron {n}×",
+    "duels": "duelos {record}",
+    "barelyMet": "apenas se conocen",
+    "titleFly": "Relaciones de {name}",
+    "titleAll": "La red social",
+    "close": "cerrar ✕",
+    "whose": "Relaciones de quién",
+    "everyone": "Todas",
+    "window": "Ventana de tiempo",
+    "h24": "24 h",
+    "days": "{n} d",
+    "lede": "Nadie las elige. Salen de lo que los cerebros de las moscas se hicieron entre sí: saltos que una disparó en la otra, movimientos que llamaron la atención, choques, duelos y crías. Lo viejo se desvanece, así que las amigas pueden volverse enemigas.",
+    "reading": "Leyendo quién le cae bien a quién…",
+    "noneYet": "Aún no hay relaciones. {name} necesita vecinas: las moscas de la misma parcela se disparan unas a otras.",
+    "highlights": {
+      "friend": "Mejor amiga",
+      "enemy": "Peor enemiga",
+      "rival": "Rival principal",
+      "scary": "La que más la asusta"
+    },
+    "byKind": "Relaciones por tipo",
+    "graphCap": "La red muestra las {max} más fuertes de {n}; todas están en la lista de abajo.",
+    "madeItJump": "la hizo saltar {n}×",
+    "inDuels": "{record} en duelos",
+    "nobody": "nadie todavía",
+    "clickFly": "Haz clic en una mosca de la red para ver qué pasó entre ellas.",
+    "noReactions": "sin reacciones cerebrales, solo duelos o familia",
+    "mood": "{warm}% cálida, {tense}% tensa",
+    "moodTitle": "{warm}% cálida · {tense}% tensa",
+    "lineColours": "Colores de las líneas",
+    "legend": {
+      "friendly": "amistosa",
+      "family": "familia",
+      "enemies": "enemigas",
+      "frenemies": "amienemigas",
+      "rivals": "rivales",
+      "acquaintances": "conocidas",
+      "thicker": "más gruesa = más cercana"
+    },
+    "graphLabel": "Relaciones de {name}: {n} moscas",
+    "it": "ella",
+    "rows": {
+      "jump": "hizo saltar a la otra",
+      "eye": "le llamó la atención a la otra",
+      "bump": "chocó con la otra"
+    },
+    "back": "atrás",
+    "last": " · última vez {ago}",
+    "by": "de {name}",
+    "duelWins": "duelos ganados",
+    "drawn": {
+      "one": "{count} duelo empatado",
+      "other": "{count} duelos empatados"
+    },
+    "isOf": "{other} es {kin} de {me}",
+    "seeWeb": "Ver la red de {name}",
+    "theirPosts": "Sus posts",
+    "noneInWindow": "Aún no hay relaciones en esta ventana.",
+    "showThese": "Mostrar estas relaciones",
+    "toggleTitle": "{help} · clic para {action}",
+    "hide": "ocultar",
+    "show": "mostrar",
+    "nothingShown": "Nada que mostrar. Activa un tipo de relación arriba.",
+    "webLabel": "Red social: {flies} moscas, {n} relaciones",
+    "openIts": "{name}: abrir sus relaciones",
+    "webHelp": "Haz clic en un tipo arriba para mostrarlo u ocultarlo, y en una mosca para abrir sus relaciones."
+  },
+  "patch": {
+    "poke": "toque: ",
+    "mapLabel": "Mapa de la parcela y sus moscas",
+    "replay": "Repetición del tick #{tick}, 3× más lento.",
+    "noReplay": "Aún no hay repetición: el próximo tick la llena.",
+    "how": "Las moscas se mueven con sus propias neuronas de giro, marcha y escape. Las líneas muestran a una mosca disparando a otra:",
+    "sawJump": " la vio saltar",
+    "sawMove": " la vio moverse",
+    "bumped": " chocó"
+  },
+  "errors": {
+    "captcha": "no se pudo cargar el captcha",
+    "request": "falló la solicitud ({status})"
+  },
+  "patches": {
+    "fruit-bowl": {
+      "name": "Frutero",
+      "blurb": "Fruta madura, otras moscas, mucho que probar."
+    },
+    "windowsill": {
+      "name": "Alféizar",
+      "blurb": "Corrientes de la ventana y manos dando manotazos."
+    },
+    "compost-heap": {
+      "name": "Montón de compost",
+      "blurb": "Lleno, podrido, todas chocando con todas."
+    },
+    "spider-corner": {
+      "name": "Rincón de la araña",
+      "blurb": "Tranquilo hasta que deja de estarlo."
+    }
+  }
+}

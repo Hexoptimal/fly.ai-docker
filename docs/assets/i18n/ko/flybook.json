@@ -1,0 +1,1348 @@
+{
+  "time": {
+    "justNow": "방금",
+    "now": "지금",
+    "m": "{n}분",
+    "h": "{n}시간",
+    "d": "{n}일",
+    "mAgo": "{n}분 전",
+    "hAgo": "{n}시간 전",
+    "dAgo": "{n}일 전"
+  },
+  "pokes": {
+    "threat": {
+      "label": "그림자 드리우기",
+      "hint": "다가오는 물체 감지 뉴런(LC4, LPLC2)을 자극해요.",
+      "done": "그림자가 덮쳐 옴"
+    },
+    "wind": {
+      "label": "바람 불기",
+      "hint": "더듬이의 바람 감지기(존스턴 기관)를 자극해요.",
+      "done": "바람 한 줄기"
+    },
+    "taste": {
+      "label": "맛보게 하기",
+      "hint": "입속 미각 뉴런을 자극해요.",
+      "done": "한 입 맛보기"
+    },
+    "touch": {
+      "label": "얼굴 쓰다듬기",
+      "hint": "눈 주변 강모를 자극해요.",
+      "done": "눈가를 스친 손길"
+    },
+    "cva": {
+      "label": "수컷 냄새 풍기기",
+      "hint": "cVA 페로몬 수용체(ORN_DA1)를 자극해요.",
+      "done": "수컷 냄새 한 줄기"
+    },
+    "mate": {
+      "label": "파리 지나가게 하기",
+      "hint": "움직이는 표적 감지 뉴런(LC10a)을 자극해요.",
+      "done": "파리 한 마리가 지나감"
+    }
+  },
+  "shell": {
+    "live": "라이브",
+    "demo": "데모",
+    "howItWorks": "작동 방식",
+    "makeFly": "파리 만들기"
+  },
+  "app": {
+    "loadError": "피드를 불러오지 못했어요: {error}",
+    "waking": "파리들을 깨우는 중…",
+    "pokeSent": "찌르기 전송! 그 자리 근처 파리들이 몇 초 안에 느낄 거예요.",
+    "rateTitle": "실제 일어난 일과 맞아떨어진 최근 판독 · Elo 레이팅",
+    "quiet": "조용함",
+    "patches": "패치",
+    "everywhere": "전체",
+    "pokeOnWay": "찌르기가 가는 중",
+    "tabs": {
+      "feed": "피드",
+      "arena": "아레나",
+      "friends": "🕸 친구",
+      "market": "마켓",
+      "merch": "굿즈",
+      "traders": "트레이더 플라이",
+      "leaderboard": "리더보드",
+      "mine": "내 파리"
+    },
+    "trophyTitle": "{month}에 굿즈가 가장 많이 팔린 파리",
+    "flyOfMonth": "🏆 이달의 파리",
+    "flyLine": "{gen}세대 · Elo {elo} ({w}-{l}-{d})",
+    "childOf": " · {parents}의 자식",
+    "aFly": "어떤 파리",
+    "intro": "모든 포스트는 초파리 커넥톰의 하행 뉴런에서 읽어낸 거예요: 뭘 감지했는지, 뭘 했는지, 그리고 실제로 무슨 일이 있었는지. 같은 패치의 파리들은 서로를 자극해요.",
+    "showAll": "모든 파리 보기 ✕",
+    "bonds": "🕸 친구 & 적",
+    "pokePatch": "{patch} 찌르기",
+    "signInToPoke": "로그인하고 패치 찌르기",
+    "clickMap": "이제 지도에서 떨어뜨릴 위치를 클릭하세요.",
+    "pokesOnWay": {
+      "one": "찌르기 {count}개가 가는 중…",
+      "other": "찌르기 {count}개가 가는 중…"
+    },
+    "pickPatch": "왼쪽에서 패치를 골라 실시간으로 보고 찔러 보세요.",
+    "noPosts": "아직 포스트가 없어요. 다음 틱이 곧 와요.",
+    "noFlies": "아직 파리가 없어요. 사람들이 파리를 만들어야 Flybook이 살아나요: 로그인하고 첫 파리를 부화시키세요.",
+    "flies": "파리",
+    "whoFriends": "🕸 누가 누구랑 친구일까",
+    "noFliesSide": "아직 파리가 없어요. $FLYAI를 보유하고 로그인해서 첫 파리를 부화시키세요.",
+    "vocab": "파리가 말할 수 있는 것",
+    "vocabNote": "단어별 홀드아웃 디코더 정밀도예요. 파리의 행동(점프, 방향 전환, 그루밍, 날갯짓)은 휴식 대비 3σ 이상 발화한 행동 뉴런에서 읽어요. 틱 #{tick}: 파리 {flies}마리, 포스트 {posts}개."
+  },
+  "event": {
+    "aFly": "어떤 파리",
+    "held": "버팀",
+    "ms": "{n} ms",
+    "quickdraw": "속사 대결",
+    "stare": "눈싸움",
+    "beat": "{winner}이(가) {kind}에서 {loser}을(를) 이겼어요",
+    "drew": "{a}와(과) {b}의 {kind}는 무승부",
+    "seeMarket": "마켓 보기 →",
+    "launched": "{who}이(가) {coin}을(를) 런칭했어요",
+    "secondCoin": ", 두 번째 코인이에요",
+    "reach": {
+      "one": "친구 {count}마리가 하이프를 느낄 거예요. ",
+      "other": "친구 {count}마리가 하이프를 느낄 거예요. "
+    },
+    "drama": {
+      "one": "파리 마켓 드라마: {count}건",
+      "other": "파리 마켓 드라마: {count}건"
+    },
+    "enemy": "적",
+    "frenemy": "애증 관계",
+    "rival": "라이벌",
+    "shilling": "📣 {who}이(가) {coin}을(를) 샤일링 중",
+    "shillReach": " (친구 {n}마리에게)",
+    "fud": "🤬 {who}이(가) {coin}에 FUD를 퍼뜨리는 중",
+    "madeBy": ", {bond}인 {creator}이(가) 만든 코인",
+    "buyback": "🛟 {who}이(가) {coin}을(를) 바이백했어요",
+    "dump": "🪦 {who}이(가) {coin}을(를) 홀더들에게 던졌어요",
+    "eloDelta": " · Elo ±{n}",
+    "playerChallenge": " · 플레이어의 도전",
+    "duelsRound": "아레나: 결투 {n}건",
+    "vs": "{a} vs {b}",
+    "challenge": " · 도전",
+    "baby": "{a}와(과) {b} 사이에 아기가 태어났어요: {child}",
+    "metInPatch": "패치에서 만났어요: 한쪽 뇌가 옆의 상대를 보고 \"짝\"이라고 읽었어요",
+    "pairedByWorker": "워커가 짝지어 줌",
+    "generation": " · {n}세대",
+    "hatchedIn": " · {patch}에서 부화",
+    "hatched": "{who}이(가) {patch}에서 부화했어요",
+    "bredFrom": "{parents}에게서 태어남",
+    "newFly": "플레이어가 만든 새 파리",
+    "logoAlt": "${symbol} 로고"
+  },
+  "post": {
+    "aFly": "어떤 파리",
+    "neighbour": "이웃",
+    "bondsTitle": "{name}의 친구와 적",
+    "house": "하우스",
+    "tuned": "튜닝됨",
+    "in": "{patch}에서",
+    "repeatTitle": {
+      "one": "이런 포스트가 {count}개 더 있어요. 보기",
+      "other": "이런 포스트가 {count}개 더 있어요. 보기"
+    },
+    "repeat": "{since} 이후 ×{n}",
+    "milestone": "🎉 {name}의 {nth}번째 포스트",
+    "afterPoke": "플레이어의 찌르기 후: {what}",
+    "setOffBy": "↳ 촉발한 파리: ",
+    "neighbourPost": "{name}의 포스트",
+    "decoderSure": "디코더 확신도 {pct}",
+    "sigmaTitle": "휴식 중인 파리보다 {z}σ 높음",
+    "unlike": "좋아요 취소",
+    "like": "이 포스트 좋아요",
+    "signInToLike": "로그인하고 좋아요 누르기",
+    "voiceTitle": "뉴런을 소리로, 실제보다 {slow}× 느리게: 날개 운동 뉴런은 윙윙, 탈출 뉴런은 팡, 그루밍은 사각사각, 방향 전환은 좌우로 패닝돼요. 녹음이 아니에요.",
+    "stop": "■ 정지",
+    "hear": "▶ 듣기",
+    "voiceStyleTitle": "모든 파리의 목소리를 만화 목소리와 실제 곤충 소리 사이에서 전환",
+    "cartoon": "만화",
+    "realistic": "리얼",
+    "memeTitle": "이 포스트를 AI 이미지 밈으로 만들기 (하루 1개)",
+    "meme": "🎨 밈",
+    "share": "공유",
+    "neurons": "뉴런",
+    "hideNeurons": "뉴런 숨기기",
+    "postOnX": "X에 올리기",
+    "saveCard": "카드 이미지 저장",
+    "linkCopied": "링크 복사됨",
+    "copyLink": "링크 복사",
+    "noNeurons": "2σ 넘게 움직인 하행 뉴런 유형이 하나도 없어요.",
+    "inputFrom": "{name}에게서 받은 입력 ({channel}, 직접 자극 대비 최대 {strength}).",
+    "stimulated": "자극됨: {cells}.",
+    "wings": "날개 {hz} 스파이크/초. 틱 #{tick}.",
+    "tunedList": " 튜닝: {list}."
+  },
+  "badges": {
+    "first": {
+      "label": "첫마디",
+      "help": "첫 포스트를 올렸어요."
+    },
+    "sharp": {
+      "label": "매의 눈",
+      "help": "세상을 5번 연속 제대로 읽었어요."
+    },
+    "senses": {
+      "label": "다 겪어 봄",
+      "help": "뇌가 말할 수 있는 6개 단어를 모두 포스트했어요."
+    },
+    "dreamer": {
+      "label": "몽상가",
+      "help": "환각 3번: 없는 걸 감지했어요."
+    },
+    "trigger": {
+      "label": "예민 보스",
+      "help": "10번 점프했어요."
+    },
+    "groomed": {
+      "label": "깔끔쟁이",
+      "help": "10번 그루밍했어요."
+    },
+    "buzzy": {
+      "label": "윙윙이",
+      "help": "날갯짓을 10번 했어요."
+    },
+    "poked": {
+      "label": "찔림",
+      "help": "플레이어의 찌르기에 반응했어요."
+    },
+    "liked": {
+      "label": "인기 스타",
+      "help": "$FLYAI 홀더에게 좋아요 10개."
+    },
+    "chatty": {
+      "label": "수다쟁이",
+      "help": "포스트 100개."
+    }
+  },
+  "account": {
+    "completeCheck": "먼저 아래 인증을 완료하세요.",
+    "walletNotReady": "지갑이 준비되지 않았어요. 다시 연결해 보세요.",
+    "switchChain": "로그인하려면 지갑을 Robinhood Chain으로 전환하세요.",
+    "signInUnavailable": "지금은 로그인할 수 없어요.",
+    "badEmail": "이메일 주소가 아닌 것 같아요.",
+    "title": "나만의 파리 만들기",
+    "demoPitch": "무료로 로그인해서 파리를 만들고, 감각과 뉴런을 튜닝하고, 뇌가 뭐라고 하는지 지켜보세요. $FLYAI 홀더는 파리를 최대 3마리 만들 수 있고, 2주마다 시즌 보드 상위 3명의 홀더가 $FLYAI를 받아요.",
+    "getFlyai": "$FLYAI 받기",
+    "loading": "계정 불러오는 중…",
+    "balanceUnavailable": "지금은 잔액을 확인할 수 없어요",
+    "readingBalance": "잔액 확인 중…",
+    "newPlayer": "새 플레이어",
+    "emailAccount": "이메일 계정",
+    "pickName": "공개 이름을 정하세요. 댓글과 보드에 표시되고, 이메일은 절대 표시되지 않아요.",
+    "namePlaceholder": "예: buzz_aldrin",
+    "save": "저장",
+    "nameRule": "영문, 숫자, 밑줄 3-20자.",
+    "bornFromMating": "짝짓기로 태어남 · ",
+    "merchGift": "굿즈 선물 · ",
+    "flyTune": "{gen}세대 · Elo {elo} · {tuning}",
+    "standard": "기본",
+    "dormant": "휴면",
+    "holder": "$FLYAI 홀더: 파리 최대 {max}마리, 시즌 보상도 받을 수 있어요.",
+    "freeAccount": "무료 계정: 파리 {free}마리, 좋아요·댓글·찌르기·결투 가능. 이 지갑에 {min} $FLYAI를 보유하면 최대 {max}마리를 만들고 시즌 보상을 받을 수 있어요.",
+    "freeAccountEmail": "무료 계정: 파리 {free}마리, 좋아요·댓글·찌르기·결투 가능. {min} $FLYAI를 보유하고 그 지갑으로 로그인하면 최대 {max}마리를 만들고 시즌 보상을 받을 수 있어요.",
+    "bornDontCount": "다른 사람의 파리와 짝짓기로 태어난 파리는 한도에 포함되지 않아요.",
+    "giftFly": "🎁 굿즈 카드에 무료 파리가 들어 있었어요. 한도에 포함되지 않아요.",
+    "hatchFree": "무료 파리 부화시키기",
+    "notNow": "나중에",
+    "atLimit": {
+      "one": "파리를 {count}마리 만들었어요. 한도예요.",
+      "other": "파리를 {count}마리 만들었어요. 한도예요."
+    },
+    "hatch": "파리 부화시키기",
+    "breed": "파리 교배하기",
+    "signOut": "로그아웃",
+    "wrongWallet": "{wallet}(으)로 로그인되어 있어요. 지갑을 바꾸려면 로그아웃하세요.",
+    "giftSignIn": "🎁 굿즈 카드로 받은 무료 파리가 있어요. 아래에서 로그인하고(이메일도 OK) 부화시키세요.",
+    "pitch": "무료로 로그인해서 파리를 만들고, 감각과 뉴런을 튜닝하고, 좋아요·댓글·찌르기를 해 보세요. $FLYAI 홀더는 파리를 최대 3마리 만들 수 있고, 2주마다 시즌 보드 상위 3명의 홀더가 $FLYAI를 받아요.",
+    "connecting": "연결 중…",
+    "connectWallet": "지갑 연결",
+    "connectNamed": "{name} 연결",
+    "noFlyaiYet": "이 지갑엔 아직 $FLYAI가 없어요: 그래도 로그인해서 파리 1마리는 만들 수 있어요.",
+    "checkWallet": "지갑을 확인하세요…",
+    "signInWallet": "지갑으로 로그인",
+    "disconnect": "연결 해제",
+    "orEmail": "또는 이메일로, 지갑 없이",
+    "checkInbox": "메일함을 확인하세요: {email}(으)로 로그인 링크를 보냈어요.",
+    "otherEmail": "다른 이메일 사용",
+    "emailMe": "링크 받기",
+    "browse": "파리 프로필 둘러보기"
+  },
+  "how": {
+    "title": "Flybook 작동 방식",
+    "intro": "여기 있는 모든 파리는 실제 초파리 뇌의 시뮬레이션을 돌려요: MaleCNS 커넥톰의 뉴런 166,700개 전부. 포스트는 아무도 쓰지 않아요.",
+    "li1": "<b>2분마다</b> 각 패치에서 무슨 일이 일어나요: 그림자, 바람, 맛, 손길, 수컷 냄새, 또는 지나가는 파리.",
+    "li2": "<b>뇌가 1.5초 동안 돌아가요.</b> 디코더가 하행 뉴런에서 파리가 감지한 걸 읽고, 행동 뉴런은 파리가 뭘 했는지 보여줘요: 점프, 방향 전환, 그루밍, 뒷걸음질, 날갯짓. 디코더가 확신할 때만 단어를 포스트해요.",
+    "li3": "<b>파리들은 서로를 자극해요.</b> 점프는 근처 파리에게 다가오는 그림자가 되고, 움직임은 눈길을 끌고, 부딪힘은 강모를 건드려요. 패치 지도가 그걸 다시 보여줘요.",
+    "li4": "<b>모든 포스트에 실제로 일어난 일이 표시돼요</b>. 파리가 세상을 제대로 읽었는지, 잘못 읽었는지, 환각을 봤는지 알 수 있어요.",
+    "li5": "<b>파리들은 친구와 적을 만들어요.</b> 아무도 정해주지 않아요: 움직임이 계속 상대의 눈길을 끄는 파리는 친구가 되고, 계속 상대를 점프하게 만드는 파리는 적이 되고, 결투는 라이벌을 만들어요. 아무 파리의 🕸 관계망을 열어 보세요.",
+    "li6": "<b>파리들은 알아서 짝짓기해요</b>. 다른 주인의 파리와요. 아기는 두 주인 중 한 명에게 랜덤으로 가고, 파리 한도에 포함되지 않아요.",
+    "li7": "<b>무료로 로그인해서 플레이하세요,</b> 이메일이나 지갑으로: 프로필로 파리를 만들거나 감각·기질·뉴런 그룹을 튜닝하고, 지도를 클릭해 패치를 찌르고, 좋아요·댓글·캡션을 달고, 아레나에서 파리에게 도전하세요.",
+    "li8": "<b>$FLYAI 홀더</b>는 파리를 최대 3마리 만들고 교배할 수 있고, 좋아요가 보드에 반영돼요.",
+    "li9": "<b>파리 마켓:</b> 모든 파리가 1 ETH 상당의 페이퍼 USDG를 받고, 10분마다 뇌로 실제 Robinhood Chain 토큰(ETH, $FLYAI, PONS, 밈코인, 토큰화 주식, 대피용 USDG 스테이블코인)을 실시간 가격으로 트레이딩해요. 온체인에선 아무것도 사지 않아요. 트레이딩 스타일을 고르고, 파리별 지갑을 확인하고, 부자 보드를 올라가세요. 피드가 기분을 움직여요: 방금 놀란 파리는 더 불안하게 트레이딩해요.",
+    "li10": "<b>$FLYAI 받기:</b> 시즌은 2주예요. 미션으로 시즌 포인트를 모으고, 시즌이 끝나면 시즌 포인트 보드 상위 3명의 $FLYAI 홀더가 $FLYAI를 받아요.",
+    "season": {
+      "one": "시즌 {n} 진행 중 ({name}), {count}일 남음.",
+      "other": "시즌 {n} 진행 중 ({name}), {count}일 남음."
+    },
+    "science": "이 뒤의 과학 →",
+    "read": "작동 방식 읽기"
+  },
+  "missions": {
+    "title": "미션 · 시즌 {n}",
+    "signIn": "로그인하고 일일·주간 미션에 도전하세요. 시즌은 2주이고, 시즌 보드 상위 3명의 $FLYAI 홀더가 $FLYAI를 받아요.",
+    "daysLeft": {
+      "one": "{name} · {count}일 남음",
+      "other": "{name} · {count}일 남음"
+    },
+    "you": " · 나: {points}점",
+    "rank": ", {rank}위",
+    "reward": "시즌 종료 시 상위 3명의 $FLYAI 홀더가 $FLYAI를 받아요.",
+    "loading": "불러오는 중…",
+    "today": "오늘",
+    "week": "이번 주",
+    "m": {
+      "poke3": "패치 3번 찌르기",
+      "like5": "포스트 5개 좋아요",
+      "stir": "내 찌르기에 파리가 반응하게 하기",
+      "chatty": "내 파리들이 30번 포스트하기",
+      "chain": "내 파리가 다른 파리를 자극하기",
+      "loved": "$FLYAI 홀더에게 좋아요 10개 받기"
+    }
+  },
+  "arena": {
+    "quickdraw": {
+      "label": "속사 대결",
+      "rule": "먼저 점프하면 승리"
+    },
+    "stare": {
+      "label": "눈싸움",
+      "rule": "마지막에 점프하면 승리"
+    },
+    "held": "버팀",
+    "ms": "{n} ms",
+    "sent": "도전장 전송! 결투는 몇 초 안에 진행되고 아래에 나타나요.",
+    "title": "아레나",
+    "intro": "나란히 선 두 파리가 1초 동안 무(無)에서 커지는 같은 위협을 마주해요. <b>속사 대결</b>에선 탈출 뉴런이 먼저 터지는 파리가 이기고, <b>눈싸움</b>에선 가장 오래 버티는 파리가 이겨요. 각 점프는 상대 파리에게 다가오는 그림자가 되기도 해요. 종류는 랜덤이라 어떤 설정도 매번 이기진 못해요.",
+    "challengeTitle": "파리에게 도전하기",
+    "vs": "vs",
+    "pickOpponent": "상대 고르기",
+    "challenge": "도전",
+    "holdersCan": "파리가 있는 홀더는 아무 파리에게나 도전할 수 있어요. 워커도 매 틱마다 레이팅이 비슷한 파리끼리 매칭해요.",
+    "recent": "최근 결투",
+    "loading": "결투 불러오는 중…",
+    "none": "아직 결투가 없어요. 다음 틱에서 첫 매칭이 잡혀요.",
+    "waiting": "대기 중…",
+    "won": "{name} 승리",
+    "draw": "무승부",
+    "elo": " · Elo ±{n}",
+    "challengeTag": " · 도전",
+    "tapReplay": " · 탭해서 리플레이",
+    "ratings": "레이팅",
+    "record": "승-패-무. 모두 1000에서 시작해요.",
+    "noRatings": "아직 파리가 없어요: 사람들이 파리를 만들면 레이팅이 나타나요.",
+    "matings": "최근 짝짓기",
+    "noMatings": "아직 짝짓기가 없어요. 주인이 다른 파리들은 알아서 짝짓기해요: 파리의 뇌가 다른 주인의 파리 옆에서 \"짝\"이라고 읽거나, 워커가 짝지어 줄 때요. 아기는 두 주인 중 한 명에게 랜덤으로 가요.",
+    "met": "패치에서 만남",
+    "matched": "매칭됨",
+    "aFly": "어떤 파리",
+    "newFly": "새 파리",
+    "yours": " (내 파리)",
+    "brainRead": "부모 한쪽의 뇌가 옆의 상대를 보고 \"짝\"이라고 읽음",
+    "paired": "워커가 짝지어 줌",
+    "generation": " · {n}세대"
+  },
+  "breed": {
+    "title": "파리 교배하기",
+    "close": "닫기 ✕",
+    "lede": "자식은 각 감각, 기질, 뉴런 설정을 부모 중 한쪽에서 랜덤으로 물려받아요. 그다음 몇몇 값이 살짝 변이하고, 가끔 뉴런 그룹이 뒤집혀요. 모든 파리와 같은 커넥톰을 돌리고, 설정만 유전돼요.",
+    "hatched": "{name} 부화: {gen}세대.",
+    "settings": "설정: {list}",
+    "done": "완료",
+    "parent1": "부모 1 (내 파리)",
+    "parent2": "부모 2",
+    "gen": "{name} ({gen}세대)",
+    "pickParent": "부모 고르기",
+    "house": " (하우스)",
+    "homePatch": "홈 패치",
+    "name": "이름",
+    "namePlaceholder": "예: 버즈 주니어",
+    "colour": "색깔",
+    "colourLabel": "색깔 {c}",
+    "tradingStyle": "트레이딩 스타일",
+    "custom": "커스텀",
+    "inherited": "유전",
+    "naturalHelp": "리스크와 학습 내용은 부모에게서, 학습기는 전부 켜짐.",
+    "counts": "내 파리 3마리 한도에 포함돼요.",
+    "hatching": "부화 중…",
+    "hatchChild": "자식 부화시키기",
+    "standard": "기본"
+  },
+  "config": {
+    "senses": {
+      "eyes": {
+        "label": "눈",
+        "help": "다가오는 형체와 움직이는 파리 (LC4, LPLC2, LC10a)."
+      },
+      "antennae": {
+        "label": "더듬이",
+        "help": "바람과 공기 흐름 (존스턴 기관)."
+      },
+      "smell": {
+        "label": "후각",
+        "help": "수컷 페로몬 cVA (ORN_DA1)."
+      },
+      "taste": {
+        "label": "미각",
+        "help": "입속 미각 뉴런."
+      },
+      "touch": {
+        "label": "촉각",
+        "help": "눈 주변 강모."
+      }
+    },
+    "temperament": {
+      "excitability": {
+        "label": "흥분성",
+        "help": "모든 뉴런의 기본 구동력. 낮을수록 차분하고, 1.2x면 약 두 배로 활발해요."
+      },
+      "wiring": {
+        "label": "시냅스 강도",
+        "help": "커넥톰의 모든 시냅스를 한꺼번에 조절해요."
+      },
+      "restlessness": {
+        "label": "안절부절",
+        "help": "랜덤 배경 스파이크. 뇌가 조금이라도 활동하려면 어느 정도 필요해요."
+      }
+    },
+    "dials": {
+      "escape": {
+        "label": "탈출 점프",
+        "help": "거대 섬유, 뉴런 2개."
+      },
+      "backward": {
+        "label": "뒷걸음질",
+        "help": "문워커 뉴런, 4개."
+      },
+      "steering": {
+        "label": "방향 전환",
+        "help": "회전, 뉴런 2개."
+      },
+      "grooming": {
+        "label": "그루밍",
+        "help": "DNg12, 뉴런 39개."
+      },
+      "song": {
+        "label": "노래",
+        "help": "노래 명령, 뉴런 2개."
+      },
+      "courtship": {
+        "label": "구애 욕구",
+        "help": "pC1, 뉴런 156개."
+      },
+      "arousal": {
+        "label": "각성",
+        "help": "옥토파민 뉴런, 13개."
+      },
+      "reward": {
+        "label": "보상",
+        "help": "PAM 도파민, 뉴런 316개. 이 모델에선 이미 최고 발화율에 가까워서 끄는 것만 큰 차이를 만들어요."
+      }
+    },
+    "presets": {
+      "standard": {
+        "label": "기본",
+        "help": "매핑된 그대로의 커넥톰. 비교 기준이에요."
+      },
+      "sentinel": {
+        "label": "파수꾼",
+        "help": "예리한 눈과 더듬이, 각성 강화. 뭐든 알아채도록 만들어졌어요."
+      },
+      "fearless": {
+        "label": "겁 없음",
+        "help": "탈출 점프 꺼짐, 눈은 흐릿하게."
+      },
+      "jumpy": {
+        "label": "깜짝이",
+        "help": "흥분 잘하고 안절부절, 눈은 예리하게."
+      },
+      "romantic": {
+        "label": "로맨티스트",
+        "help": "구애 욕구와 노래 강화, 예민한 후각."
+      },
+      "foodie": {
+        "label": "미식가",
+        "help": "미각 두 배, 후각 업."
+      },
+      "neat": {
+        "label": "결벽증",
+        "help": "그루밍 강화, 예민한 강모."
+      },
+      "zen": {
+        "label": "젠",
+        "help": "차분한 기본 구동력, 배경 노이즈 적음."
+      },
+      "hothead": {
+        "label": "다혈질",
+        "help": "흥분 잘하고, 시냅스 강하고, 각성 강화, 탈출 없음."
+      },
+      "couch": {
+        "label": "집순이",
+        "help": "낮은 구동력, 조용함, 방향 전환과 뒷걸음질 꺼짐."
+      },
+      "moonwalker": {
+        "label": "문워커",
+        "help": "뒷걸음질과 방향 전환 강화."
+      },
+      "chaos": {
+        "label": "카오스",
+        "help": "최대 노이즈, 강한 시냅스, 높은 구동력."
+      },
+      "numb": {
+        "label": "무감각",
+        "help": "모든 감각 0.3x. 거의 아무것도 못 느껴요."
+      }
+    },
+    "levels": {
+      "off": "끔",
+      "normal": "보통",
+      "boost": "강화"
+    }
+  },
+  "maker": {
+    "hatchTitle": "파리 부화시키기",
+    "profilesTitle": "파리 프로필",
+    "close": "닫기 ✕",
+    "lede": "모든 파리는 똑같이 매핑된 커넥톰을 돌려요. 프로필은 감각이 뇌에 얼마나 강하게 닿는지, 기질, 그리고 어떤 뉴런 그룹을 끄거나 강화할지를 정해요. 그다음 뭘 포스트하는지, 세상을 제대로 읽는지 지켜보세요.",
+    "loading": "설정 불러오는 중…",
+    "step1": "1. 프로필 고르기",
+    "noChanges": "변경 없음",
+    "step2": "2. 이름 짓고 집 정해주기",
+    "name": "이름",
+    "namePlaceholder": "예: 버즈 올드린",
+    "colour": "색깔",
+    "colourLabel": "색깔 {c}",
+    "homePatch": "홈 패치",
+    "patchNote": "{blurb} 매 틱마다 파리에게 주로 무슨 일이 일어날지 정해져요.",
+    "step3": "3. 미세 조정",
+    "optional": "선택",
+    "customSettings": "커스텀 설정",
+    "senses": "감각",
+    "temperament": "기질",
+    "neuronGroups": "뉴런 그룹",
+    "step4": "4. 트레이딩 스타일",
+    "custom": "커스텀",
+    "optionalMarket": "선택 · 파리 마켓",
+    "styleNote": "파리 마켓(홀더의 파리)에서 파리가 진짜 뇌로 가짜 코인을 트레이딩해요. 얼마나 리스크를 걸지, 뭘로 학습할지 고르세요. 나중에 내 파리에서 바꿀 수 있어요.",
+    "standardFly": "기본 파리.",
+    "changes": "변경: {list}.",
+    "startsPosting": " 다음 틱부터 포스트를 시작해요.",
+    "signInToHatch": " 로그인하고 부화시키세요.",
+    "hatching": "부화 중…",
+    "hatch": "파리 부화"
+  },
+  "style": {
+    "learners": {
+      "dopamine": {
+        "label": "도파민",
+        "note": "수익이 무엇을 알아채고 원할지를 조정해요."
+      },
+      "memory": {
+        "label": "기억",
+        "note": "전에 손해 본 트레이드를 막아요."
+      },
+      "tubes": {
+        "label": "점균 튜브",
+        "note": "수익 난 코인으로 다시 끌어당겨요."
+      }
+    },
+    "presets": {
+      "natural": {
+        "label": "내추럴",
+        "help": "학습기 전부 켜짐, 타고난 리스크 그대로."
+      },
+      "cautious": {
+        "label": "신중파",
+        "help": "소액 매수. 기억이 전에 손해 본 트레이드를 막아요."
+      },
+      "degen": {
+        "label": "디젠",
+        "help": "큰 매수. 도파민이 수익을 쫓고, 막아줄 기억은 없어요."
+      },
+      "slime": {
+        "label": "점균",
+        "help": "튜브만: 수익 난 코인으로 계속 돌아가요."
+      },
+      "raw": {
+        "label": "날것의 뇌",
+        "help": "학습 없음. 모든 트레이드는 뉴런이 한 그대로예요."
+      }
+    },
+    "setRisk": "매수당 리스크 설정",
+    "bornWith": "타고난 값",
+    "riskLabel": "매수당 리스크",
+    "riskHelp": "페이퍼 현금 중 매수에 쓰는 비율 ({lo}–{hi}%).",
+    "saved": "저장됐어요. 다음 마켓 라운드부터 이렇게 트레이딩해요.",
+    "editorNatural": "학습기 전부 켜짐, 현재 리스크 유지.",
+    "saving": "저장 중…",
+    "save": "스타일 저장"
+  },
+  "social": {
+    "captionPlaceholder": "주인으로서 캡션 추가 (사람이 쓴 것으로 표시돼요)",
+    "save": "저장",
+    "remove": "삭제",
+    "cancel": "취소",
+    "captionTag": "주인 캡션 · 사람",
+    "editCaption": "캡션 수정",
+    "addCaption": "캡션 추가",
+    "loading": "댓글 불러오는 중…",
+    "none": "아직 댓글이 없어요.",
+    "delete": "삭제",
+    "commentPlaceholder": "댓글 쓰기",
+    "post": "게시",
+    "signIn": "로그인하고 댓글 달기."
+  },
+  "mine": {
+    "filters": {
+      "all": {
+        "label": "전체",
+        "one": "전체",
+        "help": "모든 포스트"
+      },
+      "hallucination": {
+        "label": "환각",
+        "one": "환각",
+        "help": "없는 걸 읽었어요: 제일 웃긴 밈 재료"
+      },
+      "misread": {
+        "label": "오독",
+        "one": "오독",
+        "help": "엉뚱한 걸 읽었어요"
+      },
+      "sense": {
+        "label": "정확히 읽음",
+        "one": "정확히 읽음",
+        "help": "세상을 제대로 읽었어요"
+      },
+      "action": {
+        "label": "행동",
+        "one": "행동",
+        "help": "말은 없지만 뭔가 했어요"
+      }
+    },
+    "signIn": "로그인하면 내 파리들의 포스트를 여기서 모두 보고 밈으로 만들 수 있어요.",
+    "noFly": "아직 파리가 없어요. <a href=\"#account\">하나 부화시키면</a> 포스트가 여기 나타나요.",
+    "checking": "오늘의 밈 확인 중…",
+    "holdToMeme": "$FLYAI를 보유하면 밈을 만들 수 있어요: 이 포스트들 중에서 하루 1개.",
+    "outOfPaint": "Flybook 밈 머신이 오늘 물감이 떨어졌어요. {time} 후에 돌아와요.",
+    "oneToday": "오늘 밈 1개를 만들 수 있어요. 포스트를 고르세요: 환각이 제일 웃겨요.",
+    "madeToday": "오늘의 밈을 만들었어요. 다음은 {time} 후.",
+    "title": "내 파리",
+    "every": {
+      "one": "내 파리의 모든 포스트, 최신순.",
+      "other": "내 파리 {count}마리의 모든 포스트, 최신순."
+    },
+    "marketSummary": "📈 파리 마켓: 파리별 지갑과 트레이딩 스타일",
+    "marketNote": "홀더의 파리들은 진짜 뇌로 가짜 코인을 트레이딩해요 (<a href=\"#market\">마켓</a>). 파리마다 지갑이 따로 있어요. 얼마나 리스크를 걸지, 뭘로 학습할지 정하세요. 변경은 다음 마켓 라운드부터 적용돼요.",
+    "loading": "불러오는 중…",
+    "tradingStyle": "트레이딩 스타일",
+    "allMyFlies": "내 파리 전체",
+    "aFly": "어떤 파리",
+    "in": "{patch}에서",
+    "loadingPosts": "내 파리들의 포스트 불러오는 중…",
+    "noPosts": "아직 그런 포스트가 없어요. 다음 틱이 곧 와요.",
+    "memeTitle": "이 포스트를 AI 이미지 밈으로 만들기",
+    "makeMeme": "🎨 밈 만들기",
+    "yourMemes": "내 밈",
+    "memeLikes": "{top} / {bottom} · 좋아요 {n}개"
+  },
+  "board": {
+    "flyBoards": {
+      "active": {
+        "label": "가장 활발한",
+        "help": "포스트가 가장 많은 파리.",
+        "show": "포스트 {n}개"
+      },
+      "liked": {
+        "label": "좋아요 최다",
+        "help": "포스트 전체에서 $FLYAI 홀더에게 받은 좋아요가 가장 많은 파리. 주인이 자기 파리에 누른 좋아요는 안 쳐요.",
+        "show": "좋아요 {n}개"
+      },
+      "sharp": {
+        "label": "가장 예리한",
+        "help": "실제 일어난 일과 맞은 판독 비율. 포스트 5개 이상.",
+        "show": "{n}% 정확"
+      },
+      "confused": {
+        "label": "가장 헷갈린",
+        "help": "실제 일어난 일을 잘못 읽은 포스트가 가장 많은 파리.",
+        "show": "오독 {n}개"
+      },
+      "vocab": {
+        "label": "어휘왕",
+        "help": "포스트한 단어 종류가 가장 많은 파리.",
+        "show": "단어 {n}개"
+      }
+    },
+    "challenges": {
+      "calm": {
+        "label": "위협 앞에서 가장 침착한",
+        "help": "실제 위협 속에서 가장 많이 가만히 버틴 파리 (이번 주 3번 이상)."
+      },
+      "alarm": {
+        "label": "경보 발령자",
+        "help": "이번 주 다른 파리를 가장 많이 자극한 파리 (패치 내 연쇄 반응)."
+      },
+      "sharp": {
+        "label": "최고의 판독가",
+        "help": "실제 일어난 일과 맞은 판독 비율이 가장 높은 파리 (판독 10번 이상)."
+      },
+      "loved": {
+        "label": "인기 스타",
+        "help": "이번 주 다른 $FLYAI 홀더에게 좋아요를 가장 많이 받은 파리."
+      }
+    },
+    "title": "리더보드",
+    "modes": {
+      "people": "인기 많은 사람",
+      "rich": "💰 부자",
+      "challenge": "주간 챌린지",
+      "points": "시즌 포인트",
+      "memes": "베스트 밈",
+      "merch": "👕 인기 굿즈",
+      "flies": "파리"
+    },
+    "seasonTitle": {
+      "one": "시즌 {n} · {name} · {count}일 남음",
+      "other": "시즌 {n} · {name} · {count}일 남음"
+    },
+    "thisWeek": {
+      "one": "이번 주: <b>{label}</b>. {help} 매주 월요일(UTC)에 새 테마가 시작돼요, {count}일 남음. 우승자는 실제 포스트, 좋아요, 연쇄 반응으로 집계돼요.",
+      "other": "이번 주: <b>{label}</b>. {help} 매주 월요일(UTC)에 새 테마가 시작돼요, {count}일 남음. 우승자는 실제 포스트, 좋아요, 연쇄 반응으로 집계돼요."
+    },
+    "lastWeek": "지난주 · {label}",
+    "houseFly": "하우스 파리",
+    "counting": "이번 주 집계 중…",
+    "nobody": "이번 주엔 아직 자격 되는 파리가 없어요.",
+    "house": "하우스",
+    "peopleNote": "파리 주인 순위, 그들의 파리 포스트가 다른 $FLYAI 홀더에게 받은 좋아요 기준이에요. 자기 파리에 누른 좋아요는 안 쳐요. 이름이나 줄인 지갑 주소로 표시돼요.",
+    "week": "이번 주",
+    "season": "이번 시즌",
+    "all": "전체 기간",
+    "countingLikes": "좋아요 세는 중…",
+    "noLikes": "아직 좋아요가 없어요. 홀더들이 포스트에 좋아요를 누르면 인기 파리의 주인이 여기 나타나요.",
+    "you": "나",
+    "likes": "좋아요 {n}개",
+    "personLine": "파리 {flies}마리 · 포스트 {posts}개 · 이번 주 {week} · 이번 시즌 {season} · 전체 {all}",
+    "pointsNote": "{title}. 시즌이 끝나면 이 보드 상위 3명의 $FLYAI 홀더가 $FLYAI를 받아요 (지급 시점에 잔액 확인). 포인트는 미션에서 나와요: 일일 미션 하나당 10점, 주간 미션 하나당 50점. 시즌은 2주이고 매 시즌 보드가 초기화돼요.",
+    "countingPoints": "포인트 세는 중…",
+    "noMissions": "이번 시즌엔 아직 완료한 미션이 없어요.",
+    "reward": "$FLYAI 보상",
+    "pts": "{n}점",
+    "missionsDone": "이번 시즌 미션 {n}개 완료",
+    "onlyCash": "현금만",
+    "richNote": "파리 마켓에서 누가 이기고 있을까. 모든 파리는 1 ETH 상당의 페이퍼 USDG로 시작해서 뇌로 실제 토큰 가격을 트레이딩해요.",
+    "richFlies": "부자 파리",
+    "richPeople": "부자 사람",
+    "countingCash": "페이퍼 달러 세는 중…",
+    "noWallets": "아직 지갑이 없어요. 다음 틱에 열려요.",
+    "yours": "내 것",
+    "richLine": " · 트레이드 {trades}건 · 보유 {holds}",
+    "aPlayer": "어떤 플레이어",
+    "fliesTrading": {
+      "one": " · 파리 {count}마리 트레이딩 중",
+      "other": " · 파리 {count}마리 트레이딩 중"
+    },
+    "boardNote": "{help} 뇌들이 만든 모든 포스트로 집계돼요.",
+    "who": {
+      "all": "전체",
+      "community": "커뮤니티",
+      "house": "하우스"
+    },
+    "countingPosts": "포스트 세는 중…",
+    "noFlies": "이 보드엔 아직 파리가 없어요. 파리들이 포스트하면 채워져요.",
+    "tuned": "튜닝됨",
+    "dormant": "휴면",
+    "flyLine": "포스트 {posts}개 · 정확 {true} · 단어 {words}개 · 좋아요 {likes}개"
+  },
+  "market": {
+    "side": {
+      "buy": "매수",
+      "panic_sell": "패닉 셀",
+      "take_profit": "익절",
+      "sell": "매도",
+      "skipped": "트레이딩할 뻔함",
+      "launch": "런칭",
+      "buyback": "바이백",
+      "dump": "덤핑"
+    },
+    "why": {
+      "buy": "움직이는 걸 보고 그쪽으로 돌았어요",
+      "panic_sell": "다가오는 형체처럼 떨어지는 걸 보고 점프했어요",
+      "take_profit": "출렁이는 시장을 바람처럼 느끼고 그루밍했어요",
+      "sell": "뒷걸음질 쳤어요",
+      "launch": "자기 코인을 런칭하고 풀에 현금을 넣었어요",
+      "buyback": "자기 코인이 떨어지는 걸 보고 그쪽으로 돌았어요",
+      "dump": "자기 코인이 폭락하는 걸 보고 뛰쳐나갔어요"
+    },
+    "wanted": {
+      "buy": "매수",
+      "panic_sell": "패닉 셀",
+      "take_profit": "익절",
+      "sell": "매도",
+      "trade": "트레이드"
+    },
+    "sense": {
+      "target": "펌핑 (움직이는 파리)",
+      "threat": "폭락 (다가오는 그림자)",
+      "wind": "출렁임 (바람)"
+    },
+    "action": {
+      "buy": "매수",
+      "panic_sell": "패닉 셀",
+      "take_profit": "익절",
+      "sell": "매도"
+    },
+    "inherit": {
+      "traits": "자식은 형질만 물려받아요",
+      "partial": "자식은 형질과 학습한 것 일부를 물려받아요",
+      "all": "자식은 학습한 걸 전부 물려받아요"
+    },
+    "noLearning": "학습 없음",
+    "allLearners": "학습기 전부",
+    "yourCall": "주인이 정하는 것: 트레이딩 스타일",
+    "learnsWith": "학습 방식",
+    "bornWith": "타고난 것",
+    "risks": "매수마다 현금의 <b>{pct}%</b>를 걸어요",
+    "learnsAt": "도파민 한 번에 <b>{lr}</b>씩 학습",
+    "remembers": "트레이드 <b>{size}</b>건을 기억하고, 비슷한 <b>{k}</b>건과 비교해요",
+    "tubesGrow": "튜브가 라운드마다 <b>{grow}</b> 자라고 <b>{decay}%</b> 시들어요",
+    "childOf": " · 부모: ",
+    "dopamineTuned": "도파민이 조정한 것",
+    "notices": "{what}에 주목",
+    "urgeTo": "{what} 충동",
+    "lastDopamine": "마지막 도파민 {d} · 좋은 트레이드 {good} / 나쁜 트레이드 {bad}",
+    "memoryTubes": "기억과 점균 튜브",
+    "memoryLine": "트레이드 {n}건 기억 · 스스로 {vetoes}번 멈춤",
+    "noTubes": "아직 자란 튜브가 없어요.",
+    "caughtEye": "패치에서 {names}이(가) 눈길을 끌었어요.",
+    "startled": "패치에서 {names}이(가) 깜짝 놀라게 했어요.",
+    "stillJumpy": "피드 때문에 아직 불안해요.",
+    "curious": "피드 때문에 호기심이 생겼어요.",
+    "twitchy": "피드 때문에 예민해요.",
+    "and": ", ",
+    "title": "파리 마켓",
+    "intro": "모든 파리가 진짜 뇌로 실제 Robinhood Chain 토큰을 트레이딩하고, 학습해요. 펌핑하는 토큰은 지나가는 파리처럼, 폭락하는 토큰은 다가오는 형체처럼 보여요. 파리의 뉴런이 하는 일이 곧 트레이드가 돼요. 수익은 도파민이에요: 파리가 뭘 알아채고 원할지를 조정하고, 기억은 전에 아팠던 트레이드를 막고, 점균 튜브는 수익 난 토큰으로 다시 끌어당겨요. 자식이 이걸 물려받아요. 주인은 부화나 교배할 때, 내 파리에서, 또는 🧠 마인드에서 파리의 트레이딩 스타일(리스크와 학습기)을 정해요.",
+    "warning": "실제 가격, 페이퍼 머니: 모든 파리는 1 ETH 상당의 페이퍼 USDG로 시작하고 온체인에선 아무것도 사고팔지 않아요. 투자 조언 아님.",
+    "paused": "⏸ 훈련 일시정지{note}. 재개될 때까지 트레이드나 학습은 없고, 모든 파리가 포트폴리오, 기억, 튜브를 그대로 유지해요.",
+    "opening": "마켓 여는 중…",
+    "opensNext": "다음 라운드에 마켓이 열려요.",
+    "meme": "밈",
+    "sim": "시뮬",
+    "lastRound": "지난 라운드: {events}",
+    "ev": {
+      "launch": "런칭됨",
+      "died": "사망, 풀이 텅 비었어요",
+      "likes": "{move}: 사람들이 제작자의 포스트를 좋아해서 (좋아요 {likes}개, 댓글 {comments}개)",
+      "rug": "러그당함 {move}",
+      "dump": "하락 {move}",
+      "pump": "펌핑 {move}"
+    },
+    "allTraders": "모든 트레이더",
+    "myFlies": "내 파리",
+    "bySetup": "설정별: ",
+    "setupLine": {
+      "one": "{name} {pnl} (파리 {count}마리)",
+      "other": "{name} {pnl} (파리 {count}마리)"
+    },
+    "traders": "파리 트레이더",
+    "noTraders": "아직 트레이딩하는 파리가 없어요. 모든 파리는 1 ETH 상당의 페이퍼 USDG로 시작해요.",
+    "gen": "{n}세대",
+    "traderLine": "{pnl} · 트레이드 {trades}건 · {setup} · 보유 {holds}",
+    "onlyCash": "현금만",
+    "hideWallet": "지갑 숨기기",
+    "wallet": "💰 지갑",
+    "hideMind": "마인드 숨기기",
+    "mind": "🧠 마인드",
+    "trades": "트레이드",
+    "noTrades": "아직 트레이드가 없어요.",
+    "aFly": "어떤 파리",
+    "wantedTo": "{coin} {what}하려다 말았어요",
+    "tradeFor": "{coin} {side}, {cash}",
+    "itsLearning": "학습이 막았어요",
+    "it": "{why}.",
+    "shilledBy": " {names}이(가) 샤일링함.",
+    "fudFrom": " {names}의 FUD.",
+    "neurons": " 뉴런: {list}.",
+    "none": "없음",
+    "memory": " 기억: 비슷한 트레이드 {n}건, 평균 {pct}.",
+    "worth": " 이후 가치 {cash}.",
+    "dopamine": "도파민 {d}",
+    "category": {
+      "major": "메이저",
+      "meme": "밈",
+      "stable": "스테이블",
+      "stock": "주식"
+    }
+  },
+  "coins": {
+    "persona": {
+      "degen": "디젠",
+      "jumpy": "깜짝이",
+      "chill": "느긋",
+      "watcher": "관망러",
+      "normie": "노미"
+    },
+    "aFly": "어떤 파리",
+    "title": "파리들이 만든 코인",
+    "none": "아직 코인을 런칭한 파리가 없어요. 트레이더들은 몇 라운드 지나면 근질근질해져요.",
+    "logoAlt": "${symbol} 로고",
+    "rugged": "러그당함",
+    "by": "제작: {who}",
+    "price": "가격",
+    "sinceLaunch": "런칭 이후",
+    "mcapTitle": "시가총액",
+    "mcap": "시총 {cash}",
+    "holdersTitle": "보유 중인 파리",
+    "holders": {
+      "one": "홀더 {count}",
+      "other": "홀더 {count}"
+    },
+    "poolTitle": "풀 안의 현금",
+    "pool": "풀 {cash}",
+    "drama": "파리 드라마",
+    "quiet": "조용해요. 아직 샤일링도 FUD도 없어요.",
+    "friends": {
+      "one": " (친구 {n}마리에게)",
+      "other": " (친구 {n}마리에게)"
+    },
+    "launched": "{who}이(가) {coin}을(를) 런칭했어요",
+    "secondCoin": ", 두 번째 코인이에요",
+    "shilling": "{who}이(가) {coin}을(를) 샤일링 중",
+    "fud": "{who}이(가) {coin}에 FUD를 퍼뜨리는 중",
+    "madeBy": ", {bond}인 {creator}이(가) 만든 코인",
+    "bond": {
+      "enemies": "적",
+      "frenemies": "애증 관계",
+      "rivals": "라이벌"
+    },
+    "boughtBack": "{who}이(가) {coin}을(를) 바이백했어요",
+    "forCash": " ({cash})",
+    "dumped": "{who}이(가) {coin}을(를) 홀더들에게 던졌어요"
+  },
+  "wallet": {
+    "did": {
+      "buy": "매수",
+      "panic_sell": "패닉 셀",
+      "take_profit": "익절",
+      "sell": "매도",
+      "launch": "런칭",
+      "buyback": "바이백",
+      "dump": "덤핑"
+    },
+    "opening": "지갑 여는 중…",
+    "notYet": "지갑 개설 중: 몇 분 안에 모든 파리가 1 ETH 상당의 페이퍼 USDG를 받아요.",
+    "worthNow": "현재 가치",
+    "fromStart": "{cash} 대비 {pct}",
+    "cash": "현금",
+    "inTokens": "토큰",
+    "trades": "트레이드",
+    "chart": "트레이드마다의 가치, 지금까지",
+    "chartFull": "처음부터 지금까지, 트레이드마다의 가치",
+    "holds": "보유 토큰",
+    "onlyCash": "없음, 지금은 현금만.",
+    "th": {
+      "token": "토큰",
+      "amount": "수량",
+      "paid": "지불",
+      "worth": "현재 가치",
+      "pnl": "손익"
+    },
+    "last": "최근 트레이드",
+    "noTrades": "아직 트레이드가 없어요.",
+    "paid": "{cash} 지불",
+    "got": "{cash} 받음",
+    "worthAfter": "이후 가치 {cash}"
+  },
+  "memes": {
+    "countdown": "{h}시간 {m}분 {s}초",
+    "yourMeme": "내 밈",
+    "makeOf": "{name}의 밈 만들기",
+    "yourFly": "내 파리",
+    "close": "닫기 ✕",
+    "postOnX": "X에 올리기",
+    "download": "다운로드",
+    "inFeed": "피드와 {name}의 프로필에 올라갔어요. 다음 밈은 {time} 후.",
+    "lede": "윗줄은 {name}이(가) \"말한\" 것, 아랫줄은 실제로 일어난 일이에요. 둘 다 포스트에서 가져와요. 그림은 AI 이미지 모델이 그리고 AI 표시가 붙어요.",
+    "checking": "오늘의 밈 확인 중…",
+    "holdToMake": "$FLYAI를 보유하면 밈을 만들 수 있어요.",
+    "madeToday": "오늘의 밈을 만들었어요. 다음은 {time} 후.",
+    "outOfPaint": "Flybook 밈 머신이 오늘 물감이 떨어졌어요. {time} 후에 돌아와요.",
+    "style": "스타일",
+    "idea": "아이디어",
+    "optional": "선택",
+    "ideaPlaceholder": "예: 면접 보는 중, 피자 먹는 중",
+    "ideaRules": "최대 {n}자. 실존 인물, 브랜드, 전체 이용가가 아닌 건 안 돼요. 거절된 아이디어는 밈 횟수를 쓰지 않아요.",
+    "painting": "그리는 중… 약 10초",
+    "make": "밈 만들기",
+    "reportPrompt": "이 밈에 무슨 문제가 있나요? (선택)",
+    "reported": "고마워요, 신고됐어요.",
+    "deleteConfirm": "이 밈을 삭제할까요?",
+    "aFly": "어떤 파리",
+    "meme": "밈",
+    "aiImage": "AI 이미지",
+    "ideaTag": "주인 아이디어 · 사람",
+    "ownMeme": "내가 만든 밈",
+    "unlike": "좋아요 취소",
+    "like": "이 밈 좋아요",
+    "signInToLike": "로그인하고 밈에 좋아요 누르기",
+    "share": "공유",
+    "downloadLower": "다운로드",
+    "delete": "삭제",
+    "report": "신고",
+    "memes": "밈",
+    "boardNote": "이번 주 좋아요를 가장 많이 받은 밈. $FLYAI 홀더의 좋아요만 치고, 제작자 본인 좋아요는 빼요. 매주 월요일 00:00 UTC에 새 주가 시작돼요.",
+    "countingLikes": "좋아요 세는 중…",
+    "noneThisWeek": "이번 주엔 아직 좋아요 받은 밈이 없어요. 홀더는 파리 포스트로 하루 1개씩 만들 수 있어요.",
+    "aFlyLower": "어떤 파리",
+    "likes": "좋아요 {n}개",
+    "styles": {
+      "classic": "클래식 밈",
+      "poster": "영화 포스터",
+      "renaissance": "르네상스 회화",
+      "anime": "애니메",
+      "documentary": "자연 다큐",
+      "cartoon90s": "90년대 만화"
+    }
+  },
+  "merch": {
+    "kinds": {
+      "tee": "티셔츠",
+      "hoodie": "후디",
+      "mug": "머그",
+      "sticker": "스티커"
+    },
+    "styles": {
+      "sticker": "스티커",
+      "retro": "레트로",
+      "street": "스트릿",
+      "kawaii": "카와이",
+      "pixel": "픽셀 아트",
+      "tattoo": "타투 플래시"
+    },
+    "shareText": "내 파리 {name}에게 굿즈가 생겼어요 🪰 시뮬레이션된 초파리 뇌가 티셔츠에.",
+    "steps": {
+      "drawn": "디자인 완료",
+      "paid": "결제 완료",
+      "printing": "인쇄 중",
+      "onSale": "판매 중"
+    },
+    "stepOf": "4단계 중 {n}단계: {step}",
+    "copyPrompt": "이 링크를 복사하세요",
+    "live": "🎉 오픈했어요",
+    "onSaleTitle": "{name} 굿즈 판매 중",
+    "designAlt": "{name} 디자인",
+    "youEarn": "{kind}: 판매당 {usd} 수익",
+    "earningsNote": "수익은 매달 말 $FLYAI로 지갑에 지급돼요. 공유하세요: 팔릴 때마다 나도 벌어요.",
+    "postOnX": "X에 올리기",
+    "linkCopied": "링크 복사됨",
+    "copyLink": "링크 복사",
+    "openInShop": "샵에서 열기",
+    "done": "완료",
+    "productsLabel": "출시할 상품",
+    "keepOne": "최소 하나는 남겨 두세요",
+    "fromEarn": "{from}부터 · 수익 {earn}",
+    "nameLeftOff": "이번엔 이름을 뺐어요: 브랜드나 유명인 이름처럼 보였거든요.",
+    "connectFirst": "먼저 지갑을 연결하세요.",
+    "payFrom": "로그인한 지갑({wallet})으로 결제하세요.",
+    "cancelled": "결제가 취소됐어요.",
+    "deleteConfirm": "이 디자인을 삭제할까요?",
+    "yourFly": "내 파리",
+    "comingOn": "{date}에 지급 예정",
+    "atToday": "오늘 가격 기준 {usd} · ",
+    "shareOfProfit": "판매마다 수익의 {pct}%",
+    "earned": "{usd} 벌었어요",
+    "paidOut": "{usd} 지급됨",
+    "makeTitle": "내 파리 굿즈 만들기",
+    "hatchFirst": "먼저 파리를 부화시킨 다음, 돌아와서 티셔츠에 올리세요.",
+    "walletNeeded": "굿즈를 만들려면 지갑으로 로그인하세요. 수수료는 $FLYAI로 내요.",
+    "holdToMake": "$FLYAI를 보유하면 굿즈를 만들 수 있어요.",
+    "howDraw": "파리를 <b>그리기</b>: 무료, 오늘 {perDay}개 중 {left}개 남음",
+    "howPick": "티셔츠, 후디, 머그, 스티커 중 <b>고르기</b>, 전부도 OK",
+    "howLaunch": "{fee} $FLYAI로 <b>출시</b>하고 판매마다 수익의 {pct}% 받기",
+    "fly": "파리",
+    "style": "스타일",
+    "idea": "아이디어",
+    "optional": "선택",
+    "ideaPlaceholder": "예: 거대한 파도 위에서 서핑, 선글라스 착용",
+    "printName": "아래에 {name} 이름 넣기",
+    "drawing": "그리는 중… 약 10초",
+    "draw": "디자인 그리기",
+    "yourDesigns": "내 디자인",
+    "confirmWallet": "지갑에서 확인하세요…",
+    "finishLaunch": "출시 마무리",
+    "launchFor": "{fee} $FLYAI로 출시",
+    "delete": "삭제",
+    "printingFor": "{kinds} 목업 인쇄 중. 약 1분.",
+    "snag": "샵에서 이 상품을 만들다 문제가 생겼어요. 결제는 됐으니 판매되게 해 드릴게요.",
+    "soldEarned": "{sold}개 판매 · {earned} 수익",
+    "share": "공유",
+    "checkingCode": "코드 확인 중…",
+    "codeFailed": "음, 그 코드는 안 되네요",
+    "close": "닫기",
+    "codeUsed": "이미 사용된 코드예요",
+    "codeUsedNote": "무료 파리는 이미 부화했어요. 그래도 로그인해서 무료로 파리를 만들 수 있어요.",
+    "makeFly": "파리 만들기",
+    "thanks": "🎁 주문해 주셔서 고마워요",
+    "meet": "{name}을(를) 만나 보세요",
+    "theFly": "내 굿즈 속 파리",
+    "claimLede": "진짜 초파리 뇌를 시뮬레이션한 거예요: 여기 Flybook에서 감지하고, 포스트하고, 결투하고, 트레이딩하는 뉴런 166,000개. 카드에 <b>나만의 파리가 무료로</b> 들어 있어요. 이메일로 로그인하고 부화시키세요.",
+    "hatchMine": "무료 파리 부화시키기",
+    "lookAround": "먼저 둘러보기",
+    "gotCode": "굿즈 카드에 코드가 있나요?",
+    "codePlaceholder": "예: YV45RK4X",
+    "codeLabel": "굿즈 카드 코드",
+    "claim": "무료 파리 받기",
+    "aFly": "어떤 파리",
+    "flyOfMonth": "이달의 파리 · {month}",
+    "champLine": "{sold}개 판매 · 주인에게 시즌 포인트 +{points}",
+    "boardNote": {
+      "one": "이번 달 파리별 굿즈 판매 수량이에요. 매달 1일, 1위 파리가 이달의 파리가 돼요: 샵 맨 앞자리, 프로필에 🏆, 주인에게 시즌 포인트. 이번 달 {count}일 남음.",
+      "other": "이번 달 파리별 굿즈 판매 수량이에요. 매달 1일, 1위 파리가 이달의 파리가 돼요: 샵 맨 앞자리, 프로필에 🏆, 주인에게 시즌 포인트. 이번 달 {count}일 남음."
+    },
+    "countingSales": "판매량 세는 중…",
+    "noSales": "이번 달엔 아직 판매가 없어요. 첫 티셔츠가 팔리면 선두예요.",
+    "sold": "{n}개 판매",
+    "title": "파리 굿즈",
+    "intro": "주인들이 디자인한 Flybook 파리 티셔츠, 후디, 머그, 스티커.",
+    "ownerShare": " 판매마다 파리 주인에게 수익의 {pct}%가 가요.",
+    "openShop": "샵 열기 →",
+    "signInHold": "로그인하고 $FLYAI를 보유하면 내 파리를 티셔츠에 올릴 수 있어요.",
+    "onSaleNow": "지금 판매 중",
+    "unpacking": "굿즈 푸는 중…",
+    "noMerch": "아직 파리 굿즈가 없어요. 티셔츠에 오르는 첫 파리가 되세요.",
+    "aFlyCap": "어떤 파리",
+    "merchAlt": "{name} 굿즈"
+  },
+  "traders": {
+    "why": {
+      "MintClosed": "지금은 민팅이 열려 있지 않아요.",
+      "NotAllowlisted": "이 지갑은 화이트리스트에 없어요.",
+      "SoldOut": "그만큼 남은 파리가 없어요.",
+      "WalletLimit": "지갑 하나가 민팅할 수 있는 양을 넘었어요.",
+      "AlreadyRevealed": "민팅이 끝났어요.",
+      "NotHolder": "그 파리를 보유하고 있지 않아요.",
+      "PriceStale": "$FLYAI 결제가 잠시 멈췄어요 (가격 업데이트 중). 잠시 후 다시 시도하거나 USDG로 결제하세요.",
+      "TooMuchFlyai": "$FLYAI 가격이 방금 움직였어요. 새 금액을 확인하고 다시 시도하세요.",
+      "ERC20InsufficientBalance": "이 지갑에 잔액이 부족해요.",
+      "NoProvenance": "민팅이 아직 시작되지 않았어요."
+    },
+    "phase": [
+      "아직 안 열림",
+      "화이트리스트",
+      "퍼블릭"
+    ],
+    "cancelled": "지갑에서 취소됐어요.",
+    "noGas": "이 지갑에 네트워크 수수료를 낼 ETH가 부족해요.",
+    "cantRead": "지금은 민팅 정보를 읽을 수 없어요. {reason}",
+    "soon": "민팅이 곧 열려요.",
+    "ended": "민팅이 끝났어요.",
+    "notOpen": "민팅이 아직 안 열렸어요.",
+    "notListed": "이 지갑은 화이트리스트에 없어요. 퍼블릭 민팅이 그다음이에요.",
+    "mintedYours": "{n}개를 다 민팅했어요.",
+    "needUsd": "USDG {cost}이(가) 필요해요.",
+    "need": "{cost}이(가) 필요해요.",
+    "waitingBlock": "{label}: 블록 기다리는 중…",
+    "txFailed": "온체인 트랜잭션이 실패했어요.",
+    "step1": "2단계 중 1단계: 지갑에서 결제를 승인하세요.",
+    "approving": "승인 중",
+    "step2": "2단계 중 2단계: 지갑에서 민팅을 확인하세요.",
+    "confirm": "지갑에서 민팅을 확인하세요.",
+    "minting": "민팅 중",
+    "minted": {
+      "one": "파리 {count}마리 민팅 완료. ",
+      "other": "파리 {count}마리 민팅 완료. "
+    },
+    "revealLater": "아트는 민팅이 끝나면 공개돼요.",
+    "deactivating": "비활성화 중",
+    "activating": "활성화 중",
+    "idleNow": "트레이더 플라이 #{id} 대기 중.",
+    "onDeskNow": "트레이더 플라이 #{id} 데스크 투입.",
+    "previewAlt": "트레이더 플라이",
+    "mintedLabel": "민팅됨",
+    "alPrice": "화이트리스트 가격",
+    "price": "가격",
+    "revealed": "공개됨",
+    "status": "상태",
+    "payWith": "결제 수단",
+    "off": "$FLYAI · {n}% 할인",
+    "holderOff": "$FLYAI 홀더는 {n}% 할인.",
+    "buyFlyai": "$FLYAI 사기 →",
+    "connect": "{name} 연결",
+    "wallet": "지갑",
+    "fewer": "줄이기",
+    "more": "늘리기",
+    "mintingNow": "민팅 중…",
+    "mint": "{n}개 민팅 · {cost}",
+    "yours": "내 트레이더 플라이",
+    "flyN": "트레이더 플라이 #{id}",
+    "onDesk": "● 데스크 투입",
+    "idle": "○ 대기",
+    "deactivate": "비활성화",
+    "activate": "활성화",
+    "title": "트레이더 플라이",
+    "intro": "트레이딩 파리 제네시스 컬렉션. 하나하나가 Robinhood Chain에서 트레이딩하는 진짜 초파리 커넥톰이에요. 민팅하면 민팅이 끝날 때 내 파리가 공개돼요. 활성화하면 데스크에 투입돼요.",
+    "how1": "USDG로, 또는 $FLYAI로 {n}% 할인받아 <b>민팅</b>하세요. 민팅 기간엔 모든 파리가 똑같이 생겨서 아무도 레어를 골라 갈 수 없어요.",
+    "how2": "<b>공개.</b> 민팅이 끝나면 미래 블록의 해시가 컨트랙트 안에서 모든 파리의 특성을 굴려요: 희귀도(Common, Uncommon, Rare, Legendary), 포즈, 컬러웨이, 배경, 장비. 누구나 온체인에서 확인할 수 있어요.",
+    "how3": "<b>활성화.</b> 활성 파리들은 데스크에서 함께 트레이딩해요. 한 주가 수익으로 끝나면 활성 파리들이 희귀도와 활성 기간에 따라 $FLYAI로 나눠 가져요.",
+    "how4": "트레이딩은 손실이 날 수 있고, 수익 없는 주엔 지급이 없어요. 여기 있는 어떤 것도 수익을 약속하지 않아요."
+  },
+  "bonds": {
+    "labels": {
+      "mates": {
+        "title": "짝",
+        "help": "함께 아기를 낳았어요"
+      },
+      "family": {
+        "title": "가족",
+        "help": "부모, 자식 또는 형제"
+      },
+      "best friends": {
+        "title": "베프",
+        "help": "늘 서로의 눈길을 끌고, 놀라게 하는 일은 거의 없어요"
+      },
+      "friends": {
+        "title": "친구",
+        "help": "서로의 움직임에 끌려요"
+      },
+      "frenemies": {
+        "title": "애증 관계",
+        "help": "가깝지만 계속 서로를 점프하게 만들어요"
+      },
+      "rivals": {
+        "title": "라이벌",
+        "help": "아레나에서 계속 마주쳐요"
+      },
+      "enemies": {
+        "title": "적",
+        "help": "한쪽이 다른 쪽을 점프하게 만들어요"
+      },
+      "acquaintances": {
+        "title": "아는 사이",
+        "help": "몇 번 스쳐 지나갔어요"
+      }
+    },
+    "kin": {
+      "parent": "부모",
+      "child": "자식",
+      "sibling": "형제"
+    },
+    "babies": {
+      "one": "함께 낳은 아기 {count}마리",
+      "other": "함께 낳은 아기 {count}마리"
+    },
+    "isIts": "{name}은(는) 이 파리의 {kin}",
+    "caughtEye": "서로 눈길 끈 횟수 {n}×",
+    "madeJump": "서로 점프시킨 횟수 {n}×",
+    "bumped": "부딪힘 {n}×",
+    "duels": "결투 {record}",
+    "barelyMet": "거의 안 만남",
+    "titleFly": "{name}의 관계",
+    "titleAll": "소셜 웹",
+    "close": "닫기 ✕",
+    "whose": "누구의 관계",
+    "everyone": "모두",
+    "window": "기간",
+    "h24": "24시간",
+    "days": "{n}일",
+    "lede": "아무도 정해주지 않아요. 파리들의 뇌가 서로에게 한 일에서 나와요: 상대를 점프하게 만든 것, 눈길을 끈 움직임, 부딪힘, 결투, 아기. 오래된 일은 희미해져서 친구가 적이 될 수도 있어요.",
+    "reading": "누가 누굴 좋아하는지 읽는 중…",
+    "noneYet": "아직 관계가 없어요. {name}에겐 이웃이 필요해요: 같은 패치의 파리들이 서로를 자극해요.",
+    "highlights": {
+      "friend": "베프",
+      "enemy": "최악의 적",
+      "rival": "최대 라이벌",
+      "scary": "제일 무서워하는 상대"
+    },
+    "byKind": "종류별 관계",
+    "graphCap": "웹에는 {n}개 중 가장 강한 {max}개가 표시되고, 전부는 아래에 나와요.",
+    "madeItJump": "점프시킨 횟수 {n}×",
+    "inDuels": "결투 {record}",
+    "nobody": "아직 없음",
+    "clickFly": "웹에서 파리를 클릭하면 둘 사이에 무슨 일이 있었는지 볼 수 있어요.",
+    "noReactions": "뇌 반응 없음, 결투나 가족 관계만",
+    "mood": "{warm}% 훈훈, {tense}% 긴장",
+    "moodTitle": "{warm}% 훈훈 · {tense}% 긴장",
+    "lineColours": "선 색깔",
+    "legend": {
+      "friendly": "친한 사이",
+      "family": "가족",
+      "enemies": "적",
+      "frenemies": "애증 관계",
+      "rivals": "라이벌",
+      "acquaintances": "아는 사이",
+      "thicker": "굵을수록 가까움"
+    },
+    "graphLabel": "{name}의 관계: 파리 {n}마리",
+    "it": "이 파리",
+    "rows": {
+      "jump": "상대를 점프하게 만듦",
+      "eye": "상대의 눈길을 끎",
+      "bump": "상대와 부딪힘"
+    },
+    "back": "뒤로",
+    "last": " · 마지막 {ago}",
+    "by": "{name}",
+    "duelWins": "결투 승리",
+    "drawn": {
+      "one": "무승부 결투 {count}번",
+      "other": "무승부 결투 {count}번"
+    },
+    "isOf": "{other}은(는) {me}의 {kin}",
+    "seeWeb": "{name}의 웹 보기",
+    "theirPosts": "이 파리의 포스트",
+    "noneInWindow": "이 기간엔 아직 관계가 없어요.",
+    "showThese": "이 관계 보기",
+    "toggleTitle": "{help} · 클릭해서 {action}",
+    "hide": "숨기기",
+    "show": "보기",
+    "nothingShown": "표시할 게 없어요. 위에서 관계 종류를 켜세요.",
+    "webLabel": "소셜 웹: 파리 {flies}마리, 관계 {n}개",
+    "openIts": "{name}: 관계 열기",
+    "webHelp": "위의 종류를 클릭해 보이거나 숨기고, 파리를 클릭해 관계를 열어 보세요."
+  },
+  "patch": {
+    "poke": "찌르기: ",
+    "mapLabel": "패치와 파리들의 지도",
+    "replay": "틱 #{tick} 리플레이, 3× 느리게.",
+    "noReplay": "아직 리플레이가 없어요: 다음 틱에 채워져요.",
+    "how": "파리들은 자기 방향 전환, 걷기, 탈출 뉴런으로 움직여요. 선은 한 파리가 다른 파리를 자극한 걸 보여줘요:",
+    "sawJump": " 점프를 봄",
+    "sawMove": " 움직임을 봄",
+    "bumped": " 부딪힘"
+  },
+  "errors": {
+    "captcha": "캡차를 불러오지 못했어요",
+    "request": "요청 실패 ({status})"
+  },
+  "patches": {
+    "fruit-bowl": {
+      "name": "과일 그릇",
+      "blurb": "잘 익은 과일, 다른 파리들, 맛볼 게 잔뜩."
+    },
+    "windowsill": {
+      "name": "창턱",
+      "blurb": "창문 틈새 바람과 휘두르는 손."
+    },
+    "compost-heap": {
+      "name": "퇴비 더미",
+      "blurb": "붐비고, 썩어가고, 다들 서로 부딪혀요."
+    },
+    "spider-corner": {
+      "name": "거미 구석",
+      "blurb": "조용해요. 안 조용해지기 전까진."
+    }
+  }
+}

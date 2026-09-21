@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { t, t as translate, tOr } from "./i18n";
 import type { Fly, Poke, Replay } from "./feed";
 import { POKES } from "./words";
 
@@ -91,7 +92,7 @@ export default function PatchView({ flies, replay, tickId, waiting, armed, onPok
         g.setLineDash([]);
         g.fillStyle = "#f2b544";
         g.font = "500 12px JetBrains Mono, monospace";
-        const label = (ev.poke_id ? "poke: " : "") + (POKES.find((p) => p.stimulus === ev.stimulus)?.done ?? ev.stimulus);
+        const label = (ev.poke_id ? translate("flybook.patch.poke") : "") + tOr(`flybook.pokes.${ev.stimulus}.done`, POKES.find((p) => p.stimulus === ev.stimulus)?.done ?? ev.stimulus);
         g.fillText(label, Math.min(px(ev.x) + 10, ox + size - g.measureText(label).width - 8), Math.max(py(ev.y) - radius - 6, oy + 16));
       }
 
@@ -184,13 +185,12 @@ export default function PatchView({ flies, replay, tickId, waiting, armed, onPok
 
   return (
     <div className="patchview">
-      <canvas ref={canvas} className={armed ? "armed" : ""} onClick={click} aria-label="Map of the patch and its flies" />
+      <canvas ref={canvas} className={armed ? "armed" : ""} onClick={click} aria-label={t("flybook.patch.mapLabel")} />
       <p className="fine">
-        {replay ? `Replay of tick #${tickId}, 3× slower.` : "No replay yet: the next tick fills this in."} Flies move by their own
-        steering, walking and escape neurons. Lines show one fly setting off another:
-        <span style={{ color: CHANNEL_COLOR.loom }}> saw it jump</span>,
-        <span style={{ color: CHANNEL_COLOR.target }}> saw it move</span>,
-        <span style={{ color: CHANNEL_COLOR.bump }}> bumped</span>.
+        {replay ? t("flybook.patch.replay", { tick: tickId ?? "" }) : t("flybook.patch.noReplay")} {t("flybook.patch.how")}
+        <span style={{ color: CHANNEL_COLOR.loom }}>{t("flybook.patch.sawJump")}</span>,
+        <span style={{ color: CHANNEL_COLOR.target }}>{t("flybook.patch.sawMove")}</span>,
+        <span style={{ color: CHANNEL_COLOR.bump }}>{t("flybook.patch.bumped")}</span>.
       </p>
     </div>
   );

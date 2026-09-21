@@ -11,8 +11,10 @@ import Captcha, { CAPTCHA_KEY } from "./Captcha";
 import FlyMaker from "./FlyMaker";
 import { setStoredClaim, useStoredClaim } from "./Merch";
 import { BUY_URL, FLYAI, erc20, robinhood } from "./wallet";
+import { locale, t, tn } from "./i18n";
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+// the message the wallet signs stays English: it is checked against the Supabase sign-in, not shown as UI
 const SIGN_IN_STATEMENT = "Sign in to Flybook. This is free and sends no transaction.";
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e)).split("\n")[0];
 
@@ -96,7 +98,7 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
   };
 
   const needCaptcha = () => {
-    if (CAPTCHA_KEY && !captcha) throw new Error("Complete the check below first.");
+    if (CAPTCHA_KEY && !captcha) throw new Error(t("flybook.account.completeCheck"));
     return captcha ?? undefined;
   };
   const usedCaptcha = () => {
@@ -106,14 +108,14 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
 
   const signIn = () =>
     run(async () => {
-      if (!db || !connector || !address) throw new Error("Wallet not ready, try connecting again.");
+      if (!db || !connector || !address) throw new Error(t("flybook.account.walletNotReady"));
       const captchaToken = needCaptcha();
       // sign on Robinhood Chain: switch the wallet first (wagmi adds the chain if the wallet doesn't have it)
       if (chainId !== robinhood.id) {
         try {
           await switchChain.mutateAsync({ chainId: robinhood.id });
         } catch {
-          throw new Error("Switch your wallet to Robinhood Chain to sign in.");
+          throw new Error(t("flybook.account.switchChain"));
         }
       }
       const provider = (await connector.getProvider()) as EIP1193Provider;
@@ -156,9 +158,9 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
 
   const sendLink = () =>
     run(async () => {
-      if (!db) throw new Error("Sign-in isn't available right now.");
+      if (!db) throw new Error(t("flybook.account.signInUnavailable"));
       const to = email.trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) throw new Error("That doesn't look like an email address.");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) throw new Error(t("flybook.account.badEmail"));
       const captchaToken = needCaptcha();
       try {
         const { error } = await db.auth.signInWithOtp({
@@ -194,17 +196,16 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
   if (!live) {
     return (
       <section className="card cta" id="account">
-        <h4>Make your own fly</h4>
-        <p>Sign in free to make a fly, tune its senses and neurons, and watch what its brain says. $FLYAI holders make
-          up to 3 flies, and every 2 weeks the top 3 holders on the season board win $FLYAI.</p>
-        <a className="btn red" href={BUY_URL} target="_blank" rel="noreferrer">Get $FLYAI</a>
+        <h4>{t("flybook.account.title")}</h4>
+        <p>{t("flybook.account.demoPitch")}</p>
+        <a className="btn red" href={BUY_URL} target="_blank" rel="noreferrer">{t("flybook.account.getFlyai")}</a>
       </section>
     );
   }
 
   // the browser's read, else the API's read, else /me once signed in; undefined while nobody knows yet
   const known = balance.data ?? serverBalance ?? (me?.wallet && !wrongWallet ? BigInt(me.balance) : undefined);
-  const tokens = Number(formatUnits(known ?? 0n, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const tokens = Number(formatUnits(known ?? 0n, 18)).toLocaleString(locale(), { maximumFractionDigits: 2 });
   const unreadable = known === undefined && balance.isError && serverFailed;
   const made = me ? me.flies.filter((f) => !f.auto_born && !f.gift).length : 0; // born and gift flies don't count toward the cap
   const signedIn = !!(session && me && !wrongWallet);
@@ -212,27 +213,27 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
 
   return (
     <section className="card cta account" id="account">
-      <h4>Make your own fly</h4>
+      <h4>{t("flybook.account.title")}</h4>
 
-      {session && !me && !error && <p className="fine">Loading your account…</p>}
+      {session && !me && !error && <p className="fine">{t("flybook.account.loading")}</p>}
 
       {signedIn && me && (
         <>
           <p className="mono small">
             {me.wallet
-              ? `${short(me.wallet)} · ${known !== undefined ? `${tokens} $FLYAI` : unreadable ? "balance unavailable right now" : "reading balance…"}`
-              : `${me.handle ?? "new player"} · ${me.email ?? "email account"}`}
+              ? `${short(me.wallet)} · ${known !== undefined ? `${tokens} $FLYAI` : t(unreadable ? "flybook.account.balanceUnavailable" : "flybook.account.readingBalance")}`
+              : `${me.handle ?? t("flybook.account.newPlayer")} · ${me.email ?? t("flybook.account.emailAccount")}`}
           </p>
 
           {needsName ? (
             <div className="signin-email">
-              <p>Pick a public name. It's shown on your comments and on the boards; your email never is.</p>
+              <p>{t("flybook.account.pickName")}</p>
               <div className="row">
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. buzz_aldrin" maxLength={20}
+                <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("flybook.account.namePlaceholder")} maxLength={20}
                        onKeyDown={(e) => e.key === "Enter" && name.trim() && !busy && saveName()} />
-                <button className="btn red" disabled={busy || name.trim().length < 3} onClick={saveName}>Save</button>
+                <button className="btn red" disabled={busy || name.trim().length < 3} onClick={saveName}>{t("flybook.account.save")}</button>
               </div>
-              <p className="fine">3-20 letters, digits or underscores.</p>
+              <p className="fine">{t("flybook.account.nameRule")}</p>
             </div>
           ) : (
             <>
@@ -244,71 +245,71 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
                       <div>
                         {f.name}
                         <span className="tune">
-                          {f.auto_born ? "born from mating · " : f.gift ? "merch gift · " : ""}gen {f.generation ?? 1} · Elo {f.elo ?? 1000} · {tuning(f).join(", ") || "standard"}
+                          {f.auto_born ? t("flybook.account.bornFromMating") : f.gift ? t("flybook.account.merchGift") : ""}
+                          {t("flybook.account.flyTune", { gen: f.generation ?? 1, elo: f.elo ?? 1000, tuning: tuning(f).join(", ") || t("flybook.account.standard") })}
                         </span>
                       </div>
                       <span className={`state${f.active ? "" : " dormant"}`}>
-                        {f.active ? patches.find((p) => p.id === f.patch_id)?.name ?? f.patch_id : "dormant"}
+                        {f.active ? patches.find((p) => p.id === f.patch_id)?.name ?? f.patch_id : t("flybook.account.dormant")}
                       </span>
                     </li>
                   ))}
                 </ul>
               )}
               {me.holder ? (
-                <p className="fine">$FLYAI holder: up to {me.holder_max_flies} flies, and you can win season rewards.</p>
+                <p className="fine">{t("flybook.account.holder", { max: me.holder_max_flies })}</p>
               ) : (
                 <p className="fine">
-                  Free account: {me.free_max_flies} fly, plus likes, comments, pokes and duels. Hold {me.min_tokens} $FLYAI
-                  {me.wallet ? " in this wallet" : " and sign in with that wallet"} to make up to {me.holder_max_flies} and win season rewards.
+                  {t(me.wallet ? "flybook.account.freeAccount" : "flybook.account.freeAccountEmail",
+                     { free: me.free_max_flies, min: me.min_tokens, max: me.holder_max_flies })}
                 </p>
               )}
               {me.flies.some((f) => f.auto_born) && (
-                <p className="fine">Flies born from mating with other people's flies don't count toward your limit.</p>
+                <p className="fine">{t("flybook.account.bornDontCount")}</p>
               )}
               {gift && (
                 <div className="gift-box">
-                  <p>🎁 Your merch card came with a free fly. It doesn't count toward your limit.</p>
+                  <p>{t("flybook.account.giftFly")}</p>
                   <div className="row">
-                    <button className="btn red" onClick={() => setMaking("gift")}>Hatch your free fly</button>
-                    <button className="more" onClick={() => setStoredClaim(null)}>not now</button>
+                    <button className="btn red" onClick={() => setMaking("gift")}>{t("flybook.account.hatchFree")}</button>
+                    <button className="more" onClick={() => setStoredClaim(null)}>{t("flybook.account.notNow")}</button>
                   </div>
                 </div>
               )}
               {made >= me.max_flies && (
-                <p className="fine">You've made {me.max_flies} {me.max_flies === 1 ? "fly" : "flies"}, your limit.</p>
+                <p className="fine">{t("flybook.account.atLimit", { count: me.max_flies })}</p>
               )}
               <div className="row">
-                {made < me.max_flies && <button className="btn red" onClick={() => setMaking("hatch")}>Hatch a fly</button>}
-                {made < me.max_flies && me.flies.length > 0 && <button className="btn" onClick={() => setBreeding(true)}>Breed a fly</button>}
-                {!me.holder && <a className="btn" href={BUY_URL} target="_blank" rel="noreferrer">Get $FLYAI</a>}
+                {made < me.max_flies && <button className="btn red" onClick={() => setMaking("hatch")}>{t("flybook.account.hatch")}</button>}
+                {made < me.max_flies && me.flies.length > 0 && <button className="btn" onClick={() => setBreeding(true)}>{t("flybook.account.breed")}</button>}
+                {!me.holder && <a className="btn" href={BUY_URL} target="_blank" rel="noreferrer">{t("flybook.account.getFlyai")}</a>}
               </div>
             </>
           )}
-          <button className="more" onClick={signOut}>sign out</button>
+          <button className="more" onClick={signOut}>{t("flybook.account.signOut")}</button>
         </>
       )}
 
       {wrongWallet && (
         <>
-          <p className="err">You're signed in as {short(me!.wallet!)}. Sign out to switch wallets.</p>
-          <button className="more" onClick={signOut}>sign out</button>
+          <p className="err">{t("flybook.account.wrongWallet", { wallet: short(me!.wallet!) })}</p>
+          <button className="more" onClick={signOut}>{t("flybook.account.signOut")}</button>
         </>
       )}
 
       {!session && (
         <>
-          {gift && <p className="gift-box">🎁 You have a free fly from your merch card. Sign in below (email works) to hatch it.</p>}
-          <p>Sign in free to make a fly, tune its senses and neurons, like, comment and poke. $FLYAI holders make up to 3
-            flies, and every 2 weeks the top 3 holders on the season board win $FLYAI.</p>
+          {gift && <p className="gift-box">{t("flybook.account.giftSignIn")}</p>}
+          <p>{t("flybook.account.pitch")}</p>
 
           {!isConnected && (
             <div className="row">
               {connectors.map((c) => (
                 <button key={c.uid} className="btn red" disabled={connect.isPending} onClick={() => connect.mutate({ connector: c })}>
-                  {connect.isPending ? "Connecting…" : c.name === "Injected" ? "Connect wallet" : `Connect ${c.name}`}
+                  {connect.isPending ? t("flybook.account.connecting") : c.name === "Injected" ? t("flybook.account.connectWallet") : t("flybook.account.connectNamed", { name: c.name })}
                 </button>
               ))}
-              <a className="btn" href={BUY_URL} target="_blank" rel="noreferrer">Get $FLYAI</a>
+              <a className="btn" href={BUY_URL} target="_blank" rel="noreferrer">{t("flybook.account.getFlyai")}</a>
             </div>
           )}
           {connect.error && <p className="err">{message(connect.error)}</p>}
@@ -316,25 +317,25 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
           {isConnected && address && (
             <>
               <p className="mono small">
-                {short(address)} · {known !== undefined ? `${tokens} $FLYAI` : unreadable ? "balance unavailable right now" : "reading balance…"}
+                {short(address)} · {known !== undefined ? `${tokens} $FLYAI` : t(unreadable ? "flybook.account.balanceUnavailable" : "flybook.account.readingBalance")}
               </p>
-              {known === 0n && <p className="fine">This wallet holds no $FLYAI yet: you can still sign in and make {1} fly.</p>}
+              {known === 0n && <p className="fine">{t("flybook.account.noFlyaiYet")}</p>}
               <div className="row">
-                <button className="btn red" disabled={busy} onClick={signIn}>{busy ? "Check your wallet…" : "Sign in with wallet"}</button>
-                <button className="more" onClick={() => disconnect.mutate()}>disconnect</button>
+                <button className="btn red" disabled={busy} onClick={signIn}>{t(busy ? "flybook.account.checkWallet" : "flybook.account.signInWallet")}</button>
+                <button className="more" onClick={() => disconnect.mutate()}>{t("flybook.account.disconnect")}</button>
               </div>
             </>
           )}
 
           <div className="signin-email">
-            <p className="or">or with email, no wallet needed</p>
+            <p className="or">{t("flybook.account.orEmail")}</p>
             {sentTo ? (
-              <p>Check your inbox: we sent a sign-in link to <b>{sentTo}</b>. <button className="more" onClick={() => setSentTo(null)}>use another email</button></p>
+              <p>{tn("flybook.account.checkInbox", { email: <b>{sentTo}</b> })} <button className="more" onClick={() => setSentTo(null)}>{t("flybook.account.otherEmail")}</button></p>
             ) : (
               <div className="row">
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email"
                        onKeyDown={(e) => e.key === "Enter" && email.trim() && !busy && sendLink()} />
-                <button className="btn" disabled={busy || !email.trim()} onClick={sendLink}>Email me a link</button>
+                <button className="btn" disabled={busy || !email.trim()} onClick={sendLink}>{t("flybook.account.emailMe")}</button>
               </div>
             )}
           </div>
@@ -345,7 +346,7 @@ export default function Account({ patches, live, onCreated, onViewer, house }: {
       {error && <p className="err">{error}</p>}
 
       {!(signedIn && !needsName && made < (me?.max_flies ?? 0)) && (
-        <button className="more" onClick={() => setMaking("preview")}>browse the fly profiles</button>
+        <button className="more" onClick={() => setMaking("preview")}>{t("flybook.account.browse")}</button>
       )}
       {breeding && me && (
         <BreedDialog mine={me.flies as Fly[]} house={house} patches={patches} onClose={() => setBreeding(false)} onCreated={created} />
