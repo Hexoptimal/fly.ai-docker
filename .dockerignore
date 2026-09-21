@@ -1,17 +1,37 @@
-# Only the Flybook worker image is built from here; keep the context small.
+# Git and environments
 .git
 .venv
+node_modules
+**/node_modules
+
+# Build artifacts & local caches
+dist
+**/dist
+dist-*
+**/dist-*
 .vercel
 .vercel-out
 __pycache__
 **/__pycache__
-docs
-world
-sshfighter
-notebooks
-talk
-talk-*
-flybook/web
-flybook/supabase
+*.pyc
+
+# Local runtime data
+data/
+fly-data/
+logs/
+recordings*/
+readout.npz
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Large binary media and unused research drafts
 *.mp4
-*.webp
+notebooks/
+talk/
+talk-*/
+sshfighter/
+flybook/supabase/.temp/
+flybook/supabase/.branches/
