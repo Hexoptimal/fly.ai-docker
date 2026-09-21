@@ -38,6 +38,8 @@ services:
       - WORLD_MIN_FLIES=${WORLD_MIN_FLIES:-8}
       - WORLD_MAX_FLIES=${WORLD_MAX_FLIES:-40}
       - WORLD_ORIGINS=${WORLD_ORIGINS:-*}
+      - WORLD_REALTIME_CLOCK=${WORLD_REALTIME_CLOCK:-1}
+      - WORLD_DAY_LENGTH=${WORLD_DAY_LENGTH:-86400}
     volumes:
       - world_data:/app/world/world-data
     restart: unless-stopped

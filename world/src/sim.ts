@@ -266,6 +266,10 @@ export interface WorldOptions {
   /** "vary": founders draw their genes; "fixed": every founder gets the mean genome (old behaviour, tools) */
   genes?: "vary" | "fixed";
   learning?: Learning;
+  /** Length of one in-world day in seconds (default 300; 86400 for 24h real-time day) */
+  dayLength?: number;
+  /** If true, synchronize time of day, clock, and daylight with the real-world 24-hour clock */
+  realTimeClock?: boolean;
 }
 
 export class World {
@@ -299,10 +303,12 @@ export class World {
   broodDeaths: Record<string, number> = {};
   /** population history for the graph: [adults, larvae] every second */
   history: [number, number][] = [];
-  /** one in-world day, in seconds */
+  /** one in-world day, in seconds (default 300; 86400 for 24h real-world day) */
   dayLength = 300;
   /** 0 = midnight, 0.5 = midday */
   timeOfDay = 0.32; // start mid-morning
+  /** if true, syncs timeOfDay with the real-world 24-hour clock */
+  realTimeClock = false;
   /** what just happened and where, for the markers on the map */
   events: WorldEvent[] = [];
   /** which learning rules every brain runs (shared object: flip a field and every fly follows) */
@@ -332,10 +338,23 @@ export class World {
     this.geneRand = mulberry32(seed ^ 0x5eed5);
     this.genes = opts.genes ?? "vary";
     this.learning = opts.learning ?? { hebbian: false, reward: false, mb: true };
+    if (opts.realTimeClock) {
+      this.realTimeClock = true;
+      this.dayLength = opts.dayLength ?? 86400;
+      this.syncRealTime();
+    } else if (opts.dayLength) {
+      this.dayLength = opts.dayLength;
+    }
     this.field = new OdourField(seed + 99);
     this.wiring = buildWiring(64);
     this.buildProps();
     this.setFlyCount(flyCount);
+  }
+
+  /** Synchronize in-world timeOfDay and daylight with the current local time */
+  syncRealTime(): void {
+    const now = new Date();
+    this.timeOfDay = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds() + now.getMilliseconds() / 1000) / 86400;
   }
 
   /** seconds since the world started */
@@ -702,7 +721,11 @@ export class World {
   step(): void {
     const dt = this.params.dt;
     const t = this.steps * dt;
-    this.timeOfDay = (this.timeOfDay + dt / this.dayLength) % 1;
+    if (this.realTimeClock && this.steps % 50 === 0) {
+      this.syncRealTime();
+    } else {
+      this.timeOfDay = (this.timeOfDay + dt / this.dayLength) % 1;
+    }
     for (let i = this.events.length - 1; i >= 0; i--) {
       const e = this.events[i];
       e.age += dt;

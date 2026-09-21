@@ -43,6 +43,8 @@ const CFG = {
   stopAfterS: num("WORLD_STOP_AFTER_S", 0),
   speed: num("WORLD_SPEED", 1),
   maxClients: num("LIVE_MAX_CLIENTS", 300),
+  realTimeClock: env.WORLD_REALTIME_CLOCK !== "0" && env.WORLD_REALTIME_CLOCK !== "false",
+  dayLength: num("WORLD_DAY_LENGTH", 86400),
   origins: (env.WORLD_ORIGINS ?? "https://flyaiworld.com,https://www.flyaiworld.com,http://localhost:5173").split(","),
 };
 const STEP_HZ = 50;
@@ -75,13 +77,16 @@ const last = env.WORLD_RESET === "1" ? null : await sink.latestCheckpoint();
 if (last) {
   const restored = World.fromCheckpoint(decode(last.data));
   world = restored.world;
+  world.realTimeClock = CFG.realTimeClock;
+  world.dayLength = CFG.dayLength;
+  if (CFG.realTimeClock) world.syncRealTime();
   runId = last.runId;
-  log(`resumed run ${runId} at t=${Math.round(world.time)} s: ${world.flies.length} flies, ${world.props.length} props` +
+  log(`resumed run ${runId} at t=${Math.round(world.time)} s: ${world.flies.length} flies, ${world.props.length} props (clock: ${world.clock})` +
     (restored.weightsKept ? "" : " (wiring changed since the checkpoint: genes carried over, learned synapses reset)"));
 } else {
-  world = new World(Math.min(CFG.startFlies, CFG.maxFlies), CFG.seed);
+  world = new World(Math.min(CFG.startFlies, CFG.maxFlies), CFG.seed, { realTimeClock: CFG.realTimeClock, dayLength: CFG.dayLength });
   runId = await sink.createRun(CFG.seed, env.GIT_SHA ?? "unknown", { ...CFG, origins: undefined });
-  log(`new run ${runId}: seed ${CFG.seed}, ${world.flies.length} flies (${sink.kind} sink)`);
+  log(`new run ${runId}: seed ${CFG.seed}, ${world.flies.length} flies (${sink.kind} sink, clock: ${world.clock})`);
 }
 world.maxFlies = CFG.maxFlies;
 // the in-memory tables only need to hold what the report and CSV endpoints show; the database keeps the rest
