@@ -41,7 +41,7 @@ services:
       - WORLD_REALTIME_CLOCK=${WORLD_REALTIME_CLOCK:-1}
       - WORLD_DAY_LENGTH=${WORLD_DAY_LENGTH:-86400}
     volumes:
-      - world_data:/app/world/world-data
+      - "${DATA_DIR:-./data}/world:/app/world/world-data"
     restart: unless-stopped
     networks:
       - flyai-net
@@ -65,7 +65,7 @@ services:
       - ROBINHOOD_RPC=${ROBINHOOD_RPC:-https://rpc.mainnet.chain.robinhood.com}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
     volumes:
-      - fly_data:/data
+      - "${DATA_DIR:-./data}/brain:/data"
     restart: unless-stopped
     networks:
       - flyai-net
@@ -83,7 +83,7 @@ services:
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
       - NUMBA_NUM_THREADS=${NUMBA_NUM_THREADS:-4}
     volumes:
-      - fly_data:/data
+      - "${DATA_DIR:-./data}/brain:/data"
     restart: unless-stopped
     networks:
       - flyai-net
@@ -102,18 +102,10 @@ services:
       - ADMIN_TOKEN=${ADMIN_TOKEN:-}
       - TRUST_PROXY=1
     volumes:
-      - mine_data:/data
+      - "${DATA_DIR:-./data}/compute:/data"
     restart: unless-stopped
     networks:
       - flyai-net
-
-volumes:
-  world_data:
-    name: flyai_world_data
-  fly_data:
-    name: flyai_fly_data
-  mine_data:
-    name: flyai_mine_data
 
 networks:
   flyai-net:

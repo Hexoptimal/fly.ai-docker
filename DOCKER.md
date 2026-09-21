@@ -187,12 +187,18 @@ WORLD_SINK=files
 
 ---
 
-## 6. Persistent Volumes
+## 6. Persistent Storage & Folder Structure
 
-All stateful data is preserved in Docker named volumes:
-- `flyai_world_data`: Stores simulated fly world history, population lineage, events, and checkpoints (`/app/world/world-data`).
-- `flyai_fly_data`: Stores downloaded MaleCNS connectome weights (`weights.npz` and `brain.npz` in `/data`).
-- `flyai_mine_data`: Stores the compute server SQLite database (`/data/mine.db`).
+All stateful data is preserved on your host filesystem under the base directory configured by `DATA_DIR` in `.env` (default: `./data`):
+
+```
+${DATA_DIR:-./data}/
+├── world/      # 3D World history, lineages, events, and checkpoint snapshots (/app/world/world-data)
+├── brain/      # MaleCNS connectome weights (weights.npz, brain.npz) & Flybook data (/data)
+└── compute/    # Compute coordinator SQLite database (mine.db) (/data)
+```
+
+You can point `DATA_DIR` to any location on your host (e.g. `DATA_DIR=/var/lib/flyai/data` or `DATA_DIR=/mnt/storage/flyai`) to store data across restarts and upgrades. Docker will create the subfolders automatically on first launch.
 
 ---
 

@@ -5,6 +5,7 @@ __pycache__/
 
 # Connectome data and built network (downloaded/built by flybrain/build.py, ~1.3 GB)
 fly-data/
+data/
 *.npz
 *.feather
 
