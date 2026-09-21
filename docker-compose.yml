@@ -1,0 +1,119 @@
+name: flyai
+
+services:
+  # Static Web Frontend & UI Applications
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: flyai-web
+    ports:
+      - "${WEB_PORT:-3000}:80"
+    restart: unless-stopped
+    networks:
+      - flyai-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Always-on 3D Fruit Fly Connectome World Simulation Server
+  world-sim:
+    build:
+      context: .
+      dockerfile: world/server/Dockerfile
+    container_name: flyai-world-sim
+    ports:
+      - "${WORLD_SIM_PORT:-8082}:8080"
+    environment:
+      - PORT=8080
+      - NODE_ENV=production
+      - WORLD_SINK=${WORLD_SINK:-files}
+      - WORLD_DATA_DIR=/app/world/world-data
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
+      - WORLD_SEED=${WORLD_SEED:-1234}
+      - WORLD_START_FLIES=${WORLD_START_FLIES:-24}
+      - WORLD_MIN_FLIES=${WORLD_MIN_FLIES:-8}
+      - WORLD_MAX_FLIES=${WORLD_MAX_FLIES:-40}
+      - WORLD_ORIGINS=${WORLD_ORIGINS:-*}
+    volumes:
+      - world_data:/app/world/world-data
+    restart: unless-stopped
+    networks:
+      - flyai-net
+
+  # Flybook Connectome REST API
+  flybook-api:
+    build:
+      context: .
+      dockerfile: flybook/worker/Dockerfile
+    container_name: flyai-flybook-api
+    command: ["python", "flybook/worker/api.py"]
+    ports:
+      - "${FLYBOOK_API_PORT:-8081}:8080"
+    environment:
+      - PORT=8080
+      - FLY_DATA=/data
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
+      - FLYBOOK_ORIGINS=${FLYBOOK_ORIGINS:-*}
+      - FLYBOOK_MAX_FLIES=${FLYBOOK_MAX_FLIES:-3}
+      - ROBINHOOD_RPC=${ROBINHOOD_RPC:-https://rpc.mainnet.chain.robinhood.com}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+    volumes:
+      - fly_data:/data
+    restart: unless-stopped
+    networks:
+      - flyai-net
+
+  # Flybook Simulation Background Worker
+  flybook-worker:
+    build:
+      context: .
+      dockerfile: flybook/worker/Dockerfile
+    container_name: flyai-flybook-worker
+    command: ["python", "flybook/worker/tick.py", "--every", "${TICK_INTERVAL:-120}"]
+    environment:
+      - FLY_DATA=/data
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
+      - NUMBA_NUM_THREADS=${NUMBA_NUM_THREADS:-4}
+    volumes:
+      - fly_data:/data
+    restart: unless-stopped
+    networks:
+      - flyai-net
+
+  # Distributed Compute & Mining Coordinator
+  compute-server:
+    build:
+      context: .
+      dockerfile: mine/Dockerfile
+    container_name: flyai-compute
+    ports:
+      - "${COMPUTE_PORT:-8787}:8080"
+    environment:
+      - PORT=8080
+      - MINE_DB=/data/mine.db
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-}
+      - TRUST_PROXY=1
+    volumes:
+      - mine_data:/data
+    restart: unless-stopped
+    networks:
+      - flyai-net
+
+volumes:
+  world_data:
+    name: flyai_world_data
+  fly_data:
+    name: flyai_fly_data
+  mine_data:
+    name: flyai_mine_data
+
+networks:
+  flyai-net:
+    name: flyai-net
+    driver: bridge

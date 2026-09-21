@@ -1,0 +1,87 @@
+# ==============================================================================
+# Example Nginx Reverse Proxy Configuration for fly.ai
+# ==============================================================================
+# Drop this into /etc/nginx/sites-available/flyai (or your host Nginx config)
+# and adjust server_name / ports to match your server environment.
+# ==============================================================================
+
+upstream flyai_web_upstream {
+    server 127.0.0.1:3000;
+    keepalive 32;
+}
+
+upstream flyai_world_sim_upstream {
+    server 127.0.0.1:8082;
+    keepalive 32;
+}
+
+upstream flyai_flybook_api_upstream {
+    server 127.0.0.1:8081;
+    keepalive 32;
+}
+
+upstream flyai_compute_upstream {
+    server 127.0.0.1:8787;
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name flyai.example.com; # Replace with your domain or IP
+
+    # Security & General Proxy Headers
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # --------------------------------------------------------------------------
+    # 1. World Simulation Live Stream & Data (Server-Sent Events / Realtime feed)
+    # --------------------------------------------------------------------------
+    location /live {
+        proxy_pass http://flyai_world_sim_upstream/live;
+        proxy_http_version 1.1;
+        proxy_set_header Connection '';
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+
+    location /data {
+        proxy_pass http://flyai_world_sim_upstream/data;
+    }
+
+    # World Simulation API endpoints (/health, /report, /state, /export)
+    location /api/world/ {
+        rewrite ^/api/world/(.*) /$1 break;
+        proxy_pass http://flyai_world_sim_upstream;
+    }
+
+    # --------------------------------------------------------------------------
+    # 2. Flybook REST API Backend
+    # --------------------------------------------------------------------------
+    location /api/flybook/ {
+        rewrite ^/api/flybook/(.*) /$1 break;
+        proxy_pass http://flyai_flybook_api_upstream;
+    }
+
+    # --------------------------------------------------------------------------
+    # 3. Compute / Mining Server API
+    # --------------------------------------------------------------------------
+    location /api/compute/ {
+        rewrite ^/api/compute/(.*) /$1 break;
+        proxy_pass http://flyai_compute_upstream;
+    }
+
+    # --------------------------------------------------------------------------
+    # 4. Web Frontend (Docs, 3D Simulation, Flybook UI, Compute UI, Radio, etc.)
+    # --------------------------------------------------------------------------
+    location / {
+        proxy_pass http://flyai_web_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}

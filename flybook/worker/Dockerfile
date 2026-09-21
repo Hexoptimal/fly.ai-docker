@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir -r flybook/worker/requirements.txt
 
 # The brain files (~260 MB) come from the flybrain data release, sha256-checked, fetched once
 # at build time so machines start without downloading anything.
-ENV FLY_DATA=/data PYTHONUNBUFFERED=1
+ENV FLY_DATA=/data PYTHONUNBUFFERED=1 PYTHONPATH="/app:/app/flybook/worker"
 RUN flybrain download
 
 COPY flytalk.py ./
