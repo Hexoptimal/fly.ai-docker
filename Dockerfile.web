@@ -8,10 +8,10 @@ RUN npm install
 COPY world/ ./
 ARG VITE_WORLD_SERVER=""
 ENV VITE_WORLD_SERVER=$VITE_WORLD_SERVER
-RUN npm run build && \
-    npm run build:radio && \
-    npm run build:roulette && \
-    npm run build:flinder
+RUN npx vite build && \
+    npx vite build --config vite.radio.config.ts && \
+    npx vite build --config vite.roulette.config.ts && \
+    npx vite build --config vite.flinder.config.ts
 
 # Stage 2: Build Flybook web app
 FROM node:22-alpine AS build-flybook
@@ -19,7 +19,7 @@ WORKDIR /app/flybook/web
 COPY flybook/web/package.json ./
 RUN npm install
 COPY flybook/web/ ./
-RUN npm run build
+RUN npx vite build
 
 # Stage 3: Build compute web app & wallet
 FROM node:22-alpine AS build-compute
