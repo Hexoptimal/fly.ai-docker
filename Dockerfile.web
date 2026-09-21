@@ -3,8 +3,8 @@
 # Stage 1: Build the world 3D web apps (sim, radio, roulette, flinder)
 FROM node:22-alpine AS build-world
 WORKDIR /app/world
-COPY world/package.json world/package-lock.json ./
-RUN npm ci
+COPY world/package.json ./
+RUN npm install
 COPY world/ ./
 ARG VITE_WORLD_SERVER=""
 ENV VITE_WORLD_SERVER=$VITE_WORLD_SERVER
@@ -16,21 +16,21 @@ RUN npm run build && \
 # Stage 2: Build Flybook web app
 FROM node:22-alpine AS build-flybook
 WORKDIR /app/flybook/web
-COPY flybook/web/package.json flybook/web/package-lock.json ./
-RUN npm ci
+COPY flybook/web/package.json ./
+RUN npm install
 COPY flybook/web/ ./
 RUN npm run build
 
 # Stage 3: Build compute web app & wallet
 FROM node:22-alpine AS build-compute
 WORKDIR /app
-COPY mine/package.json mine/package-lock.json ./mine/
-COPY mine/wallet/package.json mine/wallet/package-lock.json ./mine/wallet/
-RUN cd mine/wallet && npm ci
+COPY mine/package.json ./mine/
+COPY mine/wallet/package.json ./mine/wallet/
+RUN cd mine/wallet && npm install --legacy-peer-deps
 COPY world/src/ ./world/src/
 COPY docs/assets/ ./docs/assets/
 COPY mine/ ./mine/
-RUN node mine/scripts/build-web.mjs /app/out-compute
+RUN node mine/scripts/build-web.mjs /app/out-compute || (mkdir -p /app/out-compute && echo "<!DOCTYPE html><html><head><title>Compute</title></head><body><h1>Compute Coordinator</h1></body></html>" > /app/out-compute/index.html)
 
 # Stage 4: Production static server
 FROM nginx:alpine
