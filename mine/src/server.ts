@@ -1020,7 +1020,9 @@ function linkBySession(req: IncomingMessage, body: any) {
 
 const openFrom = db.prepare("select id, params, kind from tasks where state = 'open' and kind = 'connectome' and r >= ? and r < ? order by r limit 16");
 const canaryFrom = db.prepare("select id, params, kind from tasks where truth is not null and kind = 'connectome' and r >= ? and r < ? order by r limit 16");
-const alreadyHad = db.prepare("select task from assignments where miner = ? and task in (select value from json_each(?))");
+// By task, never by miner: the planner picked assignments_by_miner, which walks every job the miner ever had (360k
+// for the busiest), ~150 ms a call and up to two calls per job in a 32-job claim. That froze the server (2026-09-21).
+const alreadyHad = db.prepare("select task from assignments indexed by assignments_by_task where miner = ? and task in (select value from json_each(?))");
 
 /** From a random point on the sort key, the first job this miner hasn't had; wraps around once. */
 function pick(from: typeof openFrom, miner: string): TaskRow | undefined {
@@ -1531,39 +1533,26 @@ const stats = cached(10_000, (_: null) => ({
 /**
  * Screen results, averaged over seeds, as spikes per neuron per second. A job counts once the server has
  * re-run it, or once a miner with no wrong answers has returned it. Hashes are never included.
+ *
+ * Worked out in src/results.worker.ts: over ~2M jobs it takes a minute, which on this thread froze every request
+ * (2026-09-21). A request gets the last finished summary and starts a fresh one when that is RESULTS_MS old.
  */
-const results = cached(60_000, (_: null) => {
+const RESULTS_MS = 10 * 60_000;
+let resultsDone: { at: number; value: unknown } | null = null;
+let resultsRunning = false;
+function results(): unknown {
   const ref = reference!;
-  const rows = db.prepare(`
-    select t.params, t.truth is not null as checked, coalesce(t.truth, (
-      select a.result from assignments a join miners m on m.id = a.miner
-      where a.task = t.id and (a.status = 'accepted' or (a.status = 'pending' and m.strikes = 0)) limit 1)) as result
-    from tasks t where t.state = 'done' and t.kind = 'connectome'`).all() as unknown as { params: string; checked: number; result: string | null }[];
-  const { outputs, outputSizes, dt } = ref;
-  type Cell = { params: Omit<TaskParams, "seed">; seeds: number; checked: number; base: number[]; stim: number[] };
-  const cells = new Map<string, Cell>();
-  for (const row of rows) {
-    if (!row.result) continue;
-    const { seed: _seed, ...params } = JSON.parse(row.params) as TaskParams;
-    const r = JSON.parse(row.result) as TaskResult;
-    const key = JSON.stringify(params);
-    const c = cells.get(key) ?? { params, seeds: 0, checked: 0, base: outputs.map(() => 0), stim: outputs.map(() => 0) };
-    c.seeds++;
-    c.checked += row.checked;
-    r.base.forEach((n, g) => { c.base[g] += n / (outputSizes[g] || 1) / (params.warm * dt); });
-    r.stim.forEach((n, g) => { c.stim[g] += n / (outputSizes[g] || 1) / ((params.steps - params.warm) * dt); });
-    cells.set(key, c);
+  if (!resultsRunning && (!resultsDone || Date.now() - resultsDone.at > RESULTS_MS)) {
+    resultsRunning = true;
+    const w = new Worker(new URL("./results.worker.ts", import.meta.url), {
+      workerData: { db: DB_PATH, outputs: ref.outputs, outputSizes: ref.outputSizes, dt: ref.dt },
+    });
+    w.once("message", (value) => { resultsDone = { at: Date.now(), value }; });
+    w.once("error", (err) => console.error(`results worker failed: ${err.message}`));
+    w.once("exit", () => { resultsRunning = false; });
   }
-  const round2 = (x: number) => Math.round(x * 100) / 100;
-  return {
-    units: "spikes per neuron per second, mean over seeds",
-    outputs,
-    rows: [...cells.values()].map((c) => ({
-      ...c.params, seeds: c.seeds, checked_seeds: c.checked,
-      base_hz: c.base.map((x) => round2(x / c.seeds)), stim_hz: c.stim.map((x) => round2(x / c.seeds)),
-    })),
-  };
-});
+  return resultsDone?.value ?? { units: "spikes per neuron per second, mean over seeds", outputs: ref.outputs, rows: [], computing: true };
+}
 
 // ---- paid orders -------------------------------------------------------------------------------------
 // create (terms and a tag) -> fund (an exact transfer, or the wallet's balance with a signature) -> live: jobs are
@@ -3019,7 +3008,7 @@ async function route(req: IncomingMessage, res: ServerResponse, url: URL): Promi
     if (p === "/api/stats") return send(res, 200, stats(null));
     if (p === "/api/results") {
       loaded();
-      return send(res, 200, results(null));
+      return send(res, 200, results());
     }
     if (p === "/api/epoch") {
       const day = url.searchParams.get("day") ?? today();

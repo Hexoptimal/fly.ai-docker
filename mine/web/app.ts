@@ -120,6 +120,10 @@ async function refresh(): Promise<void> {
   try {
     const me = await api(API, "/api/me", token);
     meLoaded = true;
+    const held = me.stake?.holding ?? (me.stake?.tier ? { tier: me.stake.tier, multiplier: me.stake.multiplier } : null);
+    tierNote = held ? `${held.tier} ${held.multiplier}×` : me.stake ? "1×" : "";
+    // two browsers can both be called "qq": the id tells them apart, and only linked ones are paid
+    $("miner-id").textContent = `${me.label || "unnamed"} · ${String(me.miner).slice(0, 8)}`;
     showWallet(me.wallet);
     // signed in on this site and the miner has no wallet yet: it takes the signed-in one, no questions
     if (!me.wallet && signedIn()) void linkMiner();
@@ -176,10 +180,17 @@ function stakeLine(s: {
 // ---- wallet ------------------------------------------------------------------------------------------
 let linked: string | null = null;
 let meLoaded = false;
+/**
+ * The tier this miner's points count at, shown next to the wallet: a staker whose miner sat unlinked read the
+ * "+1%" programs chip as their stake multiplier, with the real tier far down the page (2026-09-21).
+ */
+let tierNote = "";
 function showWallet(wallet: string | null): void {
   linked = wallet;
   const me = signedIn();
-  $("wallet").textContent = wallet ? `${shortAddress(wallet)} ✓` : "not linked: credit can't be paid";
+  $("wallet").textContent = wallet
+    ? `${shortAddress(wallet)} ✓${tierNote ? ` · ${tierNote}` : ""}`
+    : "not linked: counts 1× and can't be paid";
   $("wallet").title = wallet ?? "";
   // the button offers what would change: sign in, or move this miner to the signed-in wallet
   $("connect-wallet").hidden = !!wallet && wallet === me;
